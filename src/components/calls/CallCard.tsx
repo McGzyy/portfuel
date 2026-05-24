@@ -1,26 +1,39 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { CallEngagement } from "@/components/calls/CallEngagement";
+import { CallPriceMetrics } from "@/components/calls/CallPriceMetrics";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn, formatPct, timeAgo } from "@/lib/utils";
 import type { TeaserCallRow } from "@/lib/db/supabase";
 
+type CallCardExtras = {
+  entry_price?: number | null;
+  target_price?: number | null;
+  stop_price?: number | null;
+  last_price?: number | null;
+  timeframe_tag?: string | null;
+};
+
+export type CallCardData = (TeaserCallRow | {
+  id: string;
+  symbol: string;
+  asset_class?: "equity" | "crypto";
+  direction: "long" | "short";
+  thesis: string;
+  called_at: string;
+  return_pct: number | null;
+  is_fueled: boolean;
+  vote_score?: number;
+  comment_count?: number;
+  display_name: string | null;
+  pin: string;
+  is_trusted?: boolean;
+  target_progress?: number | null;
+}) &
+  CallCardExtras;
+
 type CallCardProps = {
-  call: TeaserCallRow | {
-    id: string;
-    symbol: string;
-    asset_class?: "equity" | "crypto";
-    direction: "long" | "short";
-    thesis: string;
-    called_at: string;
-    return_pct: number | null;
-    is_fueled: boolean;
-    vote_score?: number;
-    comment_count?: number;
-    display_name: string | null;
-    pin: string;
-    is_trusted?: boolean;
-  };
+  call: CallCardData;
   compact?: boolean;
   interactive?: boolean;
 };
@@ -39,11 +52,20 @@ export function CallCard({ call, compact, interactive = false }: CallCardProps) 
   const accent =
     call.direction === "long" ? "pf-call-accent-long" : "pf-call-accent-short";
 
+  const hasMetrics =
+    call.entry_price != null ||
+    call.target_price != null ||
+    call.stop_price != null ||
+    call.last_price != null ||
+    call.target_progress != null ||
+    call.timeframe_tag;
+
   return (
     <Card
       className={cn(
         accent,
         "group overflow-hidden transition-all duration-200",
+        call.is_fueled && "ring-1 ring-[var(--pf-red)]/20",
         "hover:border-[var(--pf-gray-200)] hover:shadow-[var(--pf-shadow-md)]"
       )}
     >
@@ -65,13 +87,18 @@ export function CallCard({ call, compact, interactive = false }: CallCardProps) 
               ) : null}
               {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
               {call.is_trusted ? <Badge variant="trusted">Trusted</Badge> : null}
+              {call.timeframe_tag && !hasMetrics ? (
+                <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--pf-gray-400)]">
+                  {call.timeframe_tag}
+                </span>
+              ) : null}
             </div>
             <p className="mt-1.5 text-sm text-[var(--pf-gray-600)]">
               {name}{" "}
               <span className="tabular-nums text-[var(--pf-gray-400)]">· {handle}</span>
             </p>
           </div>
-          <div className="text-right">
+          <div className="shrink-0 text-right">
             <p className={cn("text-xl font-bold tabular-nums tracking-tight", retClass)}>
               {formatPct(ret)}
             </p>
@@ -81,13 +108,30 @@ export function CallCard({ call, compact, interactive = false }: CallCardProps) 
         <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-[var(--pf-gray-700)]">
           {call.thesis}
         </p>
-        <div className="mt-2 flex justify-end">
+        {hasMetrics ? (
+          <CallPriceMetrics
+            entry_price={call.entry_price}
+            target_price={call.target_price}
+            stop_price={call.stop_price}
+            last_price={call.last_price}
+            target_progress={call.target_progress}
+            timeframe_tag={call.timeframe_tag}
+            compact={compact}
+          />
+        ) : null}
+        <div className="mt-3 flex items-center justify-between gap-2">
           <Link
             href={`/ticker/${call.symbol}`}
             className="text-xs font-semibold text-[var(--pf-red)] transition-colors hover:text-[var(--pf-red-hover)]"
           >
-            View chart →
+            Chart & intel →
           </Link>
+          {(call.vote_score ?? 0) !== 0 || (call.comment_count ?? 0) > 0 ? (
+            <span className="text-[10px] tabular-nums text-[var(--pf-gray-400)]">
+              {(call.vote_score ?? 0) > 0 ? "+" : ""}
+              {call.vote_score ?? 0} score · {call.comment_count ?? 0} comments
+            </span>
+          ) : null}
         </div>
         <CallEngagement
           callId={call.id}

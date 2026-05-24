@@ -132,7 +132,7 @@ Work through these **one branch at a time**. Finish and merge before starting th
 **Ops after merge:** Run migration in Supabase; set admin password:
 `node --env-file=.env.local scripts/set-admin-password.mjs`
 
-### 5. `feature/phase-2-ticker-polish` ← **in progress**
+### 5. `feature/phase-2-ticker-polish` ← **done**
 
 **Goal:** Ticker page is the “pro” view.
 
@@ -140,16 +140,27 @@ Work through these **one branch at a time**. Finish and merge before starting th
 - [x] Intel panel layout (equity stack vs crypto card)
 - [x] Chart marker legend
 - [x] Site copy: “Join the action” CTAs (member intel, not squad/team)
+- [x] Dashboard pro pass: feed pulse, price metrics on cards, quick nav, member snapshot tiles
 
 ### Demo preview data (`NEXT_PUBLIC_DEMO_MODE=true`)
 
 Fills feeds with **15 sample calls** (member + **Fueled** / PortFuel bot), leaderboard, public teasers, ticker theses, comments, and votes. No DB writes for `demo-call-*` IDs. Amber banner shows when active.
 
+**Local**
+
 ```env
 NEXT_PUBLIC_DEMO_MODE=true
 ```
 
-Restart `npm run dev` after toggling. Set `false` before production.
+Restart `npm run dev` after toggling.
+
+**Production (portfuel.pro)**
+
+1. Merge `feature/demo-preview-data` into `main` and push (Vercel only deploys `main`).
+2. Vercel → Project → **Settings** → **Environment Variables** → add `NEXT_PUBLIC_DEMO_MODE` = `true` for **Production** (and Preview if you want it on preview URLs).
+3. **Deployments** → ⋮ on latest → **Redeploy** (env vars are baked in at build time).
+
+You should see an amber **Demo preview** banner and ~15 calls on the dashboard. Set `false` (or remove the var) before real launch.
 
 ### 6. `feature/phase-3-stripe`
 
