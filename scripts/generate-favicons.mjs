@@ -65,6 +65,15 @@ async function iconFromGauge(gaugeSquare, size, scale) {
 
 const gauge = await buildGaugeSource();
 await sharp(gauge).toFile(join(root, "public/gauge-source.png"));
-await sharp(await iconFromGauge(gauge, 32, 0.58)).toFile(join(root, "src/app/icon.png"));
-await sharp(await iconFromGauge(gauge, 180, 0.64)).toFile(join(root, "src/app/apple-icon.png"));
+/** 48px master favicon (~86% fill) — reads better when the browser shrinks to 16px tabs. */
+const TAB_ICON_SIZE = 48;
+const TAB_ICON_SCALE = 0.92;
+const APPLE_ICON_SCALE = 0.82;
+
+await sharp(await iconFromGauge(gauge, TAB_ICON_SIZE, TAB_ICON_SCALE)).toFile(
+  join(root, "src/app/icon.png")
+);
+await sharp(await iconFromGauge(gauge, 180, APPLE_ICON_SCALE)).toFile(
+  join(root, "src/app/apple-icon.png")
+);
 console.log("Favicons updated: src/app/icon.png, src/app/apple-icon.png");
