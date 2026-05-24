@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { SiteHeader } from "@/components/brand/SiteHeader";
+import { Plus } from "lucide-react";
+import { AppShell } from "@/components/layout/AppShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { TabNav } from "@/components/layout/TabNav";
 import { CallCard } from "@/components/calls/CallCard";
 import { Button } from "@/components/ui/button";
 import { getSession } from "@/lib/auth/session";
@@ -45,67 +48,52 @@ export default async function DashboardPage({
   }));
 
   return (
-    <>
-      <SiteHeader userPin={session.pin} />
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Dashboard</h1>
-            <p className="text-[var(--pf-gray-500)]">Track the squad&apos;s latest and top calls.</p>
-          </div>
-          <Link
-            href="/calls/new"
-            className="inline-flex h-10 items-center rounded-lg bg-[var(--pf-red)] px-4 text-sm font-medium text-white hover:bg-[#c41820]"
-          >
-            + New call
+    <AppShell userPin={session.pin}>
+      <PageHeader
+        title="Dashboard"
+        description={
+          mode === "performing"
+            ? "Top movers from the squad in the last 30 days."
+            : "Fresh calls as they hit the board."
+        }
+        action={
+          <Link href="/calls/new">
+            <Button size="lg">
+              <Plus className="h-4 w-4" strokeWidth={2.5} />
+              New call
+            </Button>
           </Link>
-        </div>
+        }
+      />
 
-        <div className="mt-6 flex gap-2 border-b border-[var(--pf-border)]">
-          <TabLink href="/dashboard" active={mode === "latest"}>
-            Latest
-          </TabLink>
-          <TabLink href="/dashboard?tab=performing" active={mode === "performing"}>
-            Performing
-          </TabLink>
-        </div>
+      <div className="mt-6">
+        <TabNav
+          tabs={[
+            { href: "/dashboard", label: "Latest", active: mode === "latest" },
+            {
+              href: "/dashboard?tab=performing",
+              label: "Performing",
+              active: mode === "performing",
+            },
+          ]}
+        />
+      </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {mapped.length === 0 ? (
-            <p className="col-span-2 rounded-xl border border-dashed border-[var(--pf-border)] py-16 text-center text-[var(--pf-gray-500)]">
-              No calls yet.{" "}
-              <Link href="/calls/new" className="text-[var(--pf-red)] hover:underline">
-                Submit the first one
-              </Link>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        {mapped.length === 0 ? (
+          <div className="pf-empty col-span-2">
+            <p className="font-medium text-[var(--pf-gray-700)]">No calls in this feed yet</p>
+            <p className="mt-1 text-sm">
+              Be the first to share a thesis — members see it here and on the ticker page.
             </p>
-          ) : (
-            mapped.map((call) => <CallCard key={call.id} call={call} />)
-          )}
-        </div>
-      </main>
-    </>
-  );
-}
-
-function TabLink({
-  href,
-  active,
-  children,
-}: {
-  href: string;
-  active: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
-        active
-          ? "border-[var(--pf-red)] text-[var(--pf-red)]"
-          : "border-transparent text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
-      }`}
-    >
-      {children}
-    </Link>
+            <Link href="/calls/new" className="mt-4 inline-block">
+              <Button>Submit a call</Button>
+            </Link>
+          </div>
+        ) : (
+          mapped.map((call) => <CallCard key={call.id} call={call} />)
+        )}
+      </div>
+    </AppShell>
   );
 }

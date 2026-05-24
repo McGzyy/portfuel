@@ -71,15 +71,15 @@ feature/phase-3-stripe-billing
 
 Work through these **one branch at a time**. Finish and merge before starting the next.
 
-### 1. `feature/phase-1-app-shell` ← **start here**
+### 1. `feature/phase-1-app-shell` ← **in progress / ready for PR**
 
 **Goal:** Authenticated app feels as polished as landing/login.
 
-- Dashboard: tabs, empty states, “New call” button → design system
-- `/calls/new`: layout, form hierarchy, validation feedback
-- `/onboarding`: match `AuthShell` / card style
-- Shared layout: optional `AppShell` (header + max-width main) for logged-in routes
-- `CallCard` hover/spacing consistency
+- [x] `AppShell`, `PageHeader`, `TabNav` layout components
+- [x] Dashboard: pill tabs, empty state, design-system buttons
+- [x] `/calls/new`: segmented controls, form sections, symbol validation UX
+- [x] `/onboarding`: `AuthShell` + labels
+- [x] `CallCard` hover, footer divider, spacing
 
 **Done when:** A member can log in → dashboard → submit call → see it on dashboard without UI feeling “MVP rough.”
 
