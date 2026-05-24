@@ -141,6 +141,16 @@ Work through these **one branch at a time**. Finish and merge before starting th
 - [x] Chart marker legend
 - [x] Site copy: “Join the action” CTAs (member intel, not squad/team)
 
+### Demo preview data (`NEXT_PUBLIC_DEMO_MODE=true`)
+
+Fills feeds with **15 sample calls** (member + **Fueled** / PortFuel bot), leaderboard, public teasers, ticker theses, comments, and votes. No DB writes for `demo-call-*` IDs. Amber banner shows when active.
+
+```env
+NEXT_PUBLIC_DEMO_MODE=true
+```
+
+Restart `npm run dev` after toggling. Set `false` before production.
+
 ### 6. `feature/phase-3-stripe`
 
 **Goal:** Paid membership replaces “pending” beta message.

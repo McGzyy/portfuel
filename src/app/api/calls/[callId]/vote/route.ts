@@ -3,6 +3,8 @@ import { z } from "zod";
 import { requireActiveMember } from "@/lib/auth/session";
 import { getUserCallVote, setCallVote } from "@/lib/calls/votes";
 import { createServiceClient } from "@/lib/db/supabase";
+import { isDemoCallId, isDemoMode } from "@/lib/demo/config";
+import { getDemoCallById, getDemoVoteSnapshot } from "@/lib/demo/fixtures";
 
 const voteSchema = z.object({
   value: z.union([z.literal(-1), z.literal(0), z.literal(1)]),
@@ -15,6 +17,12 @@ export async function GET(
   try {
     const session = await requireActiveMember();
     const { callId } = await params;
+    if (isDemoMode() && isDemoCallId(callId)) {
+      if (!getDemoCallById(callId)) {
+        return NextResponse.json({ error: "not_found" }, { status: 404 });
+      }
+      return NextResponse.json(getDemoVoteSnapshot(callId));
+    }
     const db = createServiceClient();
     const { data: call } = await db
       .from("calls")
@@ -45,6 +53,16 @@ export async function POST(
     const session = await requireActiveMember();
     const { callId } = await params;
     const body = voteSchema.parse(await request.json());
+
+    if (isDemoMode() && isDemoCallId(callId)) {
+      const snap = getDemoVoteSnapshot(callId);
+      const delta = body.value === 0 ? 0 : body.value;
+      return NextResponse.json({
+        ok: true,
+        voteScore: snap.voteScore + delta,
+        userVote: body.value === 0 ? null : (body.value as -1 | 1),
+      });
+    }
 
     const existing = await getUserCallVote(callId, session.userId);
     let nextValue = body.value as -1 | 0 | 1;

@@ -16,6 +16,8 @@ import {
 } from "@/lib/market/finnhub";
 import type { CallWithUser } from "@/lib/db/supabase";
 import type { AssetClass } from "@/lib/market/validate-symbol";
+import { isDemoMode } from "@/lib/demo/config";
+import { getDemoHypeScore } from "@/lib/demo/fixtures";
 
 export type TickerIntel = {
   symbol: string;
@@ -144,7 +146,7 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
     companyName,
     finnhubSymbol,
     quote,
-    hypeScore: Number(hype?.score ?? 0),
+    hypeScore: isDemoMode() ? getDemoHypeScore(sym) : Number(hype?.score ?? 0),
     candles: candlePoints,
     markers,
     calls,

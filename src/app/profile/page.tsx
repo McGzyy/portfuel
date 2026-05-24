@@ -7,6 +7,8 @@ import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import { fetchUserProfile, fetchUserRecentCalls } from "@/lib/users/profile";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
+import { isDemoMode } from "@/lib/demo/config";
+import { getDemoProfileStats } from "@/lib/demo/fixtures";
 
 export default async function ProfilePage() {
   const session = await getSession();
@@ -18,6 +20,8 @@ export default async function ProfilePage() {
     profile = await fetchUserProfile(session.userId);
     recentCalls = await fetchUserRecentCalls(session.userId);
   }
+  const demoStats = isDemoMode() ? getDemoProfileStats() : null;
+  const stats = demoStats ?? profile;
 
   const headerUser = toHeaderUser(session);
 
@@ -50,14 +54,14 @@ export default async function ProfilePage() {
           <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
             Calls
           </p>
-          <p className="mt-1 text-lg font-bold text-[var(--pf-black)]">{profile?.calls_count ?? 0}</p>
+          <p className="mt-1 text-lg font-bold text-[var(--pf-black)]">{stats?.calls_count ?? 0}</p>
         </div>
         <div className="pf-stat-tile">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
             Rank score
           </p>
           <p className="mt-1 text-lg font-bold text-[var(--pf-black)]">
-            {profile?.rank_score != null ? Number(profile.rank_score).toFixed(1) : "0"}
+            {stats?.rank_score != null ? Number(stats.rank_score).toFixed(1) : "0"}
           </p>
         </div>
       </div>
@@ -68,7 +72,7 @@ export default async function ProfilePage() {
             Win rate
           </p>
           <p className="mt-1 text-lg font-bold text-[var(--pf-black)]">
-            {profile?.win_rate != null ? `${profile.win_rate}%` : "—"}
+            {stats?.win_rate != null ? `${stats.win_rate}%` : "—"}
           </p>
         </div>
         <div className="pf-stat-tile">
@@ -76,8 +80,8 @@ export default async function ProfilePage() {
             Avg return
           </p>
           <p className="mt-1 text-lg font-bold text-[var(--pf-black)]">
-            {profile?.avg_return_pct != null
-              ? `${Number(profile.avg_return_pct) >= 0 ? "+" : ""}${Number(profile.avg_return_pct).toFixed(2)}%`
+            {stats?.avg_return_pct != null
+              ? `${Number(stats.avg_return_pct) >= 0 ? "+" : ""}${Number(stats.avg_return_pct).toFixed(2)}%`
               : "—"}
           </p>
         </div>
