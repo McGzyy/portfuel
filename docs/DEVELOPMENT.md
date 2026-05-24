@@ -146,7 +146,15 @@ Work through these **one branch at a time**. Finish and merge before starting th
 
 ### 5e. `feature/phase-2-dashboard-watchlist-admin` ← **done**
 
-### 5f. `feature/phase-2-elite-polish` ← **in progress**
+### 5f. `feature/phase-2-elite-polish` ← **done**
+
+### 5g. Dashboard workspace IA
+
+- `/dashboard` — Overview (KPIs, shortcuts, previews)
+- `/dashboard/feed` — Member feed (search, filters, full grid)
+- `/dashboard/desk` — Fueled desk only
+- `/dashboard/watchlist` — Watchlist + ticker lookup
+- Shared `MemberNav` sub-navigation under header
 
 - [x] Public member profiles `/member/[username]` (elite hero, track record)
 - [x] Dashboard: Fueled desk strip, your book strip, feed search

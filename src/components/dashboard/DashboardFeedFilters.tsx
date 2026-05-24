@@ -1,23 +1,12 @@
 import Link from "next/link";
+import { buildFeedHref } from "@/lib/dashboard/nav";
 import { cn } from "@/lib/utils";
 
 const filters = [
-  { key: "all", label: "All" },
-  { key: "fueled", label: "Fueled" },
+  { key: "all", label: "All members" },
   { key: "equity", label: "Stocks" },
   { key: "crypto", label: "Crypto" },
 ] as const;
-
-export function buildDashboardHref(
-  opts: { tab?: "performing"; filter?: string; q?: string }
-): string {
-  const params = new URLSearchParams();
-  if (opts.tab === "performing") params.set("tab", "performing");
-  if (opts.filter && opts.filter !== "all") params.set("filter", opts.filter);
-  if (opts.q?.trim()) params.set("q", opts.q.trim());
-  const qs = params.toString();
-  return qs ? `/dashboard?${qs}` : "/dashboard";
-}
 
 export function DashboardFeedFilters({
   active,
@@ -31,7 +20,7 @@ export function DashboardFeedFilters({
   return (
     <div className="flex flex-wrap gap-2" role="group" aria-label="Filter feed">
       {filters.map((f) => {
-        const href = buildDashboardHref({
+        const href = buildFeedHref({
           tab: tab === "performing" ? "performing" : undefined,
           filter: f.key === "all" ? undefined : f.key,
           q: searchQuery,

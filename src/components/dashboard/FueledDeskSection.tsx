@@ -16,10 +16,10 @@ export function FueledDeskSection({ calls }: { calls: CallCardData[] }) {
           </p>
         </div>
         <Link
-          href="/dashboard?filter=fueled"
+          href="/dashboard/desk"
           className="text-xs font-semibold text-red-300 hover:text-red-200 hover:underline"
         >
-          View all Fueled →
+          Open Fueled desk →
         </Link>
       </div>
       <div className="mt-5 grid gap-4 lg:grid-cols-2">

@@ -18,7 +18,7 @@ export function DashboardFeedSearch() {
     else params.delete("q");
     const qs = params.toString();
     startTransition(() => {
-      router.push(qs ? `/dashboard?${qs}` : "/dashboard");
+      router.push(qs ? `/dashboard/feed?${qs}` : "/dashboard/feed");
     });
   }
 
