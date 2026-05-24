@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { CallEngagement } from "@/components/calls/CallEngagement";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn, formatPct, timeAgo } from "@/lib/utils";
 import type { TeaserCallRow } from "@/lib/db/supabase";
@@ -21,9 +22,10 @@ type CallCardProps = {
     is_trusted?: boolean;
   };
   compact?: boolean;
+  interactive?: boolean;
 };
 
-export function CallCard({ call, compact }: CallCardProps) {
+export function CallCard({ call, compact, interactive = false }: CallCardProps) {
   const name = call.display_name ?? `Trader ${call.pin}`;
   const ret = call.return_pct;
   const retClass =
@@ -74,20 +76,21 @@ export function CallCard({ call, compact }: CallCardProps) {
         <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-[var(--pf-gray-700)]">
           {call.thesis}
         </p>
-        <div className="mt-4 flex items-center justify-between border-t border-[var(--pf-border)] pt-3 text-xs text-[var(--pf-gray-400)]">
-          <span>
-            {call.vote_score != null && call.vote_score !== 0 ? `${call.vote_score} votes` : "—"}
-            {call.comment_count != null && call.comment_count > 0
-              ? ` · ${call.comment_count} comments`
-              : ""}
-          </span>
+        <div className="mt-2 flex justify-end">
           <Link
             href={`/ticker/${call.symbol}`}
-            className="font-semibold text-[var(--pf-red)] transition-colors hover:text-[var(--pf-red-hover)]"
+            className="text-xs font-semibold text-[var(--pf-red)] transition-colors hover:text-[var(--pf-red-hover)]"
           >
             View chart →
           </Link>
         </div>
+        <CallEngagement
+          callId={call.id}
+          initialVoteScore={call.vote_score ?? 0}
+          initialCommentCount={call.comment_count ?? 0}
+          interactive={interactive}
+          compact={compact}
+        />
       </CardContent>
     </Card>
   );

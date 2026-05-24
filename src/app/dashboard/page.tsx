@@ -91,7 +91,9 @@ export default async function DashboardPage({
             </Link>
           </div>
         ) : (
-          mapped.map((call) => <CallCard key={call.id} call={call} />)
+          mapped.map((call) => (
+            <CallCard key={call.id} call={call} interactive />
+          ))
         )}
       </div>
     </AppShell>

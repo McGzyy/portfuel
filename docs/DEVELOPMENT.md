@@ -47,7 +47,7 @@ feature/phase-3-stripe-billing
 | Ticker page + chart | ✅ | Basic thesis list |
 | Onboarding (display name) | ✅ | Minimal UI |
 | Cron: refresh quotes | ✅ | Every 15 min |
-| Votes & comments (API + UI) | ❌ | DB tables exist, no routes/UI yet |
+| Votes & comments (API + UI) | ✅ | Dashboard + ticker theses |
 | Rankings / leaderboard | ❌ | `rank_score` in DB, no page yet |
 | Profile page | ❌ | Middleware references `/profile`, page missing |
 
@@ -83,13 +83,13 @@ Work through these **one branch at a time**. Finish and merge before starting th
 
 **Done when:** A member can log in → dashboard → submit call → see it on dashboard without UI feeling “MVP rough.”
 
-### 2. `feature/phase-1-votes-comments`
+### 2. `feature/phase-1-votes-comments` ← **in progress / ready for PR**
 
 **Goal:** Social layer on calls.
 
-- API: vote (up/down), list/create comments
-- UI on `CallCard` or call detail drawer
-- RLS policies tested with service role + session user
+- [x] API: `POST/GET /api/calls/[id]/vote`, `GET/POST /api/calls/[id]/comments`
+- [x] `CallEngagement` on dashboard cards and ticker theses (logged-in only)
+- [x] Vote score recomputed on `calls.vote_score`; comment count incremented
 
 **Done when:** Logged-in user can vote and comment on a call; counts update on dashboard.
 
