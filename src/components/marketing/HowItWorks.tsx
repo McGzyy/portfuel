@@ -3,8 +3,8 @@ import { LineChart, ShieldCheck, Users } from "lucide-react";
 const steps = [
   {
     icon: Users,
-    title: "Create your account",
-    text: "Choose a permanent username and password. After membership is active, set up two-factor authentication.",
+    title: "Request inside access",
+    text: "Create your member account with a permanent username. After activation, secure it with two-factor authentication.",
   },
   {
     icon: LineChart,

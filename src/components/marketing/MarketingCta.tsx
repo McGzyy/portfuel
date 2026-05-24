@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { COPY } from "@/lib/copy";
 
 export function MarketingCta() {
   return (
     <section className="pf-cta-band">
       <div className="mx-auto max-w-6xl px-4 py-16 text-center">
         <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-          Ready to fuel the board?
+          Ready for inside access?
         </h2>
         <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-white/80">
-          Join during beta for full access. Stripe membership billing ships next — early squad
-          members lock in first.
+          Get the full thesis feed, live marks, and member-only intel. Stripe billing ships next —
+          early members lock in first.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link href="/join">
@@ -18,7 +19,7 @@ export function MarketingCta() {
               size="lg"
               className="bg-white text-[var(--pf-black)] hover:bg-white/90"
             >
-              Join the Squad
+              {COPY.ctaGetAccess}
             </Button>
           </Link>
           <Link href="/login">

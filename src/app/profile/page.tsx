@@ -25,7 +25,7 @@ export default async function ProfilePage() {
     <AppShell user={headerUser}>
       <PageHeader
         title="Profile"
-        description="Your public squad identity and performance snapshot."
+        description="Your public member profile and performance snapshot."
       />
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

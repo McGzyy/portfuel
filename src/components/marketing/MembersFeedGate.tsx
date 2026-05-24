@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Radio, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { COPY } from "@/lib/copy";
 
 export function MembersFeedGate() {
   return (
@@ -9,19 +10,19 @@ export function MembersFeedGate() {
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-[var(--pf-red)]">
-              Members only
+              {COPY.membersOnly}
             </p>
             <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
-              Live call feed stays inside the squad
+              The live intel stays behind the member wall
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-white/70">
               Fresh theses, entry levels, and the full dashboard are for paid members. The homepage
               only showcases calls that have already hit performance thresholds — never the live
-              board.
+              board or full write-ups.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/join">
-                <Button size="lg">Join the Squad</Button>
+                <Button size="lg">{COPY.ctaGetAccess}</Button>
               </Link>
               <Link href="/login">
                 <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 hover:text-white">

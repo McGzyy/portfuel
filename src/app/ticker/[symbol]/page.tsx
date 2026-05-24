@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { TickerChartClient } from "@/components/charts/TickerChartClient";
 import { TickerIntelPanel } from "@/components/ticker/TickerIntelPanel";
 import { CallThesisBlock } from "@/components/calls/CallThesisBlock";
+import { TickerChartLegend } from "@/components/ticker/TickerChartLegend";
+import { COPY } from "@/lib/copy";
 import { formatPct, formatPrice } from "@/lib/utils";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
@@ -58,10 +60,14 @@ export default async function TickerPage({
 
         <div className="mt-8 overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)]">
           {intel?.candles?.length ? (
-            <TickerChartClient candles={intel.candles} markers={intel.markers ?? []} />
+            <>
+              <TickerChartClient candles={intel.candles} markers={intel.markers ?? []} />
+              <TickerChartLegend callCount={intel.markers?.length ?? 0} />
+            </>
           ) : (
-            <div className="flex h-[380px] items-center justify-center text-sm text-[var(--pf-gray-500)]">
-              Chart unavailable — check Finnhub API key and symbol.
+            <div className="flex h-[380px] flex-col items-center justify-center gap-2 px-6 text-center text-sm text-[var(--pf-gray-500)]">
+              <p className="font-medium text-[var(--pf-gray-600)]">Chart unavailable</p>
+              <p className="text-xs">Check your Finnhub API key or try another symbol.</p>
             </div>
           )}
         </div>
@@ -73,7 +79,7 @@ export default async function TickerPage({
         <SectionHeader
           eyebrow="Community"
           title={`Theses on ${symbol}`}
-          subtitle="All squad calls on this ticker, newest first."
+          subtitle="Member calls on this ticker, newest first."
         />
         <div className="mt-8 space-y-4">
           {(intel?.calls ?? []).length === 0 ? (
@@ -91,7 +97,7 @@ export default async function TickerPage({
                 </Link>
               ) : (
                 <Link href="/join" className="mt-4 inline-block">
-                  <Button variant="outline">Join to submit a call</Button>
+                  <Button variant="outline">{COPY.ctaGetAccess}</Button>
                 </Link>
               )}
             </div>

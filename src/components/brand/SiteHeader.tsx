@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Shield } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
+import { COPY } from "@/lib/copy";
 import type { HeaderUser } from "@/lib/auth/session-user";
 import { cn } from "@/lib/utils";
 
@@ -73,7 +74,7 @@ export function SiteHeader({
                 </Button>
               </Link>
               <Link href="/join">
-                <Button size="sm">Join the Squad</Button>
+                <Button size="sm">{COPY.ctaGetAccess}</Button>
               </Link>
             </>
           ) : null}

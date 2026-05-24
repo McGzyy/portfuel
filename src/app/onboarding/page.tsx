@@ -43,7 +43,7 @@ export default function OnboardingPage() {
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <Label htmlFor="displayName">Squad name</Label>
+          <Label htmlFor="displayName">Display name</Label>
           <Input
             id="displayName"
             value={displayName}

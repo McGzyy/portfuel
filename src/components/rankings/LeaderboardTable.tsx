@@ -35,7 +35,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardEntry[] }) {
               <td className="px-4 py-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-[var(--pf-black)]">
-                    {row.display_name ?? "Squad member"}
+                    {row.display_name ?? "Member"}
                   </span>
                   {row.trusted ? <Badge variant="trusted">Trusted</Badge> : null}
                 </div>

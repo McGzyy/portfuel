@@ -9,28 +9,36 @@ function formatDate(d: string | number) {
 export function TickerIntelPanel({ intel }: { intel: TickerIntel }) {
   if (intel.assetClass === "crypto") {
     return (
-      <Card className="mt-8">
-        <CardHeader>
-          <h2 className="text-lg font-bold">Crypto · Major exchanges only</h2>
-          <p className="text-sm text-[var(--pf-gray-500)]">
-            Listed on Coinbase/Kraken. No memecoins. Filings and earnings apply to stocks only.
-          </p>
-        </CardHeader>
-        <CardContent className="text-sm text-[var(--pf-gray-600)]">
-          <p>
-            <span className="font-medium">Venue:</span> {intel.finnhubSymbol ?? intel.symbol}
-          </p>
-          <p className="mt-2">
-            Track narrative and squad calls below. For stocks, switch to an equity ticker to see
-            news, earnings, and SEC filings.
-          </p>
-        </CardContent>
-      </Card>
+      <section className="mt-8">
+        <p className="pf-eyebrow">Market intel</p>
+        <h2 className="mt-2 text-lg font-bold tracking-tight">Crypto · exchange-listed only</h2>
+        <Card className="pf-card-elevated mt-4 border-0">
+          <CardHeader>
+            <p className="text-sm text-[var(--pf-gray-500)]">
+              Coinbase / Kraken pairs only. No memecoins. News, earnings, and SEC data are on
+              equity tickers.
+            </p>
+          </CardHeader>
+          <CardContent className="text-sm text-[var(--pf-gray-600)]">
+            <p>
+              <span className="font-medium text-[var(--pf-black)]">Venue:</span>{" "}
+              {intel.finnhubSymbol ?? intel.symbol}
+            </p>
+            <p className="mt-3 leading-relaxed">
+              Track member calls and narrative below. Open a stock ticker for filings, earnings,
+              and headline flow.
+            </p>
+          </CardContent>
+        </Card>
+      </section>
     );
   }
 
   return (
-    <div className="mt-8 grid gap-6 lg:grid-cols-2">
+    <section className="mt-8">
+      <p className="pf-eyebrow">Market intel</p>
+      <h2 className="mt-2 text-lg font-bold tracking-tight">Equity research stack</h2>
+      <div className="mt-4 grid gap-6 lg:grid-cols-2">
       <IntelCard title="News" subtitle="Last 30 days">
         {intel.news.length === 0 ? (
           <Empty>No recent headlines from Finnhub.</Empty>
@@ -140,7 +148,8 @@ export function TickerIntelPanel({ intel }: { intel: TickerIntel }) {
           </dl>
         </IntelCard>
       ) : null}
-    </div>
+      </div>
+    </section>
   );
 }
 
@@ -156,9 +165,9 @@ function IntelCard({
   className?: string;
 }) {
   return (
-    <Card className={className}>
+    <Card className={`pf-card-elevated border-0 ${className ?? ""}`}>
       <CardHeader>
-        <h2 className="text-lg font-bold">{title}</h2>
+        <h3 className="text-base font-bold tracking-tight">{title}</h3>
         <p className="text-sm text-[var(--pf-gray-500)]">{subtitle}</p>
       </CardHeader>
       <CardContent>{children}</CardContent>
