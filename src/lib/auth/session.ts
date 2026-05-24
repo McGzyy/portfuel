@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { createServiceClient } from "@/lib/db/supabase";
 
 const COOKIE_NAME = "portfuel_session";
 
@@ -45,6 +46,30 @@ export async function destroySession(): Promise<void> {
   jar.delete(COOKIE_NAME);
 }
 
+/** Old PIN-era cookies stored only `pin`; map to the real username from DB. */
+async function resolveUsernameFromDb(
+  userId: string,
+  fallback: string
+): Promise<{ username: string; displayName: string | null }> {
+  try {
+    const db = createServiceClient();
+    const { data } = await db
+      .from("users")
+      .select("username, display_name")
+      .eq("id", userId)
+      .maybeSingle();
+    if (data?.username) {
+      return {
+        username: data.username,
+        displayName: data.display_name ?? null,
+      };
+    }
+  } catch {
+    /* service client unavailable in some edge cases */
+  }
+  return { username: fallback, displayName: null };
+}
+
 export async function getSession(): Promise<SessionPayload | null> {
   const jar = await cookies();
   const token = jar.get(COOKIE_NAME)?.value;
@@ -52,10 +77,22 @@ export async function getSession(): Promise<SessionPayload | null> {
 
   try {
     const { payload } = await jwtVerify(token, getSecret());
+    let username = String(payload.username ?? payload.pin ?? "");
+    let displayName = payload.displayName ? String(payload.displayName) : null;
+    const userId = String(payload.userId);
+
+    // Pre–username/password sessions stored the old PIN as username or only in `pin`.
+    const legacyPinHandle = /^\d{5}$/.test(username);
+    if (legacyPinHandle || (!payload.username && payload.pin)) {
+      const resolved = await resolveUsernameFromDb(userId, username);
+      username = resolved.username;
+      displayName = displayName ?? resolved.displayName;
+    }
+
     return {
-      userId: String(payload.userId),
-      username: String(payload.username ?? payload.pin ?? ""),
-      displayName: payload.displayName ? String(payload.displayName) : null,
+      userId,
+      username,
+      displayName,
       role: payload.role as SessionPayload["role"],
       subscriptionStatus: payload.subscriptionStatus as SessionPayload["subscriptionStatus"],
       totpVerified: Boolean(payload.totpVerified),

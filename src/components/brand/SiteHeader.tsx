@@ -43,6 +43,12 @@ export function SiteHeader({
                 </Link>
               ) : null}
               <Link
+                href="/rankings"
+                className="hidden text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] sm:inline"
+              >
+                Rankings
+              </Link>
+              <Link
                 href="/profile"
                 className="hidden text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] sm:inline"
               >
