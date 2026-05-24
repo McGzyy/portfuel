@@ -4,7 +4,8 @@ import { HypeMeter } from "@/components/brand/HypeMeter";
 import { Badge } from "@/components/ui/badge";
 import { TickerChartClient } from "@/components/charts/TickerChartClient";
 import { TickerIntelPanel } from "@/components/ticker/TickerIntelPanel";
-import { formatPct, formatPrice, timeAgo } from "@/lib/utils";
+import { CallThesisBlock } from "@/components/calls/CallThesisBlock";
+import { formatPct, formatPrice } from "@/lib/utils";
 import { getSession } from "@/lib/auth/session";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
@@ -74,44 +75,9 @@ export default async function TickerPage({
                 No calls on this ticker yet.
               </p>
             ) : (
-              (intel?.calls ?? []).map((c) => {
-                const name = c.users.display_name ?? `Trader ${c.users.pin}`;
-                return (
-                  <article
-                    key={c.id}
-                    className={`rounded-xl border bg-white p-5 ${
-                      c.is_fueled ? "border-[var(--pf-red)]" : "border-[var(--pf-border)]"
-                    }`}
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-semibold">{name}</span>
-                      <span className="text-xs text-[var(--pf-gray-400)]">{c.users.pin}</span>
-                      <Badge variant={c.direction === "long" ? "long" : "short"}>
-                        {c.direction}
-                      </Badge>
-                      {c.is_fueled ? <Badge variant="fueled">FUELED</Badge> : null}
-                      {c.users.trusted_at ? <Badge variant="trusted">Trusted</Badge> : null}
-                      <span className="ml-auto text-sm font-bold tabular-nums text-emerald-600">
-                        {formatPct(c.return_pct)}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-xs text-[var(--pf-gray-400)]">{timeAgo(c.called_at)}</p>
-                    <p className="mt-3 text-sm leading-relaxed text-[var(--pf-gray-700)]">{c.thesis}</p>
-                    {(c.entry_price || c.target_price) && (
-                      <p className="mt-2 text-xs text-[var(--pf-gray-500)]">
-                        {c.entry_price ? `Entry $${formatPrice(Number(c.entry_price))}` : ""}
-                        {c.target_price ? ` · Target $${formatPrice(Number(c.target_price))}` : ""}
-                        {c.target_progress != null
-                          ? ` · ${c.target_progress.toFixed(0)}% to target`
-                          : ""}
-                      </p>
-                    )}
-                    {c.timeframe_tag ? (
-                      <p className="mt-1 text-xs text-[var(--pf-gray-400)]">{c.timeframe_tag}</p>
-                    ) : null}
-                  </article>
-                );
-              })
+              (intel?.calls ?? []).map((c) => (
+                <CallThesisBlock key={c.id} call={c} interactive={Boolean(session)} />
+              ))
             )}
           </div>
         </section>
