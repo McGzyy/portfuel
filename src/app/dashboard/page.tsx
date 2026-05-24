@@ -11,6 +11,8 @@ import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import { fetchCallsFeed } from "@/lib/calls/service";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
+import { getHotTickersFromCalls } from "@/lib/calls/hot-tickers";
+import { HotTickersStrip } from "@/components/dashboard/HotTickersStrip";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { getDemoProfileStats } from "@/lib/demo/fixtures";
@@ -64,6 +66,7 @@ export default async function DashboardPage({
 
   const mapped = calls.map(mapCallForCard);
   const feedSummary = summarizeFeed(mapped);
+  const hotTickers = getHotTickersFromCalls(mapped);
 
   let memberStats: {
     calls_count?: number | null;
@@ -148,6 +151,7 @@ export default async function DashboardPage({
 
       <div className="mt-4">
         <FeedSummaryBar summary={feedSummary} mode={mode} />
+        <HotTickersStrip tickers={hotTickers} />
       </div>
 
       <div className="mt-6">

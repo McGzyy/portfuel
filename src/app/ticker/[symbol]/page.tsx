@@ -15,7 +15,10 @@ import { formatPct, formatPrice } from "@/lib/utils";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
+import { isDemoMode } from "@/lib/demo/config";
+import { summarizeTickerCommunity } from "@/lib/calls/ticker-community-stats";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
+import { TickerCommunityBar } from "@/components/ticker/TickerCommunityBar";
 
 export default async function TickerPage({
   params,
@@ -27,13 +30,15 @@ export default async function TickerPage({
   const session = await getSession();
 
   let intel = null;
-  if (hasSupabaseConfig()) {
+  if (isDemoMode() || hasSupabaseConfig()) {
     try {
       intel = await loadTickerIntel(symbol);
     } catch (e) {
       console.error("[ticker page]", e);
     }
   }
+
+  const communityStats = summarizeTickerCommunity(intel?.calls ?? []);
 
   const emptyIntel = {
     symbol,
@@ -55,7 +60,7 @@ export default async function TickerPage({
       <div className="pf-card-elevated overflow-hidden p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <TickerHeaderLeft intel={intel} symbol={symbol} session={session} />
-          <TickerHeaderRight intel={intel} session={session} />
+          <TickerHeaderRight intel={intel} session={session} symbol={symbol} />
         </div>
 
         <div className="mt-8 overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)]">
@@ -73,6 +78,8 @@ export default async function TickerPage({
         </div>
       </div>
 
+      <TickerCommunityBar stats={communityStats} />
+
       <TickerIntelPanel intel={intel ?? emptyIntel} />
 
       <section className="mt-10">
@@ -87,7 +94,7 @@ export default async function TickerPage({
               <p className="font-medium text-[var(--pf-gray-700)]">No calls on this ticker yet</p>
               {session ? (
                 <Link
-                  href={`/calls/new?asset=${intel?.assetClass ?? "equity"}`}
+                  href={`/calls/new?asset=${intel?.assetClass ?? "equity"}&symbol=${symbol}`}
                   className="mt-4 inline-block"
                 >
                   <Button>
@@ -103,7 +110,22 @@ export default async function TickerPage({
             </div>
           ) : (
             (intel?.calls ?? []).map((c) => (
-              <CallThesisBlock key={c.id} call={c} interactive={Boolean(session)} />
+              <CallThesisBlock
+                key={c.id}
+                call={{
+                  ...c,
+                  symbol: c.symbol,
+                  stop_price: c.stop_price,
+                  last_price: c.last_price,
+                  users: {
+                    display_name: c.users.display_name,
+                    pin: c.users.username ?? c.users.pin,
+                    username: c.users.username,
+                    trusted_at: c.users.trusted_at,
+                  },
+                }}
+                interactive={Boolean(session)}
+              />
             ))
           )}
         </div>
@@ -176,15 +198,19 @@ function TickerHeaderLeft({
 function TickerHeaderRight({
   intel,
   session,
+  symbol,
 }: {
   intel: Awaited<ReturnType<typeof loadTickerIntel>> | null;
   session: Awaited<ReturnType<typeof getSession>>;
+  symbol: string;
 }) {
   return (
     <div className="flex flex-col items-end gap-3">
       <HypeMeter score={intel?.hypeScore ?? 0} />
       {session ? (
-        <Link href={`/calls/new?asset=${intel?.assetClass ?? "equity"}`}>
+        <Link
+          href={`/calls/new?asset=${intel?.assetClass ?? "equity"}&symbol=${symbol}`}
+        >
           <Button size="sm">
             <Plus className="h-4 w-4" />
             Call this ticker

@@ -5,6 +5,7 @@ import { getDemoLeaderboard } from "@/lib/demo/fixtures";
 export type LeaderboardEntry = {
   id: string;
   display_name: string | null;
+  username: string | null;
   calls_count: number;
   win_rate: number | null;
   rank_score: number;
@@ -25,12 +26,16 @@ export async function fetchLeaderboard(limit = 25): Promise<LeaderboardEntry[]> 
 
   if (error) throw error;
 
-  return (data ?? []).map((u) => ({
-    id: u.id,
-    display_name: u.display_name,
+  return (data ?? []).map((u) => {
+    const row = u as typeof u & { username?: string | null };
+    return {
+    id: row.id,
+    display_name: row.display_name,
+    username: row.username ?? null,
     calls_count: u.calls_count ?? 0,
     win_rate: u.win_rate != null ? Number(u.win_rate) : null,
     rank_score: Number(u.rank_score ?? 0),
-    trusted: Boolean(u.trusted_at),
-  }));
+    trusted: Boolean(row.trusted_at),
+  };
+  });
 }

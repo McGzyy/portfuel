@@ -6,7 +6,10 @@ import { LeaderboardTable } from "@/components/rankings/LeaderboardTable";
 import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
 import { fetchLeaderboard } from "@/lib/calls/leaderboard";
+import { summarizeRankings } from "@/lib/calls/rankings-summary";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
+import { isDemoMode } from "@/lib/demo/config";
+import { RankingsSummaryBar } from "@/components/rankings/RankingsSummaryBar";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
 
@@ -14,13 +17,15 @@ export default async function RankingsPage() {
   const session = await getSession();
   let rows: Awaited<ReturnType<typeof fetchLeaderboard>> = [];
 
-  if (hasSupabaseConfig()) {
+  if (isDemoMode() || hasSupabaseConfig()) {
     try {
       rows = await fetchLeaderboard(30);
     } catch (e) {
       console.error("[rankings]", e);
     }
   }
+
+  const summary = summarizeRankings(rows);
 
   return (
     <>
@@ -33,6 +38,7 @@ export default async function RankingsPage() {
             subtitle="Ranked by cumulative call score (return performance + community votes). Updated when prices refresh."
           />
           <div className="mt-10">
+            <RankingsSummaryBar summary={summary} />
             <LeaderboardTable rows={rows} />
           </div>
           {!session ? (

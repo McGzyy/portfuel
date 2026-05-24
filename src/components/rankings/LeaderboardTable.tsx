@@ -18,6 +18,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardEntry[] }) {
           <tr>
             <th className="px-4 py-3">#</th>
             <th className="px-4 py-3">Caller</th>
+            <th className="hidden px-4 py-3 sm:table-cell">Handle</th>
             <th className="px-4 py-3 text-right">Score</th>
             <th className="hidden px-4 py-3 text-right sm:table-cell">Win rate</th>
             <th className="hidden px-4 py-3 text-right md:table-cell">Calls</th>
@@ -39,6 +40,9 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardEntry[] }) {
                   </span>
                   {row.trusted ? <Badge variant="trusted">Trusted</Badge> : null}
                 </div>
+              </td>
+              <td className="hidden px-4 py-4 font-mono text-xs text-[var(--pf-gray-500)] sm:table-cell">
+                {row.username ? `@${row.username}` : "—"}
               </td>
               <td className="px-4 py-4 text-right font-bold tabular-nums text-[var(--pf-black)]">
                 {row.rank_score.toFixed(1)}

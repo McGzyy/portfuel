@@ -531,6 +531,7 @@ export function getDemoLeaderboard(limit = 25): LeaderboardEntry[] {
       return {
         id: u.id,
         display_name: u.display_name,
+        username: u.username,
         calls_count: userCalls.length,
         win_rate: userCalls.length ? Math.round((wins / userCalls.length) * 100) : null,
         rank_score: u.rank_score,

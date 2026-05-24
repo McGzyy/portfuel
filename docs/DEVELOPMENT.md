@@ -142,6 +142,14 @@ Work through these **one branch at a time**. Finish and merge before starting th
 - [x] Site copy: “Join the action” CTAs (member intel, not squad/team)
 - [x] Dashboard pro pass: feed pulse, price metrics on cards, quick nav, member snapshot tiles
 
+### 5d. `feature/phase-2-market-tools` ← **in progress**
+
+- [x] Ticker community stats bar (calls, long/short, avg/best return)
+- [x] Rankings summary bar + `@username` column
+- [x] New call: trade setup preview (upside, risk, R:R) + `?symbol=` prefill from ticker
+- [x] Dashboard hot tickers strip from active feed
+- [x] Thesis blocks: full price metrics on ticker page
+
 ### Demo preview data (`NEXT_PUBLIC_DEMO_MODE=true`)
 
 Fills feeds with **15 sample calls** (member + **Fueled** / PortFuel bot), leaderboard, public teasers, ticker theses, comments, and votes. No DB writes for `demo-call-*` IDs. Amber banner shows when active.

@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Card, CardContent } from "@/components/ui/card";
+import { TradeSetupPreview } from "@/components/calls/TradeSetupPreview";
 import type { HeaderUser } from "@/lib/auth/session-user";
 
 export function NewCallForm({ user }: { user: HeaderUser }) {
@@ -19,9 +20,10 @@ export function NewCallForm({ user }: { user: HeaderUser }) {
   const searchParams = useSearchParams();
   const initialAsset =
     searchParams.get("asset") === "crypto" ? "crypto" : "equity";
+  const initialSymbol = (searchParams.get("symbol") ?? "").toUpperCase();
 
   const [assetClass, setAssetClass] = useState<"equity" | "crypto">(initialAsset);
-  const [symbol, setSymbol] = useState("");
+  const [symbol, setSymbol] = useState(initialSymbol);
   const [symbolHint, setSymbolHint] = useState("");
   const [symbolValid, setSymbolValid] = useState<boolean | null>(null);
   const [direction, setDirection] = useState<"long" | "short">("long");
@@ -236,6 +238,12 @@ export function NewCallForm({ user }: { user: HeaderUser }) {
                   placeholder="e.g. Swing · 2–4 weeks"
                 />
               </div>
+              <TradeSetupPreview
+                direction={direction}
+                entryPrice={entryPrice}
+                targetPrice={targetPrice}
+                stopPrice={stopPrice}
+              />
             </section>
 
             {error ? (

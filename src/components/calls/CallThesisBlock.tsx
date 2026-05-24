@@ -1,15 +1,20 @@
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { CallEngagement } from "@/components/calls/CallEngagement";
-import { formatPct, formatPrice, timeAgo } from "@/lib/utils";
+import { CallPriceMetrics } from "@/components/calls/CallPriceMetrics";
+import { formatPct, timeAgo } from "@/lib/utils";
 
 type ThesisCall = {
   id: string;
+  symbol?: string;
   direction: "long" | "short";
   thesis: string;
   called_at: string;
   return_pct: number | null;
   entry_price: number | null;
   target_price: number | null;
+  stop_price?: number | null;
+  last_price?: number | null;
   target_progress: number | null;
   timeframe_tag: string | null;
   is_fueled: boolean;
@@ -18,6 +23,7 @@ type ThesisCall = {
   users: {
     display_name: string | null;
     pin: string;
+    username?: string | null;
     trusted_at: string | null;
   };
 };
@@ -29,7 +35,12 @@ export function CallThesisBlock({
   call: ThesisCall;
   interactive: boolean;
 }) {
-  const name = call.users.display_name ?? `Trader ${call.users.pin}`;
+  const handle = call.users.username
+    ? `@${call.users.username}`
+    : /^\d{5}$/.test(call.users.pin)
+      ? call.users.pin
+      : `@${call.users.pin}`;
+  const name = call.users.display_name ?? `Trader ${handle}`;
   const ret = call.return_pct;
   const retClass =
     ret == null ? "text-[var(--pf-gray-500)]" : ret >= 0 ? "text-emerald-600" : "text-rose-600";
@@ -41,8 +52,16 @@ export function CallThesisBlock({
       }`}
     >
       <div className="flex flex-wrap items-center gap-2">
+        {call.symbol ? (
+          <Link
+            href={`/ticker/${call.symbol}`}
+            className="text-sm font-bold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
+          >
+            {call.symbol}
+          </Link>
+        ) : null}
         <span className="font-semibold text-[var(--pf-black)]">{name}</span>
-        <span className="text-xs tabular-nums text-[var(--pf-gray-400)]">{call.users.pin}</span>
+        <span className="text-xs tabular-nums text-[var(--pf-gray-400)]">{handle}</span>
         <Badge variant={call.direction === "long" ? "long" : "short"}>{call.direction}</Badge>
         {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
         {call.users.trusted_at ? <Badge variant="trusted">Trusted</Badge> : null}
@@ -52,16 +71,15 @@ export function CallThesisBlock({
       </div>
       <p className="mt-1 text-xs text-[var(--pf-gray-400)]">{timeAgo(call.called_at)}</p>
       <p className="mt-3 text-sm leading-relaxed text-[var(--pf-gray-700)]">{call.thesis}</p>
-      {(call.entry_price || call.target_price) && (
-        <p className="mt-2 text-xs text-[var(--pf-gray-500)]">
-          {call.entry_price ? `Entry $${formatPrice(Number(call.entry_price))}` : ""}
-          {call.target_price ? ` · Target $${formatPrice(Number(call.target_price))}` : ""}
-          {call.target_progress != null ? ` · ${call.target_progress.toFixed(0)}% to target` : ""}
-        </p>
-      )}
-      {call.timeframe_tag ? (
-        <p className="mt-1 text-xs text-[var(--pf-gray-400)]">{call.timeframe_tag}</p>
-      ) : null}
+      <CallPriceMetrics
+        entry_price={call.entry_price}
+        target_price={call.target_price}
+        stop_price={call.stop_price}
+        last_price={call.last_price}
+        target_progress={call.target_progress}
+        timeframe_tag={call.timeframe_tag}
+        compact
+      />
       <CallEngagement
         callId={call.id}
         initialVoteScore={call.vote_score}
