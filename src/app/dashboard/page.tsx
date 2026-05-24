@@ -66,6 +66,29 @@ export default async function DashboardPage({
         }
       />
 
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <div className="pf-stat-tile">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            Your ID
+          </p>
+          <p className="mt-1 font-mono text-xl font-bold text-[var(--pf-black)]">{session.pin}</p>
+        </div>
+        <div className="pf-stat-tile">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            Feed
+          </p>
+          <p className="mt-1 text-xl font-bold text-[var(--pf-black)]">
+            {mode === "performing" ? "Performing" : "Latest"}
+          </p>
+        </div>
+        <div className="pf-stat-tile">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            Calls shown
+          </p>
+          <p className="mt-1 text-xl font-bold text-[var(--pf-black)]">{mapped.length}</p>
+        </div>
+      </div>
+
       <div className="mt-6">
         <TabNav
           tabs={[

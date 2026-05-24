@@ -60,6 +60,97 @@ body {
     linear-gradient(to bottom, var(--pf-gray-50), #fff 40%);
 }
 
+.pf-hero-mesh {
+  position: relative;
+  overflow: hidden;
+  background-color: #fff;
+  background-image:
+    radial-gradient(ellipse 120% 80% at 100% -20%, rgba(227, 27, 35, 0.08), transparent 50%),
+    radial-gradient(ellipse 80% 60% at 0% 100%, rgba(15, 20, 25, 0.04), transparent 45%),
+    linear-gradient(180deg, var(--pf-gray-50) 0%, #fff 55%);
+}
+
+.pf-hero-mesh::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, var(--pf-gray-200) 1px, transparent 0);
+  background-size: 32px 32px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.pf-section-alt {
+  background: linear-gradient(180deg, var(--pf-gray-50) 0%, #fff 100%);
+  border-top: 1px solid var(--pf-border);
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.pf-cta-band {
+  background: linear-gradient(135deg, var(--pf-black) 0%, #1a2332 50%, var(--pf-red-hover) 120%);
+}
+
+.pf-app-bg {
+  background-color: var(--pf-gray-50);
+  background-image:
+    radial-gradient(ellipse 60% 40% at 100% 0%, var(--pf-red-ring), transparent),
+    linear-gradient(to bottom, var(--pf-gray-50), #fff 30%);
+}
+
+.pf-stat-tile {
+  border-radius: var(--pf-radius-lg);
+  border: 1px solid var(--pf-border);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--pf-shadow-sm);
+}
+
+.pf-step-card {
+  border-radius: var(--pf-radius-lg);
+  border: 1px solid var(--pf-border);
+  background: var(--pf-surface);
+  padding: 1.75rem 1.5rem;
+  box-shadow: var(--pf-shadow-sm);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.pf-step-card:hover {
+  border-color: var(--pf-gray-200);
+  box-shadow: var(--pf-shadow-md);
+}
+
+.pf-step-number {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--pf-black);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.pf-mock-panel {
+  border-radius: 1.25rem;
+  border: 1px solid var(--pf-border);
+  background: #fff;
+  box-shadow: var(--pf-shadow-lg);
+}
+
+.pf-call-accent-long {
+  border-left: 3px solid #10b981;
+}
+
+.pf-call-accent-short {
+  border-left: 3px solid #f43f5e;
+}
+
 .pf-auth-bg {
   min-height: 100vh;
   background-color: var(--pf-gray-50);

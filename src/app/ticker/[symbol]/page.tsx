@@ -1,7 +1,11 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { HypeMeter } from "@/components/brand/HypeMeter";
+import { AppShell } from "@/components/layout/AppShell";
+import { SectionHeader } from "@/components/marketing/SectionHeader";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { TickerChartClient } from "@/components/charts/TickerChartClient";
 import { TickerIntelPanel } from "@/components/ticker/TickerIntelPanel";
 import { CallThesisBlock } from "@/components/calls/CallThesisBlock";
@@ -43,45 +47,73 @@ export default async function TickerPage({
     profile: null,
   };
 
-  return (
+  const body = (
     <>
-      <SiteHeader userPin={session?.pin} showAuth={!session} />
-      <main className="mx-auto max-w-6xl px-4 py-8">
+      <div className="pf-card-elevated overflow-hidden p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <TickerHeaderLeft intel={intel} symbol={symbol} />
+          <TickerHeaderLeft intel={intel} symbol={symbol} session={session} />
           <TickerHeaderRight intel={intel} session={session} />
         </div>
 
-        <div className="mt-8">
+        <div className="mt-8 overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)]">
           {intel?.candles?.length ? (
             <TickerChartClient candles={intel.candles} markers={intel.markers ?? []} />
           ) : (
-            <div className="flex h-[380px] items-center justify-center rounded-xl border border-dashed border-[var(--pf-border)] text-[var(--pf-gray-500)]">
+            <div className="flex h-[380px] items-center justify-center text-sm text-[var(--pf-gray-500)]">
               Chart unavailable — check Finnhub API key and symbol.
             </div>
           )}
         </div>
+      </div>
 
-        <TickerIntelPanel intel={intel ?? emptyIntel} />
+      <TickerIntelPanel intel={intel ?? emptyIntel} />
 
-        <section className="mt-10">
-          <h2 className="text-xl font-bold">Theses on {symbol}</h2>
-          <p className="text-sm text-[var(--pf-gray-500)]">
-            All squad calls on this ticker, newest first. FUELED calls highlighted.
-          </p>
-          <div className="mt-6 space-y-4">
-            {(intel?.calls ?? []).length === 0 ? (
-              <p className="rounded-xl border border-dashed border-[var(--pf-border)] py-12 text-center text-[var(--pf-gray-500)]">
-                No calls on this ticker yet.
-              </p>
-            ) : (
-              (intel?.calls ?? []).map((c) => (
-                <CallThesisBlock key={c.id} call={c} interactive={Boolean(session)} />
-              ))
-            )}
-          </div>
-        </section>
-      </main>
+      <section className="mt-10">
+        <SectionHeader
+          eyebrow="Community"
+          title={`Theses on ${symbol}`}
+          subtitle="All squad calls on this ticker, newest first."
+        />
+        <div className="mt-8 space-y-4">
+          {(intel?.calls ?? []).length === 0 ? (
+            <div className="pf-empty">
+              <p className="font-medium text-[var(--pf-gray-700)]">No calls on this ticker yet</p>
+              {session ? (
+                <Link
+                  href={`/calls/new?asset=${intel?.assetClass ?? "equity"}`}
+                  className="mt-4 inline-block"
+                >
+                  <Button>
+                    <Plus className="h-4 w-4" />
+                    Be the first to call {symbol}
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/join" className="mt-4 inline-block">
+                  <Button variant="outline">Join to submit a call</Button>
+                </Link>
+              )}
+            </div>
+          ) : (
+            (intel?.calls ?? []).map((c) => (
+              <CallThesisBlock key={c.id} call={c} interactive={Boolean(session)} />
+            ))
+          )}
+        </div>
+      </section>
+    </>
+  );
+
+  if (session) {
+    return <AppShell userPin={session.pin}>{body}</AppShell>;
+  }
+
+  return (
+    <>
+      <SiteHeader />
+      <div className="pf-app-bg">
+        <main className="mx-auto max-w-6xl px-4 py-8">{body}</main>
+      </div>
     </>
   );
 }
@@ -89,28 +121,39 @@ export default async function TickerPage({
 function TickerHeaderLeft({
   intel,
   symbol,
+  session,
 }: {
   intel: Awaited<ReturnType<typeof loadTickerIntel>> | null;
   symbol: string;
+  session: Awaited<ReturnType<typeof getSession>>;
 }) {
   return (
     <div>
-      <Link href="/dashboard" className="text-sm text-[var(--pf-gray-500)] hover:text-[var(--pf-red)]">
-        ← Dashboard
-      </Link>
+      {session ? (
+        <Link
+          href="/dashboard"
+          className="text-sm font-medium text-[var(--pf-gray-500)] hover:text-[var(--pf-red)]"
+        >
+          ← Dashboard
+        </Link>
+      ) : (
+        <Link href="/" className="text-sm font-medium text-[var(--pf-gray-500)] hover:text-[var(--pf-red)]">
+          ← Home
+        </Link>
+      )}
       <div className="mt-2 flex flex-wrap items-center gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">{symbol}</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--pf-black)]">{symbol}</h1>
         <Badge variant={intel?.assetClass === "crypto" ? "fueled" : "default"}>
-          {intel?.assetClass === "crypto" ? "CRYPTO" : "EQUITY"}
+          {intel?.assetClass === "crypto" ? "Crypto" : "Equity"}
         </Badge>
       </div>
       <p className="text-[var(--pf-gray-500)]">{intel?.companyName ?? symbol}</p>
       {intel?.quote ? (
-        <p className="mt-2 text-lg font-semibold tabular-nums">
+        <p className="mt-2 text-2xl font-bold tabular-nums tracking-tight">
           ${formatPrice(intel.quote.price)}
           {intel.quote.changePct != null ? (
             <span
-              className={`ml-2 text-sm ${
+              className={`ml-2 text-base font-semibold ${
                 intel.quote.changePct >= 0 ? "text-emerald-600" : "text-rose-600"
               }`}
             >
@@ -134,11 +177,11 @@ function TickerHeaderRight({
     <div className="flex flex-col items-end gap-3">
       <HypeMeter score={intel?.hypeScore ?? 0} />
       {session ? (
-        <Link
-          href={`/calls/new?asset=${intel?.assetClass ?? "equity"}`}
-          className="text-sm font-medium text-[var(--pf-red)] hover:underline"
-        >
-          + Call this ticker
+        <Link href={`/calls/new?asset=${intel?.assetClass ?? "equity"}`}>
+          <Button size="sm">
+            <Plus className="h-4 w-4" />
+            Call this ticker
+          </Button>
         </Link>
       ) : null}
     </div>

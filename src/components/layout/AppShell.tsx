@@ -19,7 +19,7 @@ export function AppShell({
   return (
     <div className={cn("flex min-h-screen flex-col", className)}>
       <SiteHeader userPin={userPin} />
-      <div className="flex-1 border-t border-transparent bg-gradient-to-b from-[var(--pf-gray-50)] to-white">
+      <div className="pf-app-bg flex-1">
         <main className={cn("mx-auto w-full px-4 py-8", maxW, mainClassName)}>
           {children}
         </main>

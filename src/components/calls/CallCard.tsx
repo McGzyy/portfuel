@@ -35,10 +35,14 @@ export function CallCard({ call, compact, interactive = false }: CallCardProps) 
         ? "text-emerald-600"
         : "text-rose-600";
 
+  const accent =
+    call.direction === "long" ? "pf-call-accent-long" : "pf-call-accent-short";
+
   return (
     <Card
       className={cn(
-        "group transition-all duration-200",
+        accent,
+        "group overflow-hidden transition-all duration-200",
         "hover:border-[var(--pf-gray-200)] hover:shadow-[var(--pf-shadow-md)]"
       )}
     >

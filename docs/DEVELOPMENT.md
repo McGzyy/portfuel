@@ -93,6 +93,16 @@ Work through these **one branch at a time**. Finish and merge before starting th
 
 **Done when:** Logged-in user can vote and comment on a call; counts update on dashboard.
 
+### 2b. `feature/phase-1-visual-polish` ← **in progress / ready for PR**
+
+**Goal:** Homepage and existing pages feel premium, not MVP-flat.
+
+- [x] Hero with product mock, stats strip, how-it-works, CTA band, dark footer
+- [x] App shell background, call card accents, join/login polish
+- [x] Ticker + dashboard + legal pages aligned with design system
+
+**Done when:** Public site and member pages look intentionally designed end-to-end.
+
 ### 3. `feature/phase-1-rankings`
 
 **Goal:** Leaderboard from `users.rank_score`.
