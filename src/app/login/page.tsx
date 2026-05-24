@@ -6,6 +6,7 @@ import Link from "next/link";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { OtpInput } from "@/components/auth/OtpInput";
 import { Button } from "@/components/ui/button";
+import { COPY } from "@/lib/copy";
 import { Input } from "@/components/ui/input";
 
 export default function LoginPage() {
@@ -122,7 +123,7 @@ export default function LoginPage() {
       <p className="mt-6 text-center text-sm text-[var(--pf-gray-500)]">
         New here?{" "}
         <Link href="/join" className="font-semibold text-[var(--pf-red)] hover:underline">
-          Join the Squad
+          {COPY.ctaGetAccess}
         </Link>
       </p>
     </AuthShell>

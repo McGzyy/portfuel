@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/marketing/SiteFooter";
 import { SectionHeader } from "@/components/marketing/SectionHeader";
 import { LeaderboardTable } from "@/components/rankings/LeaderboardTable";
 import { Button } from "@/components/ui/button";
+import { COPY } from "@/lib/copy";
 import { fetchLeaderboard } from "@/lib/calls/leaderboard";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { getSession } from "@/lib/auth/session";
@@ -38,7 +39,7 @@ export default async function RankingsPage() {
             <p className="mt-8 text-center text-sm text-[var(--pf-gray-500)]">
               Want the live feed and full theses?{" "}
               <Link href="/join" className="font-semibold text-[var(--pf-red)] hover:underline">
-                Join the Squad
+                {COPY.ctaGetAccess}
               </Link>
             </p>
           ) : (

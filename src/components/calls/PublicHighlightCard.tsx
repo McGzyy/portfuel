@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn, formatPct, timeAgo } from "@/lib/utils";
 import type { TeaserCallRow } from "@/lib/db/supabase";
+import { COPY } from "@/lib/copy";
 
 /** Public landing card — shows performance, hides full thesis. */
 export function PublicHighlightCard({ call }: { call: TeaserCallRow }) {
@@ -38,14 +39,14 @@ export function PublicHighlightCard({ call }: { call: TeaserCallRow }) {
 
         <div className="relative mt-4 overflow-hidden rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-6">
           <p className="select-none blur-sm">
-            Thesis and live levels are available to members after sign-in. Join to read the full
-            call and track performance in real time.
+            Full thesis and live levels are inside access for members. Sign up to read the
+            complete call and track performance in real time.
           </p>
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/70 backdrop-blur-[2px]">
             <Lock className="h-5 w-5 text-[var(--pf-red)]" strokeWidth={2} />
             <p className="text-xs font-semibold text-[var(--pf-gray-700)]">Members-only thesis</p>
             <Link href="/join">
-              <Button size="sm">Join to unlock</Button>
+              <Button size="sm">{COPY.ctaGetAccess}</Button>
             </Link>
           </div>
         </div>

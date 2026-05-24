@@ -8,6 +8,7 @@ import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { COPY } from "@/lib/copy";
 
 type Step = "plan" | "account" | "done";
 
@@ -62,10 +63,10 @@ export default function JoinPage() {
       </div>
       <div className="pf-hero-mesh border-b border-[var(--pf-border)] py-10 text-center">
         <p className="pf-eyebrow">Membership</p>
-        <h1 className="pf-display mt-3 text-2xl sm:text-3xl">Join the PortFuel squad</h1>
+        <h1 className="pf-display mt-3 text-2xl sm:text-3xl">Get inside access to PortFuel</h1>
         <p className="pf-lead mx-auto mt-3 max-w-md text-sm">
-          Choose a permanent username and password. After membership is active, you&apos;ll set up
-          2FA before accessing the dashboard.
+          Member-only theses, live marks, and the full feed — not just public winners. Choose a
+          permanent username; after activation, complete 2FA to enter.
         </p>
       </div>
       <div className="mx-auto max-w-3xl px-4 py-10">
@@ -80,9 +81,10 @@ export default function JoinPage() {
           <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
             <CardHeader>
               <p className="pf-eyebrow">Membership</p>
-              <h1 className="mt-2 text-2xl font-bold tracking-tight">Join the Squad</h1>
+              <h1 className="mt-2 text-2xl font-bold tracking-tight">Member access</h1>
               <p className="mt-2 text-[var(--pf-gray-600)]">
-                Premium stock call intelligence. Username is permanent — choose carefully.
+                Unlock the full thesis feed and live intel. Username is permanent — choose
+                carefully.
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -165,7 +167,7 @@ export default function JoinPage() {
                 <Input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value.slice(0, 32))}
-                  placeholder="Your squad name"
+                  placeholder="How you appear on calls"
                 />
               </div>
               {error ? (

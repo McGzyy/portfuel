@@ -132,12 +132,14 @@ Work through these **one branch at a time**. Finish and merge before starting th
 **Ops after merge:** Run migration in Supabase; set admin password:
 `node --env-file=.env.local scripts/set-admin-password.mjs`
 
-### 5. `feature/phase-2-ticker-polish`
+### 5. `feature/phase-2-ticker-polish` ← **in progress**
 
 **Goal:** Ticker page is the “pro” view.
 
-- Intel panel layout, loading states, crypto vs equity modes
-- Chart markers for calls (if not already solid)
+- [x] Ticker `loading.tsx` skeleton
+- [x] Intel panel layout (equity stack vs crypto card)
+- [x] Chart marker legend
+- [x] Site copy: “Get inside access” (member intel, not squad/team)
 
 ### 6. `feature/phase-3-stripe`
 

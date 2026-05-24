@@ -9,6 +9,7 @@ import { MembersFeedGate } from "@/components/marketing/MembersFeedGate";
 import { SectionHeader } from "@/components/marketing/SectionHeader";
 import { SiteFooter } from "@/components/marketing/SiteFooter";
 import { Button } from "@/components/ui/button";
+import { COPY } from "@/lib/copy";
 import {
   fetchPublicLandingTeasers,
   PUBLIC_TEASER_THRESHOLDS,
@@ -55,7 +56,7 @@ export default async function LandingPage() {
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
                 <Link href="/join">
-                  <Button size="lg">Join the Squad</Button>
+                  <Button size="lg">{COPY.ctaGetAccess}</Button>
                 </Link>
                 <Link href="/login">
                   <Button variant="secondary" size="lg">
@@ -159,7 +160,7 @@ function TeaserSection({
             <div className="pf-empty">
               <p className="font-medium text-[var(--pf-gray-700)]">{emptyMessage}</p>
               <Link href="/join" className="mt-4 inline-block">
-                <Button variant="outline">Join for the live feed</Button>
+                <Button variant="outline">{COPY.ctaGetAccess}</Button>
               </Link>
             </div>
           ) : (

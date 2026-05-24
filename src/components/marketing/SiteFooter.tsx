@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
+import { COPY } from "@/lib/copy";
 
 export function SiteFooter() {
   return (
@@ -18,7 +19,7 @@ export function SiteFooter() {
             <ul className="mt-4 space-y-2 text-sm">
               <li>
                 <Link href="/join" className="hover:text-white">
-                  Join the Squad
+                  {COPY.ctaGetAccess}
                 </Link>
               </li>
               <li>

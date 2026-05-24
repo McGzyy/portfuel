@@ -54,7 +54,7 @@ export default async function DashboardPage({
         title="Dashboard"
         description={
           mode === "performing"
-            ? "Top movers from the squad in the last 30 days."
+            ? "Top movers from members in the last 30 days."
             : "Fresh calls as they hit the board."
         }
         action={

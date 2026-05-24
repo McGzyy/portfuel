@@ -106,7 +106,7 @@ export function NewCallForm({ user }: { user: HeaderUser }) {
 
       <PageHeader
         title="Submit a call"
-        description="Share your thesis with the squad. Stocks get news and filings on the ticker page; crypto must be on major exchanges."
+        description="Share your thesis with members. Stocks get news and filings on the ticker page; crypto must be on major exchanges."
         className="border-none pb-4"
       />
 
