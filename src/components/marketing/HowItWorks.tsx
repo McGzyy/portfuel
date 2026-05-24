@@ -3,8 +3,8 @@ import { LineChart, ShieldCheck, Users } from "lucide-react";
 const steps = [
   {
     icon: Users,
-    title: "Claim your PortFuel ID",
-    text: "Pick a 5-digit PIN and secure your account with an authenticator app.",
+    title: "Create your account",
+    text: "Choose a permanent username and password. After membership is active, set up two-factor authentication.",
   },
   {
     icon: LineChart,

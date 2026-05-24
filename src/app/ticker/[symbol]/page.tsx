@@ -11,6 +11,7 @@ import { TickerIntelPanel } from "@/components/ticker/TickerIntelPanel";
 import { CallThesisBlock } from "@/components/calls/CallThesisBlock";
 import { formatPct, formatPrice } from "@/lib/utils";
 import { getSession } from "@/lib/auth/session";
+import { toHeaderUser } from "@/lib/auth/session-user";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
 
@@ -105,7 +106,7 @@ export default async function TickerPage({
   );
 
   if (session) {
-    return <AppShell userPin={session.pin}>{body}</AppShell>;
+    return <AppShell user={toHeaderUser(session)}>{body}</AppShell>;
   }
 
   return (

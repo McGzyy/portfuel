@@ -1,14 +1,15 @@
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { cn } from "@/lib/utils";
+import type { HeaderUser } from "@/lib/auth/session-user";
 
 export function AppShell({
-  userPin,
+  user,
   children,
   className,
   mainClassName,
   width = "default",
 }: {
-  userPin: string;
+  user: HeaderUser;
   children: React.ReactNode;
   className?: string;
   mainClassName?: string;
@@ -18,7 +19,7 @@ export function AppShell({
 
   return (
     <div className={cn("flex min-h-screen flex-col", className)}>
-      <SiteHeader userPin={userPin} />
+      <SiteHeader user={user} />
       <div className="pf-app-bg flex-1">
         <main className={cn("mx-auto w-full px-4 py-8", maxW, mainClassName)}>
           {children}

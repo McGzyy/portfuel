@@ -2,19 +2,27 @@
  * Seed admin user. Run after migrations:
  *   node --env-file=.env.local scripts/seed.mjs
  *
- * Set ADMIN_PIN (5 digits) and optionally ADMIN_TOTP_SECRET in env.
- * If no secret, prints one to enroll in your authenticator.
+ * Env: ADMIN_USERNAME (default admin), ADMIN_PASSWORD (required),
+ *      ADMIN_TOTP_SECRET (optional), TOTP_ENCRYPTION_KEY, Supabase keys.
  */
 import { createClient } from "@supabase/supabase-js";
-import { createCipheriv, createHash, randomBytes } from "crypto";
-import { generateSecret, verify } from "otplib";
+import { createCipheriv, createHash, randomBytes, scrypt } from "crypto";
+import { promisify } from "util";
+import { generateSecret } from "otplib";
+
+const scryptAsync = promisify(scrypt);
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const pin = process.env.ADMIN_PIN ?? "10000";
+const username = (process.env.ADMIN_USERNAME ?? "admin").toLowerCase();
+const password = process.env.ADMIN_PASSWORD;
 
 if (!url || !key) {
   console.error("Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
+  process.exit(1);
+}
+if (!password || password.length < 8) {
+  console.error("Set ADMIN_PASSWORD (min 8 chars, letter + number) in .env.local");
   process.exit(1);
 }
 
@@ -28,17 +36,42 @@ function encryptSecret(plain) {
   return `${iv.toString("base64")}.${tag.toString("base64")}.${enc.toString("base64")}`;
 }
 
+async function hashPassword(pw) {
+  const salt = randomBytes(16);
+  const derived = await scryptAsync(pw, salt, 64);
+  return `${salt.toString("hex")}.${derived.toString("hex")}`;
+}
+
+async function uniquePin(db) {
+  for (let i = 0; i < 30; i++) {
+    const pin = String(Math.floor(10000 + Math.random() * 90000));
+    const { data } = await db.from("users").select("id").eq("pin", pin).maybeSingle();
+    if (!data) return pin;
+  }
+  throw new Error("Could not allocate pin");
+}
+
 const secret = process.env.ADMIN_TOTP_SECRET || generateSecret();
 const db = createClient(url, key);
 
-const { data: existing } = await db.from("users").select("id").eq("pin", pin).maybeSingle();
+const { data: existing } = await db
+  .from("users")
+  .select("id, username")
+  .eq("username", username)
+  .maybeSingle();
+
 if (existing) {
-  console.log(`Admin PIN ${pin} already exists.`);
+  console.log(`Admin @${username} already exists. Use scripts/set-admin-password.mjs to rotate password.`);
   process.exit(0);
 }
 
+const pin = await uniquePin(db);
+const passwordHash = await hashPassword(password);
+
 const { error } = await db.from("users").insert({
   pin,
+  username,
+  password_hash: passwordHash,
   display_name: "PortFuel Admin",
   totp_secret_enc: encryptSecret(secret),
   totp_verified: true,
@@ -52,7 +85,8 @@ if (error) {
   process.exit(1);
 }
 
-console.log(`Admin created. PIN: ${pin}`);
+console.log(`Admin created. Username: ${username}`);
+console.log(`Sign in at /login with username + password + authenticator code.`);
 if (!process.env.ADMIN_TOTP_SECRET) {
   console.log(`TOTP secret (add to authenticator): ${secret}`);
   console.log(`Or set ADMIN_TOTP_SECRET=${secret} and re-run if you need to store it.`);

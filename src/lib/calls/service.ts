@@ -29,7 +29,7 @@ export async function fetchCallsFeed(
   let query = db
     .from("calls")
     .select(
-      "*, users!inner(id, pin, display_name, trusted_at, rank_score, subscription_status)"
+      "*, users!inner(id, pin, username, display_name, trusted_at, rank_score, subscription_status)"
     )
     .eq("users.subscription_status", "active");
 
@@ -54,7 +54,7 @@ export async function fetchCallsBySymbol(symbol: string): Promise<CallWithUser[]
   const db = createServiceClient();
   const { data, error } = await db
     .from("calls")
-    .select("*, users!inner(id, pin, display_name, trusted_at, rank_score)")
+    .select("*, users!inner(id, pin, username, display_name, trusted_at, rank_score)")
     .eq("symbol", symbol.toUpperCase())
     .order("is_fueled", { ascending: false })
     .order("called_at", { ascending: false });

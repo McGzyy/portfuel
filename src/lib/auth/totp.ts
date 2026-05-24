@@ -12,15 +12,15 @@ export async function verifyTotpToken(secret: string, token: string): Promise<bo
   return result.valid;
 }
 
-export function getTotpUri(secret: string, pin: string): string {
+export function getTotpUri(secret: string, accountLabel: string): string {
   return generateURI({
     issuer: "PortFuel.pro",
-    label: pin,
+    label: accountLabel,
     secret,
   });
 }
 
-export async function getTotpQrDataUrl(secret: string, pin: string): Promise<string> {
-  const uri = getTotpUri(secret, pin);
+export async function getTotpQrDataUrl(secret: string, accountLabel: string): Promise<string> {
+  const uri = getTotpUri(secret, accountLabel);
   return QRCode.toDataURL(uri, { margin: 2, width: 220 });
 }

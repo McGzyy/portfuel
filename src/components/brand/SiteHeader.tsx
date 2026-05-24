@@ -1,24 +1,52 @@
 import Link from "next/link";
+import { Shield } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
+import type { HeaderUser } from "@/lib/auth/session-user";
+import { cn } from "@/lib/utils";
 
 export function SiteHeader({
   showAuth = true,
-  userPin,
+  user,
 }: {
   showAuth?: boolean;
-  userPin?: string;
+  user?: HeaderUser;
 }) {
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--pf-border)] bg-white/95 shadow-[var(--pf-shadow-sm)] backdrop-blur-md">
       <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between px-4">
         <Logo size="md" />
         <nav className="flex items-center gap-2">
-          {userPin ? (
+          {user ? (
             <>
-              <span className="hidden rounded-full bg-[var(--pf-gray-100)] px-3 py-1 text-xs font-medium tabular-nums text-[var(--pf-gray-600)] sm:inline">
-                ID {userPin}
-              </span>
+              {user.role === "admin" ? (
+                <span
+                  className={cn(
+                    "hidden items-center gap-1.5 rounded-full border border-[var(--pf-red)]/30 bg-[var(--pf-red-muted)] px-3 py-1 text-xs font-semibold text-[var(--pf-red)] sm:inline-flex"
+                  )}
+                >
+                  <Shield className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  Administrator
+                </span>
+              ) : (
+                <span className="hidden max-w-[10rem] truncate rounded-full bg-[var(--pf-gray-100)] px-3 py-1 text-xs font-medium text-[var(--pf-gray-600)] sm:inline">
+                  @{user.username}
+                </span>
+              )}
+              {user.role === "admin" ? (
+                <Link
+                  href="/admin"
+                  className="hidden text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] sm:inline"
+                >
+                  Admin
+                </Link>
+              ) : null}
+              <Link
+                href="/profile"
+                className="hidden text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] sm:inline"
+              >
+                Profile
+              </Link>
               <Link
                 href="/dashboard"
                 className="inline-flex h-9 items-center rounded-[var(--pf-radius)] border border-[var(--pf-border)] px-3.5 text-xs font-semibold shadow-[var(--pf-shadow-sm)] hover:bg-[var(--pf-gray-50)]"

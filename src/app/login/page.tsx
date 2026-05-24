@@ -4,18 +4,21 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuthShell } from "@/components/auth/AuthShell";
-import { PinPad } from "@/components/auth/PinPad";
 import { OtpInput } from "@/components/auth/OtpInput";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [pin, setPin] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [token, setToken] = useState("");
+  const [needsTotp, setNeedsTotp] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const canSubmit = pin.length === 5 && token.length === 6;
+  const canSubmit =
+    username.trim().length >= 3 && password.length >= 8 && (!needsTotp || token.length === 6);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -26,19 +29,32 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin, token }),
+        body: JSON.stringify({
+          username: username.trim().toLowerCase(),
+          password,
+          token: needsTotp ? token : undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
+        if (data.error === "totp_required" || data.requiresTotp) {
+          setNeedsTotp(true);
+          setError("Enter the 6-digit code from your authenticator app.");
+          return;
+        }
         setError(
           data.error === "rate_limited"
             ? "Too many attempts. Try again in 15 minutes."
-            : "Invalid PortFuel ID or authenticator code."
+            : "Invalid username, password, or authenticator code."
         );
         return;
       }
-      if (data.needsDisplayName) {
+      if (data.needsTwoFactorSetup) {
+        router.push("/security/2fa");
+      } else if (data.needsDisplayName) {
         router.push("/onboarding");
+      } else if (data.subscriptionStatus === "pending" && data.role !== "admin") {
+        router.push("/join?pending=1");
       } else {
         router.push("/dashboard");
       }
@@ -53,22 +69,44 @@ export default function LoginPage() {
   return (
     <AuthShell
       title="Sign in"
-      subtitle="Enter your 5-digit PortFuel ID, then your authenticator code."
+      subtitle="Use your username and password. Active members also need an authenticator code."
     >
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <p className="mb-4 text-center text-sm font-medium text-[var(--pf-gray-700)]">
-            PortFuel ID
-          </p>
-          <PinPad value={pin} onChange={setPin} disabled={loading} />
+          <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
+            Username
+          </label>
+          <Input
+            value={username}
+            onChange={(e) => setUsername(e.target.value.toLowerCase())}
+            placeholder="your_username"
+            autoComplete="username"
+            disabled={loading}
+          />
+          <p className="mt-1 text-xs text-[var(--pf-gray-400)]">Set at signup — cannot be changed.</p>
         </div>
 
         <div>
-          <p className="mb-4 text-center text-sm font-medium text-[var(--pf-gray-700)]">
-            Authenticator code
-          </p>
-          <OtpInput value={token} onChange={setToken} disabled={loading} />
+          <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
+            Password
+          </label>
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            disabled={loading}
+          />
         </div>
+
+        {needsTotp ? (
+          <div>
+            <p className="mb-4 text-center text-sm font-medium text-[var(--pf-gray-700)]">
+              Authenticator code
+            </p>
+            <OtpInput value={token} onChange={setToken} disabled={loading} />
+          </div>
+        ) : null}
 
         {error ? (
           <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-center text-sm text-[var(--pf-red)]">
@@ -77,7 +115,7 @@ export default function LoginPage() {
         ) : null}
 
         <Button type="submit" className="w-full" size="lg" disabled={loading || !canSubmit}>
-          {loading ? "Signing in…" : "Sign in"}
+          {loading ? "Signing in…" : needsTotp ? "Verify & sign in" : "Sign in"}
         </Button>
       </form>
 

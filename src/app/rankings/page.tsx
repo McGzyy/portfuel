@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { fetchLeaderboard } from "@/lib/calls/leaderboard";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { getSession } from "@/lib/auth/session";
+import { toHeaderUser } from "@/lib/auth/session-user";
 
 export default async function RankingsPage() {
   const session = await getSession();
@@ -22,7 +23,7 @@ export default async function RankingsPage() {
 
   return (
     <>
-      <SiteHeader userPin={session?.pin} showAuth={!session} />
+      <SiteHeader user={session ? toHeaderUser(session) : undefined} showAuth={!session} />
       <div className="pf-app-bg flex-1">
         <div className="mx-auto max-w-4xl px-4 py-12">
           <SectionHeader

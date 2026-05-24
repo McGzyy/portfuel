@@ -4,7 +4,7 @@ import { hashIp } from "@/lib/auth/crypto";
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 15 * 60 * 1000;
 
-export async function checkRateLimit(pin: string, ip: string): Promise<boolean> {
+export async function checkRateLimit(username: string, ip: string): Promise<boolean> {
   const db = createServiceClient();
   const ipHash = hashIp(ip);
   const since = new Date(Date.now() - WINDOW_MS).toISOString();
@@ -12,7 +12,7 @@ export async function checkRateLimit(pin: string, ip: string): Promise<boolean> 
   const { count, error } = await db
     .from("auth_attempts")
     .select("id", { count: "exact", head: true })
-    .eq("pin", pin)
+    .eq("username", username)
     .eq("ip_hash", ipHash)
     .eq("success", false)
     .gte("created_at", since);
@@ -22,13 +22,13 @@ export async function checkRateLimit(pin: string, ip: string): Promise<boolean> 
 }
 
 export async function recordAuthAttempt(
-  pin: string,
+  username: string,
   ip: string,
   success: boolean
 ): Promise<void> {
   const db = createServiceClient();
   await db.from("auth_attempts").insert({
-    pin,
+    username,
     ip_hash: hashIp(ip),
     success,
   } as never);

@@ -26,7 +26,8 @@ type CallCardProps = {
 };
 
 export function CallCard({ call, compact, interactive = false }: CallCardProps) {
-  const name = call.display_name ?? `Trader ${call.pin}`;
+  const handle = /^\d{5}$/.test(call.pin) ? call.pin : `@${call.pin}`;
+  const name = call.display_name ?? `Trader ${handle}`;
   const ret = call.return_pct;
   const retClass =
     ret == null
@@ -67,7 +68,7 @@ export function CallCard({ call, compact, interactive = false }: CallCardProps) 
             </div>
             <p className="mt-1.5 text-sm text-[var(--pf-gray-600)]">
               {name}{" "}
-              <span className="tabular-nums text-[var(--pf-gray-400)]">· {call.pin}</span>
+              <span className="tabular-nums text-[var(--pf-gray-400)]">· {handle}</span>
             </p>
           </div>
           <div className="text-right">

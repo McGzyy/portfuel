@@ -6,6 +6,7 @@ import { TabNav } from "@/components/layout/TabNav";
 import { CallCard } from "@/components/calls/CallCard";
 import { Button } from "@/components/ui/button";
 import { getSession } from "@/lib/auth/session";
+import { toHeaderUser } from "@/lib/auth/session-user";
 import { fetchCallsFeed } from "@/lib/calls/service";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { redirect } from "next/navigation";
@@ -43,12 +44,12 @@ export default async function DashboardPage({
     vote_score: c.vote_score,
     comment_count: c.comment_count,
     display_name: c.users.display_name,
-    pin: c.users.pin,
+    pin: c.users.username ?? c.users.pin,
     is_trusted: Boolean(c.users.trusted_at),
   }));
 
   return (
-    <AppShell userPin={session.pin}>
+    <AppShell user={toHeaderUser(session)}>
       <PageHeader
         title="Dashboard"
         description={
@@ -69,9 +70,9 @@ export default async function DashboardPage({
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <div className="pf-stat-tile">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-            Your ID
+            Username
           </p>
-          <p className="mt-1 font-mono text-xl font-bold text-[var(--pf-black)]">{session.pin}</p>
+          <p className="mt-1 font-mono text-xl font-bold text-[var(--pf-black)]">@{session.username}</p>
         </div>
         <div className="pf-stat-tile">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">

@@ -4,7 +4,16 @@ import { jwtVerify } from "jose";
 
 const COOKIE_NAME = "portfuel_session";
 
-const protectedPaths = ["/dashboard", "/calls", "/onboarding", "/profile"];
+const protectedPaths = [
+  "/dashboard",
+  "/calls",
+  "/onboarding",
+  "/profile",
+  "/admin",
+  "/security",
+];
+
+const twoFactorSetupPath = "/security/2fa";
 
 function getSecret() {
   const secret = process.env.SESSION_SECRET;
@@ -14,14 +23,14 @@ function getSecret() {
   return new TextEncoder().encode(secret);
 }
 
-async function verifySession(token: string) {
-  try {
-    const { payload } = await jwtVerify(token, getSecret());
-    return payload;
-  } catch {
-    return null;
-  }
-}
+type JwtPayload = {
+  userId?: string;
+  username?: string;
+  pin?: string;
+  role?: string;
+  subscriptionStatus?: string;
+  totpVerified?: boolean;
+};
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -35,13 +44,20 @@ export async function middleware(request: NextRequest) {
     if (!token) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
-    const payload = await verifySession(token);
+    const payload = (await verifySession(token)) as JwtPayload | null;
     if (!payload) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
     const sub = String(payload.subscriptionStatus ?? "");
     const role = String(payload.role ?? "");
+    const totpVerified = Boolean(payload.totpVerified);
+    const isActive = sub === "active" || role === "admin";
+
+    if (pathname.startsWith("/admin") && role !== "admin") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
     if (
       sub !== "active" &&
       role !== "admin" &&
@@ -50,11 +66,32 @@ export async function middleware(request: NextRequest) {
     ) {
       return NextResponse.redirect(new URL("/join?pending=1", request.url));
     }
+
+    if (
+      isActive &&
+      !totpVerified &&
+      pathname !== twoFactorSetupPath &&
+      !pathname.startsWith("/api/")
+    ) {
+      return NextResponse.redirect(new URL(twoFactorSetupPath, request.url));
+    }
+
+    if (totpVerified && pathname === twoFactorSetupPath) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
   }
 
   if (pathname === "/login" && token) {
     const payload = await verifySession(token);
     if (payload) {
+      const totpVerified = Boolean(payload.totpVerified);
+      const sub = String(payload.subscriptionStatus ?? "");
+      const role = String(payload.role ?? "");
+      const isActive = sub === "active" || role === "admin";
+
+      if (isActive && !totpVerified) {
+        return NextResponse.redirect(new URL(twoFactorSetupPath, request.url));
+      }
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
@@ -62,6 +99,23 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+async function verifySession(token: string) {
+  try {
+    const { payload } = await jwtVerify(token, getSecret());
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 export const config = {
-  matcher: ["/dashboard/:path*", "/calls/:path*", "/onboarding", "/profile/:path*", "/login"],
+  matcher: [
+    "/dashboard/:path*",
+    "/calls/:path*",
+    "/onboarding",
+    "/profile/:path*",
+    "/admin/:path*",
+    "/security/:path*",
+    "/login",
+  ],
 };

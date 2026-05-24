@@ -5,9 +5,11 @@ const COOKIE_NAME = "portfuel_session";
 
 export type SessionPayload = {
   userId: string;
-  pin: string;
+  username: string;
+  displayName: string | null;
   role: "member" | "admin";
   subscriptionStatus: "pending" | "active" | "cancelled";
+  totpVerified: boolean;
 };
 
 function getSecret() {
@@ -52,9 +54,11 @@ export async function getSession(): Promise<SessionPayload | null> {
     const { payload } = await jwtVerify(token, getSecret());
     return {
       userId: String(payload.userId),
-      pin: String(payload.pin),
+      username: String(payload.username ?? payload.pin ?? ""),
+      displayName: payload.displayName ? String(payload.displayName) : null,
       role: payload.role as SessionPayload["role"],
       subscriptionStatus: payload.subscriptionStatus as SessionPayload["subscriptionStatus"],
+      totpVerified: Boolean(payload.totpVerified),
     };
   } catch {
     return null;
@@ -72,5 +76,14 @@ export async function requireActiveMember(): Promise<SessionPayload> {
   if (session.subscriptionStatus !== "active" && session.role !== "admin") {
     throw new Error("subscription_inactive");
   }
+  if (!session.totpVerified && session.role !== "admin") {
+    throw new Error("totp_required");
+  }
+  return session;
+}
+
+export async function requireAdmin(): Promise<SessionPayload> {
+  const session = await requireSession();
+  if (session.role !== "admin") throw new Error("forbidden");
   return session;
 }

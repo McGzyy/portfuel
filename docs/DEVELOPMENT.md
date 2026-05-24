@@ -50,7 +50,9 @@ feature/phase-3-stripe-billing
 | Votes & comments (API + UI) | ✅ | Dashboard + ticker theses |
 | Public landing teasers | ✅ | Winners only; thesis gated |
 | Rankings / leaderboard | ✅ | `/rankings` + cron score refresh |
-| Profile page | ❌ | Middleware references `/profile`, page missing |
+| Profile page | ✅ | Username (read-only), stats, recent calls |
+| Username + password auth | ✅ | Immutable username; 2FA after activation |
+| Admin panel | ✅ | `/admin` — activate members, quotas |
 
 ### Phase 2 — Market intel (partial)
 
@@ -115,12 +117,20 @@ Work through these **one branch at a time**. Finish and merge before starting th
 
 **Done when:** Visitors see winners only; members get full feed after login.
 
-### 4. `feature/phase-1-profile`
+### 4. `feature/phase-1-profile-auth` ← **ready for PR**
 
-**Goal:** `/profile` route middleware already expects.
+**Goal:** Member identity, admin controls, modern auth.
 
-- View/edit display name
-- Show own stats + recent calls
+- [x] `/profile` — username, stats, recent calls
+- [x] Login: username + password; TOTP when enabled
+- [x] Signup: username (immutable) + password; `pending` until activated
+- [x] `/security/2fa` — required for active members before dashboard
+- [x] `/admin` — activate membership, adjust weekly quota
+- [x] Header shows **Administrator** badge (not numeric ID)
+- [x] Migration `20260524300000_username_password_auth.sql`
+
+**Ops after merge:** Run migration in Supabase; set admin password:
+`node --env-file=.env.local scripts/set-admin-password.mjs`
 
 ### 5. `feature/phase-2-ticker-polish`
 
@@ -157,7 +167,8 @@ git push -u origin feature/phase-1-app-shell
 
 ## Supabase / ops checklist (once per environment)
 
-- [ ] Both migrations applied in SQL Editor
+- [ ] All migrations applied in SQL Editor (including `20260524300000_username_password_auth.sql`)
+- [ ] Admin password set (`ADMIN_USERNAME`, `ADMIN_PASSWORD`, `scripts/set-admin-password.mjs`)
 - [ ] Admin seeded (`scripts/seed.mjs` or `scripts/reset-admin-totp.mjs`)
 - [ ] Crypto allowlist cron triggered once (production)
 - [ ] Vercel env vars match `.env.local` (no placeholders)

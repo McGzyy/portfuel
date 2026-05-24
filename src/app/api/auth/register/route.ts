@@ -1,46 +1,55 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/db/supabase";
-import { encryptSecret } from "@/lib/auth/crypto";
-import { generateTotpSecret, verifyTotpToken } from "@/lib/auth/totp";
+import { generateUniquePin } from "@/lib/auth/pin";
+import { hashPassword, validatePassword } from "@/lib/auth/password";
+import { normalizeUsername, usernamePattern, validateUsername } from "@/lib/auth/username";
 
 const schema = z.object({
-  pin: z.string().regex(/^[0-9]{5}$/),
+  username: z.string().min(3).max(32).regex(usernamePattern),
+  password: z.string().min(8).max(128),
   displayName: z.string().min(2).max(32),
-  token: z.string().min(6).max(8),
-  totpSecret: z.string().min(16),
 });
 
 export async function POST(request: Request) {
   try {
     const body = schema.parse(await request.json());
-
-    if (!(await verifyTotpToken(body.totpSecret, body.token))) {
-      return NextResponse.json({ error: "invalid_totp" }, { status: 400 });
+    const username = normalizeUsername(body.username);
+    const nameError = validateUsername(username);
+    if (nameError) {
+      return NextResponse.json({ error: "invalid_username", message: nameError }, { status: 400 });
+    }
+    const passError = validatePassword(body.password);
+    if (passError) {
+      return NextResponse.json({ error: "invalid_password", message: passError }, { status: 400 });
     }
 
     const db = createServiceClient();
     const { data: existing } = await db
       .from("users")
       .select("id")
-      .eq("pin", body.pin)
+      .ilike("username", username)
       .maybeSingle();
 
     if (existing) {
-      return NextResponse.json({ error: "pin_taken" }, { status: 409 });
+      return NextResponse.json({ error: "username_taken" }, { status: 409 });
     }
+
+    const pin = await generateUniquePin(db);
+    const passwordHash = await hashPassword(body.password);
 
     const { data: user, error } = await db
       .from("users")
       .insert({
-        pin: body.pin,
+        pin,
+        username,
+        password_hash: passwordHash,
         display_name: body.displayName.trim(),
-        totp_secret_enc: encryptSecret(body.totpSecret),
-        totp_verified: true,
-        subscription_status: "active",
+        totp_verified: false,
+        subscription_status: "pending",
         submission_quota_week: 2,
       } as never)
-      .select("id, pin")
+      .select("id, username")
       .single();
 
     if (error) {
@@ -48,7 +57,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "register_failed" }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, userId: user.id, pin: user.pin });
+    return NextResponse.json({ ok: true, userId: user.id, username: user.username });
   } catch (e) {
     if (e instanceof z.ZodError) {
       return NextResponse.json({ error: "invalid_input" }, { status: 400 });

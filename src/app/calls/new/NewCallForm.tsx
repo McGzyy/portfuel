@@ -12,8 +12,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Card, CardContent } from "@/components/ui/card";
+import type { HeaderUser } from "@/lib/auth/session-user";
 
-export function NewCallForm({ userPin }: { userPin: string }) {
+export function NewCallForm({ user }: { user: HeaderUser }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialAsset =
@@ -94,7 +95,7 @@ export function NewCallForm({ userPin }: { userPin: string }) {
   }
 
   return (
-    <AppShell userPin={userPin} width="narrow">
+    <AppShell user={user} width="narrow">
       <Link
         href="/dashboard"
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-red)]"

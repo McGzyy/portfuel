@@ -1,18 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Check } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
-import { PinPad } from "@/components/auth/PinPad";
-import { OtpInput } from "@/components/auth/OtpInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-type Step = "plan" | "pin" | "totp" | "done";
+type Step = "plan" | "account" | "done";
 
 export default function JoinPage() {
   const router = useRouter();
@@ -20,25 +17,11 @@ export default function JoinPage() {
   const pending = searchParams.get("pending") === "1";
 
   const [step, setStep] = useState<Step>("plan");
-  const [pin, setPin] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [totpSecret, setTotpSecret] = useState("");
-  const [qr, setQr] = useState("");
-  const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (step === "totp" && pin.length === 5 && !totpSecret) {
-      fetch(`/api/auth/totp-setup?pin=${pin}`)
-        .then((r) => r.json())
-        .then((d) => {
-          setTotpSecret(d.secret);
-          setQr(d.qr);
-        })
-        .catch(() => setError("Could not load authenticator setup."));
-    }
-  }, [step, pin, totpSecret]);
 
   async function handleRegister() {
     setError("");
@@ -47,14 +30,18 @@ export default function JoinPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin, displayName, token, totpSecret }),
+        body: JSON.stringify({
+          username: username.trim().toLowerCase(),
+          password,
+          displayName,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(
-          data.error === "pin_taken"
-            ? "That PortFuel ID is taken. Choose another."
-            : "Registration failed. Check your authenticator code."
+          data.error === "username_taken"
+            ? "That username is taken. Choose another."
+            : data.message ?? "Registration failed. Check your details."
         );
         return;
       }
@@ -77,15 +64,15 @@ export default function JoinPage() {
         <p className="pf-eyebrow">Membership</p>
         <h1 className="pf-display mt-3 text-2xl sm:text-3xl">Join the PortFuel squad</h1>
         <p className="pf-lead mx-auto mt-3 max-w-md text-sm">
-          Professional call tracking with PIN + authenticator security.
+          Choose a permanent username and password. After membership is active, you&apos;ll set up
+          2FA before accessing the dashboard.
         </p>
       </div>
       <div className="mx-auto max-w-3xl px-4 py-10">
-
         {pending ? (
           <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-amber-200/80 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-[var(--pf-shadow-sm)]">
-            Your membership is pending activation. Stripe checkout coming soon — contact
-            support if you need access.
+            Your membership is pending activation. Once an admin activates your account (or Stripe
+            checkout ships), sign in and complete two-factor authentication to continue.
           </div>
         ) : null}
 
@@ -95,7 +82,7 @@ export default function JoinPage() {
               <p className="pf-eyebrow">Membership</p>
               <h1 className="mt-2 text-2xl font-bold tracking-tight">Join the Squad</h1>
               <p className="mt-2 text-[var(--pf-gray-600)]">
-                Premium stock call intelligence. Early members get full access during beta.
+                Premium stock call intelligence. Username is permanent — choose carefully.
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -124,11 +111,11 @@ export default function JoinPage() {
                   ]}
                 />
               </div>
-              <Button className="w-full" size="lg" onClick={() => setStep("pin")}>
-                Continue — claim your PortFuel ID
+              <Button className="w-full" size="lg" onClick={() => setStep("account")}>
+                Create your account
               </Button>
               <p className="text-center text-sm text-[var(--pf-gray-500)]">
-                Already have an ID?{" "}
+                Already registered?{" "}
                 <Link href="/login" className="font-semibold text-[var(--pf-red)] hover:underline">
                   Sign in
                 </Link>
@@ -137,17 +124,40 @@ export default function JoinPage() {
           </Card>
         )}
 
-        {step === "pin" && (
+        {step === "account" && (
           <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
             <CardHeader>
-              <StepIndicator current={1} total={2} label="Account setup" />
-              <h1 className="mt-3 text-xl font-bold tracking-tight">Choose your PortFuel ID</h1>
+              <h1 className="text-xl font-bold tracking-tight">Account details</h1>
               <p className="mt-1.5 text-sm text-[var(--pf-gray-500)]">
-                Your 5-digit ID is how you sign in — pick something memorable.
+                Username cannot be changed later. Use lowercase letters, numbers, and underscores.
               </p>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <PinPad value={pin} onChange={setPin} />
+            <CardContent className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
+                  Username
+                </label>
+                <Input
+                  value={username}
+                  onChange={(e) =>
+                    setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
+                  }
+                  placeholder="fuel_trader"
+                  autoComplete="username"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
+                  Password
+                </label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="At least 8 characters"
+                  autoComplete="new-password"
+                />
+              </div>
               <div>
                 <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
                   Display name
@@ -158,13 +168,23 @@ export default function JoinPage() {
                   placeholder="Your squad name"
                 />
               </div>
+              {error ? (
+                <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-sm text-[var(--pf-red)]">
+                  {error}
+                </p>
+              ) : null}
               <Button
                 className="w-full"
                 size="lg"
-                disabled={pin.length !== 5 || displayName.length < 2}
-                onClick={() => setStep("totp")}
+                disabled={
+                  loading ||
+                  username.length < 3 ||
+                  password.length < 8 ||
+                  displayName.length < 2
+                }
+                onClick={handleRegister}
               >
-                Set up authenticator
+                {loading ? "Creating account…" : "Create account"}
               </Button>
               <button
                 type="button"
@@ -177,69 +197,17 @@ export default function JoinPage() {
           </Card>
         )}
 
-        {step === "totp" && (
-          <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
-            <CardHeader>
-              <StepIndicator current={2} total={2} label="Security" />
-              <h1 className="mt-3 text-xl font-bold tracking-tight">Secure your account</h1>
-              <p className="mt-1.5 text-sm text-[var(--pf-gray-500)]">
-                Scan with Google Authenticator, Authy, or 1Password.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {qr ? (
-                <div className="flex justify-center rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-4 shadow-[var(--pf-shadow-sm)]">
-                  <Image src={qr} alt="TOTP QR code" width={200} height={200} unoptimized />
-                </div>
-              ) : (
-                <div className="h-[232px] animate-pulse rounded-[var(--pf-radius-lg)] bg-[var(--pf-gray-100)]" />
-              )}
-              <div>
-                <p className="mb-4 text-center text-sm font-medium text-[var(--pf-gray-700)]">
-                  Enter the 6-digit code from your app
-                </p>
-                <OtpInput value={token} onChange={setToken} disabled={loading} />
-              </div>
-              {error ? (
-                <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-center text-sm text-[var(--pf-red)]">
-                  {error}
-                </p>
-              ) : null}
-              <Button
-                className="w-full"
-                size="lg"
-                disabled={loading || token.length !== 6}
-                onClick={handleRegister}
-              >
-                {loading ? "Creating account…" : "Complete registration"}
-              </Button>
-              <button
-                type="button"
-                className="w-full text-sm text-[var(--pf-gray-500)] hover:text-[var(--pf-gray-700)]"
-                onClick={() => {
-                  setStep("pin");
-                  setToken("");
-                  setTotpSecret("");
-                  setQr("");
-                }}
-              >
-                ← Change PortFuel ID
-              </button>
-            </CardContent>
-          </Card>
-        )}
-
         {step === "done" && (
           <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
             <CardContent className="py-12 text-center">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
                 <Check className="h-7 w-7" strokeWidth={2.5} />
               </div>
-              <h1 className="text-2xl font-bold tracking-tight">You&apos;re in.</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Account created</h1>
               <p className="mt-2 text-[var(--pf-gray-600)]">
-                PortFuel ID{" "}
-                <span className="font-mono text-lg font-bold text-[var(--pf-black)]">{pin}</span>{" "}
-                is ready.
+                Username{" "}
+                <span className="font-mono font-bold text-[var(--pf-black)]">@{username}</span> is
+                reserved. Sign in after your membership is activated, then complete 2FA setup.
               </p>
               <Button className="mt-8" size="lg" onClick={() => router.push("/login")}>
                 Go to sign in
@@ -248,27 +216,6 @@ export default function JoinPage() {
           </Card>
         )}
       </div>
-    </div>
-  );
-}
-
-function StepIndicator({
-  current,
-  total,
-  label,
-}: {
-  current: number;
-  total: number;
-  label: string;
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs font-semibold uppercase tracking-wider text-[var(--pf-red)]">
-        {label}
-      </span>
-      <span className="text-xs text-[var(--pf-gray-400)]">
-        Step {current} of {total}
-      </span>
     </div>
   );
 }

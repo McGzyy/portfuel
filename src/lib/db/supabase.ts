@@ -7,6 +7,8 @@ export type Database = {
         Row: {
           id: string;
           pin: string;
+          username: string;
+          password_hash: string | null;
           display_name: string | null;
           email: string | null;
           totp_secret_enc: string | null;
@@ -106,7 +108,7 @@ export type TeaserCallRow = {
 export type CallWithUser = Database["public"]["Tables"]["calls"]["Row"] & {
   users: Pick<
     Database["public"]["Tables"]["users"]["Row"],
-    "id" | "pin" | "display_name" | "trusted_at" | "rank_score"
+    "id" | "pin" | "username" | "display_name" | "trusted_at" | "rank_score"
   >;
 };
 

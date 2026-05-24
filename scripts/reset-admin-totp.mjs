@@ -1,6 +1,5 @@
 /**
- * Reset TOTP for the admin PIN in ADMIN_PIN (default 10000).
- * Prints a new secret to enroll in your authenticator.
+ * Reset TOTP for admin user (by ADMIN_USERNAME or role=admin).
  *
  *   node --env-file=.env.local scripts/reset-admin-totp.mjs
  */
@@ -10,7 +9,7 @@ import { generateSecret, generateURI } from "otplib";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const pin = process.env.ADMIN_PIN ?? "10000";
+const username = (process.env.ADMIN_USERNAME ?? "admin").toLowerCase();
 
 if (!url || !key) {
   console.error("Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
@@ -30,19 +29,23 @@ function encryptSecret(plain) {
 const secret = process.env.ADMIN_TOTP_SECRET?.trim() || generateSecret();
 const db = createClient(url, key);
 
-const { data: user, error: findErr } = await db
-  .from("users")
-  .select("id, role, pin")
-  .eq("pin", pin)
-  .maybeSingle();
+let user =
+  (
+    await db.from("users").select("id, role, username, pin").eq("username", username).maybeSingle()
+  ).data ?? null;
 
-if (findErr) {
-  console.error(findErr);
-  process.exit(1);
+if (!user) {
+  const { data: adminRow } = await db
+    .from("users")
+    .select("id, role, username, pin")
+    .eq("role", "admin")
+    .limit(1)
+    .maybeSingle();
+  user = adminRow;
 }
 
 if (!user) {
-  console.error(`No user with PIN ${pin}. Run: node --env-file=.env.local scripts/seed.mjs`);
+  console.error(`No admin user. Run: node --env-file=.env.local scripts/seed.mjs`);
   process.exit(1);
 }
 
@@ -53,6 +56,7 @@ const { error: updateErr } = await db
     totp_verified: true,
     role: "admin",
     subscription_status: "active",
+    username,
   })
   .eq("id", user.id);
 
@@ -64,13 +68,13 @@ if (updateErr) {
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.portfuel.pro";
 const uri = generateURI({
   issuer: "PortFuel.pro",
-  label: pin,
+  label: username,
   secret,
 });
 
 console.log("");
 console.log("=== Admin authenticator reset ===");
-console.log(`PortFuel ID (PIN): ${pin}`);
+console.log(`Username: @${username}`);
 console.log("");
 console.log("Setup key (paste into Google Authenticator → Enter setup key):");
 console.log(secret);
@@ -79,4 +83,5 @@ console.log("Optional — save in .env.local for next reset:");
 console.log(`ADMIN_TOTP_SECRET=${secret}`);
 console.log("");
 console.log("Sign in at:", `${appUrl.replace(/\/$/, "")}/login`);
+console.log("otpauth URI:", uri);
 console.log("");
