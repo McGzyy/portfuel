@@ -7,9 +7,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-14">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-2">
-            <div className="brightness-0 invert">
-              <Logo href="/" size="lg" />
-            </div>
+            <Logo href="/" size="lg" />
             <p className="mt-4 max-w-sm text-sm leading-relaxed">
               Professional stock and crypto call tracking for serious traders — live performance,
               community theses, and ranked callers.
