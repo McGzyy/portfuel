@@ -10,18 +10,18 @@ export function SiteHeader({
   userPin?: string;
 }) {
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--pf-border)] bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-[var(--pf-border)] bg-white/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Logo />
         <nav className="flex items-center gap-2">
           {userPin ? (
             <>
-              <span className="hidden text-sm text-[var(--pf-gray-500)] sm:inline">
+              <span className="hidden rounded-full bg-[var(--pf-gray-100)] px-3 py-1 text-xs font-medium tabular-nums text-[var(--pf-gray-600)] sm:inline">
                 ID {userPin}
               </span>
               <Link
                 href="/dashboard"
-                className="inline-flex h-8 items-center rounded-lg border border-[var(--pf-border)] px-3 text-xs font-medium hover:bg-[var(--pf-gray-50)]"
+                className="inline-flex h-9 items-center rounded-[var(--pf-radius)] border border-[var(--pf-border)] px-3.5 text-xs font-semibold shadow-[var(--pf-shadow-sm)] hover:bg-[var(--pf-gray-50)]"
               >
                 Dashboard
               </Link>
@@ -33,17 +33,13 @@ export function SiteHeader({
             </>
           ) : showAuth ? (
             <>
-              <Link
-                href="/login"
-                className="inline-flex h-8 items-center rounded-lg px-3 text-xs font-medium text-[var(--pf-gray-700)] hover:bg-[var(--pf-gray-100)]"
-              >
-                Login
+              <Link href="/login">
+                <Button variant="ghost" size="sm">
+                  Sign in
+                </Button>
               </Link>
-              <Link
-                href="/join"
-                className="inline-flex h-8 items-center rounded-lg bg-[var(--pf-red)] px-3 text-xs font-medium text-white hover:bg-[#c41820]"
-              >
-                Join the Squad
+              <Link href="/join">
+                <Button size="sm">Join the Squad</Button>
               </Link>
             </>
           ) : null}

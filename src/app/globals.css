@@ -2,26 +2,218 @@
 
 :root {
   --pf-red: #e31b23;
-  --pf-black: #111827;
-  --pf-gray-50: #f9fafb;
-  --pf-gray-100: #f3f4f6;
-  --pf-gray-400: #9ca3af;
-  --pf-gray-500: #6b7280;
-  --pf-gray-600: #4b5563;
-  --pf-gray-700: #374151;
-  --pf-border: #e5e7eb;
+  --pf-red-hover: #c41820;
+  --pf-red-muted: #fef2f2;
+  --pf-red-ring: rgba(227, 27, 35, 0.18);
+  --pf-black: #0f1419;
+  --pf-gray-50: #f8fafc;
+  --pf-gray-100: #f1f5f9;
+  --pf-gray-200: #e2e8f0;
+  --pf-gray-400: #94a3b8;
+  --pf-gray-500: #64748b;
+  --pf-gray-600: #475569;
+  --pf-gray-700: #334155;
+  --pf-border: #e2e8f0;
+  --pf-surface: #ffffff;
+  --pf-surface-muted: #f8fafc;
   --background: #ffffff;
-  --foreground: #111827;
+  --foreground: var(--pf-black);
+  --pf-shadow-sm: 0 1px 2px rgba(15, 20, 25, 0.04);
+  --pf-shadow-md: 0 4px 16px rgba(15, 20, 25, 0.06), 0 1px 3px rgba(15, 20, 25, 0.04);
+  --pf-shadow-lg: 0 12px 40px rgba(15, 20, 25, 0.08), 0 4px 12px rgba(15, 20, 25, 0.04);
+  --pf-radius: 0.75rem;
+  --pf-radius-lg: 1rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-  body {
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--pf-red-muted);
+  color: var(--pf-red);
+}
+
+/* Page shells */
+.pf-page-bg {
+  background-color: var(--pf-gray-50);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, var(--pf-red-ring), transparent),
+    linear-gradient(to bottom, var(--pf-gray-50), #fff 40%);
+}
+
+.pf-auth-bg {
+  min-height: 100vh;
+  background-color: var(--pf-gray-50);
+  background-image:
+    radial-gradient(circle at 1px 1px, var(--pf-gray-200) 1px, transparent 0);
+  background-size: 24px 24px;
+  background-position: center;
+}
+
+/* Typography */
+.pf-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pf-red);
+}
+
+.pf-display {
+  font-size: clamp(2.25rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--pf-black);
+}
+
+.pf-lead {
+  font-size: 1.125rem;
+  line-height: 1.65;
+  color: var(--pf-gray-600);
+}
+
+/* Cards */
+.pf-card {
+  border-radius: var(--pf-radius-lg);
+  border: 1px solid var(--pf-border);
+  background: var(--pf-surface);
+  box-shadow: var(--pf-shadow-sm);
+}
+
+.pf-card-elevated {
+  border-radius: var(--pf-radius-lg);
+  border: 1px solid var(--pf-border);
+  background: var(--pf-surface);
+  box-shadow: var(--pf-shadow-lg);
+}
+
+/* Empty states */
+.pf-empty {
+  border-radius: var(--pf-radius-lg);
+  border: 1px dashed var(--pf-gray-200);
+  background: linear-gradient(180deg, var(--pf-surface) 0%, var(--pf-gray-50) 100%);
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--pf-gray-500);
+  font-size: 0.9375rem;
+}
+
+/* PIN display slots */
+.pf-pin-slots {
+  display: flex;
+  justify-content: center;
+  gap: 0.625rem;
+}
+
+.pf-pin-slot {
+  display: flex;
+  height: 3.25rem;
+  width: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--pf-radius);
+  border: 1.5px solid var(--pf-border);
+  background: var(--pf-surface);
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--pf-black);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.pf-pin-slot--filled {
+  border-color: var(--pf-black);
+  background: var(--pf-gray-50);
+  box-shadow: var(--pf-shadow-sm);
+}
+
+.pf-pin-slot--active {
+  border-color: var(--pf-red);
+  box-shadow: 0 0 0 3px var(--pf-red-ring);
+}
+
+/* Pinpad keys */
+.pf-key {
+  display: flex;
+  height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--pf-radius);
+  border: 1px solid var(--pf-border);
+  background: var(--pf-surface);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--pf-black);
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    transform 0.08s ease;
+  user-select: none;
+}
+
+.pf-key:hover:not(:disabled) {
+  background: var(--pf-gray-50);
+  border-color: var(--pf-gray-200);
+}
+
+.pf-key:active:not(:disabled) {
+  transform: scale(0.97);
+  background: var(--pf-gray-100);
+}
+
+.pf-key:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pf-key--action {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--pf-gray-600);
+}
+
+/* OTP boxes */
+.pf-otp-box {
+  height: 3rem;
+  width: 2.5rem;
+  border-radius: var(--pf-radius);
+  border: 1.5px solid var(--pf-border);
+  background: var(--pf-surface);
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--pf-black);
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.pf-otp-box:focus {
+  border-color: var(--pf-red);
+  box-shadow: 0 0 0 3px var(--pf-red-ring);
 }

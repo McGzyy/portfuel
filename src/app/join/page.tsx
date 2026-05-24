@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { Check } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
+import { PinPad } from "@/components/auth/PinPad";
+import { OtpInput } from "@/components/auth/OtpInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -64,24 +67,26 @@ export default function JoinPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--pf-gray-50)]">
+    <div className="pf-auth-bg min-h-screen">
       <div className="mx-auto max-w-3xl px-4 py-10">
-        <Logo className="mb-8" />
+        <div className="mb-8 flex justify-center">
+          <Logo />
+        </div>
 
         {pending ? (
-          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-amber-200/80 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-[var(--pf-shadow-sm)]">
             Your membership is pending activation. Stripe checkout coming soon — contact
             support if you need access.
           </div>
         ) : null}
 
         {step === "plan" && (
-          <Card>
+          <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
             <CardHeader>
-              <h1 className="text-2xl font-bold">Join the Squad</h1>
-              <p className="text-[var(--pf-gray-600)]">
-                Premium stock call intelligence. Stripe billing wires in next phase — early
-                members get full access during beta.
+              <p className="pf-eyebrow">Membership</p>
+              <h1 className="mt-2 text-2xl font-bold tracking-tight">Join the Squad</h1>
+              <p className="mt-2 text-[var(--pf-gray-600)]">
+                Premium stock call intelligence. Early members get full access during beta.
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -110,13 +115,13 @@ export default function JoinPage() {
                   ]}
                 />
               </div>
-              <Button className="w-full" onClick={() => setStep("pin")}>
+              <Button className="w-full" size="lg" onClick={() => setStep("pin")}>
                 Continue — claim your PortFuel ID
               </Button>
               <p className="text-center text-sm text-[var(--pf-gray-500)]">
                 Already have an ID?{" "}
-                <Link href="/login" className="text-[var(--pf-red)] hover:underline">
-                  Login
+                <Link href="/login" className="font-semibold text-[var(--pf-red)] hover:underline">
+                  Sign in
                 </Link>
               </p>
             </CardContent>
@@ -124,27 +129,20 @@ export default function JoinPage() {
         )}
 
         {step === "pin" && (
-          <Card>
+          <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
             <CardHeader>
-              <h1 className="text-xl font-bold">Choose your PortFuel ID</h1>
-              <p className="text-sm text-[var(--pf-gray-500)]">
-                Your 5-digit ID is how you log in — like a username. Pick one that&apos;s easy
-                to remember.
+              <StepIndicator current={1} total={2} label="Account setup" />
+              <h1 className="mt-3 text-xl font-bold tracking-tight">Choose your PortFuel ID</h1>
+              <p className="mt-1.5 text-sm text-[var(--pf-gray-500)]">
+                Your 5-digit ID is how you sign in — pick something memorable.
               </p>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              <PinPad value={pin} onChange={setPin} />
               <div>
-                <label className="mb-1 block text-sm font-medium">PortFuel ID (5 digits)</label>
-                <Input
-                  inputMode="numeric"
-                  maxLength={5}
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 5))}
-                  placeholder="12345"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium">Display name</label>
+                <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
+                  Display name
+                </label>
                 <Input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value.slice(0, 32))}
@@ -153,64 +151,115 @@ export default function JoinPage() {
               </div>
               <Button
                 className="w-full"
+                size="lg"
                 disabled={pin.length !== 5 || displayName.length < 2}
                 onClick={() => setStep("totp")}
               >
                 Set up authenticator
               </Button>
+              <button
+                type="button"
+                className="w-full text-sm text-[var(--pf-gray-500)] hover:text-[var(--pf-gray-700)]"
+                onClick={() => setStep("plan")}
+              >
+                ← Back to plans
+              </button>
             </CardContent>
           </Card>
         )}
 
         {step === "totp" && (
-          <Card>
+          <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
             <CardHeader>
-              <h1 className="text-xl font-bold">Secure your account</h1>
-              <p className="text-sm text-[var(--pf-gray-500)]">
+              <StepIndicator current={2} total={2} label="Security" />
+              <h1 className="mt-3 text-xl font-bold tracking-tight">Secure your account</h1>
+              <p className="mt-1.5 text-sm text-[var(--pf-gray-500)]">
                 Scan with Google Authenticator, Authy, or 1Password.
               </p>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               {qr ? (
-                <div className="flex justify-center">
-                  <Image src={qr} alt="TOTP QR" width={220} height={220} unoptimized />
+                <div className="flex justify-center rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-4 shadow-[var(--pf-shadow-sm)]">
+                  <Image src={qr} alt="TOTP QR code" width={200} height={200} unoptimized />
                 </div>
-              ) : null}
+              ) : (
+                <div className="h-[232px] animate-pulse rounded-[var(--pf-radius-lg)] bg-[var(--pf-gray-100)]" />
+              )}
               <div>
-                <label className="mb-1 block text-sm font-medium">6-digit code</label>
-                <Input
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={token}
-                  onChange={(e) => setToken(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                />
+                <p className="mb-4 text-center text-sm font-medium text-[var(--pf-gray-700)]">
+                  Enter the 6-digit code from your app
+                </p>
+                <OtpInput value={token} onChange={setToken} disabled={loading} />
               </div>
-              {error ? <p className="text-sm text-[var(--pf-red)]">{error}</p> : null}
+              {error ? (
+                <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-center text-sm text-[var(--pf-red)]">
+                  {error}
+                </p>
+              ) : null}
               <Button
                 className="w-full"
+                size="lg"
                 disabled={loading || token.length !== 6}
                 onClick={handleRegister}
               >
                 {loading ? "Creating account…" : "Complete registration"}
               </Button>
+              <button
+                type="button"
+                className="w-full text-sm text-[var(--pf-gray-500)] hover:text-[var(--pf-gray-700)]"
+                onClick={() => {
+                  setStep("pin");
+                  setToken("");
+                  setTotpSecret("");
+                  setQr("");
+                }}
+              >
+                ← Change PortFuel ID
+              </button>
             </CardContent>
           </Card>
         )}
 
         {step === "done" && (
-          <Card>
-            <CardContent className="py-10 text-center">
-              <h1 className="text-2xl font-bold text-[var(--pf-black)]">You&apos;re in.</h1>
+          <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
+            <CardContent className="py-12 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
+                <Check className="h-7 w-7" strokeWidth={2.5} />
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight">You&apos;re in.</h1>
               <p className="mt-2 text-[var(--pf-gray-600)]">
-                PortFuel ID <span className="font-mono font-bold">{pin}</span> is ready.
+                PortFuel ID{" "}
+                <span className="font-mono text-lg font-bold text-[var(--pf-black)]">{pin}</span>{" "}
+                is ready.
               </p>
-              <Button className="mt-6" onClick={() => router.push("/login")}>
-                Go to login
+              <Button className="mt-8" size="lg" onClick={() => router.push("/login")}>
+                Go to sign in
               </Button>
             </CardContent>
           </Card>
         )}
       </div>
+    </div>
+  );
+}
+
+function StepIndicator({
+  current,
+  total,
+  label,
+}: {
+  current: number;
+  total: number;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-xs font-semibold uppercase tracking-wider text-[var(--pf-red)]">
+        {label}
+      </span>
+      <span className="text-xs text-[var(--pf-gray-400)]">
+        Step {current} of {total}
+      </span>
     </div>
   );
 }
@@ -230,21 +279,28 @@ function PlanCard({
 }) {
   return (
     <div
-      className={`rounded-xl border p-5 ${
-        highlight ? "border-[var(--pf-red)] ring-1 ring-[var(--pf-red)]" : "border-[var(--pf-border)]"
+      className={`rounded-[var(--pf-radius-lg)] border p-5 transition-shadow ${
+        highlight
+          ? "border-[var(--pf-red)] bg-gradient-to-b from-[var(--pf-red-muted)] to-white shadow-[var(--pf-shadow-md)] ring-1 ring-[var(--pf-red)]/20"
+          : "border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]"
       }`}
     >
       {highlight ? (
-        <span className="text-xs font-bold uppercase text-[var(--pf-red)]">Popular</span>
+        <span className="inline-block rounded-full bg-[var(--pf-red)] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+          Popular
+        </span>
       ) : null}
-      <h3 className="mt-1 text-lg font-bold">{name}</h3>
+      <h3 className="mt-2 text-lg font-bold tracking-tight">{name}</h3>
       <p className="mt-2">
-        <span className="text-3xl font-bold">{price}</span>
+        <span className="text-3xl font-bold tracking-tight">{price}</span>
         <span className="text-[var(--pf-gray-500)]">{period}</span>
       </p>
-      <ul className="mt-4 space-y-2 text-sm text-[var(--pf-gray-600)]">
+      <ul className="mt-4 space-y-2.5">
         {features.map((f) => (
-          <li key={f}>• {f}</li>
+          <li key={f} className="flex gap-2 text-sm text-[var(--pf-gray-600)]">
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--pf-red)]" strokeWidth={2.5} />
+            {f}
+          </li>
         ))}
       </ul>
     </div>

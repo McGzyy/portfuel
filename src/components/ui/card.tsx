@@ -7,16 +7,7 @@ export function Card({
   className?: string;
   children: React.ReactNode;
 }) {
-  return (
-    <div
-      className={cn(
-        "rounded-xl border border-[var(--pf-border)] bg-white shadow-sm",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
+  return <div className={cn("pf-card overflow-hidden", className)}>{children}</div>;
 }
 
 export function CardHeader({
@@ -26,7 +17,16 @@ export function CardHeader({
   className?: string;
   children: React.ReactNode;
 }) {
-  return <div className={cn("border-b border-[var(--pf-border)] px-5 py-4", className)}>{children}</div>;
+  return (
+    <div
+      className={cn(
+        "border-b border-[var(--pf-border)] bg-gradient-to-b from-white to-[var(--pf-gray-50)] px-6 py-5",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function CardContent({
@@ -36,5 +36,5 @@ export function CardContent({
   className?: string;
   children: React.ReactNode;
 }) {
-  return <div className={cn("px-5 py-4", className)}>{children}</div>;
+  return <div className={cn("px-6 py-5", className)}>{children}</div>;
 }

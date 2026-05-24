@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { TrendingUp, Shield, Zap } from "lucide-react";
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { CallCard } from "@/components/calls/CallCard";
+import { Button } from "@/components/ui/button";
 import { fetchTeaserCalls } from "@/lib/calls/service";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import type { TeaserCallRow } from "@/lib/db/supabase";
@@ -33,33 +35,33 @@ export default async function LandingPage() {
     <>
       <SiteHeader />
       <main>
-        <section className="border-b border-[var(--pf-border)] bg-gradient-to-b from-[var(--pf-gray-50)] to-white">
-          <div className="mx-auto max-w-6xl px-4 py-20 text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-[var(--pf-red)]">
-              Premium stock intelligence
-            </p>
-            <h1 className="mt-4 text-4xl font-bold tracking-tight text-[var(--pf-black)] sm:text-5xl">
+        <section className="pf-page-bg border-b border-[var(--pf-border)]">
+          <div className="mx-auto max-w-6xl px-4 py-24 text-center sm:py-28">
+            <p className="pf-eyebrow">Premium stock intelligence</p>
+            <h1 className="pf-display mt-5">
               Calls that matter.
               <br />
               <span className="text-[var(--pf-red)]">Tracked in real time.</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-[var(--pf-gray-600)]">
-              PortFuel.pro is a professional dashboard for stock calls — live performance,
-              community theses, and ranked callers you can trust.
+            <p className="pf-lead mx-auto mt-6 max-w-2xl">
+              PortFuel.pro is a professional dashboard for stock and crypto calls — live
+              performance, community theses, and ranked callers you can trust.
             </p>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-              <Link
-                href="/join"
-                className="inline-flex h-11 items-center rounded-lg bg-[var(--pf-red)] px-6 text-sm font-medium text-white hover:bg-[#c41820]"
-              >
-                Join the Squad
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+              <Link href="/join">
+                <Button size="lg">Join the Squad</Button>
               </Link>
-              <Link
-                href="/login"
-                className="inline-flex h-11 items-center rounded-lg border border-[var(--pf-border)] bg-white px-6 text-sm font-medium hover:bg-[var(--pf-gray-50)]"
-              >
-                Login
+              <Link href="/login">
+                <Button variant="secondary" size="lg">
+                  Sign in
+                </Button>
               </Link>
+            </div>
+
+            <div className="mx-auto mt-16 grid max-w-3xl gap-4 sm:grid-cols-3">
+              <FeaturePill icon={Zap} title="Live tracking" text="Prices & scores refresh automatically" />
+              <FeaturePill icon={TrendingUp} title="Performance" text="See who's delivering results" />
+              <FeaturePill icon={Shield} title="Secure access" text="PIN + authenticator for every member" />
             </div>
           </div>
         </section>
@@ -87,24 +89,42 @@ export default async function LandingPage() {
         />
       </main>
 
-      <footer className="mt-auto border-t border-[var(--pf-border)] bg-white py-10">
+      <footer className="mt-auto border-t border-[var(--pf-border)] bg-white py-12">
         <div className="mx-auto max-w-6xl px-4 text-center text-sm text-[var(--pf-gray-500)]">
           <p className="font-medium text-[var(--pf-gray-700)]">
             Not investment advice. Trading involves risk.
           </p>
           <p className="mt-2">
             © {new Date().getFullYear()} PortFuel.pro ·{" "}
-            <Link href="/terms" className="hover:text-[var(--pf-red)]">
+            <Link href="/terms" className="font-medium hover:text-[var(--pf-red)]">
               Terms
             </Link>{" "}
             ·{" "}
-            <Link href="/privacy" className="hover:text-[var(--pf-red)]">
+            <Link href="/privacy" className="font-medium hover:text-[var(--pf-red)]">
               Privacy
             </Link>
           </p>
         </div>
       </footer>
     </>
+  );
+}
+
+function FeaturePill({
+  icon: Icon,
+  title,
+  text,
+}: {
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="pf-card rounded-[var(--pf-radius-lg)] px-4 py-4 text-left">
+      <Icon className="h-5 w-5 text-[var(--pf-red)]" strokeWidth={2} />
+      <p className="mt-2 text-sm font-semibold text-[var(--pf-black)]">{title}</p>
+      <p className="mt-0.5 text-xs leading-relaxed text-[var(--pf-gray-500)]">{text}</p>
+    </div>
   );
 }
 
@@ -123,15 +143,13 @@ function TeaserSection({
 }) {
   return (
     <section className={className}>
-      <div className="mx-auto max-w-6xl px-4 py-14">
+      <div className="mx-auto max-w-6xl px-4 py-16">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-[var(--pf-black)]">{title}</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-[var(--pf-black)]">{title}</h2>
           <p className="mt-1 text-[var(--pf-gray-500)]">{subtitle}</p>
         </div>
         {calls.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-[var(--pf-border)] py-12 text-center text-[var(--pf-gray-500)]">
-            {emptyMessage}
-          </p>
+          <p className="pf-empty">{emptyMessage}</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {calls.map((call) => (

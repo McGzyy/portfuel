@@ -133,8 +133,10 @@ export function createAnonClient() {
 }
 
 export function hasSupabaseConfig(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    url &&
+      !url.includes("your-project.supabase.co") &&
       process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 }
