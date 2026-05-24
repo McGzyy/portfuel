@@ -67,11 +67,20 @@ export default function JoinPage() {
   }
 
   return (
-    <div className="pf-auth-bg min-h-screen">
-      <div className="mx-auto max-w-3xl px-4 py-10">
-        <div className="mb-8 flex justify-center">
+    <div className="min-h-screen bg-[var(--pf-gray-50)]">
+      <div className="border-b border-[var(--pf-border)] bg-white px-4 py-4 shadow-[var(--pf-shadow-sm)]">
+        <div className="mx-auto flex max-w-3xl justify-center">
           <Logo />
         </div>
+      </div>
+      <div className="pf-hero-mesh border-b border-[var(--pf-border)] py-10 text-center">
+        <p className="pf-eyebrow">Membership</p>
+        <h1 className="pf-display mt-3 text-2xl sm:text-3xl">Join the PortFuel squad</h1>
+        <p className="pf-lead mx-auto mt-3 max-w-md text-sm">
+          Professional call tracking with PIN + authenticator security.
+        </p>
+      </div>
+      <div className="mx-auto max-w-3xl px-4 py-10">
 
         {pending ? (
           <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-amber-200/80 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-[var(--pf-shadow-sm)]">

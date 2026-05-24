@@ -16,6 +16,7 @@ export function AuthShell({
     <div className="pf-auth-bg flex min-h-screen flex-col items-center justify-center px-4 py-12">
       <Logo className="mb-8" />
       <div className={cn("pf-card-elevated w-full max-w-md overflow-hidden", className)}>
+        <div className="h-1 bg-gradient-to-r from-[var(--pf-red)] via-[var(--pf-red-hover)] to-[var(--pf-black)]" />
         <div className="border-b border-[var(--pf-border)] bg-gradient-to-b from-white to-[var(--pf-gray-50)] px-6 py-5">
           <h1 className="text-xl font-semibold tracking-tight text-[var(--pf-black)]">{title}</h1>
           {subtitle ? (
