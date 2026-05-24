@@ -142,7 +142,18 @@ Work through these **one branch at a time**. Finish and merge before starting th
 - [x] Site copy: “Join the action” CTAs (member intel, not squad/team)
 - [x] Dashboard pro pass: feed pulse, price metrics on cards, quick nav, member snapshot tiles
 
-### 5d. `feature/phase-2-market-tools` ← **in progress**
+### 5d. `feature/phase-2-market-tools` ← **done**
+
+### 5e. `feature/phase-2-dashboard-watchlist-admin` ← **in progress**
+
+- [x] Replace misleading “Ticker intel / Crypto desk” links with **Look up ticker** (any symbol)
+- [x] Dashboard layout: feed + sidebar watchlist
+- [x] Feed filters: All · Fueled · Stocks · Crypto
+- [x] Watchlist API + migration `20260524400000_user_watchlist.sql`
+- [x] Admin **Analytics** tab (members, calls, engagement, top symbols)
+- [ ] Stripe / payments — explicitly deferred
+
+**Ops:** Run watchlist migration in Supabase after merge.
 
 - [x] Ticker community stats bar (calls, long/short, avg/best return)
 - [x] Rankings summary bar + `@username` column

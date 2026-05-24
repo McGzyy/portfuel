@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, LineChart, Plus, Trophy } from "lucide-react";
+import { Plus, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links: {
@@ -10,16 +10,11 @@ const links: {
 }[] = [
   { href: "/calls/new", label: "New call", icon: Plus, primary: true },
   { href: "/rankings", label: "Rankings", icon: Trophy },
-  { href: "/ticker/NVDA", label: "Ticker intel", icon: LineChart },
-  { href: "/ticker/BTC", label: "Crypto desk", icon: BarChart3 },
 ];
 
 export function DashboardQuickNav() {
   return (
-    <nav
-      className="flex flex-wrap gap-2"
-      aria-label="Dashboard shortcuts"
-    >
+    <nav className="flex flex-wrap gap-2" aria-label="Dashboard shortcuts">
       {links.map(({ href, label, icon: Icon, primary }) => (
         <Link
           key={href}

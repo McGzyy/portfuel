@@ -1,0 +1,125 @@
+import { createServiceClient } from "@/lib/db/supabase";
+import { isDemoMode } from "@/lib/demo/config";
+
+export type AdminAnalytics = {
+  members: {
+    total: number;
+    active: number;
+    pending: number;
+    trusted: number;
+  };
+  calls: {
+    total: number;
+    last7d: number;
+    fueled: number;
+    avgReturnPct: number | null;
+  };
+  engagement: {
+    totalComments: number;
+    totalVotes: number;
+  };
+  topSymbols: { symbol: string; count: number }[];
+};
+
+export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
+  if (isDemoMode()) return getDemoAdminAnalytics();
+
+  const db = createServiceClient();
+  const since7d = new Date(Date.now() - 7 * 86400000).toISOString();
+
+  const [
+    usersRes,
+    callsRes,
+    calls7dRes,
+    fueledRes,
+    commentsRes,
+    votesRes,
+    symbolsRes,
+  ] = await Promise.all([
+    db.from("users").select("id, subscription_status, trusted_at, role"),
+    db.from("calls").select("id, return_pct", { count: "exact", head: true }),
+    db
+      .from("calls")
+      .select("id", { count: "exact", head: true })
+      .gte("called_at", since7d),
+    db
+      .from("calls")
+      .select("id", { count: "exact", head: true })
+      .eq("is_fueled", true),
+    db.from("comments").select("id", { count: "exact", head: true }),
+    db.from("call_votes").select("id", { count: "exact", head: true }),
+    db.from("calls").select("symbol"),
+  ]);
+
+  const users = usersRes.data ?? [];
+  const members = users.filter((u) => u.role !== "admin");
+
+  const allCalls = symbolsRes.data ?? [];
+  const symbolCounts = new Map<string, number>();
+  for (const c of allCalls) {
+    symbolCounts.set(c.symbol, (symbolCounts.get(c.symbol) ?? 0) + 1);
+  }
+  const topSymbols = [...symbolCounts.entries()]
+    .map(([symbol, count]) => ({ symbol, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+
+  const { data: returnRows } = await db
+    .from("calls")
+    .select("return_pct")
+    .not("return_pct", "is", null);
+  const returns = (returnRows ?? []).map((r) => Number(r.return_pct));
+  const avgReturnPct =
+    returns.length > 0 ? returns.reduce((a, b) => a + b, 0) / returns.length : null;
+
+  return {
+    members: {
+      total: members.length,
+      active: members.filter((u) => u.subscription_status === "active").length,
+      pending: members.filter((u) => u.subscription_status === "pending").length,
+      trusted: members.filter((u) => u.trusted_at).length,
+    },
+    calls: {
+      total: callsRes.count ?? 0,
+      last7d: calls7dRes.count ?? 0,
+      fueled: fueledRes.count ?? 0,
+      avgReturnPct,
+    },
+    engagement: {
+      totalComments: commentsRes.count ?? 0,
+      totalVotes: votesRes.count ?? 0,
+    },
+    topSymbols,
+  };
+}
+
+function getDemoAdminAnalytics(): AdminAnalytics {
+  return {
+    members: {
+      total: 6,
+      active: 5,
+      pending: 1,
+      trusted: 3,
+    },
+    calls: {
+      total: 15,
+      last7d: 11,
+      fueled: 3,
+      avgReturnPct: 6.42,
+    },
+    engagement: {
+      totalComments: 12,
+      totalVotes: 48,
+    },
+    topSymbols: [
+      { symbol: "NVDA", count: 3 },
+      { symbol: "BTC", count: 2 },
+      { symbol: "SPY", count: 2 },
+      { symbol: "AMD", count: 1 },
+      { symbol: "TSLA", count: 1 },
+      { symbol: "ETH", count: 1 },
+      { symbol: "META", count: 1 },
+      { symbol: "QQQ", count: 1 },
+    ],
+  };
+}
