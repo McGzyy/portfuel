@@ -1,4 +1,5 @@
 import { createServiceClient, type CallWithUser, type TeaserCallRow } from "@/lib/db/supabase";
+import { refreshMemberRankings } from "@/lib/users/rankings";
 import { getQuote, getCryptoLastPrice } from "@/lib/market/finnhub";
 import {
   computeHypeScore,
@@ -7,9 +8,14 @@ import {
   computeTargetProgress,
 } from "@/lib/scoring/returns";
 
-export async function fetchTeaserCalls(
-  view: "teaser_latest_calls" | "teaser_performing_calls" | "teaser_all_time_calls"
-): Promise<TeaserCallRow[]> {
+export type TeaserView =
+  | "teaser_latest_calls"
+  | "teaser_performing_calls"
+  | "teaser_all_time_calls"
+  | "teaser_public_performing"
+  | "teaser_public_proven";
+
+export async function fetchTeaserCalls(view: TeaserView): Promise<TeaserCallRow[]> {
   const db = createServiceClient();
   const { data, error } = await db.from(view).select("*");
   if (error) throw error;
@@ -158,6 +164,8 @@ export async function refreshQuotesAndScores(): Promise<{ updated: number }> {
       updated_at: new Date().toISOString(),
     } as never);
   }
+
+  await refreshMemberRankings();
 
   return { updated };
 }

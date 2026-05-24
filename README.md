@@ -71,6 +71,14 @@ See **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** for phased build order, git b
 | `/calls/new` | Submit a call |
 | `/ticker/[symbol]` | Chart + theses |
 
+## Supabase migration (public teasers)
+
+After the first two migrations, run:
+
+`supabase/migrations/20260524200000_public_teaser_gates.sql`
+
+This restricts the homepage to performance winners only (no live feed for visitors).
+
 ## Phase 2 additions
 
 - **Stocks:** News, earnings, SEC filings, company stats on `/ticker/[symbol]`

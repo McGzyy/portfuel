@@ -48,7 +48,8 @@ feature/phase-3-stripe-billing
 | Onboarding (display name) | ✅ | Minimal UI |
 | Cron: refresh quotes | ✅ | Every 15 min |
 | Votes & comments (API + UI) | ✅ | Dashboard + ticker theses |
-| Rankings / leaderboard | ❌ | `rank_score` in DB, no page yet |
+| Public landing teasers | ✅ | Winners only; thesis gated |
+| Rankings / leaderboard | ✅ | `/rankings` + cron score refresh |
 | Profile page | ❌ | Middleware references `/profile`, page missing |
 
 ### Phase 2 — Market intel (partial)
@@ -103,14 +104,16 @@ Work through these **one branch at a time**. Finish and merge before starting th
 
 **Done when:** Public site and member pages look intentionally designed end-to-end.
 
-### 3. `feature/phase-1-rankings`
+### 3. `feature/phase-1-rankings` ← **ready for PR**
 
-**Goal:** Leaderboard from `users.rank_score`.
+**Goal:** Leaderboard + gate public homepage.
 
-- `/rankings` page (public or members-only — decide in PR)
-- Link from header when logged in
+- [x] Public homepage: no live feed; only calls ≥5% (30d) and ≥10% (7d+ mature)
+- [x] `PublicHighlightCard` blurs thesis; `MembersFeedGate` section
+- [x] `/rankings` leaderboard; scores refresh on quote cron
+- [x] Migration `20260524200000_public_teaser_gates.sql`
 
-**Done when:** Top callers visible with display name + win rate / score.
+**Done when:** Visitors see winners only; members get full feed after login.
 
 ### 4. `feature/phase-1-profile`
 
