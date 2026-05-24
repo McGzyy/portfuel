@@ -56,6 +56,10 @@ Professional stock call dashboard — PIN + TOTP auth, live charts, performance 
 - Cron runs `/api/cron/refresh-quotes` every 15 minutes (set `CRON_SECRET`)
 - Point **PortFuel.pro** DNS to Vercel
 
+## Development workflow
+
+See **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** for phased build order, git branches, and what to work on next.
+
 ## Phase 1 routes
 
 | Route | Description |
