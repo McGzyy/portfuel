@@ -1,4 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
+import { isDemoMode } from "@/lib/demo/config";
+import { getDemoLeaderboard } from "@/lib/demo/fixtures";
 
 export type LeaderboardEntry = {
   id: string;
@@ -10,6 +12,7 @@ export type LeaderboardEntry = {
 };
 
 export async function fetchLeaderboard(limit = 25): Promise<LeaderboardEntry[]> {
+  if (isDemoMode()) return getDemoLeaderboard(limit);
   const db = createServiceClient();
   const { data, error } = await db
     .from("users")

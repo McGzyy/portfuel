@@ -7,11 +7,11 @@ export function MarketingCta() {
     <section className="pf-cta-band">
       <div className="mx-auto max-w-6xl px-4 py-16 text-center">
         <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-          Ready for inside access?
+          Ready to join the action?
         </h2>
         <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-white/80">
-          Get the full thesis feed, live marks, and member-only intel. Stripe billing ships next —
-          early members lock in first.
+          Full thesis feed, live marks, and member-only intel. Stripe billing ships next — early
+          members lock in first.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link href="/join">

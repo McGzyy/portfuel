@@ -1,4 +1,10 @@
 import { createServiceClient, type CallWithUser, type TeaserCallRow } from "@/lib/db/supabase";
+import { isDemoMode } from "@/lib/demo/config";
+import {
+  getDemoCallsBySymbol,
+  getDemoCallsFeed,
+  getDemoPublicTeasers,
+} from "@/lib/demo/fixtures";
 import { refreshMemberRankings } from "@/lib/users/rankings";
 import { getQuote, getCryptoLastPrice } from "@/lib/market/finnhub";
 import {
@@ -16,6 +22,28 @@ export type TeaserView =
   | "teaser_public_proven";
 
 export async function fetchTeaserCalls(view: TeaserView): Promise<TeaserCallRow[]> {
+  if (isDemoMode()) {
+    const { performing, proven } = getDemoPublicTeasers();
+    if (view === "teaser_public_performing") return performing;
+    if (view === "teaser_public_proven") return proven;
+    const mode = view === "teaser_performing_calls" ? "performing" : "latest";
+    return getDemoCallsFeed(mode).map((c) => ({
+      id: c.id,
+      symbol: c.symbol,
+      asset_class: c.asset_class,
+      direction: c.direction,
+      thesis: c.thesis,
+      called_at: c.called_at,
+      return_pct: c.return_pct,
+      target_progress: c.target_progress,
+      is_fueled: c.is_fueled,
+      vote_score: c.vote_score,
+      comment_count: c.comment_count,
+      display_name: c.users.display_name,
+      pin: c.users.username ?? c.users.pin,
+      is_trusted: Boolean(c.users.trusted_at),
+    }));
+  }
   const db = createServiceClient();
   const { data, error } = await db.from(view).select("*");
   if (error) throw error;
@@ -25,6 +53,7 @@ export async function fetchTeaserCalls(view: TeaserView): Promise<TeaserCallRow[
 export async function fetchCallsFeed(
   mode: "latest" | "performing"
 ): Promise<CallWithUser[]> {
+  if (isDemoMode()) return getDemoCallsFeed(mode);
   const db = createServiceClient();
   let query = db
     .from("calls")
@@ -51,6 +80,7 @@ export async function fetchCallsFeed(
 }
 
 export async function fetchCallsBySymbol(symbol: string): Promise<CallWithUser[]> {
+  if (isDemoMode()) return getDemoCallsBySymbol(symbol);
   const db = createServiceClient();
   const { data, error } = await db
     .from("calls")

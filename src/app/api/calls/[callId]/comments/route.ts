@@ -3,6 +3,8 @@ import { z } from "zod";
 import { requireActiveMember } from "@/lib/auth/session";
 import { createCallComment, listCallComments } from "@/lib/calls/comments";
 import { createServiceClient } from "@/lib/db/supabase";
+import { isDemoCallId, isDemoMode } from "@/lib/demo/config";
+import { getDemoCallById, getDemoComments } from "@/lib/demo/fixtures";
 
 const commentSchema = z.object({
   body: z.string().min(1).max(2000),
@@ -14,6 +16,12 @@ export async function GET(
 ) {
   try {
     const { callId } = await params;
+    if (isDemoMode() && isDemoCallId(callId)) {
+      const call = getDemoCallById(callId);
+      if (!call) return NextResponse.json({ error: "not_found" }, { status: 404 });
+      const comments = getDemoComments(callId);
+      return NextResponse.json({ comments, commentCount: call.comment_count ?? comments.length });
+    }
     const db = createServiceClient();
     const { data: call } = await db
       .from("calls")
@@ -38,6 +46,21 @@ export async function POST(
     const session = await requireActiveMember();
     const { callId } = await params;
     const body = commentSchema.parse(await request.json());
+    if (isDemoMode() && isDemoCallId(callId)) {
+      const call = getDemoCallById(callId);
+      if (!call) return NextResponse.json({ error: "not_found" }, { status: 404 });
+      return NextResponse.json({
+        ok: true,
+        comment: {
+          id: `demo-cmt-new-${Date.now()}`,
+          body: body.body,
+          created_at: new Date().toISOString(),
+          display_name: session.displayName,
+          pin: session.username,
+        },
+        commentCount: (call.comment_count ?? 0) + 1,
+      });
+    }
     const comment = await createCallComment(callId, session.userId, body.body);
 
     const db = createServiceClient();

@@ -1,5 +1,7 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import type { UserRow } from "@/lib/db/types";
+import { isDemoMode } from "@/lib/demo/config";
+import { getDemoProfileCalls } from "@/lib/demo/fixtures";
 
 export async function fetchUserProfile(userId: string): Promise<UserRow | null> {
   const db = createServiceClient();
@@ -12,6 +14,7 @@ export async function fetchUserProfile(userId: string): Promise<UserRow | null> 
 }
 
 export async function fetchUserRecentCalls(userId: string, limit = 10) {
+  if (isDemoMode()) return getDemoProfileCalls(userId).slice(0, limit);
   const db = createServiceClient();
   const { data, error } = await db
     .from("calls")
