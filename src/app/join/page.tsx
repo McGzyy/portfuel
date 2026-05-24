@@ -63,7 +63,7 @@ export default function JoinPage() {
       </div>
       <div className="pf-hero-mesh border-b border-[var(--pf-border)] py-10 text-center">
         <p className="pf-eyebrow">Membership</p>
-        <h1 className="pf-display mt-3 text-2xl sm:text-3xl">Get inside access to PortFuel</h1>
+        <h1 className="pf-display mt-3 text-2xl sm:text-3xl">Join the action on PortFuel</h1>
         <p className="pf-lead mx-auto mt-3 max-w-md text-sm">
           Member-only theses, live marks, and the full feed — not just public winners. Choose a
           permanent username; after activation, complete 2FA to enter.

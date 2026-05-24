@@ -39,8 +39,8 @@ export function PublicHighlightCard({ call }: { call: TeaserCallRow }) {
 
         <div className="relative mt-4 overflow-hidden rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-6">
           <p className="select-none blur-sm">
-            Full thesis and live levels are inside access for members. Sign up to read the
-            complete call and track performance in real time.
+            Full thesis and live levels are for members only. Join to read the complete call and
+            track performance in real time.
           </p>
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/70 backdrop-blur-[2px]">
             <Lock className="h-5 w-5 text-[var(--pf-red)]" strokeWidth={2} />
