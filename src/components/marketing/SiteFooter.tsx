@@ -8,7 +8,7 @@ export function SiteFooter() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-2">
             <div className="brightness-0 invert">
-              <Logo href="/" />
+              <Logo href="/" size="lg" />
             </div>
             <p className="mt-4 max-w-sm text-sm leading-relaxed">
               Professional stock and crypto call tracking for serious traders — live performance,

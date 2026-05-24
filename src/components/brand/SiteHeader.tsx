@@ -11,8 +11,8 @@ export function SiteHeader({
 }) {
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--pf-border)] bg-white/95 shadow-[var(--pf-shadow-sm)] backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Logo />
+      <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between px-4">
+        <Logo size="md" />
         <nav className="flex items-center gap-2">
           {userPin ? (
             <>
