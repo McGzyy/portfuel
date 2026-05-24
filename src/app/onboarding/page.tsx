@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Logo } from "@/components/brand/Logo";
+import { AuthShell } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -37,31 +37,40 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--pf-gray-50)] px-4">
-      <Logo className="mb-8" />
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <h1 className="text-xl font-bold">Choose your display name</h1>
-          <p className="text-sm text-[var(--pf-gray-500)]">
-            This is how other members see you on calls and comments.
+    <AuthShell
+      title="Choose your display name"
+      subtitle="This is how other members see you on calls and comments."
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <Label htmlFor="displayName">Squad name</Label>
+          <Input
+            id="displayName"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value.slice(0, 32))}
+            placeholder="e.g. FuelRunner"
+            required
+            minLength={2}
+            autoFocus
+          />
+          <p className="mt-1.5 text-xs text-[var(--pf-gray-400)]">
+            2–32 characters · you can change this later
           </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value.slice(0, 32))}
-              placeholder="e.g. FuelRunner"
-              required
-              minLength={2}
-            />
-            {error ? <p className="text-sm text-[var(--pf-red)]">{error}</p> : null}
-            <Button type="submit" className="w-full" disabled={loading}>
-              Continue to dashboard
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+        {error ? (
+          <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-sm text-[var(--pf-red)]">
+            {error}
+          </p>
+        ) : null}
+        <Button
+          type="submit"
+          className="w-full"
+          size="lg"
+          disabled={loading || displayName.length < 2}
+        >
+          {loading ? "Saving…" : "Continue to dashboard"}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }

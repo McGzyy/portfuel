@@ -8,6 +8,7 @@ type CallCardProps = {
   call: TeaserCallRow | {
     id: string;
     symbol: string;
+    asset_class?: "equity" | "crypto";
     direction: "long" | "short";
     thesis: string;
     called_at: string;
@@ -33,14 +34,19 @@ export function CallCard({ call, compact }: CallCardProps) {
         : "text-rose-600";
 
   return (
-    <Card className="transition-shadow hover:shadow-md">
-      <CardContent className={compact ? "py-3" : "py-4"}>
+    <Card
+      className={cn(
+        "group transition-all duration-200",
+        "hover:border-[var(--pf-gray-200)] hover:shadow-[var(--pf-shadow-md)]"
+      )}
+    >
+      <CardContent className={compact ? "py-3" : "py-5"}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <Link
                 href={`/ticker/${call.symbol}`}
-                className="text-lg font-bold tracking-tight text-[var(--pf-black)] hover:text-[var(--pf-red)]"
+                className="text-lg font-bold tracking-tight text-[var(--pf-black)] transition-colors group-hover:text-[var(--pf-red)]"
               >
                 {call.symbol}
               </Link>
@@ -48,35 +54,36 @@ export function CallCard({ call, compact }: CallCardProps) {
                 {call.direction}
               </Badge>
               {"asset_class" in call && call.asset_class === "crypto" ? (
-                <Badge variant="fueled">CRYPTO</Badge>
+                <Badge variant="default">Crypto</Badge>
               ) : null}
-              {call.is_fueled ? <Badge variant="fueled">FUELED</Badge> : null}
+              {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
               {call.is_trusted ? <Badge variant="trusted">Trusted</Badge> : null}
             </div>
-            <p className="mt-1 text-sm text-[var(--pf-gray-600)]">
-              {name} · <span className="tabular-nums text-[var(--pf-gray-400)]">{call.pin}</span>
+            <p className="mt-1.5 text-sm text-[var(--pf-gray-600)]">
+              {name}{" "}
+              <span className="tabular-nums text-[var(--pf-gray-400)]">· {call.pin}</span>
             </p>
           </div>
           <div className="text-right">
-            <p className={cn("text-lg font-bold tabular-nums", retClass)}>
+            <p className={cn("text-xl font-bold tabular-nums tracking-tight", retClass)}>
               {formatPct(ret)}
             </p>
             <p className="text-xs text-[var(--pf-gray-400)]">{timeAgo(call.called_at)}</p>
           </div>
         </div>
-        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-[var(--pf-gray-700)]">
+        <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-[var(--pf-gray-700)]">
           {call.thesis}
         </p>
-        <div className="mt-3 flex items-center justify-between text-xs text-[var(--pf-gray-400)]">
+        <div className="mt-4 flex items-center justify-between border-t border-[var(--pf-border)] pt-3 text-xs text-[var(--pf-gray-400)]">
           <span>
-            {call.vote_score != null ? `${call.vote_score} votes` : ""}
+            {call.vote_score != null && call.vote_score !== 0 ? `${call.vote_score} votes` : "—"}
             {call.comment_count != null && call.comment_count > 0
               ? ` · ${call.comment_count} comments`
               : ""}
           </span>
           <Link
             href={`/ticker/${call.symbol}`}
-            className="font-medium text-[var(--pf-red)] hover:underline"
+            className="font-semibold text-[var(--pf-red)] transition-colors hover:text-[var(--pf-red-hover)]"
           >
             View chart →
           </Link>
