@@ -68,9 +68,9 @@ export default function JoinPage() {
 
   return (
     <div className="min-h-screen bg-[var(--pf-gray-50)]">
-      <div className="border-b border-[var(--pf-border)] bg-white px-4 py-4 shadow-[var(--pf-shadow-sm)]">
+      <div className="border-b border-[var(--pf-border)] bg-white px-4 py-5 shadow-[var(--pf-shadow-sm)]">
         <div className="mx-auto flex max-w-3xl justify-center">
-          <Logo />
+          <Logo size="lg" />
         </div>
       </div>
       <div className="pf-hero-mesh border-b border-[var(--pf-border)] py-10 text-center">

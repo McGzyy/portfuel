@@ -1,40 +1,38 @@
 import Link from "next/link";
 import { Activity, BarChart3, Lock } from "lucide-react";
 import { SiteHeader } from "@/components/brand/SiteHeader";
-import { CallCard } from "@/components/calls/CallCard";
+import { PublicHighlightCard } from "@/components/calls/PublicHighlightCard";
 import { HeroDashboardMock } from "@/components/marketing/HeroDashboardMock";
 import { HowItWorks } from "@/components/marketing/HowItWorks";
 import { MarketingCta } from "@/components/marketing/MarketingCta";
+import { MembersFeedGate } from "@/components/marketing/MembersFeedGate";
 import { SectionHeader } from "@/components/marketing/SectionHeader";
 import { SiteFooter } from "@/components/marketing/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { fetchTeaserCalls } from "@/lib/calls/service";
+import {
+  fetchPublicLandingTeasers,
+  PUBLIC_TEASER_THRESHOLDS,
+} from "@/lib/calls/public-teasers";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import type { TeaserCallRow } from "@/lib/db/supabase";
 
-async function loadTeasers(): Promise<{
-  latest: TeaserCallRow[];
+async function loadPublicTeasers(): Promise<{
   performing: TeaserCallRow[];
-  allTime: TeaserCallRow[];
+  proven: TeaserCallRow[];
 }> {
   if (!hasSupabaseConfig()) {
-    return { latest: [], performing: [], allTime: [] };
+    return { performing: [], proven: [] };
   }
   try {
-    const [latest, performing, allTime] = await Promise.all([
-      fetchTeaserCalls("teaser_latest_calls"),
-      fetchTeaserCalls("teaser_performing_calls"),
-      fetchTeaserCalls("teaser_all_time_calls"),
-    ]);
-    return { latest, performing, allTime };
+    return await fetchPublicLandingTeasers();
   } catch (e) {
     console.error("[landing teasers]", e);
-    return { latest: [], performing: [], allTime: [] };
+    return { performing: [], proven: [] };
   }
 }
 
 export default async function LandingPage() {
-  const { latest, performing, allTime } = await loadTeasers();
+  const { performing, proven } = await loadPublicTeasers();
 
   return (
     <>
@@ -52,8 +50,8 @@ export default async function LandingPage() {
                 </span>
               </h1>
               <p className="pf-lead mt-6 lg:max-w-lg">
-                The professional dashboard for stock and crypto calls — structured theses, live
-                marks, community votes, and performance you can verify.
+                The professional dashboard for stock and crypto calls. Public previews only show
+                proven winners — the live feed is for members.
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
                 <Link href="/join">
@@ -67,8 +65,8 @@ export default async function LandingPage() {
               </div>
               <div className="mt-10 grid grid-cols-3 gap-3">
                 <StatTile icon={Activity} label="Live quotes" value="15m refresh" />
-                <StatTile icon={Lock} label="Access" value="PIN + TOTP" />
-                <StatTile icon={BarChart3} label="Markets" value="Stocks & crypto" />
+                <StatTile icon={Lock} label="Live feed" value="Members only" />
+                <StatTile icon={BarChart3} label="Public preview" value="Winners only" />
               </div>
             </div>
             <div className="relative lg:pl-4">
@@ -79,30 +77,25 @@ export default async function LandingPage() {
 
         <HowItWorks />
 
-        <TeaserSection
-          eyebrow="Live board"
-          title="Latest calls"
-          subtitle="Fresh ideas from the squad as they hit the wire."
-          calls={latest.slice(0, 6)}
-          emptyMessage="No calls yet — be the first to fuel the board."
-          emptyCta={{ href: "/join", label: "Join and submit the first call" }}
-        />
+        <MembersFeedGate />
 
         <TeaserSection
-          eyebrow="Performance"
-          title="Performing now"
-          subtitle="Top movers in the last 30 days."
+          eyebrow="Public preview"
+          title="Recent winners"
+          subtitle={`Calls up at least ${PUBLIC_TEASER_THRESHOLDS.performing30dMinReturnPct}% in the last 30 days. Full thesis requires membership.`}
           calls={performing.slice(0, 6)}
-          emptyMessage="Performance data updates as prices refresh."
+          emptyMessage="Winning calls appear here once prices refresh and thresholds are met."
           className="pf-section-alt"
         />
 
         <TeaserSection
           eyebrow="Track record"
-          title="All-time highlights"
-          subtitle="Proven calls with staying power."
-          calls={allTime.slice(0, 6)}
-          emptyMessage="Highlights appear after calls mature."
+          title="Proven highlights"
+          subtitle={`Matured calls up at least ${PUBLIC_TEASER_THRESHOLDS.provenMinReturnPct}% (${PUBLIC_TEASER_THRESHOLDS.provenMinAgeDays}+ days on the board).`}
+          calls={proven.slice(0, 6)}
+          emptyMessage="Highlights appear after calls mature and clear the performance bar."
+          href="/rankings"
+          linkLabel="View rankings"
         />
 
         <MarketingCta />
@@ -138,35 +131,41 @@ function TeaserSection({
   subtitle,
   calls,
   emptyMessage,
-  emptyCta,
   className,
+  href,
+  linkLabel,
 }: {
   eyebrow?: string;
   title: string;
   subtitle: string;
   calls: TeaserCallRow[];
   emptyMessage: string;
-  emptyCta?: { href: string; label: string };
   className?: string;
+  href?: string;
+  linkLabel?: string;
 }) {
   return (
     <section className={className}>
       <div className="mx-auto max-w-6xl px-4 py-20">
-        <SectionHeader eyebrow={eyebrow} title={title} subtitle={subtitle} href="/join" linkLabel="Get access" />
+        <SectionHeader
+          eyebrow={eyebrow}
+          title={title}
+          subtitle={subtitle}
+          href={href ?? "/join"}
+          linkLabel={linkLabel ?? "Get access"}
+        />
         <div className="mt-10">
           {calls.length === 0 ? (
             <div className="pf-empty">
               <p className="font-medium text-[var(--pf-gray-700)]">{emptyMessage}</p>
-              {emptyCta ? (
-                <Link href={emptyCta.href} className="mt-4 inline-block">
-                  <Button variant="outline">{emptyCta.label}</Button>
-                </Link>
-              ) : null}
+              <Link href="/join" className="mt-4 inline-block">
+                <Button variant="outline">Join for the live feed</Button>
+              </Link>
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {calls.map((call) => (
-                <CallCard key={call.id} call={call} />
+                <PublicHighlightCard key={call.id} call={call} />
               ))}
             </div>
           )}
