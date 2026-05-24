@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import type { LeaderboardEntry } from "@/lib/calls/leaderboard";
 
@@ -35,9 +36,18 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardEntry[] }) {
               </td>
               <td className="px-4 py-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-[var(--pf-black)]">
-                    {row.display_name ?? "Member"}
-                  </span>
+                  {row.username ? (
+                    <Link
+                      href={`/member/${row.username}`}
+                      className="font-semibold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
+                    >
+                      {row.display_name ?? row.username}
+                    </Link>
+                  ) : (
+                    <span className="font-semibold text-[var(--pf-black)]">
+                      {row.display_name ?? "Member"}
+                    </span>
+                  )}
                   {row.trusted ? <Badge variant="trusted">Trusted</Badge> : null}
                 </div>
               </td>

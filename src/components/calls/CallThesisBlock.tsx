@@ -60,7 +60,16 @@ export function CallThesisBlock({
             {call.symbol}
           </Link>
         ) : null}
-        <span className="font-semibold text-[var(--pf-black)]">{name}</span>
+        {call.users.username && !/^\d{5}$/.test(call.users.username) ? (
+          <Link
+            href={`/member/${call.users.username}`}
+            className="font-semibold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
+          >
+            {name}
+          </Link>
+        ) : (
+          <span className="font-semibold text-[var(--pf-black)]">{name}</span>
+        )}
         <span className="text-xs tabular-nums text-[var(--pf-gray-400)]">{handle}</span>
         <Badge variant={call.direction === "long" ? "long" : "short"}>{call.direction}</Badge>
         {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}

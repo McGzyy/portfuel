@@ -1,30 +1,42 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { TabNav } from "@/components/layout/TabNav";
 import { CallCard } from "@/components/calls/CallCard";
+import type { CallCardData } from "@/components/calls/CallCard";
 import { DashboardQuickNav } from "@/components/dashboard/DashboardQuickNav";
 import { FeedSummaryBar } from "@/components/dashboard/FeedSummaryBar";
 import { TickerLookupBar } from "@/components/dashboard/TickerLookupBar";
 import { WatchlistPanel } from "@/components/dashboard/WatchlistPanel";
-import { DashboardFeedFilters } from "@/components/dashboard/DashboardFeedFilters";
+import {
+  DashboardFeedFilters,
+  buildDashboardHref,
+} from "@/components/dashboard/DashboardFeedFilters";
+import { DashboardFeedSearch } from "@/components/dashboard/DashboardFeedSearch";
+import { FueledDeskSection } from "@/components/dashboard/FueledDeskSection";
+import { YourPositionsStrip } from "@/components/dashboard/YourPositionsStrip";
 import { Button } from "@/components/ui/button";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import { fetchCallsFeed } from "@/lib/calls/service";
-import { filterCallsFeed, type FeedFilter } from "@/lib/calls/filter-feed";
+import {
+  filterCallsFeed,
+  filterCallsBySearch,
+  type FeedFilter,
+} from "@/lib/calls/filter-feed";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import { getHotTickersFromCalls } from "@/lib/calls/hot-tickers";
 import { HotTickersStrip } from "@/components/dashboard/HotTickersStrip";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { getDemoProfileStats } from "@/lib/demo/fixtures";
-import { fetchUserProfile } from "@/lib/users/profile";
-import { formatPct } from "@/lib/utils";
+import { fetchUserProfile, fetchUserRecentCalls } from "@/lib/users/profile";
 import { redirect } from "next/navigation";
 
-function mapCallForCard(c: Awaited<ReturnType<typeof fetchCallsFeed>>[number]) {
+function mapCallForCard(c: Awaited<ReturnType<typeof fetchCallsFeed>>[number]): CallCardData {
+  const username = c.users.username ?? null;
   return {
     id: c.id,
     symbol: c.symbol,
@@ -43,7 +55,8 @@ function mapCallForCard(c: Awaited<ReturnType<typeof fetchCallsFeed>>[number]) {
     vote_score: c.vote_score,
     comment_count: c.comment_count,
     display_name: c.users.display_name,
-    pin: c.users.username ?? c.users.pin,
+    pin: username ?? c.users.pin,
+    username,
     is_trusted: Boolean(c.users.trusted_at),
   };
 }
@@ -56,33 +69,58 @@ function parseFilter(raw?: string): FeedFilter {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; filter?: string }>;
+  searchParams: Promise<{ tab?: string; filter?: string; q?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const { tab, filter: filterParam } = await searchParams;
+  const { tab, filter: filterParam, q } = await searchParams;
   const mode = tab === "performing" ? "performing" : "latest";
   const feedFilter = parseFilter(filterParam);
+  const searchQuery = q?.trim() ?? "";
   const demoMode = isDemoMode();
 
-  let calls: Awaited<ReturnType<typeof fetchCallsFeed>> = [];
+  let allFeedCalls: Awaited<ReturnType<typeof fetchCallsFeed>> = [];
   if (demoMode || hasSupabaseConfig()) {
     try {
-      calls = filterCallsFeed(await fetchCallsFeed(mode), feedFilter);
+      allFeedCalls = await fetchCallsFeed(mode);
     } catch (e) {
       console.error("[dashboard]", e);
     }
   }
 
+  const fueledDesk = allFeedCalls.filter((c) => c.is_fueled).map(mapCallForCard);
+  let calls = filterCallsFeed(allFeedCalls, feedFilter);
+  calls = filterCallsBySearch(calls, searchQuery);
+
   const mapped = calls.map(mapCallForCard);
   const feedSummary = summarizeFeed(mapped);
   const hotTickers = getHotTickersFromCalls(mapped);
 
+  let yourCalls: CallCardData[] = [];
+  if (demoMode || hasSupabaseConfig()) {
+    try {
+      const recent = await fetchUserRecentCalls(session.userId, 5);
+      yourCalls = recent.map((c) => ({
+        id: c.id,
+        symbol: c.symbol,
+        asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
+        direction: c.direction,
+        thesis: c.thesis,
+        called_at: c.called_at,
+        return_pct: c.return_pct,
+        is_fueled: c.is_fueled,
+        pin: session.username,
+        username: session.username,
+        display_name: session.displayName,
+      }));
+    } catch {
+      /* optional */
+    }
+  }
+
   let memberStats: {
-    calls_count?: number | null;
     win_rate?: number | null;
-    avg_return_pct?: number | null;
     rank_score?: number | null;
   } | null = null;
   if (demoMode) {
@@ -112,7 +150,7 @@ export default async function DashboardPage({
     <AppShell user={toHeaderUser(session)}>
       <PageHeader
         title="Dashboard"
-        description="Your command center — member feed, watchlist, and ticker lookup. Use Look up ticker for any symbol’s chart and intel."
+        description="Member intelligence hub — live feed, desk theses, watchlist, and caller track records."
         action={
           <Link href="/calls/new">
             <Button size="lg">
@@ -125,33 +163,44 @@ export default async function DashboardPage({
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
         <DashboardQuickNav />
-        {session.role === "admin" ? (
+        <div className="flex items-center gap-4">
           <Link
-            href="/admin?tab=analytics"
-            className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
+            href={`/member/${session.username}`}
+            className="text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-red)]"
           >
-            Admin analytics →
+            Your profile
           </Link>
-        ) : null}
+          {session.role === "admin" ? (
+            <Link
+              href="/admin?tab=analytics"
+              className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
+            >
+              Admin analytics →
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <TickerLookupBar />
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="pf-stat-tile sm:col-span-2">
+          <div className="pf-elite-panel grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4 lg:p-5">
+            <div className="sm:col-span-2">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                Signed in as
+                Operator
               </p>
               <p className="mt-1 truncate text-lg font-bold text-[var(--pf-black)]">
                 {displayLabel}
               </p>
-              <p className="mt-0.5 font-mono text-sm text-[var(--pf-gray-500)]">
+              <Link
+                href={`/member/${session.username}`}
+                className="mt-0.5 inline-block font-mono text-sm text-[var(--pf-gray-500)] hover:text-[var(--pf-red)]"
+              >
                 @{session.username}
-              </p>
+              </Link>
             </div>
-            <div className="pf-stat-tile">
+            <div>
               <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
                 Win rate
               </p>
@@ -159,7 +208,7 @@ export default async function DashboardPage({
                 {memberStats?.win_rate != null ? `${memberStats.win_rate}%` : "—"}
               </p>
             </div>
-            <div className="pf-stat-tile">
+            <div>
               <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
                 Rank score
               </p>
@@ -171,27 +220,51 @@ export default async function DashboardPage({
             </div>
           </div>
 
+          <YourPositionsStrip calls={yourCalls} username={session.username} />
+
+          {feedFilter === "all" && !searchQuery ? (
+            <FueledDeskSection calls={fueledDesk} />
+          ) : null}
+
           <FeedSummaryBar summary={feedSummary} mode={mode} />
           <HotTickersStrip tickers={hotTickers} />
 
-          <div>
+          <div className="space-y-3">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <TabNav
                 tabs={[
-                  { href: buildTabHref("latest", feedFilter), label: "Latest", active: mode === "latest" },
                   {
-                    href: buildTabHref("performing", feedFilter),
+                    href: buildDashboardHref({
+                      filter: feedFilter === "all" ? undefined : feedFilter,
+                      q: searchQuery || undefined,
+                    }),
+                    label: "Latest",
+                    active: mode === "latest",
+                  },
+                  {
+                    href: buildDashboardHref({
+                      tab: "performing",
+                      filter: feedFilter === "all" ? undefined : feedFilter,
+                      q: searchQuery || undefined,
+                    }),
                     label: "Performing",
                     active: mode === "performing",
                   },
                 ]}
               />
             </div>
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-              <DashboardFeedFilters active={feedFilter} tab={mode} />
+            <Suspense fallback={null}>
+              <DashboardFeedSearch />
+            </Suspense>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <DashboardFeedFilters
+                active={feedFilter}
+                tab={mode}
+                searchQuery={searchQuery || undefined}
+              />
               <p className="text-xs text-[var(--pf-gray-500)]">
-                {filterLabel} · {mapped.length} shown ·{" "}
-                {mode === "performing" ? "30d movers" : "newest first"}
+                {filterLabel}
+                {searchQuery ? ` · “${searchQuery}”` : ""} · {mapped.length} shown
               </p>
             </div>
           </div>
@@ -200,10 +273,10 @@ export default async function DashboardPage({
             {mapped.length === 0 ? (
               <div className="pf-empty lg:col-span-2">
                 <p className="font-medium text-[var(--pf-gray-700)]">
-                  No calls match this filter
+                  No calls match this view
                 </p>
                 <p className="mt-1 text-sm">
-                  Try another filter or submit a new thesis.
+                  Adjust filters or search, or publish a new thesis.
                 </p>
                 <Link href="/calls/new" className="mt-4 inline-block">
                   <Button>Submit a call</Button>
@@ -219,25 +292,16 @@ export default async function DashboardPage({
 
         <aside className="space-y-6 lg:col-span-1">
           <WatchlistPanel demoMode={demoMode} />
-          <div className="rounded-[var(--pf-radius-lg)] border border-dashed border-[var(--pf-border)] bg-[var(--pf-gray-50)]/80 p-4 text-xs leading-relaxed text-[var(--pf-gray-600)]">
-            <p className="font-semibold text-[var(--pf-gray-700)]">How ticker pages work</p>
-            <p className="mt-2">
-              Every symbol has its own page: live chart, member theses, hype score, and
-              (for stocks) news, earnings, and filings. Use{" "}
-              <strong className="font-medium text-[var(--pf-black)]">Look up ticker</strong>{" "}
-              or your watchlist — not fixed shortcuts.
-            </p>
+          <div className="pf-elite-panel p-4 text-xs leading-relaxed text-[var(--pf-gray-600)]">
+            <p className="font-semibold text-[var(--pf-gray-800)]">Elite workflow</p>
+            <ul className="mt-2 list-inside list-disc space-y-1.5">
+              <li>Look up any ticker for chart + intel</li>
+              <li>Tap a caller to view their track record</li>
+              <li>Fueled = official PortFuel desk</li>
+            </ul>
           </div>
         </aside>
       </div>
     </AppShell>
   );
-}
-
-function buildTabHref(mode: "latest" | "performing", filter: FeedFilter): string {
-  const params = new URLSearchParams();
-  if (mode === "performing") params.set("tab", "performing");
-  if (filter !== "all") params.set("filter", filter);
-  const q = params.toString();
-  return q ? `/dashboard?${q}` : "/dashboard";
 }

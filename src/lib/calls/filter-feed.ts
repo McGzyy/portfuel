@@ -17,3 +17,18 @@ export function filterCallsFeed(
       return calls;
   }
 }
+
+export function filterCallsBySearch(calls: CallWithUser[], query: string): CallWithUser[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return calls;
+  return calls.filter((c) => {
+    const name = (c.users.display_name ?? "").toLowerCase();
+    const user = (c.users.username ?? c.users.pin ?? "").toLowerCase();
+    return (
+      c.symbol.toLowerCase().includes(q) ||
+      c.thesis.toLowerCase().includes(q) ||
+      name.includes(q) ||
+      user.includes(q)
+    );
+  });
+}

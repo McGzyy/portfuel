@@ -626,3 +626,31 @@ export function getDemoHypeScore(symbol: string): number {
   const calls = ALL_CALLS.filter((c) => c.symbol === symbol.toUpperCase());
   return Math.min(95, 40 + calls.length * 12 + calls.reduce((a, c) => a + c.comment_count, 0) * 2);
 }
+
+export function getDemoMemberByUsername(username: string) {
+  const handle = username.toLowerCase();
+  const u = Object.values(DEMO_USERS).find((x) => x.username.toLowerCase() === handle);
+  if (!u) return null;
+  const userCalls = ALL_CALLS.filter((c) => c.user_id === u.id);
+  const wins = userCalls.filter((c) => (c.return_pct ?? 0) > 0).length;
+  return {
+    id: u.id,
+    username: u.username,
+    display_name: u.display_name,
+    trusted: Boolean(u.trusted_at),
+    calls_count: userCalls.length,
+    win_rate: userCalls.length ? Math.round((wins / userCalls.length) * 100) : null,
+    avg_return_pct:
+      userCalls.length > 0
+        ? userCalls.reduce((a, c) => a + (c.return_pct ?? 0), 0) / userCalls.length
+        : null,
+    rank_score: u.rank_score,
+    created_at: daysAgo(120),
+  };
+}
+
+export function getDemoMemberCalls(userId: string, limit = 20) {
+  return ALL_CALLS.filter((c) => c.user_id === userId)
+    .sort((a, b) => new Date(b.called_at).getTime() - new Date(a.called_at).getTime())
+    .slice(0, limit);
+}

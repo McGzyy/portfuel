@@ -106,6 +106,37 @@ body {
   box-shadow: var(--pf-shadow-sm);
 }
 
+.pf-elite-panel {
+  border-radius: var(--pf-radius-lg);
+  border: 1px solid var(--pf-border);
+  background: linear-gradient(165deg, #ffffff 0%, var(--pf-gray-50) 100%);
+  box-shadow: var(--pf-shadow-md);
+}
+
+.pf-fueled-desk {
+  border-radius: var(--pf-radius-lg);
+  border: 1px solid rgba(227, 27, 35, 0.25);
+  background: linear-gradient(135deg, #0f1419 0%, #1a2332 55%, #2a1520 100%);
+  box-shadow: var(--pf-shadow-lg);
+  color: #f8fafc;
+}
+
+.pf-fueled-desk .pf-eyebrow {
+  color: #fca5a5;
+}
+
+.pf-member-hero {
+  border-radius: var(--pf-radius-lg);
+  border: 1px solid var(--pf-border);
+  background: linear-gradient(135deg, #0f1419 0%, #1a2332 70%, rgba(227, 27, 35, 0.15) 100%);
+  box-shadow: var(--pf-shadow-lg);
+  color: #f8fafc;
+}
+
+.pf-member-hero .pf-eyebrow {
+  color: #fca5a5;
+}
+
 .pf-step-card {
   border-radius: var(--pf-radius-lg);
   border: 1px solid var(--pf-border);

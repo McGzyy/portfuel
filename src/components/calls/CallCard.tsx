@@ -7,6 +7,7 @@ import { cn, formatPct, timeAgo } from "@/lib/utils";
 import type { TeaserCallRow } from "@/lib/db/supabase";
 
 type CallCardExtras = {
+  username?: string | null;
   entry_price?: number | null;
   target_price?: number | null;
   stop_price?: number | null;
@@ -31,6 +32,11 @@ export type CallCardData = (TeaserCallRow | {
   target_progress?: number | null;
 }) &
   CallCardExtras;
+
+function memberSlug(call: CallCardData): string | null {
+  const u = call.username ?? (/^\d{5}$/.test(call.pin) ? null : call.pin.replace(/^@/, ""));
+  return u && u.length >= 2 ? u : null;
+}
 
 type CallCardProps = {
   call: CallCardData;
@@ -94,7 +100,16 @@ export function CallCard({ call, compact, interactive = false }: CallCardProps) 
               ) : null}
             </div>
             <p className="mt-1.5 text-sm text-[var(--pf-gray-600)]">
-              {name}{" "}
+              {memberSlug(call) ? (
+                <Link
+                  href={`/member/${memberSlug(call)}`}
+                  className="font-semibold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
+                >
+                  {name}
+                </Link>
+              ) : (
+                <span className="font-semibold text-[var(--pf-black)]">{name}</span>
+              )}{" "}
               <span className="tabular-nums text-[var(--pf-gray-400)]">· {handle}</span>
             </p>
           </div>

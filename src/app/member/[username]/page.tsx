@@ -1,27 +1,32 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { CallCard } from "@/components/calls/CallCard";
 import { MemberProfileHero } from "@/components/member/MemberProfileHero";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import { fetchMemberPublicCalls } from "@/lib/users/public-profile";
-import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import { hasSupabaseConfig } from "@/lib/db/supabase";
 
-export default async function ProfilePage() {
+export default async function MemberProfilePage({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
 
+  const { username } = await params;
+
   if (!isDemoMode() && !hasSupabaseConfig()) {
-    redirect("/dashboard");
+    return notFound();
   }
 
-  const { member, calls } = await fetchMemberPublicCalls(session.username);
+  const { member, calls } = await fetchMemberPublicCalls(username);
+  if (!member) notFound();
 
-  if (!member) {
-    redirect("/dashboard");
-  }
+  const isSelf = session.username.toLowerCase() === member.username.toLowerCase();
 
   return (
     <AppShell user={toHeaderUser(session)}>
@@ -33,26 +38,29 @@ export default async function ProfilePage() {
       </Link>
 
       <div className="mt-6">
-        <MemberProfileHero member={member} isSelf />
+        <MemberProfileHero member={member} isSelf={isSelf} />
       </div>
 
       <section className="mt-10">
-        <div className="mb-4 flex items-end justify-between gap-4">
+        <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="pf-eyebrow">Your book</p>
+            <p className="pf-eyebrow">Track record</p>
             <h2 className="text-lg font-bold tracking-tight">Published calls</h2>
           </div>
-          <Link
-            href="/calls/new"
-            className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
-          >
-            New call →
-          </Link>
+          {isSelf ? (
+            <Link
+              href="/calls/new"
+              className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
+            >
+              New call →
+            </Link>
+          ) : null}
         </div>
+
         {calls.length === 0 ? (
-          <p className="pf-empty">No calls yet. Submit your first thesis from the dashboard.</p>
+          <p className="pf-empty mt-6">No public calls from this member yet.</p>
         ) : (
-          <ul className="space-y-4">
+          <ul className="mt-6 space-y-4">
             {calls.map((c) => (
               <li key={c.id}>
                 <CallCard
@@ -75,7 +83,6 @@ export default async function ProfilePage() {
                     comment_count: c.comment_count,
                     display_name: member.display_name,
                     pin: member.username,
-                    username: member.username,
                     is_trusted: member.trusted,
                   }}
                   interactive

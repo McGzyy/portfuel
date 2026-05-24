@@ -144,7 +144,14 @@ Work through these **one branch at a time**. Finish and merge before starting th
 
 ### 5d. `feature/phase-2-market-tools` ← **done**
 
-### 5e. `feature/phase-2-dashboard-watchlist-admin` ← **in progress**
+### 5e. `feature/phase-2-dashboard-watchlist-admin` ← **done**
+
+### 5f. `feature/phase-2-elite-polish` ← **in progress**
+
+- [x] Public member profiles `/member/[username]` (elite hero, track record)
+- [x] Dashboard: Fueled desk strip, your book strip, feed search
+- [x] Caller links on cards, rankings, profile unification
+- [x] Elite panels (dark Fueled desk, member hero)
 
 - [x] Replace misleading “Ticker intel / Crypto desk” links with **Look up ticker** (any symbol)
 - [x] Dashboard layout: feed + sidebar watchlist

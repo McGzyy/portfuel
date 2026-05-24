@@ -9,6 +9,7 @@ const protectedPaths = [
   "/calls",
   "/onboarding",
   "/profile",
+  "/member",
   "/admin",
   "/security",
 ];
