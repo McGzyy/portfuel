@@ -1,4 +1,8 @@
-import { CompleteCheckoutButton, ManageBillingButton } from "@/components/billing/BillingActions";
+import {
+  CompleteCheckoutButton,
+  ManageBillingButton,
+  UpgradeToProButton,
+} from "@/components/billing/BillingActions";
 import { isStripeConfigured } from "@/lib/stripe/config";
 
 export function ProfileBillingSection({
@@ -44,6 +48,9 @@ export function ProfileBillingSection({
             <CompleteCheckoutButton tier="member" label="Pay — Member" />
             <CompleteCheckoutButton tier="pro" label="Pay — Pro" />
           </>
+        ) : null}
+        {subscriptionStatus === "active" && membershipTier === "member" ? (
+          <UpgradeToProButton />
         ) : null}
         {subscriptionStatus === "active" && stripeCustomerId ? (
           <ManageBillingButton />

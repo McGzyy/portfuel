@@ -63,6 +63,8 @@ Pending users (logged in): `/join?pending=1` or profile **Complete checkout**.
 
 Active subscribers: profile → **Manage billing** (Stripe Customer Portal).
 
+**Member → Pro upgrade:** Active Member plans can use **Upgrade to Pro** on profile (prorated via Stripe subscription update). Webhook `customer.subscription.updated` keeps Supabase in sync if the client path races.
+
 ## 6. Tiers & Pro gates
 
 | Tier | Price ID env | Pro intelligence |
