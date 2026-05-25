@@ -21,6 +21,9 @@ export type Database = {
           avg_return_pct: number | null;
           rank_score: number;
           submission_quota_week: number;
+          membership_tier: "member" | "pro" | null;
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
           created_at: string;
           updated_at: string;
         };

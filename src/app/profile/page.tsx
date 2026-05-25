@@ -17,6 +17,7 @@ import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
+import { ProfileBillingSection } from "@/components/billing/ProfileBillingSection";
 import { isDemoMode } from "@/lib/demo/config";
 
 export const metadata: Metadata = {
@@ -31,7 +32,8 @@ export default async function ProfilePage() {
     redirect("/dashboard");
   }
 
-  const { member, calls } = await fetchOwnProfile(session);
+  const profile = await fetchOwnProfile(session);
+  const { member, calls } = profile;
 
   if (!member) {
     redirect("/dashboard");
@@ -54,6 +56,14 @@ export default async function ProfilePage() {
 
       <div className="mt-6">
         <MemberProfileHero member={member} isSelf />
+      </div>
+
+      <div className="mt-6">
+        <ProfileBillingSection
+          subscriptionStatus={profile.subscriptionStatus}
+          membershipTier={profile.membershipTier}
+          stripeCustomerId={profile.stripeCustomerId}
+        />
       </div>
 
       <div className="mt-6">

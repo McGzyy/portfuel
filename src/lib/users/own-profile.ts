@@ -28,14 +28,31 @@ function userRowToPublicMember(row: UserRow): PublicMemberProfile {
 /**
  * Load the signed-in member's profile (not subject to public-directory rules).
  */
-export async function fetchOwnProfile(session: SessionPayload) {
+export type OwnProfileResult = {
+  member: PublicMemberProfile;
+  calls: Awaited<ReturnType<typeof fetchUserRecentCalls>>;
+  stripeCustomerId: string | null;
+  subscriptionStatus: "pending" | "active" | "cancelled";
+  membershipTier: "member" | "pro" | null;
+};
+
+export async function fetchOwnProfile(session: SessionPayload): Promise<
+  | { member: null; calls: []; stripeCustomerId: null; subscriptionStatus: "pending"; membershipTier: null }
+  | OwnProfileResult
+> {
   if (isDemoMode()) {
     const member =
       getDemoMemberByUserId(session.userId) ??
       getDemoMemberByUsername(session.username);
 
     if (member) {
-      return { member, calls: getDemoMemberCalls(member.id, 20) };
+      return {
+        member,
+        calls: getDemoMemberCalls(member.id, 20),
+        stripeCustomerId: null,
+        subscriptionStatus: "active",
+        membershipTier: "pro",
+      };
     }
 
     // Logged-in user not in demo fixtures (e.g. real Supabase account + DEMO_MODE)
@@ -57,14 +74,29 @@ export async function fetchOwnProfile(session: SessionPayload) {
         created_at: new Date().toISOString(),
       },
       calls,
+      stripeCustomerId: null,
+      subscriptionStatus: "active",
+      membershipTier: "pro",
     };
   }
 
   const row = await fetchUserProfile(session.userId);
   if (!row) {
-    return { member: null, calls: [] as Awaited<ReturnType<typeof fetchUserRecentCalls>> };
+    return {
+      member: null,
+      calls: [],
+      stripeCustomerId: null,
+      subscriptionStatus: "pending",
+      membershipTier: null,
+    };
   }
 
   const calls = await fetchUserRecentCalls(session.userId, 20);
-  return { member: userRowToPublicMember(row), calls };
+  return {
+    member: userRowToPublicMember(row),
+    calls,
+    stripeCustomerId: row.stripe_customer_id,
+    subscriptionStatus: row.subscription_status,
+    membershipTier: row.membership_tier,
+  };
 }

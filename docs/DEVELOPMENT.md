@@ -62,11 +62,14 @@ feature/phase-3-stripe-billing
 | Crypto allowlist + cron | ✅ | Run migration + cron once if not done |
 | Memecoin blocklist | ✅ | On submit validation |
 
-### Phase 3 — Business (later)
+### Phase 3 — Business (in progress)
 
-- Stripe checkout + subscription webhooks
-- Real Terms / Privacy copy
-- Admin tools
+| Item | Status | Notes |
+|------|--------|--------|
+| Stripe Checkout + webhooks | ✅ | See [STRIPE.md](./STRIPE.md) |
+| Member vs Pro tier + Pro gates | ✅ | `membership_tier` on users |
+| Stripe Customer Portal | ✅ | Profile → Manage billing |
+| Real Terms / Privacy copy | ⏳ | |
 
 ---
 

@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { createServiceClient } from "@/lib/db/supabase";
+import type { MembershipTier } from "@/lib/stripe/config";
 
 const COOKIE_NAME = "portfuel_session";
 
@@ -10,6 +11,7 @@ export type SessionPayload = {
   displayName: string | null;
   role: "member" | "admin";
   subscriptionStatus: "pending" | "active" | "cancelled";
+  membershipTier?: MembershipTier | null;
   totpVerified: boolean;
 };
 
@@ -89,12 +91,17 @@ export async function getSession(): Promise<SessionPayload | null> {
       displayName = displayName ?? resolved.displayName;
     }
 
+    const membershipTier = payload.membershipTier
+      ? (String(payload.membershipTier) as MembershipTier)
+      : null;
+
     return {
       userId,
       username,
       displayName,
       role: payload.role as SessionPayload["role"],
       subscriptionStatus: payload.subscriptionStatus as SessionPayload["subscriptionStatus"],
+      membershipTier,
       totpVerified: Boolean(payload.totpVerified),
     };
   } catch {

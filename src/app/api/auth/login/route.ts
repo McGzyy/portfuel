@@ -71,6 +71,7 @@ export async function POST(request: Request) {
       displayName: user.display_name,
       role: user.role,
       subscriptionStatus: user.subscription_status,
+      membershipTier: user.membership_tier ?? null,
       totpVerified: user.totp_verified,
     });
 
@@ -80,6 +81,7 @@ export async function POST(request: Request) {
       needsTwoFactorSetup: isActive && !user.totp_verified,
       role: user.role,
       subscriptionStatus: user.subscription_status,
+      membershipTier: user.membership_tier ?? null,
     });
   } catch (e) {
     if (e instanceof z.ZodError) {

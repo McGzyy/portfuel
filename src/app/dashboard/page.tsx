@@ -66,7 +66,8 @@ export default async function DashboardOverviewPage({
   const performingCalls = (await loadFeedCalls("performing")).map(mapCallForCard);
   const communityPulse = summarizeFeed(performingCalls);
 
-  const { calls: ownCalls } = await fetchOwnProfile(session);
+  const ownProfile = await fetchOwnProfile(session);
+  const ownCalls = ownProfile.calls;
   const performanceSeries = buildCumulativeReturnSeries(ownCalls);
 
   const latestPreviews = (await loadFeedCalls("latest"))
