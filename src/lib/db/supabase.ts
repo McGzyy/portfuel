@@ -24,6 +24,10 @@ export type Database = {
           membership_tier: "member" | "pro" | null;
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
+          notify_email: string | null;
+          email_instant_enabled: boolean;
+          email_digest_enabled: boolean;
+          email_digest_last_sent_at: string | null;
           created_at: string;
           updated_at: string;
         };

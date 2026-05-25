@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import { maybeSendInstantNotificationEmail } from "@/lib/email/instant";
 import { getDemoNotifications } from "@/lib/notifications/demo";
 import type { NotificationType, UserNotification } from "@/lib/notifications/types";
 
@@ -67,7 +68,16 @@ export async function createNotification(input: CreateNotificationInput): Promis
 
   if (error) {
     console.error("[notifications/create]", error);
+    return;
   }
+
+  void maybeSendInstantNotificationEmail({
+    userId: input.userId,
+    type: input.type,
+    title: input.title,
+    body: input.body,
+    href: input.href,
+  });
 }
 
 export async function fetchNotifications(

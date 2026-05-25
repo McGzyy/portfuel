@@ -18,6 +18,7 @@ import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { ProfileBillingSection } from "@/components/billing/ProfileBillingSection";
+import { ProfileEmailSection } from "@/components/profile/ProfileEmailSection";
 import { ProfileBillingSync } from "@/app/profile/BillingSync";
 import { isDemoMode } from "@/lib/demo/config";
 
@@ -66,6 +67,10 @@ export default async function ProfilePage() {
           membershipTier={profile.membershipTier}
           stripeCustomerId={profile.stripeCustomerId}
         />
+      </div>
+
+      <div className="mt-6">
+        <ProfileEmailSection />
       </div>
 
       <div className="mt-6">
