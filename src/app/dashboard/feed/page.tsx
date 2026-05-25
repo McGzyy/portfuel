@@ -7,6 +7,8 @@ import {
 } from "@/components/dashboard/WorkspacePageHeader";
 import { FeedToolbar } from "@/components/dashboard/FeedToolbar";
 import { FeedSummaryBar } from "@/components/dashboard/FeedSummaryBar";
+import { ProFeedLeadersPanel } from "@/components/pro/ProFeedLeadersPanel";
+import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { Button } from "@/components/ui/button";
 import {
   filterCallsFeed,
@@ -51,7 +53,8 @@ export default async function DashboardFeedPage({
     feedFilter === "fueled" ? "all" : feedFilter
   );
   calls = filterCallsBySearch(calls, searchQuery);
-  const mapped = calls.map(mapCallForCard);
+  const hypeScores = await fetchHypeScoresBySymbols(calls.map((c) => c.symbol));
+  const mapped = calls.map((c) => mapCallForCard(c, hypeScores));
   const feedSummary = summarizeFeed(mapped);
 
   return (
@@ -78,6 +81,12 @@ export default async function DashboardFeedPage({
             proLocked={proLocked}
             proGateCta={proGateCta}
           />
+        </div>
+      ) : null}
+
+      {mapped.length > 0 ? (
+        <div className="mt-6">
+          <ProFeedLeadersPanel calls={mapped} locked={proLocked} proGateCta={proGateCta} />
         </div>
       ) : null}
 

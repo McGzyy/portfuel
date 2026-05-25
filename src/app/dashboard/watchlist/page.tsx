@@ -2,15 +2,26 @@ import type { Metadata } from "next";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { TickerLookupBar } from "@/components/dashboard/TickerLookupBar";
 import { WatchlistPanel } from "@/components/dashboard/WatchlistPanel";
+import { EarningsCalendarPanel } from "@/components/pro/EarningsCalendarPanel";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { isDemoMode } from "@/lib/demo/config";
+import {
+  canAccessProIntelligence,
+  getProGateCta,
+  isProIntelligenceLocked,
+  sessionToProContext,
+} from "@/lib/features/pro-intelligence";
 
 export const metadata: Metadata = {
   title: "Watchlist",
 };
 
 export default async function DashboardWatchlistPage() {
-  await requireDashboardSession();
+  const session = await requireDashboardSession();
+  const proContext = sessionToProContext(session);
+  const proLocked = isProIntelligenceLocked(proContext);
+  const proGateCta = getProGateCta(proContext);
+  const proUnlocked = canAccessProIntelligence(proContext);
 
   return (
     <>
@@ -24,8 +35,9 @@ export default async function DashboardWatchlistPage() {
         <TickerLookupBar />
       </div>
 
-      <div className="mt-6">
-        <WatchlistPanel demoMode={isDemoMode()} />
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <WatchlistPanel demoMode={isDemoMode()} proUnlocked={proUnlocked} />
+        <EarningsCalendarPanel locked={proLocked} proGateCta={proGateCta} />
       </div>
     </>
   );

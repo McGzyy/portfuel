@@ -1,10 +1,13 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import { getQuote } from "@/lib/market/finnhub";
 import { getDemoWatchlist } from "@/lib/watchlist/demo";
 import { detectAssetClassForSymbol } from "@/lib/watchlist/symbol-detect";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 
 const MAX_WATCHLIST = 24;
+
+export const WATCHLIST_MOVE_ALERT_PCT = 5;
 
 export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> {
   if (isDemoMode()) return getDemoWatchlist(userId);
@@ -12,7 +15,7 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
   const db = createServiceClient();
   const { data, error } = await db
     .from("user_watchlist")
-    .select("symbol, asset_class, created_at")
+    .select("symbol, asset_class, created_at, baseline_price")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
@@ -103,9 +106,19 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
     if (!returnMap.has(c.symbol)) returnMap.set(c.symbol, c.return_pct);
   }
 
-  return entries.map((e) => ({
-    ...e,
-    last_price: priceMap.get(e.symbol) ?? null,
-    return_pct: returnMap.get(e.symbol) ?? null,
-  }));
+  return entries.map((e) => {
+    const last = priceMap.get(e.symbol) ?? null;
+    const baseline = e.baseline_price != null ? Number(e.baseline_price) : null;
+    let change_since_add_pct: number | null = null;
+    if (baseline != null && baseline > 0 && last != null) {
+      change_since_add_pct = ((last - baseline) / baseline) * 100;
+    }
+    return {
+      ...e,
+      baseline_price: baseline,
+      last_price: last,
+      return_pct: returnMap.get(e.symbol) ?? null,
+      change_since_add_pct,
+    };
+  });
 }

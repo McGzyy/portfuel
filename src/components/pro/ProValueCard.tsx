@@ -6,7 +6,9 @@ const PRO_FEATURES = [
   "News, earnings & SEC filings on every equity ticker",
   "Pro feed & rankings analytics (target progress, win-rate depth)",
   "6 published calls per week (vs 2 on Member)",
-  "Watchlist alerts & earnings calendar (coming soon)",
+  "Watchlist move alerts (±5% since you added a symbol)",
+  "Earnings calendar for your watchlist (next 14 days)",
+  "Target progress leaders on the member feed",
 ] as const;
 
 export function ProValueCard({ className }: { className?: string }) {

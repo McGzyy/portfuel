@@ -24,15 +24,32 @@ const DEMO_RETURNS: Record<string, number> = {
   AMD: 8.4,
 };
 
+const DEMO_BASELINE: Record<string, number> = {
+  NVDA: 128,
+  BTC: 64800,
+  SPY: 512,
+  AMD: 165,
+};
+
 export function getDemoWatchlist(_userId: string): WatchlistEntry[] {
   const now = new Date().toISOString();
-  return DEFAULT_SYMBOLS.map((s) => ({
-    symbol: s.symbol,
-    asset_class: s.asset_class,
-    created_at: now,
-    last_price: DEMO_LAST_PRICES[s.symbol] ?? null,
-    return_pct: DEMO_RETURNS[s.symbol] ?? null,
-  }));
+  return DEFAULT_SYMBOLS.map((s) => {
+    const last = DEMO_LAST_PRICES[s.symbol] ?? null;
+    const baseline = DEMO_BASELINE[s.symbol] ?? last;
+    let change_since_add_pct: number | null = null;
+    if (baseline != null && baseline > 0 && last != null) {
+      change_since_add_pct = ((last - baseline) / baseline) * 100;
+    }
+    return {
+      symbol: s.symbol,
+      asset_class: s.asset_class,
+      created_at: now,
+      baseline_price: baseline,
+      last_price: last,
+      return_pct: DEMO_RETURNS[s.symbol] ?? null,
+      change_since_add_pct,
+    };
+  });
 }
 
 export function getDemoWatchlistSeed(): typeof DEFAULT_SYMBOLS {

@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
 import { CallCard } from "@/components/calls/CallCard";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
+import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { loadFeedCalls, mapCallForCard } from "@/lib/dashboard/data";
 
 export default async function DashboardDeskPage() {
   const latest = await loadFeedCalls("latest");
   const performing = await loadFeedCalls("performing");
-  const fueledLatest = latest.filter((c) => c.is_fueled).map(mapCallForCard);
-  const fueledPerforming = performing.filter((c) => c.is_fueled).map(mapCallForCard);
+  const hypeScores = await fetchHypeScoresBySymbols([
+    ...latest.map((c) => c.symbol),
+    ...performing.map((c) => c.symbol),
+  ]);
+  const fueledLatest = latest.filter((c) => c.is_fueled).map((c) => mapCallForCard(c, hypeScores));
+  const fueledPerforming = performing
+    .filter((c) => c.is_fueled)
+    .map((c) => mapCallForCard(c, hypeScores));
 
   return (
     <>

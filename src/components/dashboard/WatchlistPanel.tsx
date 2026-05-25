@@ -5,7 +5,9 @@ import Link from "next/link";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { WatchlistMoveAlerts } from "@/components/dashboard/WatchlistMoveAlerts";
 import { formatPct, formatPrice } from "@/lib/utils";
+import { WATCHLIST_MOVE_ALERT_PCT } from "@/lib/watchlist/service";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { getDemoWatchlistSeed } from "@/lib/watchlist/demo";
 
@@ -46,7 +48,13 @@ function mergeDemoItems(serverItems: WatchlistEntry[]): WatchlistEntry[] {
   });
 }
 
-export function WatchlistPanel({ demoMode }: { demoMode: boolean }) {
+export function WatchlistPanel({
+  demoMode,
+  proUnlocked = false,
+}: {
+  demoMode: boolean;
+  proUnlocked?: boolean;
+}) {
   const [items, setItems] = useState<WatchlistEntry[]>([]);
   const [symbol, setSymbol] = useState("");
   const [loading, setLoading] = useState(true);
@@ -177,6 +185,12 @@ export function WatchlistPanel({ demoMode }: { demoMode: boolean }) {
 
       {error ? <p className="mt-2 text-xs text-rose-600">{error}</p> : null}
 
+      {!loading && items.length > 0 ? (
+        <div className="mt-3">
+          <WatchlistMoveAlerts items={items} proUnlocked={proUnlocked} />
+        </div>
+      ) : null}
+
       {loading ? (
         <p className="mt-4 text-xs text-[var(--pf-gray-400)]">Loading…</p>
       ) : items.length === 0 ? (
@@ -196,19 +210,36 @@ export function WatchlistPanel({ demoMode }: { demoMode: boolean }) {
                   <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
                     {item.symbol}
                   </span>
-                  {item.return_pct != null ? (
-                    <span
-                      className={`text-xs font-semibold tabular-nums ${
-                        item.return_pct >= 0 ? "text-emerald-600" : "text-rose-600"
-                      }`}
-                    >
-                      {formatPct(item.return_pct)}
-                    </span>
-                  ) : null}
+                  <span className="flex flex-col items-end gap-0.5">
+                    {item.change_since_add_pct != null ? (
+                      <span
+                        className={`text-xs font-semibold tabular-nums ${
+                          item.change_since_add_pct >= 0 ? "text-emerald-600" : "text-rose-600"
+                        }`}
+                        title="Change since added to watchlist"
+                      >
+                        {(item.change_since_add_pct >= 0 ? "+" : "") +
+                          formatPct(item.change_since_add_pct)}{" "}
+                        since add
+                      </span>
+                    ) : null}
+                    {item.return_pct != null ? (
+                      <span
+                        className={`text-[10px] font-medium tabular-nums text-[var(--pf-gray-500)]`}
+                      >
+                        Call book {formatPct(item.return_pct)}
+                      </span>
+                    ) : null}
+                  </span>
                 </div>
                 {item.last_price != null ? (
                   <p className="text-[10px] tabular-nums text-[var(--pf-gray-400)]">
                     ${formatPrice(Number(item.last_price))}
+                    {proUnlocked &&
+                    item.change_since_add_pct != null &&
+                    Math.abs(item.change_since_add_pct) >= WATCHLIST_MOVE_ALERT_PCT ? (
+                      <span className="ml-2 font-semibold text-amber-700">· Alert</span>
+                    ) : null}
                   </p>
                 ) : null}
               </Link>

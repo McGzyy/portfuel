@@ -7,6 +7,7 @@ import { OverviewShortcutBar } from "@/components/dashboard/OverviewShortcutBar"
 import { OverviewCommunityPulse } from "@/components/dashboard/OverviewCommunityPulse";
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
 import { ProValueCard } from "@/components/pro/ProValueCard";
+import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { getHotTickersFromCalls } from "@/lib/calls/hot-tickers";
 import { fetchWeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerformanceChart";
@@ -71,8 +72,14 @@ export default async function DashboardOverviewPage({
   const proGateCta = getProGateCta(proContext);
   const memberStats = await loadMemberStats(session.userId);
 
-  const performingCalls = (await loadFeedCalls("performing")).map(mapCallForCard);
-  const latestCalls = (await loadFeedCalls("latest")).map(mapCallForCard);
+  const performingRaw = await loadFeedCalls("performing");
+  const latestRaw = await loadFeedCalls("latest");
+  const hypeScores = await fetchHypeScoresBySymbols([
+    ...performingRaw.map((c) => c.symbol),
+    ...latestRaw.map((c) => c.symbol),
+  ]);
+  const performingCalls = performingRaw.map((c) => mapCallForCard(c, hypeScores));
+  const latestCalls = latestRaw.map((c) => mapCallForCard(c, hypeScores));
   const communityPulse = summarizeFeed(performingCalls);
   const hotTickers = getHotTickersFromCalls(
     latestCalls.map((c) => ({ symbol: c.symbol, return_pct: c.return_pct })),

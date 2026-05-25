@@ -30,6 +30,7 @@ export type CallCardData = (TeaserCallRow | {
   pin: string;
   is_trusted?: boolean;
   target_progress?: number | null;
+  hype_score?: number | null;
 }) &
   CallCardExtras;
 
@@ -93,6 +94,9 @@ export function CallCard({ call, compact, interactive = false }: CallCardProps) 
               ) : null}
               {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
               {call.is_trusted ? <Badge variant="trusted">Trusted</Badge> : null}
+              {"hype_score" in call && call.hype_score != null && call.hype_score >= 15 ? (
+                <Badge variant="default">Hype {Math.round(call.hype_score)}</Badge>
+              ) : null}
               {call.timeframe_tag && !hasMetrics ? (
                 <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--pf-gray-400)]">
                   {call.timeframe_tag}

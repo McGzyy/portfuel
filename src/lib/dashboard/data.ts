@@ -8,7 +8,8 @@ import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 
 export function mapCallForCard(
-  c: Awaited<ReturnType<typeof fetchCallsFeed>>[number]
+  c: Awaited<ReturnType<typeof fetchCallsFeed>>[number],
+  hypeScores?: Record<string, number>
 ): CallCardData {
   const username = c.users.username ?? null;
   return {
@@ -32,6 +33,7 @@ export function mapCallForCard(
     pin: username ?? c.users.pin,
     username,
     is_trusted: Boolean(c.users.trusted_at),
+    hype_score: hypeScores?.[c.symbol.toUpperCase()] ?? null,
   };
 }
 

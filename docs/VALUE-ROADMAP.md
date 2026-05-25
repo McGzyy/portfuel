@@ -76,12 +76,13 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 1. ✅ **Quota + tier strip** — “2/6 calls this week · Member/Pro” on overview + `/calls/new`.
 2. ✅ **Hot tickers** on overview — symbols with most community activity (wired `HotTickersStrip`).
 3. ✅ **Pro value card** on overview when locked — checklist of what Pro unlocks + upgrade CTA.
-4. **Hype score on feed cards** — surface `hype_scores` on `CallCard` (data exists).
+4. ✅ **Hype badge on feed cards** — symbols with hype ≥ 15 show on `CallCard`.
 5. **Fueled desk hero** on overview — stronger CTA to desk (house IP).
 
 ### Next (high ROI, ~1 week)
-6. **Watchlist alerts** — % move since add or since last visit (cron + `user_watchlist` + email via Resend).
-7. **Earnings calendar (Pro)** — next 7 days for watchlist + top feed symbols (Finnhub earnings).
+6. ✅ **Watchlist move alerts** — % since add (`baseline_price` migration); Pro sees alert strip ±5%.
+7. ✅ **Earnings calendar (Pro)** — next 14 days for watchlist equities (`/dashboard/watchlist`).
+8. ✅ **Pro feed leaders** — target progress top 6 on member feed.
 8. **Call performance digest** — weekly email: your calls marked, community top movers.
 9. **Ticker compare** — 2–3 symbols side-by-side mini charts (Pro).
 10. **Expand Pro analytics** — distribution chart on profile; feed “top target progress” table.

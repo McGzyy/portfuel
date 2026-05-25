@@ -228,7 +228,7 @@ git push -u origin feature/phase-1-app-shell
 
 ## Supabase / ops checklist (once per environment)
 
-- [ ] All migrations applied in SQL Editor (including `20260524300000_username_password_auth.sql`, `20260524400000_user_watchlist.sql`, `20260524500000_stripe_billing.sql`)
+- [ ] All migrations applied in SQL Editor (including `20260524300000_username_password_auth.sql`, `20260524400000_user_watchlist.sql`, `20260524500000_stripe_billing.sql`, `20260524600000_watchlist_baseline.sql`)
 - [ ] Admin password set (`ADMIN_USERNAME`, `ADMIN_PASSWORD`, `scripts/set-admin-password.mjs`)
 - [ ] Admin seeded (`scripts/seed.mjs` or `scripts/reset-admin-totp.mjs`)
 - [ ] Crypto allowlist cron triggered once (production)
