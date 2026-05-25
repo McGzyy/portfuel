@@ -69,7 +69,7 @@ feature/phase-3-stripe-billing
 | Stripe Checkout + webhooks | ✅ | See [STRIPE.md](./STRIPE.md) |
 | Member vs Pro tier + Pro gates | ✅ | `membership_tier` on users |
 | Stripe Customer Portal | ✅ | Profile → Manage billing |
-| Real Terms / Privacy copy | ⏳ | |
+| Real Terms / Privacy copy | ✅ | `/terms`, `/privacy`; required on `/join` |
 
 ---
 

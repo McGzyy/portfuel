@@ -72,10 +72,26 @@ Active subscribers: profile → **Manage billing** (Stripe Customer Portal).
 
 Admins and `NEXT_PUBLIC_DEMO_MODE=true` bypass billing gates as before.
 
-## 7. Testing checklist
+## 7. Production launch checklist
+
+After env vars are on Vercel and `main` is deployed:
+
+1. **Supabase** — Run `supabase/migrations/20260524500000_stripe_billing.sql` in the SQL editor if not already applied.
+2. **Redeploy** — Vercel → Deployments → Redeploy latest `main` so new env vars are picked up.
+3. **Webhook** — Stripe Dashboard → Webhooks → endpoint `https://www.portfuel.pro/api/stripe/webhook` → send test event `checkout.session.completed` (expect `200`).
+4. **Smoke test** — Use a real test card in Stripe **test mode** first, then switch to live keys when ready.
+
+Quick checks:
+
+- `GET https://www.portfuel.pro/api/stripe/status` → `{ "configured": true }`
+- `/join` shows plan picker (not “billing not configured”)
+- After checkout, `/join/success` → 2FA → dashboard
+
+## 8. Testing checklist
 
 - [ ] Register + Member checkout → active + `membership_tier = member`
 - [ ] Register + Pro checkout → active + `membership_tier = pro` + intel unlocked
 - [ ] Webhook fires (check Stripe CLI or Dashboard logs)
 - [ ] Cancel subscription → `subscription_status = cancelled`
 - [ ] Billing portal opens from profile
+- [ ] Terms + Privacy accepted at registration

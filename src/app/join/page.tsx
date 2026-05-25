@@ -26,6 +26,7 @@ export default function JoinPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -47,6 +48,7 @@ export default function JoinPage() {
           username: username.trim().toLowerCase(),
           password,
           displayName,
+          acceptedTerms: true,
         }),
       });
       const data = await res.json();
@@ -54,7 +56,9 @@ export default function JoinPage() {
         setError(
           data.error === "username_taken"
             ? "That username is taken. Choose another."
-            : data.message ?? "Registration failed. Check your details."
+            : data.error === "invalid_input"
+              ? "Accept the Terms of Service and Privacy Policy to continue."
+              : data.message ?? "Registration failed. Check your details."
         );
         return;
       }
@@ -240,6 +244,26 @@ export default function JoinPage() {
                   placeholder="How you appear on calls"
                 />
               </div>
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-3">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 accent-[var(--pf-red)]"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                />
+                <span className="text-sm leading-relaxed text-[var(--pf-gray-600)]">
+                  I agree to the{" "}
+                  <Link href="/terms" className="font-semibold text-[var(--pf-red)] hover:underline">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" className="font-semibold text-[var(--pf-red)] hover:underline">
+                    Privacy Policy
+                  </Link>
+                  . I understand PortFuel is not investment advice and trading involves risk of
+                  loss.
+                </span>
+              </label>
               {error ? (
                 <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-sm text-[var(--pf-red)]">
                   {error}
@@ -250,6 +274,7 @@ export default function JoinPage() {
                 size="lg"
                 disabled={
                   loading ||
+                  !acceptedTerms ||
                   username.length < 3 ||
                   password.length < 8 ||
                   displayName.length < 2

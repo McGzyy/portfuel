@@ -9,6 +9,7 @@ const schema = z.object({
   username: z.string().min(3).max(32).regex(usernamePattern),
   password: z.string().min(8).max(128),
   displayName: z.string().min(2).max(32),
+  acceptedTerms: z.boolean().refine((v) => v === true, { message: "terms_required" }),
 });
 
 export async function POST(request: Request) {
