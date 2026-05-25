@@ -12,7 +12,7 @@ import {
 } from "@/components/dashboard/WorkspacePageHeader";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
-import { fetchMemberPublicCalls } from "@/lib/users/public-profile";
+import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
@@ -30,7 +30,7 @@ export default async function ProfilePage() {
     redirect("/dashboard");
   }
 
-  const { member, calls } = await fetchMemberPublicCalls(session.username);
+  const { member, calls } = await fetchOwnProfile(session);
 
   if (!member) {
     redirect("/dashboard");
