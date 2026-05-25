@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { CallCard } from "@/components/calls/CallCard";
 import {
@@ -16,7 +17,13 @@ import {
   filterCallsBySearch,
   type FeedFilter,
 } from "@/lib/calls/filter-feed";
+import { FeedVisitTracker } from "@/components/dashboard/FeedVisitTracker";
 import { fetchFollowingIds } from "@/lib/follows/service";
+import {
+  FEED_SEEN_COOKIE,
+  isCallNewSinceSeen,
+  parseFeedSeenAt,
+} from "@/lib/feed/last-seen";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
 import {
@@ -71,6 +78,9 @@ export default async function DashboardFeedPage({
   calls = filterCallsBySearch(calls, searchQuery);
   const hypeScores = await fetchHypeScoresBySymbols(calls.map((c) => c.symbol));
   const mapped = calls.map((c) => mapCallForCard(c, hypeScores));
+  const cookieStore = await cookies();
+  const feedSeenAt = parseFeedSeenAt(cookieStore.get(FEED_SEEN_COOKIE)?.value);
+  const newCount = mapped.filter((c) => isCallNewSinceSeen(c.called_at, feedSeenAt)).length;
   const feedSummary = summarizeFeed(mapped);
 
   return (
@@ -87,7 +97,9 @@ export default async function DashboardFeedPage({
         feedFilter={feedFilter}
         searchQuery={searchQuery}
         resultCount={mapped.length}
+        newCount={newCount}
       />
+      <FeedVisitTracker />
 
       {feedSummary.count > 0 ? (
         <div className="mt-6">
@@ -127,7 +139,12 @@ export default async function DashboardFeedPage({
           </div>
         ) : (
           mapped.map((call) => (
-            <CallCard key={call.id} call={call} interactive />
+            <CallCard
+              key={call.id}
+              call={call}
+              interactive
+              isNew={isCallNewSinceSeen(call.called_at, feedSeenAt)}
+            />
           ))
         )}
       </div>

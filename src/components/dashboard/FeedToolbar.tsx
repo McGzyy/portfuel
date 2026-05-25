@@ -10,11 +10,13 @@ export function FeedToolbar({
   feedFilter,
   searchQuery,
   resultCount,
+  newCount = 0,
 }: {
   mode: "latest" | "performing";
   feedFilter: FeedFilter;
   searchQuery: string;
   resultCount: number;
+  newCount?: number;
 }) {
   return (
     <div className="pf-feed-toolbar pf-feed-toolbar-premium space-y-4">
@@ -52,6 +54,12 @@ export function FeedToolbar({
       <p className="text-xs text-[var(--pf-gray-500)]">
         {resultCount} call{resultCount === 1 ? "" : "s"} ·{" "}
         {mode === "performing" ? "30-day top returns" : "Newest first"}
+        {newCount > 0 ? (
+          <span className="font-semibold text-emerald-700">
+            {" "}
+            · {newCount} new since last visit
+          </span>
+        ) : null}
         {searchQuery ? ` · “${searchQuery}”` : ""}
       </p>
     </div>

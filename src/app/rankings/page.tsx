@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { SiteFooter } from "@/components/marketing/SiteFooter";
 import { LeaderboardTable } from "@/components/rankings/LeaderboardTable";
+import { RankingsTrustedNote } from "@/components/rankings/RankingsTrustedNote";
 import { RankingsSummaryBar } from "@/components/rankings/RankingsSummaryBar";
 import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
 import { Button } from "@/components/ui/button";
@@ -73,7 +74,8 @@ export default async function RankingsPage() {
               proLocked={proLocked}
               proGateCta={proGateCta}
             />
-            <div className="pf-workspace-panel overflow-hidden">
+            <RankingsTrustedNote />
+            <div className="pf-workspace-panel mt-6 overflow-hidden">
               <LeaderboardTable rows={rows} embedded />
             </div>
           </div>

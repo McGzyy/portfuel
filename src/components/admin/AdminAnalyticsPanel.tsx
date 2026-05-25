@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AdminDailyChart } from "@/components/admin/AdminDailyChart";
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import type { AdminAnalytics } from "@/lib/admin/analytics";
 import { formatPct } from "@/lib/utils";
@@ -87,6 +88,19 @@ export function AdminAnalyticsPanel() {
           { label: "Votes cast", value: String(data.engagement.totalVotes) },
         ]}
       />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <AdminDailyChart
+          title="Signups · 30 days"
+          subtitle="New member accounts (excludes admin)"
+          series={data.timeseries.signups}
+        />
+        <AdminDailyChart
+          title="Calls published · 30 days"
+          subtitle="All member + desk calls"
+          series={data.timeseries.calls}
+        />
+      </div>
 
       <div className="pf-workspace-panel p-5">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">

@@ -9,10 +9,10 @@ const PLANS = [
     period: "/mo",
     highlight: false,
     features: [
-      "Full workspace & live feed",
-      "Ticker charts + call markers",
-      "Rankings & community votes",
-      "Profile performance curve",
+      "Full workspace, feed & Fueled desk",
+      "2 published calls per week",
+      "Watchlist, follow members & alerts",
+      "Ticker charts, rankings & track record",
     ],
   },
   {
@@ -22,9 +22,9 @@ const PLANS = [
     highlight: true,
     features: [
       "Everything in Member",
-      "Pro market intel (news, filings)",
-      "Advanced feed & leaderboard analytics",
-      "Higher weekly call quota",
+      "6 calls/week · news, earnings & SEC",
+      "Screener, ticker compare & CSV export",
+      "Watchlist move alerts & earnings calendar",
     ],
   },
 ] as const;

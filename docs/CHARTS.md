@@ -43,7 +43,7 @@ Ticker pages already render candlesticks + member call markers. Styling lives in
 2. ~~Refine ticker chart (theme, toolbar, loading skeleton).~~ ✅ `TickerChartSection` + `ChartRangeToolbar`.
 3. ~~Member profile cumulative return line.~~ ✅ `MemberReturnChart` on `/member` and `/profile`.
 4. ~~Dashboard workspace mini-chart.~~ ✅ Overview performance sparkline.
-5. Admin analytics — MetricsStrip (time-series charts later).
+5. ~~Admin analytics — MetricsStrip (time-series charts later).~~ ✅ Daily signup & call charts on `/admin?tab=analytics`.
 
 ## API / data contracts
 

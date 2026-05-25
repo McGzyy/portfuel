@@ -93,7 +93,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 13. ✅ **Email digest** — weekly summary (Resend; enable when domain verified).
 13. **Messaging** (original vision) — DMs or threaded replies.
 14. ✅ **Screener lite** — “most called this week,” “best 30d return,” export CSV (Pro) at `/dashboard/screener`.
-15. **Admin time-series charts** — signups, MRR proxy, calls/day (`docs/CHARTS.md` step 5).
+15. ✅ **Admin time-series charts** — signups & calls/day (30d) on admin analytics tab.
 
 ### Later (premium polish)
 16. Real-time quotes (paid Finnhub tier).
@@ -108,11 +108,11 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 | Area | Feels premium? | Improvement |
 |------|----------------|-------------|
 | Overview | Good hero + sparkline | Add hot tickers, quota, Pro card, desk promo |
-| Feed | Strong cards | Hype badge, “new since last visit,” Pro analytics table |
+| Feed | Strong cards | Hype badge, ✅ “new since last visit,” Pro analytics table |
 | Desk | Distinct dark lane | Weekly desk note / pinned thesis |
 | Watchlist | Functional | Live % change column, alerts (Pro) |
 | Ticker | Best page | Cross-link intel from watchlist; Pro preview blur |
-| Rankings | Clean | Member sparklines, trusted badge explainer |
+| Rankings | Clean | Member sparklines, ✅ trusted badge explainer |
 | Profile | Good | Quota, tier benefits, upgrade |
 | Calls/new | Form OK | Quota header, symbol validation UX, preview card |
 

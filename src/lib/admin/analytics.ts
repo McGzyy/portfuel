@@ -1,5 +1,7 @@
+import { buildDailySeries } from "@/lib/admin/time-series";
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import type { DailyCount } from "@/lib/admin/time-series";
 
 export type AdminAnalytics = {
   members: {
@@ -22,6 +24,10 @@ export type AdminAnalytics = {
     totalVotes: number;
   };
   topSymbols: { symbol: string; count: number }[];
+  timeseries: {
+    signups: DailyCount[];
+    calls: DailyCount[];
+  };
 };
 
 export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
@@ -29,22 +35,31 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
 
   const db = createServiceClient();
   const since7d = new Date(Date.now() - 7 * 86400000).toISOString();
+  const since30d = new Date(Date.now() - 30 * 86400000).toISOString();
 
   const [
     usersRes,
+    users30Res,
     callsRes,
     calls7dRes,
+    calls30Res,
     fueledRes,
     commentsRes,
     votesRes,
     symbolsRes,
   ] = await Promise.all([
     db.from("users").select("id, subscription_status, membership_tier, trusted_at, role"),
+    db
+      .from("users")
+      .select("created_at")
+      .gte("created_at", since30d)
+      .neq("role", "admin"),
     db.from("calls").select("id, return_pct", { count: "exact", head: true }),
     db
       .from("calls")
       .select("id", { count: "exact", head: true })
       .gte("called_at", since7d),
+    db.from("calls").select("called_at").gte("called_at", since30d),
     db
       .from("calls")
       .select("id", { count: "exact", head: true })
@@ -75,6 +90,13 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
   const avgReturnPct =
     returns.length > 0 ? returns.reduce((a, b) => a + b, 0) / returns.length : null;
 
+  const signupSeries = buildDailySeries(
+    (users30Res.data ?? []).map((u) => (u as { created_at: string }).created_at)
+  );
+  const callsSeries = buildDailySeries(
+    (calls30Res.data ?? []).map((c) => (c as { called_at: string }).called_at)
+  );
+
   return {
     members: {
       total: members.length,
@@ -100,6 +122,10 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
       totalVotes: votesRes.count ?? 0,
     },
     topSymbols,
+    timeseries: {
+      signups: signupSeries,
+      calls: callsSeries,
+    },
   };
 }
 
@@ -123,6 +149,18 @@ function getDemoAdminAnalytics(): AdminAnalytics {
     engagement: {
       totalComments: 12,
       totalVotes: 48,
+    },
+    timeseries: {
+      signups: buildDailySeries(
+        Array.from({ length: 8 }, (_, i) =>
+          new Date(Date.now() - (7 - i) * 86400000).toISOString()
+        )
+      ),
+      calls: buildDailySeries(
+        Array.from({ length: 12 }, (_, i) =>
+          new Date(Date.now() - (11 - i) * 86400000 * 0.8).toISOString()
+        )
+      ),
     },
     topSymbols: [
       { symbol: "NVDA", count: 3 },

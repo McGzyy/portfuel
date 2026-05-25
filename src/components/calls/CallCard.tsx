@@ -43,9 +43,10 @@ type CallCardProps = {
   call: CallCardData;
   compact?: boolean;
   interactive?: boolean;
+  isNew?: boolean;
 };
 
-export function CallCard({ call, compact, interactive = false }: CallCardProps) {
+export function CallCard({ call, compact, interactive = false, isNew }: CallCardProps) {
   const handle = /^\d{5}$/.test(call.pin) ? call.pin : `@${call.pin}`;
   const name = call.display_name ?? `Trader ${handle}`;
   const ret = call.return_pct;
@@ -94,6 +95,11 @@ export function CallCard({ call, compact, interactive = false }: CallCardProps) 
               ) : null}
               {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
               {call.is_trusted ? <Badge variant="trusted">Trusted</Badge> : null}
+              {isNew ? (
+                <Badge variant="default" className="border-emerald-200 bg-emerald-50 text-emerald-800">
+                  New
+                </Badge>
+              ) : null}
               {"hype_score" in call && call.hype_score != null && call.hype_score >= 15 ? (
                 <Badge variant="default">Hype {Math.round(call.hype_score)}</Badge>
               ) : null}
