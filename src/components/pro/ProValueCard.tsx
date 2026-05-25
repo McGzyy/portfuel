@@ -10,6 +10,8 @@ const PRO_FEATURES = [
   "Earnings calendar for your watchlist (next 14 days)",
   "Target progress leaders on the member feed",
   "Community screener — most called symbols & best 30-day returns (CSV export)",
+  "Ticker compare — 2–3 symbols on one normalized chart",
+  "Return distribution on your profile track record",
 ] as const;
 
 export function ProValueCard({ className }: { className?: string }) {

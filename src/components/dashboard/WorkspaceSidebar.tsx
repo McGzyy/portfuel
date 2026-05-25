@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Rows3,
   ScanSearch,
+  GitCompare,
   Plus,
   ExternalLink,
   Shield,
@@ -21,6 +22,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   flame: Flame,
   bookmark: Bookmark,
   scan: ScanSearch,
+  compare: GitCompare,
 };
 
 export function WorkspaceSidebar({

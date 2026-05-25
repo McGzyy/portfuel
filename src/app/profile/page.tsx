@@ -21,6 +21,13 @@ import { ProfileBillingSection } from "@/components/billing/ProfileBillingSectio
 import { ProfileEmailSection } from "@/components/profile/ProfileEmailSection";
 import { ProfileBillingSync } from "@/app/profile/BillingSync";
 import { isDemoMode } from "@/lib/demo/config";
+import { MemberReturnDistribution } from "@/components/pro/MemberReturnDistribution";
+import { buildReturnDistribution } from "@/lib/charts/return-distribution";
+import {
+  getProGateCta,
+  isProIntelligenceLocked,
+  sessionToProContext,
+} from "@/lib/features/pro-intelligence";
 
 export const metadata: Metadata = {
   title: "Your profile",
@@ -41,8 +48,12 @@ export default async function ProfilePage() {
     redirect("/dashboard");
   }
 
+  const proContext = sessionToProContext(session);
+  const proLocked = isProIntelligenceLocked(proContext);
+  const proGateCta = getProGateCta(proContext);
   const trackRecord = summarizeMemberTrackRecord(calls);
   const returnSeries = buildCumulativeReturnSeries(calls);
+  const returnBuckets = buildReturnDistribution(calls);
 
   return (
     <AppShell user={toHeaderUser(session)}>
@@ -79,6 +90,14 @@ export default async function ProfilePage() {
 
       <div className="mt-6">
         <MemberTrackRecordStrip record={trackRecord} />
+      </div>
+
+      <div className="mt-6">
+        <MemberReturnDistribution
+          buckets={returnBuckets}
+          locked={proLocked}
+          proGateCta={proGateCta}
+        />
       </div>
 
       <section className="mt-10">

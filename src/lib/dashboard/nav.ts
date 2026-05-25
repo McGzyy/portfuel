@@ -3,7 +3,8 @@ export type DashboardNavIcon =
   | "rows"
   | "flame"
   | "bookmark"
-  | "scan";
+  | "scan"
+  | "compare";
 
 export const DASHBOARD_NAV: {
   href: string;
@@ -42,6 +43,12 @@ export const DASHBOARD_NAV: {
     label: "Screener",
     description: "Most called & top returns",
     icon: "scan",
+  },
+  {
+    href: "/dashboard/compare",
+    label: "Compare",
+    description: "2–3 symbols side by side",
+    icon: "compare",
   },
 ];
 

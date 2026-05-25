@@ -13,6 +13,7 @@ import { fetchWeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerformanceChart";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
+import { FueledDeskHero } from "@/components/dashboard/FueledDeskHero";
 import { FueledDeskPanel } from "@/components/dashboard/FueledDeskPanel";
 import { WorkspacePanel } from "@/components/dashboard/WorkspacePanel";
 import { CallPreviewRow, type CallPreviewData } from "@/components/dashboard/CallPreviewRow";
@@ -108,10 +109,9 @@ export default async function DashboardOverviewPage({
     .slice(0, 5)
     .map((c) => toPreview(c));
 
-  const fueledPreviews = latestCalls
-    .filter((c) => c.is_fueled)
-    .slice(0, 3)
-    .map((c) => toPreview(c));
+  const fueledCalls = latestCalls.filter((c) => c.is_fueled);
+  const fueledPreviews = fueledCalls.slice(0, 3).map((c) => toPreview(c));
+  const featuredDesk = fueledPreviews[0] ?? null;
 
   let watchlistPreview: Awaited<ReturnType<typeof fetchWatchlist>> = [];
   try {
@@ -141,6 +141,8 @@ export default async function DashboardOverviewPage({
       {proLocked ? <ProValueCard /> : null}
 
       <HotTickersStrip tickers={hotTickers} />
+
+      <FueledDeskHero featured={featuredDesk} totalDeskCalls={fueledCalls.length} />
 
       <FollowingFeedPanel following={followingMembers} previews={followingPreviews} />
 
