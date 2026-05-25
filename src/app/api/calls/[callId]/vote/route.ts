@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireActiveMember } from "@/lib/auth/session";
 import { getUserCallVote, setCallVote } from "@/lib/calls/votes";
 import { createServiceClient } from "@/lib/db/supabase";
+import { notifyCallVote } from "@/lib/notifications/service";
 import { isDemoCallId, isDemoMode } from "@/lib/demo/config";
 import { getDemoCallById, getDemoVoteSnapshot } from "@/lib/demo/fixtures";
 
@@ -71,6 +72,26 @@ export async function POST(
     }
 
     const result = await setCallVote(callId, session.userId, nextValue);
+
+    if (nextValue === 1 || nextValue === -1) {
+      const db = createServiceClient();
+      const { data: callMeta } = await db
+        .from("calls")
+        .select("symbol, user_id")
+        .eq("id", callId)
+        .maybeSingle();
+      if (callMeta && callMeta.user_id !== session.userId) {
+        void notifyCallVote({
+          callId,
+          symbol: callMeta.symbol,
+          callOwnerId: callMeta.user_id,
+          actorUserId: session.userId,
+          actorUsername: session.username,
+          voteValue: nextValue,
+        });
+      }
+    }
+
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {
     if (e instanceof z.ZodError) {

@@ -1,0 +1,131 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Bell, MessageSquare, ThumbsUp, TrendingUp } from "lucide-react";
+import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
+import { Button } from "@/components/ui/button";
+import { cn, timeAgo } from "@/lib/utils";
+import type { NotificationType, UserNotification } from "@/lib/notifications/types";
+
+function iconForType(type: NotificationType) {
+  switch (type) {
+    case "watchlist_call":
+      return TrendingUp;
+    case "vote_on_call":
+      return ThumbsUp;
+    case "comment_on_call":
+      return MessageSquare;
+    default:
+      return Bell;
+  }
+}
+
+export function NotificationsList() {
+  const router = useRouter();
+  const [items, setItems] = useState<UserNotification[]>([]);
+  const [unread, setUnread] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/notifications");
+      const data = await res.json();
+      if (res.ok) {
+        setItems(data.notifications ?? []);
+        setUnread(data.unreadCount ?? 0);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function markAllRead() {
+    await fetch("/api/notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ all: true }),
+    });
+    setUnread(0);
+    setItems((prev) => prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })));
+  }
+
+  async function openItem(n: UserNotification) {
+    if (!n.read_at && !n.id.startsWith("demo-")) {
+      await fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [n.id] }),
+      });
+      setUnread((c) => Math.max(0, c - 1));
+    } else if (!n.read_at) {
+      setUnread((c) => Math.max(0, c - 1));
+      setItems((prev) =>
+        prev.map((x) => (x.id === n.id ? { ...x, read_at: new Date().toISOString() } : x))
+      );
+    }
+    router.push(n.href);
+  }
+
+  return (
+    <>
+      <WorkspacePageHeader
+        eyebrow="Activity"
+        title="Notifications"
+        description="Comments and votes on your calls, plus new theses on watchlist symbols."
+        action={
+          unread > 0 ? (
+            <Button size="sm" variant="secondary" onClick={markAllRead}>
+              Mark all read
+            </Button>
+          ) : undefined
+        }
+      />
+
+      {loading ? (
+        <p className="mt-10 text-sm text-[var(--pf-gray-500)]">Loading…</p>
+      ) : items.length === 0 ? (
+        <div className="pf-workspace-panel mt-8 px-6 py-14 text-center text-sm text-[var(--pf-gray-500)]">
+          No notifications yet. Add symbols to your{" "}
+          <Link href="/dashboard/watchlist" className="font-semibold text-[var(--pf-red)] hover:underline">
+            watchlist
+          </Link>{" "}
+          and publish calls — engagement shows up here.
+        </div>
+      ) : (
+        <ul className="mt-8 space-y-2">
+          {items.map((n) => {
+            const Icon = iconForType(n.type);
+            return (
+              <li key={n.id}>
+                <button
+                  type="button"
+                  onClick={() => openItem(n)}
+                  className={cn(
+                    "pf-workspace-panel flex w-full gap-4 p-4 text-left transition-shadow hover:shadow-[var(--pf-shadow-md)]",
+                    !n.read_at && "ring-1 ring-[var(--pf-red)]/20"
+                  )}
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
+                    <Icon className="h-5 w-5" strokeWidth={2.25} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="font-semibold text-[var(--pf-black)]">{n.title}</span>
+                    <p className="mt-1 text-sm text-[var(--pf-gray-600)]">{n.body}</p>
+                    <p className="mt-2 text-xs text-[var(--pf-gray-400)]">{timeAgo(n.created_at)}</p>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </>
+  );
+}

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireActiveMember } from "@/lib/auth/session";
 import { createCallComment, listCallComments } from "@/lib/calls/comments";
 import { createServiceClient } from "@/lib/db/supabase";
+import { notifyCallComment } from "@/lib/notifications/service";
 import { isDemoCallId, isDemoMode } from "@/lib/demo/config";
 import { getDemoCallById, getDemoComments } from "@/lib/demo/fixtures";
 
@@ -61,9 +62,27 @@ export async function POST(
         commentCount: (call.comment_count ?? 0) + 1,
       });
     }
+    const db = createServiceClient();
+    const { data: callMeta } = await db
+      .from("calls")
+      .select("id, symbol, user_id, comment_count")
+      .eq("id", callId)
+      .single();
+
     const comment = await createCallComment(callId, session.userId, body.body);
 
-    const db = createServiceClient();
+    if (callMeta && callMeta.user_id !== session.userId) {
+      void notifyCallComment({
+        callId,
+        symbol: callMeta.symbol,
+        callOwnerId: callMeta.user_id,
+        actorUserId: session.userId,
+        actorDisplayName: session.displayName,
+        actorUsername: session.username,
+        commentPreview: body.body,
+      });
+    }
+
     const { data: call } = await db
       .from("calls")
       .select("comment_count")

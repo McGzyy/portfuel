@@ -18,6 +18,7 @@ const protectedPaths = [
   "/member",
   "/admin",
   "/security",
+  "/notifications",
 ];
 
 const twoFactorSetupPath = "/security/2fa";
@@ -160,6 +161,7 @@ export const config = {
     "/profile/:path*",
     "/admin/:path*",
     "/security/:path*",
+    "/notifications",
     "/login",
   ],
 };

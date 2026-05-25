@@ -89,7 +89,8 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 
 ### After that (differentiation)
 11. **Follow members** — feed filter for followed usernames.
-12. **Notifications center** — votes on your calls, replies, new calls on watchlist.
+12. ✅ **In-app notifications** — bell + `/notifications`; comments, votes, watchlist calls.
+13. **Email digest** — weekly summary (after in-app).
 13. **Messaging** (original vision) — DMs or threaded replies.
 14. **Screener lite** — “most called this week,” “best 30d return,” export CSV (Pro).
 15. **Admin time-series charts** — signups, MRR proxy, calls/day (`docs/CHARTS.md` step 5).

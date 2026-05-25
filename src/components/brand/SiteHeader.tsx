@@ -4,6 +4,7 @@ import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
 import type { HeaderUser } from "@/lib/auth/session-user";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { cn } from "@/lib/utils";
 
 export function SiteHeader({
@@ -54,6 +55,7 @@ export function SiteHeader({
               >
                 Profile
               </Link>
+              <NotificationBell />
               <Link
                 href="/dashboard"
                 className="inline-flex h-9 items-center rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-black)] px-3.5 text-xs font-semibold text-white shadow-[var(--pf-shadow-sm)] hover:bg-[#1a2332]"
