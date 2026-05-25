@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { CallCard } from "@/components/calls/CallCard";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { loadFeedCalls, mapCallForCard } from "@/lib/dashboard/data";
@@ -11,6 +12,7 @@ export default async function DashboardDeskPage() {
   return (
     <>
       <WorkspacePageHeader
+        eyebrow="PortFuel research"
         title="Fueled desk"
         description="Official PortFuel research — curated desk theses, clearly separated from the member feed."
       />

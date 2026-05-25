@@ -56,9 +56,9 @@ export function SiteHeader({
               </Link>
               <Link
                 href="/dashboard"
-                className="inline-flex h-9 items-center rounded-[var(--pf-radius)] border border-[var(--pf-border)] px-3.5 text-xs font-semibold shadow-[var(--pf-shadow-sm)] hover:bg-[var(--pf-gray-50)]"
+                className="inline-flex h-9 items-center rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-black)] px-3.5 text-xs font-semibold text-white shadow-[var(--pf-shadow-sm)] hover:bg-[#1a2332]"
               >
-                Dashboard
+                Workspace
               </Link>
               <form action="/api/auth/logout" method="POST">
                 <Button variant="ghost" size="sm" type="submit">

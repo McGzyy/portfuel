@@ -19,7 +19,7 @@ export function OverviewHero({
         <div className="relative z-10 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-red-300/90">
-              Good to see you
+              Member workspace
             </p>
             <h1 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
               {displayName}

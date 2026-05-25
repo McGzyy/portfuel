@@ -17,7 +17,7 @@ export function FeedToolbar({
   resultCount: number;
 }) {
   return (
-    <div className="pf-feed-toolbar space-y-4">
+    <div className="pf-feed-toolbar pf-feed-toolbar-premium space-y-4">
       <TabNav
         tabs={[
           {

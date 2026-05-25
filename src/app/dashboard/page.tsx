@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { OverviewHero } from "@/components/dashboard/OverviewHero";
 import { OverviewShortcutBar } from "@/components/dashboard/OverviewShortcutBar";
+import { OverviewCommunityPulse } from "@/components/dashboard/OverviewCommunityPulse";
+import { FueledDeskPanel } from "@/components/dashboard/FueledDeskPanel";
 import { WorkspacePanel } from "@/components/dashboard/WorkspacePanel";
 import { CallPreviewRow, type CallPreviewData } from "@/components/dashboard/CallPreviewRow";
 import {
@@ -11,8 +14,13 @@ import {
   requireDashboardSession,
 } from "@/lib/dashboard/data";
 import { buildFeedHref } from "@/lib/dashboard/nav";
+import { summarizeFeed } from "@/lib/calls/feed-summary";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import { formatPct, formatPrice } from "@/lib/utils";
+
+export const metadata: Metadata = {
+  title: "Overview",
+};
 
 function toPreview(
   c: ReturnType<typeof mapCallForCard>
@@ -47,6 +55,9 @@ export default async function DashboardOverviewPage({
   const session = await requireDashboardSession();
   const memberStats = await loadMemberStats(session.userId);
 
+  const performingCalls = (await loadFeedCalls("performing")).map(mapCallForCard);
+  const communityPulse = summarizeFeed(performingCalls);
+
   const latestPreviews = (await loadFeedCalls("latest"))
     .filter((c) => !c.is_fueled)
     .slice(0, 5)
@@ -79,6 +90,8 @@ export default async function DashboardOverviewPage({
       />
 
       <OverviewShortcutBar />
+
+      <OverviewCommunityPulse summary={communityPulse} />
 
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="lg:col-span-8">
@@ -132,31 +145,7 @@ export default async function DashboardOverviewPage({
             )}
           </WorkspacePanel>
 
-          <section className="overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-red)]/20 bg-gradient-to-br from-[#0f1419] to-[#1a1520] shadow-[var(--pf-shadow-md)]">
-            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-red-300/90">
-                  PortFuel
-                </p>
-                <h2 className="text-sm font-bold text-white">Fueled desk</h2>
-              </div>
-              <Link
-                href="/dashboard/desk"
-                className="text-xs font-semibold text-red-300 hover:text-red-200 hover:underline"
-              >
-                Open desk →
-              </Link>
-            </div>
-            <div className="p-1">
-              {fueledPreviews.length === 0 ? (
-                <p className="px-3 py-6 text-center text-xs text-slate-500">No desk calls.</p>
-              ) : (
-                fueledPreviews.map((call) => (
-                  <CallPreviewRow key={call.id} call={call} variant="on-dark" />
-                ))
-              )}
-            </div>
-          </section>
+          <FueledDeskPanel calls={fueledPreviews} />
         </div>
       </div>
 

@@ -1,14 +1,8 @@
+import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import { formatPct } from "@/lib/utils";
 import type { FeedSummary } from "@/lib/calls/feed-summary";
-import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 
-export function FeedSummaryBar({
-  summary,
-  mode,
-}: {
-  summary: FeedSummary;
-  mode: "latest" | "performing";
-}) {
+export function OverviewCommunityPulse({ summary }: { summary: FeedSummary }) {
   if (summary.count === 0) return null;
 
   const avg = summary.avgReturnPct;
@@ -17,36 +11,33 @@ export function FeedSummaryBar({
 
   return (
     <MetricsStrip
-      eyebrow="Feed intelligence"
+      eyebrow="Community pulse · 30 days"
       items={[
+        {
+          label: "Active calls",
+          value: String(summary.count),
+          hint: "Member + desk",
+        },
         {
           label: "Avg return",
           value: formatPct(avg),
-          hint: mode === "performing" ? "30-day movers" : "This view",
+          hint: "Marked-to-market",
           accent: avgAccent,
         },
         {
           label: "Winners",
           value: String(summary.winners),
-          hint: "Positive P&L",
+          hint: `${summary.losers} red`,
         },
         {
-          label: "Fueled",
+          label: "Desk theses",
           value: String(summary.fueledCount),
-          hint: "Desk theses",
+          hint: "Fueled badge",
         },
         {
           label: "Long / short",
           value: `${summary.longCount} / ${summary.shortCount}`,
-          hint: "Mix",
-        },
-        {
-          label: "To target",
-          value:
-            summary.avgTargetProgress != null
-              ? `${summary.avgTargetProgress.toFixed(0)}%`
-              : "—",
-          hint: "Avg progress",
+          hint: "Position mix",
         },
       ]}
     />

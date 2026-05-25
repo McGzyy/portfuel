@@ -135,8 +135,12 @@ body {
 
 .pf-workspace-content {
   margin: 0 auto;
-  max-width: 56rem;
+  max-width: 60rem;
   padding: 1.5rem 1rem 2.5rem;
+}
+
+.pf-workspace-content.pf-workspace-content--feed {
+  max-width: 68rem;
 }
 
 @media (min-width: 1024px) {
@@ -199,6 +203,11 @@ body {
   box-shadow: var(--pf-shadow-sm);
 }
 
+.pf-feed-toolbar-premium {
+  background: linear-gradient(180deg, #ffffff 0%, var(--pf-gray-50) 100%);
+  border-color: var(--pf-gray-200);
+}
+
 .pf-watchlist-mini {
   display: flex;
   align-items: center;
@@ -212,6 +221,125 @@ body {
 
 .pf-watchlist-mini:hover {
   background: var(--pf-gray-50);
+}
+
+.pf-metrics-strip {
+  border-radius: var(--pf-radius-lg);
+  border: 1px solid var(--pf-border);
+  background: linear-gradient(165deg, #ffffff 0%, var(--pf-gray-50) 100%);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--pf-shadow-sm);
+}
+
+.pf-metrics-strip-dark {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(135deg, #0f1419 0%, #1a2332 55%, #2a1520 100%);
+  color: #f8fafc;
+}
+
+.pf-metrics-strip-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pf-gray-400);
+}
+
+.pf-metrics-strip-grid {
+  margin-top: 1rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .pf-metrics-strip-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .pf-metrics-strip-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.pf-metrics-strip-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pf-gray-400);
+}
+
+.pf-metrics-strip-dark .pf-metrics-strip-label,
+.pf-metrics-strip-dark .pf-metrics-strip-hint {
+  color: #94a3b8;
+}
+
+.pf-metrics-strip-value {
+  margin-top: 0.25rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--pf-black);
+}
+
+.pf-metrics-strip-hint {
+  margin-top: 0.25rem;
+  font-size: 10px;
+  color: var(--pf-gray-400);
+}
+
+.pf-fueled-panel {
+  border-radius: var(--pf-radius-lg);
+  border: 1px solid rgba(227, 27, 35, 0.22);
+  background: linear-gradient(145deg, #0a0e14 0%, #141c28 50%, #1f1218 100%);
+  box-shadow: var(--pf-shadow-lg);
+}
+
+.pf-fueled-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1rem 1.25rem;
+}
+
+.pf-fueled-panel-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(252, 165, 165, 0.9);
+}
+
+.pf-fueled-panel-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fca5a5;
+  transition: color 0.15s ease;
+}
+
+.pf-fueled-panel-link:hover {
+  color: #fecaca;
+  text-decoration: underline;
+}
+
+.pf-call-card-premium {
+  border-radius: var(--pf-radius-lg);
+  background: #fff;
+  box-shadow: var(--pf-shadow-sm);
+}
+
+.pf-call-card-premium:hover {
+  box-shadow: var(--pf-shadow-md);
+}
+
+.pf-workspace-content-wide {
+  max-width: 64rem;
 }
 
 .pf-stat-tile {

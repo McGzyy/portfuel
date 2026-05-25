@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
+import { rootMetadata } from "@/lib/seo/site";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -9,11 +9,7 @@ const inter = Inter({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "PortFuel.pro — Stock calls dashboard",
-  description:
-    "Professional stock call tracking, performance scoring, and community intelligence.",
-};
+export const metadata = rootMetadata;
 
 export default function RootLayout({
   children,

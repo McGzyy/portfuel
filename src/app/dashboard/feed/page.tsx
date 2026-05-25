@@ -1,6 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CallCard } from "@/components/calls/CallCard";
-import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
+import {
+  WorkspacePageHeader,
+  WorkspaceHeaderAction,
+} from "@/components/dashboard/WorkspacePageHeader";
 import { FeedToolbar } from "@/components/dashboard/FeedToolbar";
 import { FeedSummaryBar } from "@/components/dashboard/FeedSummaryBar";
 import { Button } from "@/components/ui/button";
@@ -11,6 +15,10 @@ import {
 } from "@/lib/calls/filter-feed";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import { loadFeedCalls, mapCallForCard } from "@/lib/dashboard/data";
+
+export const metadata: Metadata = {
+  title: "Member feed",
+};
 
 function parseFilter(raw?: string): FeedFilter {
   if (raw === "fueled" || raw === "equity" || raw === "crypto") return raw;
@@ -39,8 +47,10 @@ export default async function DashboardFeedPage({
   return (
     <>
       <WorkspacePageHeader
+        eyebrow="Community intelligence"
         title="Member feed"
         description="Every community thesis in one place. Search, filter by asset class, and switch between latest and top performers."
+        action={<WorkspaceHeaderAction href="/calls/new" label="New call" />}
       />
 
       <FeedToolbar

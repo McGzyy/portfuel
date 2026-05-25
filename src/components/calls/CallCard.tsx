@@ -70,9 +70,9 @@ export function CallCard({ call, compact, interactive = false }: CallCardProps) 
     <Card
       className={cn(
         accent,
-        "group overflow-hidden transition-all duration-200",
-        call.is_fueled && "ring-1 ring-[var(--pf-red)]/20",
-        "hover:border-[var(--pf-gray-200)] hover:shadow-[var(--pf-shadow-md)]"
+        "pf-call-card-premium group overflow-hidden transition-all duration-200",
+        call.is_fueled && "ring-1 ring-[var(--pf-red)]/25",
+        "hover:border-[var(--pf-gray-200)]"
       )}
     >
       <CardContent className={compact ? "py-3" : "py-5"}>
