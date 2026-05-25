@@ -143,6 +143,32 @@ body {
   max-width: 68rem;
 }
 
+.pf-ticker-shell {
+  border-radius: var(--pf-radius-lg);
+  border: 1px solid var(--pf-border);
+  background: #fff;
+  padding: 1.5rem;
+  box-shadow: var(--pf-shadow-md);
+}
+
+@media (min-width: 640px) {
+  .pf-ticker-shell {
+    padding: 2rem;
+  }
+}
+
+.pf-ticker-chart-frame {
+  overflow: hidden;
+  border-radius: var(--pf-radius-lg);
+  border: 1px solid var(--pf-border);
+  background: linear-gradient(180deg, var(--pf-gray-50) 0%, #fff 100%);
+}
+
+.pf-ticker-header {
+  border-bottom: 1px solid var(--pf-border);
+  padding-bottom: 1.5rem;
+}
+
 @media (min-width: 1024px) {
   .pf-workspace-content {
     padding: 2rem 2.5rem 3rem;

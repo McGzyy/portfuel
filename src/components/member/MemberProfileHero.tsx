@@ -19,7 +19,7 @@ export function MemberProfileHero({
     <header className="pf-member-hero overflow-hidden p-6 sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="pf-eyebrow">Member profile</p>
+          <p className="pf-eyebrow">Member intelligence</p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
             {member.display_name ?? member.username}
           </h1>

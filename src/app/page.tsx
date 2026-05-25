@@ -1,5 +1,6 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { Activity, BarChart3, Lock } from "lucide-react";
+import { BarChart3, LineChart, Lock } from "lucide-react";
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { PublicHighlightCard } from "@/components/calls/PublicHighlightCard";
 import { HeroDashboardMock } from "@/components/marketing/HeroDashboardMock";
@@ -16,6 +17,13 @@ import {
 } from "@/lib/calls/public-teasers";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import type { TeaserCallRow } from "@/lib/db/supabase";
+import { SITE_TAGLINE } from "@/lib/seo/site";
+
+export const metadata: Metadata = {
+  title: SITE_TAGLINE,
+  description:
+    "Member intelligence for stock and crypto theses — live performance, ticker intel, rankings, and a curated Fueled research desk.",
+};
 
 async function loadPublicTeasers(): Promise<{
   performing: TeaserCallRow[];
@@ -42,17 +50,18 @@ export default async function LandingPage() {
         <section className="pf-hero-mesh border-b border-[var(--pf-border)]">
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 lg:grid-cols-2 lg:py-24">
             <div className="text-center lg:text-left">
-              <p className="pf-eyebrow">Premium stock intelligence</p>
+              <p className="pf-eyebrow">Member intelligence platform</p>
               <h1 className="pf-display mt-4">
-                Calls that matter.
+                Serious traders.
                 <br />
                 <span className="bg-gradient-to-r from-[var(--pf-red)] to-[#ff4d55] bg-clip-text text-transparent">
-                  Tracked in real time.
+                  One elite workspace.
                 </span>
               </h1>
               <p className="pf-lead mt-6 lg:max-w-lg">
-                The professional dashboard for stock and crypto calls. Public previews only show
-                proven winners — the live feed is for members.
+                Curated theses, live performance tracking, ticker intel, and rankings — built for
+                members who treat calls like a profession. Public previews show verified winners
+                only.
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
                 <Link href="/join">
@@ -65,9 +74,9 @@ export default async function LandingPage() {
                 </Link>
               </div>
               <div className="mt-10 grid grid-cols-3 gap-3">
-                <StatTile icon={Activity} label="Live quotes" value="15m refresh" />
-                <StatTile icon={Lock} label="Live feed" value="Members only" />
-                <StatTile icon={BarChart3} label="Public preview" value="Winners only" />
+                <StatTile icon={LineChart} label="Ticker intel" value="Charts + theses" />
+                <StatTile icon={Lock} label="Workspace" value="Members only" />
+                <StatTile icon={BarChart3} label="Rankings" value="Live scores" />
               </div>
             </div>
             <div className="relative lg:pl-4">

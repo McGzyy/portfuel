@@ -1,13 +1,35 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { CallCard } from "@/components/calls/CallCard";
 import { MemberProfileHero } from "@/components/member/MemberProfileHero";
+import { MemberTrackRecordStrip } from "@/components/member/MemberTrackRecordStrip";
+import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
+import {
+  WorkspacePageHeader,
+  WorkspaceHeaderAction,
+} from "@/components/dashboard/WorkspacePageHeader";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import { fetchMemberPublicCalls } from "@/lib/users/public-profile";
+import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
+import { SITE_NAME } from "@/lib/seo/site";
 import { isDemoMode } from "@/lib/demo/config";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}): Promise<Metadata> {
+  const { username } = await params;
+  const handle = username.trim();
+  return {
+    title: `@${handle} · Member profile`,
+    description: `Track record, published calls, and rank score for @${handle} on ${SITE_NAME}.`,
+  };
+}
 
 export default async function MemberProfilePage({
   params,
@@ -27,40 +49,41 @@ export default async function MemberProfilePage({
   if (!member) notFound();
 
   const isSelf = session.username.toLowerCase() === member.username.toLowerCase();
+  const trackRecord = summarizeMemberTrackRecord(calls);
 
   return (
     <AppShell user={toHeaderUser(session)}>
-      <Link
-        href="/dashboard"
-        className="text-sm font-medium text-[var(--pf-gray-500)] hover:text-[var(--pf-red)]"
-      >
-        ← Dashboard
-      </Link>
+      <WorkspaceBackLink />
 
       <div className="mt-6">
         <MemberProfileHero member={member} isSelf={isSelf} />
       </div>
 
+      <div className="mt-6">
+        <MemberTrackRecordStrip record={trackRecord} />
+      </div>
+
       <section className="mt-10">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <p className="pf-eyebrow">Track record</p>
-            <h2 className="text-lg font-bold tracking-tight">Published calls</h2>
-          </div>
-          {isSelf ? (
-            <Link
-              href="/calls/new"
-              className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
-            >
-              New call →
-            </Link>
-          ) : null}
-        </div>
+        <WorkspacePageHeader
+          eyebrow="Published theses"
+          title="Call history"
+          description={
+            isSelf
+              ? "Your public track record — members see every thesis you've published."
+              : `Every thesis @${member.username} has published on PortFuel.`
+          }
+          action={
+            isSelf ? <WorkspaceHeaderAction href="/calls/new" label="New call" /> : undefined
+          }
+          className="mb-6"
+        />
 
         {calls.length === 0 ? (
-          <p className="pf-empty mt-6">No public calls from this member yet.</p>
+          <div className="pf-workspace-panel px-6 py-14 text-center text-sm text-[var(--pf-gray-500)]">
+            No public calls from this member yet.
+          </div>
         ) : (
-          <ul className="mt-6 space-y-4">
+          <ul className="space-y-4">
             {calls.map((c) => (
               <li key={c.id}>
                 <CallCard
@@ -83,6 +106,7 @@ export default async function MemberProfilePage({
                     comment_count: c.comment_count,
                     display_name: member.display_name,
                     pin: member.username,
+                    username: member.username,
                     is_trusted: member.trusted,
                   }}
                   interactive

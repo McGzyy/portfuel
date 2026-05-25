@@ -1,24 +1,37 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { SiteHeader } from "@/components/brand/SiteHeader";
-import { HypeMeter } from "@/components/brand/HypeMeter";
 import { AppShell } from "@/components/layout/AppShell";
-import { SectionHeader } from "@/components/marketing/SectionHeader";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TickerChartClient } from "@/components/charts/TickerChartClient";
 import { TickerIntelPanel } from "@/components/ticker/TickerIntelPanel";
 import { CallThesisBlock } from "@/components/calls/CallThesisBlock";
 import { TickerChartLegend } from "@/components/ticker/TickerChartLegend";
+import { TickerPageHeader } from "@/components/ticker/TickerPageHeader";
+import { TickerCommunityBar } from "@/components/ticker/TickerCommunityBar";
+import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { COPY } from "@/lib/copy";
-import { formatPct, formatPrice } from "@/lib/utils";
+import { SITE_NAME } from "@/lib/seo/site";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { summarizeTickerCommunity } from "@/lib/calls/ticker-community-stats";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
-import { TickerCommunityBar } from "@/components/ticker/TickerCommunityBar";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ symbol: string }>;
+}): Promise<Metadata> {
+  const { symbol: raw } = await params;
+  const symbol = raw.toUpperCase();
+  return {
+    title: `${symbol} · Ticker intel`,
+    description: `Live price, community theses, and market intelligence for ${symbol} on ${SITE_NAME}.`,
+  };
+}
 
 export default async function TickerPage({
   params,
@@ -56,14 +69,17 @@ export default async function TickerPage({
   };
 
   const body = (
-    <>
-      <div className="pf-card-elevated overflow-hidden p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <TickerHeaderLeft intel={intel} symbol={symbol} session={session} />
-          <TickerHeaderRight intel={intel} session={session} symbol={symbol} />
-        </div>
+    <div className="space-y-6">
+      <section className="pf-ticker-shell">
+        <TickerPageHeader
+          symbol={symbol}
+          intel={intel}
+          session={Boolean(session)}
+          backHref="/dashboard/watchlist"
+          backLabel="Watchlist"
+        />
 
-        <div className="mt-8 overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)]">
+        <div className="pf-ticker-chart-frame mt-8">
           {intel?.candles?.length ? (
             <>
               <TickerChartClient candles={intel.candles} markers={intel.markers ?? []} />
@@ -72,30 +88,35 @@ export default async function TickerPage({
           ) : (
             <div className="flex h-[380px] flex-col items-center justify-center gap-2 px-6 text-center text-sm text-[var(--pf-gray-500)]">
               <p className="font-medium text-[var(--pf-gray-600)]">Chart unavailable</p>
-              <p className="text-xs">Check your Finnhub API key or try another symbol.</p>
+              <p className="max-w-sm text-xs">
+                Price history loads from market data. Check your API key or try another symbol.
+              </p>
             </div>
           )}
         </div>
-      </div>
+      </section>
 
       <TickerCommunityBar stats={communityStats} />
 
       <TickerIntelPanel intel={intel ?? emptyIntel} />
 
-      <section className="mt-10">
-        <SectionHeader
-          eyebrow="Community"
-          title={`Theses on ${symbol}`}
-          subtitle="Member calls on this ticker, newest first."
+      <section className="border-t border-[var(--pf-border)] pt-10">
+        <WorkspacePageHeader
+          eyebrow="Community theses"
+          title={`Calls on ${symbol}`}
+          description="Member and desk theses on this symbol, newest first. Entry, target, and live return when available."
+          className="mb-6 border-b-0 pb-0"
         />
-        <div className="mt-8 space-y-4">
+        <div className="space-y-4">
           {(intel?.calls ?? []).length === 0 ? (
-            <div className="pf-empty">
-              <p className="font-medium text-[var(--pf-gray-700)]">No calls on this ticker yet</p>
+            <div className="pf-workspace-panel px-6 py-14 text-center">
+              <p className="font-medium text-[var(--pf-gray-700)]">
+                No calls on this ticker yet
+              </p>
               {session ? (
                 <Link
                   href={`/calls/new?asset=${intel?.assetClass ?? "equity"}&symbol=${symbol}`}
-                  className="mt-4 inline-block"
+                  className="mt-6 inline-block"
                 >
                   <Button>
                     <Plus className="h-4 w-4" />
@@ -103,7 +124,7 @@ export default async function TickerPage({
                   </Button>
                 </Link>
               ) : (
-                <Link href="/join" className="mt-4 inline-block">
+                <Link href="/join" className="mt-6 inline-block">
                   <Button variant="outline">{COPY.ctaGetAccess}</Button>
                 </Link>
               )}
@@ -130,7 +151,7 @@ export default async function TickerPage({
           )}
         </div>
       </section>
-    </>
+    </div>
   );
 
   if (session) {
@@ -144,79 +165,5 @@ export default async function TickerPage({
         <main className="mx-auto max-w-6xl px-4 py-8">{body}</main>
       </div>
     </>
-  );
-}
-
-function TickerHeaderLeft({
-  intel,
-  symbol,
-  session,
-}: {
-  intel: Awaited<ReturnType<typeof loadTickerIntel>> | null;
-  symbol: string;
-  session: Awaited<ReturnType<typeof getSession>>;
-}) {
-  return (
-    <div>
-      {session ? (
-        <Link
-          href="/dashboard"
-          className="text-sm font-medium text-[var(--pf-gray-500)] hover:text-[var(--pf-red)]"
-        >
-          ← Dashboard
-        </Link>
-      ) : (
-        <Link href="/" className="text-sm font-medium text-[var(--pf-gray-500)] hover:text-[var(--pf-red)]">
-          ← Home
-        </Link>
-      )}
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <h1 className="text-3xl font-bold tracking-tight text-[var(--pf-black)]">{symbol}</h1>
-        <Badge variant={intel?.assetClass === "crypto" ? "fueled" : "default"}>
-          {intel?.assetClass === "crypto" ? "Crypto" : "Equity"}
-        </Badge>
-      </div>
-      <p className="text-[var(--pf-gray-500)]">{intel?.companyName ?? symbol}</p>
-      {intel?.quote ? (
-        <p className="mt-2 text-2xl font-bold tabular-nums tracking-tight">
-          ${formatPrice(intel.quote.price)}
-          {intel.quote.changePct != null ? (
-            <span
-              className={`ml-2 text-base font-semibold ${
-                intel.quote.changePct >= 0 ? "text-emerald-600" : "text-rose-600"
-              }`}
-            >
-              {formatPct(intel.quote.changePct)}
-            </span>
-          ) : null}
-        </p>
-      ) : null}
-    </div>
-  );
-}
-
-function TickerHeaderRight({
-  intel,
-  session,
-  symbol,
-}: {
-  intel: Awaited<ReturnType<typeof loadTickerIntel>> | null;
-  session: Awaited<ReturnType<typeof getSession>>;
-  symbol: string;
-}) {
-  return (
-    <div className="flex flex-col items-end gap-3">
-      <HypeMeter score={intel?.hypeScore ?? 0} />
-      {session ? (
-        <Link
-          href={`/calls/new?asset=${intel?.assetClass ?? "equity"}&symbol=${symbol}`}
-        >
-          <Button size="sm">
-            <Plus className="h-4 w-4" />
-            Call this ticker
-          </Button>
-        </Link>
-      ) : null}
-    </div>
   );
 }

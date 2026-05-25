@@ -44,7 +44,7 @@ feature/phase-3-stripe-billing
 | Landing teasers | ✅ | Empty until calls exist |
 | Dashboard (latest / performing) | ✅ | UI not fully aligned with new design system |
 | Submit call (`/calls/new`) | ✅ | Equity + crypto validation |
-| Ticker page + chart | ✅ | Basic thesis list |
+| Ticker page + chart | ✅ | lightweight-charts; see [CHARTS.md](./CHARTS.md) for roadmap |
 | Onboarding (display name) | ✅ | Minimal UI |
 | Cron: refresh quotes | ✅ | Every 15 min |
 | Votes & comments (API + UI) | ✅ | Dashboard + ticker theses |
