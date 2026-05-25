@@ -1,13 +1,26 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { CallCard } from "@/components/calls/CallCard";
+import { MemberReturnChart } from "@/components/charts/MemberReturnChart";
 import { MemberProfileHero } from "@/components/member/MemberProfileHero";
+import { MemberTrackRecordStrip } from "@/components/member/MemberTrackRecordStrip";
+import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
+import {
+  WorkspacePageHeader,
+  WorkspaceHeaderAction,
+} from "@/components/dashboard/WorkspacePageHeader";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import { fetchMemberPublicCalls } from "@/lib/users/public-profile";
+import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
+import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+
+export const metadata: Metadata = {
+  title: "Your profile",
+};
 
 export default async function ProfilePage() {
   const session = await getSession();
@@ -23,34 +36,38 @@ export default async function ProfilePage() {
     redirect("/dashboard");
   }
 
+  const trackRecord = summarizeMemberTrackRecord(calls);
+  const returnSeries = buildCumulativeReturnSeries(calls);
+
   return (
     <AppShell user={toHeaderUser(session)}>
-      <Link
-        href="/dashboard"
-        className="text-sm font-medium text-[var(--pf-gray-500)] hover:text-[var(--pf-red)]"
-      >
-        ← Dashboard
-      </Link>
+      <WorkspaceBackLink />
 
       <div className="mt-6">
         <MemberProfileHero member={member} isSelf />
       </div>
 
+      <div className="mt-6">
+        <MemberReturnChart points={returnSeries} />
+      </div>
+
+      <div className="mt-6">
+        <MemberTrackRecordStrip record={trackRecord} />
+      </div>
+
       <section className="mt-10">
-        <div className="mb-4 flex items-end justify-between gap-4">
-          <div>
-            <p className="pf-eyebrow">Your book</p>
-            <h2 className="text-lg font-bold tracking-tight">Published calls</h2>
-          </div>
-          <Link
-            href="/calls/new"
-            className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
-          >
-            New call →
-          </Link>
-        </div>
+        <WorkspacePageHeader
+          eyebrow="Your book"
+          title="Published calls"
+          description="Your public track record — every thesis you've published on PortFuel."
+          action={<WorkspaceHeaderAction href="/calls/new" label="New call" />}
+          className="mb-6"
+        />
+
         {calls.length === 0 ? (
-          <p className="pf-empty">No calls yet. Submit your first thesis from the dashboard.</p>
+          <div className="pf-workspace-panel px-6 py-14 text-center text-sm text-[var(--pf-gray-500)]">
+            No calls yet. Submit your first thesis from the workspace.
+          </div>
         ) : (
           <ul className="space-y-4">
             {calls.map((c) => (

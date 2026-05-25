@@ -4,12 +4,10 @@ import { Plus } from "lucide-react";
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
-import { ChartFrame } from "@/components/charts/ChartFrame";
-import { TickerChartClient } from "@/components/charts/TickerChartClient";
+import { TickerChartSection } from "@/components/charts/TickerChartSection";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import { TickerIntelPanel } from "@/components/ticker/TickerIntelPanel";
 import { CallThesisBlock } from "@/components/calls/CallThesisBlock";
-import { TickerChartLegend } from "@/components/ticker/TickerChartLegend";
 import { TickerPageHeader } from "@/components/ticker/TickerPageHeader";
 import { TickerCommunityBar } from "@/components/ticker/TickerCommunityBar";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
@@ -86,27 +84,11 @@ export default async function TickerPage({
           backLabel="Watchlist"
         />
 
-        <ChartFrame
+        <TickerChartSection
           className="mt-8"
-          title="Price history"
-          subtitle="Member call markers on the chart"
-          legend={
-            intel?.candles?.length ? (
-              <TickerChartLegend callCount={intel.markers?.length ?? 0} embedded />
-            ) : undefined
-          }
-        >
-          {intel?.candles?.length ? (
-            <TickerChartClient candles={intel.candles} markers={intel.markers ?? []} />
-          ) : (
-            <div className="flex h-[400px] flex-col items-center justify-center gap-2 px-6 text-center text-sm text-[var(--pf-gray-500)]">
-              <p className="font-medium text-[var(--pf-gray-600)]">Chart unavailable</p>
-              <p className="max-w-sm text-xs">
-                Price history loads from market data. Check your API key or try another symbol.
-              </p>
-            </div>
-          )}
-        </ChartFrame>
+          candles={intel?.candles ?? []}
+          markers={intel?.markers ?? []}
+        />
       </section>
 
       <TickerCommunityBar stats={communityStats} />

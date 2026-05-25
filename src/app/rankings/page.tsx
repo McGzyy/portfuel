@@ -67,7 +67,7 @@ export default async function RankingsPage() {
           <div className="mt-8">
             <RankingsSummaryBar summary={summary} proLocked={proLocked} />
             <div className="pf-workspace-panel overflow-hidden">
-              <LeaderboardTable rows={rows} />
+              <LeaderboardTable rows={rows} embedded />
             </div>
           </div>
 

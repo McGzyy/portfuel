@@ -4,7 +4,9 @@ import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { CallCard } from "@/components/calls/CallCard";
 import { MemberProfileHero } from "@/components/member/MemberProfileHero";
+import { MemberReturnChart } from "@/components/charts/MemberReturnChart";
 import { MemberTrackRecordStrip } from "@/components/member/MemberTrackRecordStrip";
+import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
 import {
   WorkspacePageHeader,
@@ -50,6 +52,7 @@ export default async function MemberProfilePage({
 
   const isSelf = session.username.toLowerCase() === member.username.toLowerCase();
   const trackRecord = summarizeMemberTrackRecord(calls);
+  const returnSeries = buildCumulativeReturnSeries(calls);
 
   return (
     <AppShell user={toHeaderUser(session)}>
@@ -57,6 +60,10 @@ export default async function MemberProfilePage({
 
       <div className="mt-6">
         <MemberProfileHero member={member} isSelf={isSelf} />
+      </div>
+
+      <div className="mt-6">
+        <MemberReturnChart points={returnSeries} />
       </div>
 
       <div className="mt-6">

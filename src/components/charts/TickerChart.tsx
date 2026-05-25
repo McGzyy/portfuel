@@ -12,26 +12,14 @@ import {
   type Time,
   type SeriesMarker,
 } from "lightweight-charts";
+import type { CandlePoint, ChartMarker } from "@/lib/charts/types";
 import {
   PF_CHART,
   chartGridOptions,
   chartLayoutOptions,
 } from "@/lib/charts/theme";
 
-export type ChartMarker = {
-  time: number;
-  price: number;
-  label: string;
-  color?: string;
-};
-
-export type CandlePoint = {
-  time: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-};
+export type { CandlePoint, ChartMarker } from "@/lib/charts/types";
 
 export function TickerChart({
   candles,

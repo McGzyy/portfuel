@@ -2,7 +2,13 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import type { LeaderboardEntry } from "@/lib/calls/leaderboard";
 
-export function LeaderboardTable({ rows }: { rows: LeaderboardEntry[] }) {
+export function LeaderboardTable({
+  rows,
+  embedded,
+}: {
+  rows: LeaderboardEntry[];
+  embedded?: boolean;
+}) {
   if (rows.length === 0) {
     return (
       <div className="pf-empty">
@@ -13,7 +19,13 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardEntry[] }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]">
+    <div
+      className={
+        embedded
+          ? "overflow-hidden"
+          : "overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]"
+      }
+    >
       <table className="w-full text-left text-sm">
         <thead className="border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)] text-xs font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
           <tr>
