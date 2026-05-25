@@ -42,8 +42,8 @@ Ticker pages already render candlesticks + member call markers. Styling lives in
 1. ~~Extract `src/lib/charts/theme.ts` + `ChartFrame.tsx`.~~ ✅ Done — ticker page uses these.
 2. ~~Refine ticker chart (theme, toolbar, loading skeleton).~~ ✅ `TickerChartSection` + `ChartRangeToolbar`.
 3. ~~Member profile cumulative return line.~~ ✅ `MemberReturnChart` on `/member` and `/profile`.
-4. Dashboard workspace mini-chart (optional).
-5. Admin analytics charts.
+4. ~~Dashboard workspace mini-chart.~~ ✅ Overview performance sparkline.
+5. Admin analytics — MetricsStrip (time-series charts later).
 
 ## API / data contracts
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import type { AdminAnalytics } from "@/lib/admin/analytics";
 import { formatPct } from "@/lib/utils";
 
@@ -43,62 +44,43 @@ export function AdminAnalyticsPanel() {
     return <p className="mt-8 text-sm text-rose-600">{error || "No data."}</p>;
   }
 
-  const statGroups = [
-    {
-      title: "Members",
-      items: [
-        { label: "Total", value: String(data.members.total) },
-        { label: "Active", value: String(data.members.active) },
-        { label: "Pending", value: String(data.members.pending) },
-        { label: "Trusted", value: String(data.members.trusted) },
-      ],
-    },
-    {
-      title: "Calls",
-      items: [
-        { label: "All time", value: String(data.calls.total) },
-        { label: "Last 7 days", value: String(data.calls.last7d) },
-        { label: "Fueled desk", value: String(data.calls.fueled) },
-        {
-          label: "Avg return",
-          value: formatPct(data.calls.avgReturnPct),
-        },
-      ],
-    },
-    {
-      title: "Engagement",
-      items: [
-        { label: "Comments", value: String(data.engagement.totalComments) },
-        { label: "Votes cast", value: String(data.engagement.totalVotes) },
-      ],
-    },
-  ];
+  const avg = data.calls.avgReturnPct;
+  const avgAccent =
+    avg == null ? undefined : avg >= 0 ? ("positive" as const) : ("negative" as const);
 
   return (
-    <div className="mt-8 space-y-8">
-      <div className="grid gap-4 lg:grid-cols-3">
-        {statGroups.map((group) => (
-          <div key={group.title} className="pf-stat-tile">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-              {group.title}
-            </p>
-            <dl className="mt-3 grid grid-cols-2 gap-3">
-              {group.items.map((item) => (
-                <div key={item.label}>
-                  <dt className="text-[10px] font-medium uppercase text-[var(--pf-gray-400)]">
-                    {item.label}
-                  </dt>
-                  <dd className="mt-0.5 text-lg font-bold tabular-nums text-[var(--pf-black)]">
-                    {item.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        ))}
-      </div>
+    <div className="mt-8 space-y-4">
+      <MetricsStrip
+        eyebrow="Platform · members"
+        items={[
+          { label: "Total", value: String(data.members.total) },
+          { label: "Active", value: String(data.members.active) },
+          { label: "Pending", value: String(data.members.pending) },
+          { label: "Trusted", value: String(data.members.trusted) },
+        ]}
+      />
+      <MetricsStrip
+        eyebrow="Platform · calls"
+        items={[
+          { label: "All time", value: String(data.calls.total) },
+          { label: "Last 7 days", value: String(data.calls.last7d) },
+          { label: "Fueled desk", value: String(data.calls.fueled) },
+          {
+            label: "Avg return",
+            value: formatPct(avg),
+            accent: avgAccent,
+          },
+        ]}
+      />
+      <MetricsStrip
+        eyebrow="Platform · engagement"
+        items={[
+          { label: "Comments", value: String(data.engagement.totalComments) },
+          { label: "Votes cast", value: String(data.engagement.totalVotes) },
+        ]}
+      />
 
-      <div className="pf-stat-tile">
+      <div className="pf-workspace-panel p-5">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
           Most called symbols
         </p>

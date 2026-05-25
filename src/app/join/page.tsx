@@ -62,11 +62,12 @@ export default function JoinPage() {
         </div>
       </div>
       <div className="pf-hero-mesh border-b border-[var(--pf-border)] py-10 text-center">
-        <p className="pf-eyebrow">Membership</p>
-        <h1 className="pf-display mt-3 text-2xl sm:text-3xl">Join the action on PortFuel</h1>
-        <p className="pf-lead mx-auto mt-3 max-w-md text-sm">
-          Member-only theses, live marks, and the full feed — not just public winners. Choose a
-          permanent username; after activation, complete 2FA to enter.
+        <p className="pf-eyebrow">Member intelligence</p>
+        <h1 className="pf-display mt-3 text-2xl sm:text-3xl">Access the full workspace</h1>
+        <p className="pf-lead mx-auto mt-3 max-w-lg text-sm">
+          Live feed, ticker charts with call markers, performance tracking, and Pro market intel —
+          built for traders who publish real theses. Username is permanent; 2FA required after
+          activation.
         </p>
       </div>
       <div className="mx-auto max-w-3xl px-4 py-10">
@@ -80,36 +81,36 @@ export default function JoinPage() {
         {step === "plan" && (
           <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
             <CardHeader>
-              <p className="pf-eyebrow">Membership</p>
-              <h1 className="mt-2 text-2xl font-bold tracking-tight">Member access</h1>
+              <p className="pf-eyebrow">Plans</p>
+              <h1 className="mt-2 text-2xl font-bold tracking-tight">Choose your tier</h1>
               <p className="mt-2 text-[var(--pf-gray-600)]">
-                Unlock the full thesis feed and live intel. Username is permanent — choose
-                carefully.
+                Billing via Stripe is coming soon — register now and an admin activates your
+                account. Username cannot be changed later.
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-4 sm:grid-cols-2">
                 <PlanCard
                   name="Member"
-                  price="$49"
+                  price="$79"
                   period="/mo"
                   features={[
-                    "Public & private call feeds",
-                    "Live charts with call markers",
-                    "Performance tracking",
-                    "2 calls per week (new members)",
+                    "Full member workspace & feed",
+                    "Ticker charts + call markers",
+                    "Profile performance curve",
+                    "Rankings & community votes",
                   ]}
                 />
                 <PlanCard
-                  name="Pro"
-                  price="$99"
+                  name="Pro Intelligence"
+                  price="$129"
                   period="/mo"
                   highlight
                   features={[
                     "Everything in Member",
-                    "Higher submission limits",
-                    "Priority feed placement",
-                    "Trusted track eligibility",
+                    "Pro market intel (news, filings)",
+                    "Advanced feed & leaderboard analytics",
+                    "Higher call limits & desk visibility",
                   ]}
                 />
               </div>

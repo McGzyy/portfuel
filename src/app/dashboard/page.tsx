@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 import { OverviewHero } from "@/components/dashboard/OverviewHero";
 import { OverviewShortcutBar } from "@/components/dashboard/OverviewShortcutBar";
 import { OverviewCommunityPulse } from "@/components/dashboard/OverviewCommunityPulse";
+import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerformanceChart";
+import { fetchOwnProfile } from "@/lib/users/own-profile";
+import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { FueledDeskPanel } from "@/components/dashboard/FueledDeskPanel";
 import { WorkspacePanel } from "@/components/dashboard/WorkspacePanel";
 import { CallPreviewRow, type CallPreviewData } from "@/components/dashboard/CallPreviewRow";
@@ -63,6 +66,9 @@ export default async function DashboardOverviewPage({
   const performingCalls = (await loadFeedCalls("performing")).map(mapCallForCard);
   const communityPulse = summarizeFeed(performingCalls);
 
+  const { calls: ownCalls } = await fetchOwnProfile(session);
+  const performanceSeries = buildCumulativeReturnSeries(ownCalls);
+
   const latestPreviews = (await loadFeedCalls("latest"))
     .filter((c) => !c.is_fueled)
     .slice(0, 5)
@@ -121,6 +127,11 @@ export default async function DashboardOverviewPage({
         </div>
 
         <div className="space-y-6 lg:col-span-4">
+          <OverviewPerformanceChart
+            points={performanceSeries}
+            profileHref={`/member/${session.username}`}
+          />
+
           <WorkspacePanel
             title="Watchlist"
             subtitle="Symbols you’re tracking"

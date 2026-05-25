@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { CallCard } from "@/components/calls/CallCard";
@@ -41,7 +42,15 @@ export default async function ProfilePage() {
 
   return (
     <AppShell user={toHeaderUser(session)}>
-      <WorkspaceBackLink />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <WorkspaceBackLink />
+        <Link
+          href={`/member/${member.username}`}
+          className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
+        >
+          Public profile →
+        </Link>
+      </div>
 
       <div className="mt-6">
         <MemberProfileHero member={member} isSelf />
