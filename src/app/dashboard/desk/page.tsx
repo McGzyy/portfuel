@@ -1,8 +1,5 @@
-import Link from "next/link";
-import { Plus } from "lucide-react";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { CallCard } from "@/components/calls/CallCard";
-import { Button } from "@/components/ui/button";
+import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { loadFeedCalls, mapCallForCard } from "@/lib/dashboard/data";
 
 export default async function DashboardDeskPage() {
@@ -13,48 +10,46 @@ export default async function DashboardDeskPage() {
 
   return (
     <>
-      <PageHeader
+      <WorkspacePageHeader
         title="Fueled desk"
-        description="Official PortFuel theses — curated by the desk, separate from the member feed. These appear with the Fueled badge across the platform."
-        action={
-          <Link href="/calls/new">
-            <Button variant="secondary">
-              <Plus className="h-4 w-4" />
-              Member call
-            </Button>
-          </Link>
-        }
+        description="Official PortFuel research — curated desk theses, clearly separated from the member feed."
       />
 
+      <section className="pf-fueled-desk p-6 sm:p-8">
+        <p className="pf-eyebrow">PortFuel research</p>
+        <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-400">
+          These calls are published by the PortFuel desk. They carry the Fueled badge and represent
+          institutional-quality theses for the community.
+        </p>
+      </section>
+
       <section className="mt-8">
-        <h2 className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-          Latest desk calls
+        <h2 className="mb-4 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+          Latest
         </h2>
         {fueledLatest.length === 0 ? (
-          <p className="pf-empty mt-4">No Fueled calls published yet.</p>
+          <div className="pf-workspace-panel py-12 text-center text-sm text-[var(--pf-gray-500)]">
+            No desk calls yet.
+          </div>
         ) : (
-          <ul className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="space-y-4">
             {fueledLatest.map((call) => (
-              <li key={call.id}>
-                <CallCard call={call} interactive />
-              </li>
+              <CallCard key={call.id} call={call} interactive />
             ))}
-          </ul>
+          </div>
         )}
       </section>
 
       {fueledPerforming.length > 0 ? (
         <section className="mt-10">
-          <h2 className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-            Top performers (30 days)
+          <h2 className="mb-4 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            Top performers · 30 days
           </h2>
-          <ul className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="space-y-4">
             {fueledPerforming.map((call) => (
-              <li key={call.id}>
-                <CallCard call={call} interactive />
-              </li>
+              <CallCard key={call.id} call={call} interactive />
             ))}
-          </ul>
+          </div>
         </section>
       ) : null}
     </>

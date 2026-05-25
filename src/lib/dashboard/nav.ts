@@ -1,26 +1,42 @@
-export const DASHBOARD_NAV = [
+export type DashboardNavIcon =
+  | "layout-dashboard"
+  | "rows"
+  | "flame"
+  | "bookmark";
+
+export const DASHBOARD_NAV: {
+  href: string;
+  label: string;
+  description: string;
+  icon: DashboardNavIcon;
+  exact?: true;
+}[] = [
   {
     href: "/dashboard",
     label: "Overview",
-    description: "Snapshot and shortcuts",
+    description: "Performance & previews",
+    icon: "layout-dashboard",
     exact: true,
   },
   {
     href: "/dashboard/feed",
     label: "Member feed",
-    description: "All member calls",
+    description: "Community call board",
+    icon: "rows",
   },
   {
     href: "/dashboard/desk",
     label: "Fueled desk",
-    description: "PortFuel official theses",
+    description: "Official theses",
+    icon: "flame",
   },
   {
     href: "/dashboard/watchlist",
     label: "Watchlist",
-    description: "Symbols you track",
+    description: "Symbols & lookup",
+    icon: "bookmark",
   },
-] as const;
+];
 
 export function buildFeedHref(opts: {
   tab?: "performing";

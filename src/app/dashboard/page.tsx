@@ -1,21 +1,34 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus } from "lucide-react";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { CallCard } from "@/components/calls/CallCard";
-import { OverviewQuickActions } from "@/components/dashboard/OverviewQuickActions";
-import { SectionCard } from "@/components/dashboard/SectionCard";
-import { Button } from "@/components/ui/button";
+import { OverviewHero } from "@/components/dashboard/OverviewHero";
+import { OverviewShortcutBar } from "@/components/dashboard/OverviewShortcutBar";
+import { WorkspacePanel } from "@/components/dashboard/WorkspacePanel";
+import { CallPreviewRow, type CallPreviewData } from "@/components/dashboard/CallPreviewRow";
 import {
   loadFeedCalls,
   loadMemberStats,
-  loadYourRecentCalls,
   mapCallForCard,
   requireDashboardSession,
 } from "@/lib/dashboard/data";
 import { buildFeedHref } from "@/lib/dashboard/nav";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import { formatPct, formatPrice } from "@/lib/utils";
+
+function toPreview(
+  c: ReturnType<typeof mapCallForCard>
+): CallPreviewData {
+  return {
+    id: c.id,
+    symbol: c.symbol,
+    direction: c.direction,
+    thesis: c.thesis,
+    called_at: c.called_at,
+    return_pct: c.return_pct,
+    display_name: c.display_name,
+    username: c.username,
+    is_fueled: c.is_fueled,
+  };
+}
 
 export default async function DashboardOverviewPage({
   searchParams,
@@ -33,24 +46,20 @@ export default async function DashboardOverviewPage({
 
   const session = await requireDashboardSession();
   const memberStats = await loadMemberStats(session.userId);
-  const latestCalls = (await loadFeedCalls("latest"))
+
+  const latestPreviews = (await loadFeedCalls("latest"))
     .filter((c) => !c.is_fueled)
-    .slice(0, 3)
-    .map(mapCallForCard);
-  const fueledPreview = (await loadFeedCalls("latest"))
+    .slice(0, 5)
+    .map((c) => toPreview(mapCallForCard(c)));
+
+  const fueledPreviews = (await loadFeedCalls("latest"))
     .filter((c) => c.is_fueled)
-    .slice(0, 2)
-    .map(mapCallForCard);
-  const yourCalls = await loadYourRecentCalls(
-    session.userId,
-    session.username,
-    session.displayName,
-    4
-  );
+    .slice(0, 3)
+    .map((c) => toPreview(mapCallForCard(c)));
 
   let watchlistPreview: Awaited<ReturnType<typeof fetchWatchlist>> = [];
   try {
-    watchlistPreview = (await fetchWatchlist(session.userId)).slice(0, 5);
+    watchlistPreview = (await fetchWatchlist(session.userId)).slice(0, 6);
   } catch {
     /* optional */
   }
@@ -60,114 +69,57 @@ export default async function DashboardOverviewPage({
     (session.role === "admin" ? "Administrator" : session.username);
 
   return (
-    <>
-      <PageHeader
-        title="Overview"
-        description="Your at-a-glance snapshot. Open Member feed, Fueled desk, or Watchlist from the menu above for full views."
-        action={
-          <Link href="/calls/new">
-            <Button size="lg">
-              <Plus className="h-4 w-4" strokeWidth={2.5} />
-              New call
-            </Button>
-          </Link>
-        }
+    <div className="space-y-6">
+      <OverviewHero
+        displayName={displayLabel}
+        username={session.username}
+        winRate={memberStats?.win_rate}
+        rankScore={memberStats?.rank_score != null ? Number(memberStats.rank_score) : null}
+        callsCount={memberStats?.calls_count}
       />
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="pf-stat-tile lg:col-span-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-            Operator
-          </p>
-          <p className="mt-1 text-lg font-bold">{displayLabel}</p>
-          <Link
-            href={`/member/${session.username}`}
-            className="mt-0.5 inline-block font-mono text-sm text-[var(--pf-gray-500)] hover:text-[var(--pf-red)]"
+      <OverviewShortcutBar />
+
+      <div className="grid gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-8">
+          <WorkspacePanel
+            title="Latest from members"
+            subtitle="Newest community theses — open the feed for the full board"
+            href={buildFeedHref({})}
+            className="min-h-[320px]"
           >
-            @{session.username}
-          </Link>
-        </div>
-        <div className="pf-stat-tile">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-            Win rate
-          </p>
-          <p className="mt-1 text-2xl font-bold tabular-nums">
-            {memberStats?.win_rate != null ? `${memberStats.win_rate}%` : "—"}
-          </p>
-        </div>
-        <div className="pf-stat-tile">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-            Rank score
-          </p>
-          <p className="mt-1 text-2xl font-bold tabular-nums">
-            {memberStats?.rank_score != null
-              ? Number(memberStats.rank_score).toFixed(1)
-              : "—"}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <OverviewQuickActions />
-      </div>
-
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <SectionCard
-          title="Latest member calls"
-          description="Newest theses from the community"
-          href={buildFeedHref({})}
-          linkLabel="Open feed →"
-        >
-          {latestCalls.length === 0 ? (
-            <p className="text-sm text-[var(--pf-gray-500)]">No calls yet.</p>
-          ) : (
-            <ul className="space-y-3">
-              {latestCalls.map((call) => (
-                <li key={call.id}>
-                  <CallCard call={call} compact />
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
-
-        <div className="space-y-6">
-          <SectionCard
-            title="Fueled desk"
-            description="Official PortFuel theses"
-            href="/dashboard/desk"
-            linkLabel="Open desk →"
-          >
-            {fueledPreview.length === 0 ? (
-              <p className="text-sm text-[var(--pf-gray-500)]">No desk calls right now.</p>
+            {latestPreviews.length === 0 ? (
+              <p className="px-3 py-8 text-center text-sm text-[var(--pf-gray-500)]">
+                No member calls yet.
+              </p>
             ) : (
-              <ul className="space-y-3">
-                {fueledPreview.map((call) => (
-                  <li key={call.id}>
-                    <CallCard call={call} compact />
-                  </li>
+              <div className="divide-y divide-[var(--pf-border)]">
+                {latestPreviews.map((call) => (
+                  <CallPreviewRow key={call.id} call={call} />
                 ))}
-              </ul>
+              </div>
             )}
-          </SectionCard>
+          </WorkspacePanel>
+        </div>
 
-          <SectionCard
+        <div className="space-y-6 lg:col-span-4">
+          <WorkspacePanel
             title="Watchlist"
-            description="Quick access to tracked symbols"
+            subtitle="Symbols you’re tracking"
             href="/dashboard/watchlist"
-            linkLabel="Manage →"
           >
             {watchlistPreview.length === 0 ? (
-              <p className="text-sm text-[var(--pf-gray-500)]">No symbols tracked yet.</p>
+              <p className="px-3 py-6 text-center text-sm text-[var(--pf-gray-500)]">
+                Add symbols on the watchlist page.
+              </p>
             ) : (
-              <ul className="space-y-2">
+              <ul>
                 {watchlistPreview.map((w) => (
                   <li key={w.symbol}>
-                    <Link
-                      href={`/ticker/${w.symbol}`}
-                      className="flex items-center justify-between rounded-lg border border-[var(--pf-border)] bg-white px-3 py-2 text-sm hover:bg-[var(--pf-gray-50)]"
-                    >
-                      <span className="font-mono font-bold">{w.symbol}</span>
+                    <Link href={`/ticker/${w.symbol}`} className="pf-watchlist-mini">
+                      <span className="font-mono font-bold text-[var(--pf-black)]">
+                        {w.symbol}
+                      </span>
                       <span className="text-xs tabular-nums text-[var(--pf-gray-500)]">
                         {w.last_price != null
                           ? `$${formatPrice(Number(w.last_price))}`
@@ -178,36 +130,43 @@ export default async function DashboardOverviewPage({
                 ))}
               </ul>
             )}
-          </SectionCard>
+          </WorkspacePanel>
+
+          <section className="overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-red)]/20 bg-gradient-to-br from-[#0f1419] to-[#1a1520] shadow-[var(--pf-shadow-md)]">
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-red-300/90">
+                  PortFuel
+                </p>
+                <h2 className="text-sm font-bold text-white">Fueled desk</h2>
+              </div>
+              <Link
+                href="/dashboard/desk"
+                className="text-xs font-semibold text-red-300 hover:text-red-200 hover:underline"
+              >
+                Open desk →
+              </Link>
+            </div>
+            <div className="p-1">
+              {fueledPreviews.length === 0 ? (
+                <p className="px-3 py-6 text-center text-xs text-slate-500">No desk calls.</p>
+              ) : (
+                fueledPreviews.map((call) => (
+                  <CallPreviewRow key={call.id} call={call} variant="on-dark" />
+                ))
+              )}
+            </div>
+          </section>
         </div>
       </div>
 
-      {yourCalls.length > 0 ? (
-        <div className="mt-8">
-          <SectionCard
-            title="Your book"
-            description="Calls you published"
-            href={`/member/${session.username}`}
-            linkLabel="Full profile →"
-          >
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {yourCalls.map((call) => (
-                <li key={call.id}>
-                  <CallCard call={call} compact />
-                </li>
-              ))}
-            </ul>
-          </SectionCard>
-        </div>
-      ) : null}
-
       {session.role === "admin" ? (
-        <p className="mt-8 text-center text-xs text-[var(--pf-gray-500)]">
+        <p className="text-center text-xs text-[var(--pf-gray-400)]">
           <Link href="/admin?tab=analytics" className="font-semibold text-[var(--pf-red)] hover:underline">
             Admin analytics
           </Link>
         </p>
       ) : null}
-    </>
+    </div>
   );
 }
