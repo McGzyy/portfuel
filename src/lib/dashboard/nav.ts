@@ -2,7 +2,8 @@ export type DashboardNavIcon =
   | "layout-dashboard"
   | "rows"
   | "flame"
-  | "bookmark";
+  | "bookmark"
+  | "scan";
 
 export const DASHBOARD_NAV: {
   href: string;
@@ -35,6 +36,12 @@ export const DASHBOARD_NAV: {
     label: "Watchlist",
     description: "Symbols & lookup",
     icon: "bookmark",
+  },
+  {
+    href: "/dashboard/screener",
+    label: "Screener",
+    description: "Most called & top returns",
+    icon: "scan",
   },
 ];
 

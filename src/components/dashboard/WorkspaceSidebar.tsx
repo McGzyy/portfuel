@@ -7,6 +7,7 @@ import {
   Flame,
   LayoutDashboard,
   Rows3,
+  ScanSearch,
   Plus,
   ExternalLink,
   Shield,
@@ -19,6 +20,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   rows: Rows3,
   flame: Flame,
   bookmark: Bookmark,
+  scan: ScanSearch,
 };
 
 export function WorkspaceSidebar({

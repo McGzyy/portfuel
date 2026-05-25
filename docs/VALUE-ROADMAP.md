@@ -92,7 +92,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 12. ✅ **In-app notifications** — bell + `/notifications`; comments, votes, watchlist calls.
 13. ✅ **Email digest** — weekly summary (Resend; enable when domain verified).
 13. **Messaging** (original vision) — DMs or threaded replies.
-14. **Screener lite** — “most called this week,” “best 30d return,” export CSV (Pro).
+14. ✅ **Screener lite** — “most called this week,” “best 30d return,” export CSV (Pro) at `/dashboard/screener`.
 15. **Admin time-series charts** — signups, MRR proxy, calls/day (`docs/CHARTS.md` step 5).
 
 ### Later (premium polish)

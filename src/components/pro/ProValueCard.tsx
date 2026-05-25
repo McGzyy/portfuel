@@ -9,6 +9,7 @@ const PRO_FEATURES = [
   "Watchlist move alerts (±5% since you added a symbol)",
   "Earnings calendar for your watchlist (next 14 days)",
   "Target progress leaders on the member feed",
+  "Community screener — most called symbols & best 30-day returns (CSV export)",
 ] as const;
 
 export function ProValueCard({ className }: { className?: string }) {
