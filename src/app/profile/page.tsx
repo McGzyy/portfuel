@@ -18,6 +18,7 @@ import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { ProfileBillingSection } from "@/components/billing/ProfileBillingSection";
+import { ProfileBillingSync } from "@/app/profile/BillingSync";
 import { isDemoMode } from "@/lib/demo/config";
 
 export const metadata: Metadata = {
@@ -44,6 +45,7 @@ export default async function ProfilePage() {
 
   return (
     <AppShell user={toHeaderUser(session)}>
+      <ProfileBillingSync />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <WorkspaceBackLink />
         <Link

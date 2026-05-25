@@ -10,6 +10,7 @@ type Member = {
   display_name: string | null;
   role: string;
   subscription_status: "pending" | "active" | "cancelled";
+  membership_tier: "member" | "pro" | null;
   totp_verified: boolean;
   calls_count: number;
   rank_score: number;
@@ -92,6 +93,7 @@ export function AdminMembersPanel() {
             <tr>
               <th className="px-4 py-3">Member</th>
               <th className="hidden px-4 py-3 sm:table-cell">Status</th>
+              <th className="hidden px-4 py-3 sm:table-cell">Plan</th>
               <th className="hidden px-4 py-3 md:table-cell">2FA</th>
               <th className="hidden px-4 py-3 lg:table-cell">Calls</th>
               <th className="px-4 py-3 text-right">Actions</th>
@@ -113,6 +115,9 @@ export function AdminMembersPanel() {
                   </td>
                   <td className="hidden px-4 py-3 sm:table-cell">
                     <StatusBadge status={m.subscription_status} />
+                  </td>
+                  <td className="hidden px-4 py-3 sm:table-cell">
+                    <TierBadge tier={m.membership_tier} active={m.subscription_status === "active"} />
                   </td>
                   <td className="hidden px-4 py-3 md:table-cell">
                     {m.totp_verified ? (
@@ -168,10 +173,33 @@ export function AdminMembersPanel() {
       </div>
 
       <p className="text-xs text-[var(--pf-gray-400)]">
-        Activating a member lets them sign in. They must complete 2FA at{" "}
-        <span className="font-mono">/security/2fa</span> before using the dashboard.
+        Stripe handles paid activation; use Activate only for comped or manual access. Members need
+        2FA at <span className="font-mono">/security/2fa</span> before the workspace.
       </p>
     </div>
+  );
+}
+
+function TierBadge({
+  tier,
+  active,
+}: {
+  tier: Member["membership_tier"];
+  active: boolean;
+}) {
+  if (!active || !tier) {
+    return <span className="text-xs text-[var(--pf-gray-400)]">—</span>;
+  }
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full px-2 py-0.5 text-xs font-semibold capitalize",
+        tier === "pro" && "bg-[var(--pf-red-muted)] text-[var(--pf-red)]",
+        tier === "member" && "bg-[var(--pf-gray-100)] text-[var(--pf-gray-700)]"
+      )}
+    >
+      {tier}
+    </span>
   );
 }
 

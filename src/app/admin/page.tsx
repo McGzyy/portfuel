@@ -15,7 +15,7 @@ export default async function AdminPage() {
     <AppShell user={toHeaderUser(session)}>
       <PageHeader
         title="Administration"
-        description="Member access, platform analytics, and quotas. Billing automation comes later — not in this phase."
+        description="Member access, Stripe tier counts, platform analytics, and submission quotas."
       />
       <Suspense
         fallback={

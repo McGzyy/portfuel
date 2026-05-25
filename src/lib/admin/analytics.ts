@@ -6,6 +6,9 @@ export type AdminAnalytics = {
     total: number;
     active: number;
     pending: number;
+    cancelled: number;
+    memberTier: number;
+    proTier: number;
     trusted: number;
   };
   calls: {
@@ -36,7 +39,7 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
     votesRes,
     symbolsRes,
   ] = await Promise.all([
-    db.from("users").select("id, subscription_status, trusted_at, role"),
+    db.from("users").select("id, subscription_status, membership_tier, trusted_at, role"),
     db.from("calls").select("id, return_pct", { count: "exact", head: true }),
     db
       .from("calls")
@@ -77,6 +80,13 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
       total: members.length,
       active: members.filter((u) => u.subscription_status === "active").length,
       pending: members.filter((u) => u.subscription_status === "pending").length,
+      cancelled: members.filter((u) => u.subscription_status === "cancelled").length,
+      memberTier: members.filter(
+        (u) => u.subscription_status === "active" && u.membership_tier === "member"
+      ).length,
+      proTier: members.filter(
+        (u) => u.subscription_status === "active" && u.membership_tier === "pro"
+      ).length,
       trusted: members.filter((u) => u.trusted_at).length,
     },
     calls: {
@@ -99,6 +109,9 @@ function getDemoAdminAnalytics(): AdminAnalytics {
       total: 6,
       active: 5,
       pending: 1,
+      cancelled: 0,
+      memberTier: 3,
+      proTier: 2,
       trusted: 3,
     },
     calls: {

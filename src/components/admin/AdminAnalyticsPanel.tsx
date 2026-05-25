@@ -56,6 +56,14 @@ export function AdminAnalyticsPanel() {
           { label: "Total", value: String(data.members.total) },
           { label: "Active", value: String(data.members.active) },
           { label: "Pending", value: String(data.members.pending) },
+          { label: "Cancelled", value: String(data.members.cancelled) },
+        ]}
+      />
+      <MetricsStrip
+        eyebrow="Billing · tiers"
+        items={[
+          { label: "Member $79", value: String(data.members.memberTier) },
+          { label: "Pro $129", value: String(data.members.proTier) },
           { label: "Trusted", value: String(data.members.trusted) },
         ]}
       />

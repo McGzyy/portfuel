@@ -1,19 +1,17 @@
-import { SignJWT, jwtVerify } from "jose";
+import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { createServiceClient } from "@/lib/db/supabase";
+import {
+  refreshSessionFromDatabase,
+  sessionCookieOptions,
+  signSessionToken,
+} from "@/lib/auth/session-sync";
+import type { SessionPayload } from "@/lib/auth/session-types";
 import type { MembershipTier } from "@/lib/stripe/config";
 
 const COOKIE_NAME = "portfuel_session";
 
-export type SessionPayload = {
-  userId: string;
-  username: string;
-  displayName: string | null;
-  role: "member" | "admin";
-  subscriptionStatus: "pending" | "active" | "cancelled";
-  membershipTier?: MembershipTier | null;
-  totpVerified: boolean;
-};
+export type { SessionPayload } from "@/lib/auth/session-types";
 
 function getSecret() {
   const secret = process.env.SESSION_SECRET;
@@ -27,20 +25,10 @@ function getSecret() {
 }
 
 export async function createSession(payload: SessionPayload): Promise<void> {
-  const token = await new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(getSecret());
+  const token = await signSessionToken(payload);
 
   const jar = await cookies();
-  jar.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
+  jar.set(COOKIE_NAME, token, sessionCookieOptions());
 }
 
 export async function destroySession(): Promise<void> {
@@ -74,11 +62,11 @@ async function resolveUsernameFromDb(
 
 export async function getSession(): Promise<SessionPayload | null> {
   const jar = await cookies();
-  const token = jar.get(COOKIE_NAME)?.value;
-  if (!token) return null;
+  const cookieToken = jar.get(COOKIE_NAME)?.value;
+  if (!cookieToken) return null;
 
   try {
-    const { payload } = await jwtVerify(token, getSecret());
+    const { payload } = await jwtVerify(cookieToken, getSecret());
     let username = String(payload.username ?? payload.pin ?? "");
     let displayName = payload.displayName ? String(payload.displayName) : null;
     const userId = String(payload.userId);
@@ -95,7 +83,7 @@ export async function getSession(): Promise<SessionPayload | null> {
       ? (String(payload.membershipTier) as MembershipTier)
       : null;
 
-    return {
+    const base: SessionPayload = {
       userId,
       username,
       displayName,
@@ -104,6 +92,13 @@ export async function getSession(): Promise<SessionPayload | null> {
       membershipTier,
       totpVerified: Boolean(payload.totpVerified),
     };
+
+    const { session: synced, token: freshToken } = await refreshSessionFromDatabase(base);
+    if (freshToken) {
+      const jar = await cookies();
+      jar.set(COOKIE_NAME, freshToken, sessionCookieOptions());
+    }
+    return synced;
   } catch {
     return null;
   }

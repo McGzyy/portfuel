@@ -65,6 +65,8 @@ Active subscribers: profile → **Manage billing** (Stripe Customer Portal).
 
 **Member → Pro upgrade:** Active Member plans can use **Upgrade to Pro** on profile (prorated via Stripe subscription update). Webhook `customer.subscription.updated` keeps Supabase in sync if the client path races.
 
+**Session sync:** After portal or webhook changes, JWT billing fields refresh from Supabase on each request (middleware + `getSession`). Returning from portal lands on `/profile?billing=return` to refresh the page.
+
 ## 6. Tiers & Pro gates
 
 | Tier | Price ID env | Pro intelligence |
