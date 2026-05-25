@@ -1,13 +1,16 @@
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
+import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import type { RankingsSummary } from "@/lib/calls/rankings-summary";
 
 export function RankingsSummaryBar({
   summary,
   proLocked,
+  proGateCta,
 }: {
   summary: RankingsSummary;
   proLocked: boolean;
+  proGateCta: ProGateCta;
 }) {
   if (summary.rankedCount === 0) return null;
 
@@ -24,8 +27,9 @@ export function RankingsSummaryBar({
 
       <ProIntelligenceGate
         locked={proLocked}
+        cta={proGateCta}
         title="Pro leaderboard depth"
-        description="Win-rate aggregates and top score breakdowns — available to active members."
+        description="Win-rate aggregates and top score breakdowns — Pro Intelligence ($129/mo)."
         compact
       >
         <MetricsStrip

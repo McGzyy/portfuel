@@ -1,14 +1,17 @@
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
+import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import { formatPct } from "@/lib/utils";
 import type { FeedSummary } from "@/lib/calls/feed-summary";
 
 export function OverviewCommunityPulse({
   summary,
   proLocked,
+  proGateCta,
 }: {
   summary: FeedSummary;
   proLocked: boolean;
+  proGateCta: ProGateCta;
 }) {
   if (summary.count === 0) return null;
 
@@ -42,8 +45,9 @@ export function OverviewCommunityPulse({
 
       <ProIntelligenceGate
         locked={proLocked}
+        cta={proGateCta}
         title="Pro community analytics"
-        description="Desk thesis counts and position mix analytics — included with membership."
+        description="Desk thesis counts and position mix analytics — Pro Intelligence ($129/mo)."
         compact
       >
         <MetricsStrip

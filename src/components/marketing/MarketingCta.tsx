@@ -10,8 +10,8 @@ export function MarketingCta() {
           Ready to join the action?
         </h2>
         <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-white/80">
-          Full thesis feed, live marks, and member-only intel. Stripe billing ships next — early
-          members lock in first.
+          Member from $79/mo · Pro Intelligence $129/mo. Full workspace, live marks, ticker intel,
+          and rankings.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link href="/join">

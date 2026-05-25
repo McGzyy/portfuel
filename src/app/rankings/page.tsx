@@ -13,6 +13,7 @@ import { summarizeRankings } from "@/lib/calls/rankings-summary";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import {
+  getProGateCta,
   isProIntelligenceLocked,
   sessionToProContext,
 } from "@/lib/features/pro-intelligence";
@@ -26,7 +27,9 @@ export const metadata: Metadata = {
 
 export default async function RankingsPage() {
   const session = await getSession();
-  const proLocked = isProIntelligenceLocked(sessionToProContext(session));
+  const proContext = sessionToProContext(session);
+  const proLocked = isProIntelligenceLocked(proContext);
+  const proGateCta = getProGateCta(proContext);
 
   let rows: Awaited<ReturnType<typeof fetchLeaderboard>> = [];
 
@@ -65,7 +68,11 @@ export default async function RankingsPage() {
           </header>
 
           <div className="mt-8">
-            <RankingsSummaryBar summary={summary} proLocked={proLocked} />
+            <RankingsSummaryBar
+              summary={summary}
+              proLocked={proLocked}
+              proGateCta={proGateCta}
+            />
             <div className="pf-workspace-panel overflow-hidden">
               <LeaderboardTable rows={rows} embedded />
             </div>

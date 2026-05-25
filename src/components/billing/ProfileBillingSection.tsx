@@ -42,17 +42,25 @@ export function ProfileBillingSection({
         ) : null}
       </div>
 
+      {subscriptionStatus === "cancelled" ? (
+        <p className="mt-3 text-sm text-[var(--pf-gray-600)]">
+          Your subscription ended. Resubscribe to restore workspace access, or use Manage billing
+          if you cancelled in error.
+        </p>
+      ) : null}
+
       <div className="mt-4 flex flex-wrap gap-3">
-        {subscriptionStatus === "pending" ? (
+        {subscriptionStatus === "pending" || subscriptionStatus === "cancelled" ? (
           <>
-            <CompleteCheckoutButton tier="member" label="Pay — Member" />
-            <CompleteCheckoutButton tier="pro" label="Pay — Pro" />
+            <CompleteCheckoutButton tier="member" label="Subscribe — Member $79/mo" />
+            <CompleteCheckoutButton tier="pro" label="Subscribe — Pro $129/mo" />
           </>
         ) : null}
         {subscriptionStatus === "active" && membershipTier === "member" ? (
           <UpgradeToProButton />
         ) : null}
-        {subscriptionStatus === "active" && stripeCustomerId ? (
+        {stripeCustomerId &&
+        (subscriptionStatus === "active" || subscriptionStatus === "cancelled") ? (
           <ManageBillingButton />
         ) : null}
       </div>

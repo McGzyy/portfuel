@@ -16,6 +16,7 @@ import {
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
 import {
+  getProGateCta,
   isProIntelligenceLocked,
   sessionToProContext,
 } from "@/lib/features/pro-intelligence";
@@ -35,7 +36,9 @@ export default async function DashboardFeedPage({
   searchParams: Promise<{ tab?: string; filter?: string; q?: string }>;
 }) {
   const session = await requireDashboardSession();
-  const proLocked = isProIntelligenceLocked(sessionToProContext(session));
+  const proContext = sessionToProContext(session);
+  const proLocked = isProIntelligenceLocked(proContext);
+  const proGateCta = getProGateCta(proContext);
 
   const { tab, filter: filterParam, q } = await searchParams;
   const mode = tab === "performing" ? "performing" : "latest";
@@ -69,7 +72,12 @@ export default async function DashboardFeedPage({
 
       {feedSummary.count > 0 ? (
         <div className="mt-6">
-          <FeedSummaryBar summary={feedSummary} mode={mode} proLocked={proLocked} />
+          <FeedSummaryBar
+            summary={feedSummary}
+            mode={mode}
+            proLocked={proLocked}
+            proGateCta={proGateCta}
+          />
         </div>
       ) : null}
 

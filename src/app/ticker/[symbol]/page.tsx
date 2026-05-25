@@ -20,6 +20,7 @@ import { isDemoMode } from "@/lib/demo/config";
 import { summarizeTickerCommunity } from "@/lib/calls/ticker-community-stats";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
 import {
+  getProGateCta,
   isProIntelligenceLocked,
   sessionToProContext,
 } from "@/lib/features/pro-intelligence";
@@ -56,7 +57,9 @@ export default async function TickerPage({
   }
 
   const communityStats = summarizeTickerCommunity(intel?.calls ?? []);
-  const proLocked = isProIntelligenceLocked(sessionToProContext(session));
+  const proContext = sessionToProContext(session);
+  const proLocked = isProIntelligenceLocked(proContext);
+  const proGateCta = getProGateCta(proContext);
 
   const emptyIntel = {
     symbol,
@@ -95,8 +98,9 @@ export default async function TickerPage({
 
       <ProIntelligenceGate
         locked={proLocked}
+        cta={proGateCta}
         title="Pro market intel"
-        description="News, earnings, SEC filings, and company stats — unlocked with PortFuel member access."
+        description="News, earnings, SEC filings, and company stats — Pro Intelligence ($129/mo)."
       >
         <TickerIntelPanel intel={intel ?? emptyIntel} />
       </ProIntelligenceGate>

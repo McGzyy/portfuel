@@ -1,5 +1,6 @@
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
+import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import { formatPct } from "@/lib/utils";
 import type { FeedSummary } from "@/lib/calls/feed-summary";
 
@@ -7,10 +8,12 @@ export function FeedSummaryBar({
   summary,
   mode,
   proLocked,
+  proGateCta,
 }: {
   summary: FeedSummary;
   mode: "latest" | "performing";
   proLocked: boolean;
+  proGateCta: ProGateCta;
 }) {
   if (summary.count === 0) return null;
 
@@ -44,8 +47,9 @@ export function FeedSummaryBar({
 
       <ProIntelligenceGate
         locked={proLocked}
+        cta={proGateCta}
         title="Pro feed analytics"
-        description="Target progress, desk thesis counts, and deeper performance slices — unlocked with member access."
+        description="Target progress, desk thesis counts, and deeper performance slices — Pro Intelligence ($129/mo)."
         compact
       >
         <MetricsStrip

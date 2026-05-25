@@ -43,3 +43,16 @@ export function canAccessProIntelligence(ctx: ProAccessContext): boolean {
 export function isProIntelligenceLocked(ctx: ProAccessContext): boolean {
   return !canAccessProIntelligence(ctx);
 }
+
+export type ProGateCta = "join" | "upgrade" | "checkout";
+
+/** CTA for locked Pro intelligence surfaces. */
+export function getProGateCta(ctx: ProAccessContext): ProGateCta {
+  if (!ctx) return "join";
+  if (ctx.role === "admin") return "upgrade";
+  if (ctx.subscriptionStatus === "pending") return "checkout";
+  if (ctx.subscriptionStatus === "active" && ctx.membershipTier === "member") {
+    return "upgrade";
+  }
+  return "join";
+}

@@ -76,16 +76,25 @@ export async function middleware(request: NextRequest) {
       );
     }
 
-    if (
-      sub !== "active" &&
-      role !== "admin" &&
-      !pathname.startsWith("/onboarding") &&
-      pathname !== "/join"
-    ) {
-      return withFreshCookie(
-        NextResponse.redirect(new URL("/join?pending=1", request.url)),
-        freshToken
-      );
+    if (sub !== "active" && role !== "admin") {
+      const onBillingPath =
+        pathname.startsWith("/profile") ||
+        pathname === "/join" ||
+        pathname.startsWith("/join/");
+
+      if (sub === "cancelled") {
+        if (!onBillingPath) {
+          return withFreshCookie(
+            NextResponse.redirect(new URL("/profile", request.url)),
+            freshToken
+          );
+        }
+      } else if (!pathname.startsWith("/onboarding") && pathname !== "/join") {
+        return withFreshCookie(
+          NextResponse.redirect(new URL("/join?pending=1", request.url)),
+          freshToken
+        );
+      }
     }
 
     if (

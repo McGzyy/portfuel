@@ -6,6 +6,7 @@ import { PublicHighlightCard } from "@/components/calls/PublicHighlightCard";
 import { HeroDashboardMock } from "@/components/marketing/HeroDashboardMock";
 import { HowItWorks } from "@/components/marketing/HowItWorks";
 import { MarketingCta } from "@/components/marketing/MarketingCta";
+import { PricingPlans } from "@/components/marketing/PricingPlans";
 import { MembersFeedGate } from "@/components/marketing/MembersFeedGate";
 import { SectionHeader } from "@/components/marketing/SectionHeader";
 import { SiteFooter } from "@/components/marketing/SiteFooter";
@@ -86,6 +87,7 @@ export default async function LandingPage() {
         </section>
 
         <HowItWorks />
+        <PricingPlans />
 
         <MembersFeedGate />
 
