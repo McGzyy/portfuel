@@ -8,8 +8,10 @@ import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { TierComparisonTable } from "@/components/marketing/TierComparisonTable";
 import { CompleteCheckoutButton } from "@/components/billing/BillingActions";
 import type { MembershipTier } from "@/lib/stripe/config";
+import { PLAN_BY_TIER, PLAN_ORDER, TIER_COMPARISON_ROWS } from "@/lib/marketing/plans";
 import { cn } from "@/lib/utils";
 
 type Step = "plan" | "account" | "done";
@@ -22,13 +24,15 @@ export default function JoinPage() {
 
   const [stripeEnabled, setStripeEnabled] = useState<boolean | null>(null);
   const [step, setStep] = useState<Step>("plan");
-  const [selectedTier, setSelectedTier] = useState<MembershipTier>("pro");
+  const [selectedTier, setSelectedTier] = useState<MembershipTier>("member");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const selectedPlan = PLAN_BY_TIER[selectedTier];
 
   useEffect(() => {
     fetch("/api/stripe/status")
@@ -94,39 +98,48 @@ export default function JoinPage() {
   return (
     <div className="min-h-screen bg-[var(--pf-gray-50)]">
       <div className="border-b border-[var(--pf-border)] bg-white px-4 py-5 shadow-[var(--pf-shadow-sm)]">
-        <div className="mx-auto flex max-w-3xl justify-center">
+        <div className="mx-auto flex max-w-4xl justify-center">
           <Logo size="lg" />
         </div>
       </div>
       <div className="pf-hero-mesh border-b border-[var(--pf-border)] py-10 text-center">
         <p className="pf-eyebrow">Member intelligence</p>
-        <h1 className="pf-display mt-3 text-2xl sm:text-3xl">Access the full workspace</h1>
-        <p className="pf-lead mx-auto mt-3 max-w-lg text-sm">
+        <h1 className="pf-display mt-3 text-2xl sm:text-3xl">Join PortFuel</h1>
+        <p className="pf-lead mx-auto mt-3 max-w-xl text-sm">
           {stripeEnabled
-            ? "Choose a plan, create your account, and checkout securely with Stripe. 2FA is required after activation."
-            : "Create your account — billing activates manually until Stripe keys are configured."}
+            ? "Pick Member or Pro Intelligence, create your account, and checkout with Stripe. Upgrade anytime from profile — 2FA required after activation."
+            : "Create your account — billing activates manually until Stripe is configured on this environment."}
         </p>
       </div>
-      <div className="mx-auto max-w-3xl px-4 py-10">
+      <div className="mx-auto max-w-4xl px-4 py-10">
         {cancelled ? (
-          <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-4 py-3 text-sm text-[var(--pf-gray-600)]">
-            Checkout was cancelled. Pick a plan and try again when you&apos;re ready.
+          <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-amber-200/80 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            Checkout was cancelled. Your plan selection is saved — pick a tier below and continue
+            when you&apos;re ready.
           </div>
         ) : null}
 
         {pending ? (
           <Card className="pf-card-elevated mb-6 border-0 shadow-[var(--pf-shadow-lg)]">
-            <CardContent className="space-y-4 py-8">
-              <p className="text-center text-sm text-[var(--pf-gray-600)]">
-                Your account is registered but membership isn&apos;t active yet. Complete
-                Stripe checkout or wait for admin activation.
-              </p>
+            <CardContent className="space-y-5 py-8">
+              <div className="text-center">
+                <p className="text-sm font-semibold text-[var(--pf-black)]">
+                  Complete membership checkout
+                </p>
+                <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
+                  Your account exists but isn&apos;t active yet. Choose the plan that fits — Member
+                  is the full workspace; Pro adds research tools and 6 calls/week.
+                </p>
+              </div>
               {stripeEnabled ? (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <CompleteCheckoutButton tier="member" label="Checkout — Member $79/mo" />
+                  <CompleteCheckoutButton
+                    tier="member"
+                    label={`Member — ${PLAN_BY_TIER.member.price}${PLAN_BY_TIER.member.period}`}
+                  />
                   <CompleteCheckoutButton
                     tier="pro"
-                    label="Checkout — Pro $129/mo"
+                    label={`Pro — ${PLAN_BY_TIER.pro.price}${PLAN_BY_TIER.pro.period}`}
                   />
                 </div>
               ) : null}
@@ -140,72 +153,97 @@ export default function JoinPage() {
         ) : null}
 
         {step === "plan" && !pending ? (
-          <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
-            <CardHeader>
-              <p className="pf-eyebrow">Plans</p>
-              <h1 className="mt-2 text-2xl font-bold tracking-tight">Choose your tier</h1>
-              <p className="mt-2 text-[var(--pf-gray-600)]">
-                {stripeEnabled
-                  ? "You’ll create your account next, then pay via Stripe Checkout."
-                  : "Stripe is not configured on this environment — accounts stay pending until activated."}
+          <div className="space-y-8">
+            <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
+              <CardHeader>
+                <p className="pf-eyebrow">Step 1 of 2</p>
+                <h2 className="mt-2 text-2xl font-bold tracking-tight">Choose your plan</h2>
+                <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
+                  {selectedPlan.tagline}
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {PLAN_ORDER.map((tier) => {
+                    const plan = PLAN_BY_TIER[tier];
+                    return (
+                      <PlanCard
+                        key={tier}
+                        tier={tier}
+                        name={plan.name}
+                        price={plan.price}
+                        period={plan.period}
+                        tagline={plan.tagline}
+                        features={plan.features}
+                        highlight={plan.highlight}
+                        selected={selectedTier === tier}
+                        onSelect={() => setSelectedTier(tier)}
+                      />
+                    );
+                  })}
+                </div>
+                <Button className="w-full" size="lg" onClick={() => setStep("account")}>
+                  Continue with {selectedPlan.name} — {selectedPlan.price}
+                  {selectedPlan.period}
+                </Button>
+                <p className="text-center text-xs text-[var(--pf-gray-500)]">
+                  Cancel anytime in Stripe · Prorated upgrade Member → Pro
+                </p>
+                <p className="text-center text-sm text-[var(--pf-gray-500)]">
+                  Already registered?{" "}
+                  <Link href="/login" className="font-semibold text-[var(--pf-red)] hover:underline">
+                    Sign in
+                  </Link>
+                </p>
+              </CardContent>
+            </Card>
+
+            <div>
+              <p className="text-center text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                Full comparison
               </p>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <PlanCard
-                  name="Member"
-                  price="$79"
-                  period="/mo"
-                  tier="member"
-                  selected={selectedTier === "member"}
-                  onSelect={() => setSelectedTier("member")}
-                  features={[
-                    "Full member workspace & feed",
-                    "Ticker charts + call markers",
-                    "Profile performance curve",
-                    "Rankings & community votes",
-                  ]}
-                />
-                <PlanCard
-                  name="Pro Intelligence"
-                  price="$129"
-                  period="/mo"
-                  tier="pro"
-                  selected={selectedTier === "pro"}
-                  highlight
-                  onSelect={() => setSelectedTier("pro")}
-                  features={[
-                    "Everything in Member",
-                    "Pro market intel (news, filings)",
-                    "Advanced feed & leaderboard analytics",
-                    "Higher call limits",
-                  ]}
+              <div className="mt-4">
+                <TierComparisonTable
+                  rows={TIER_COMPARISON_ROWS}
+                  highlightTier={selectedTier}
+                  compact
                 />
               </div>
-              <Button className="w-full" size="lg" onClick={() => setStep("account")}>
-                Continue with {selectedTier === "pro" ? "Pro" : "Member"}
-              </Button>
-              <p className="text-center text-sm text-[var(--pf-gray-500)]">
-                Already registered?{" "}
-                <Link href="/login" className="font-semibold text-[var(--pf-red)] hover:underline">
-                  Sign in
-                </Link>
-              </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ) : null}
 
         {step === "account" && !pending ? (
           <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
             <CardHeader>
-              <h1 className="text-xl font-bold tracking-tight">Account details</h1>
-              <p className="mt-1.5 text-sm text-[var(--pf-gray-500)]">
-                Plan:{" "}
-                <span className="font-semibold text-[var(--pf-black)]">
-                  {selectedTier === "pro" ? "Pro Intelligence" : "Member"} ($
-                  {selectedTier === "pro" ? "129" : "79"}/mo)
-                </span>
-                . Username is permanent.
+              <p className="pf-eyebrow">Step 2 of 2</p>
+              <h2 className="mt-2 text-xl font-bold tracking-tight">Create your account</h2>
+              <div className="mt-4 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                  Your plan
+                </p>
+                <p className="mt-1 font-bold text-[var(--pf-black)]">
+                  {selectedPlan.name} · {selectedPlan.price}
+                  {selectedPlan.period}
+                </p>
+                <ul className="mt-3 space-y-1.5">
+                  {selectedPlan.features.map((f) => (
+                    <li key={f} className="flex gap-2 text-xs text-[var(--pf-gray-600)]">
+                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--pf-red)]" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  className="mt-3 text-xs font-semibold text-[var(--pf-red)] hover:underline"
+                  onClick={() => setStep("plan")}
+                >
+                  Change plan
+                </button>
+              </div>
+              <p className="mt-4 text-sm text-[var(--pf-gray-500)]">
+                Username is permanent and appears on your public track record.
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -284,7 +322,7 @@ export default function JoinPage() {
                 {loading
                   ? "Please wait…"
                   : stripeEnabled
-                    ? "Create account & checkout"
+                    ? `Pay ${selectedPlan.price}${selectedPlan.period} — Stripe checkout`
                     : "Create account"}
               </Button>
               <button
@@ -304,13 +342,13 @@ export default function JoinPage() {
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
                 <Check className="h-7 w-7" strokeWidth={2.5} />
               </div>
-              <h1 className="text-2xl font-bold tracking-tight">Account created</h1>
+              <h2 className="text-2xl font-bold tracking-tight">Account created</h2>
               <p className="mt-2 text-[var(--pf-gray-600)]">
                 Username{" "}
-                <span className="font-mono font-bold text-[var(--pf-black)]">@{username}</span>{" "}
-                is reserved.
+                <span className="font-mono font-bold text-[var(--pf-black)]">@{username}</span> is
+                reserved for {selectedPlan.name}.
                 {stripeEnabled
-                  ? " Complete checkout from sign-in if you weren’t redirected."
+                  ? " Complete checkout from sign-in if you weren't redirected."
                   : " Sign in after an admin activates your membership, then set up 2FA."}
               </p>
               <Button className="mt-8" size="lg" onClick={() => router.push("/login")}>
@@ -328,6 +366,7 @@ function PlanCard({
   name,
   price,
   period,
+  tagline,
   tier,
   features,
   highlight,
@@ -337,6 +376,7 @@ function PlanCard({
   name: string;
   price: string;
   period: string;
+  tagline: string;
   tier: MembershipTier;
   features: string[];
   highlight?: boolean;
@@ -352,20 +392,27 @@ function PlanCard({
         selected
           ? "border-[var(--pf-red)] ring-2 ring-[var(--pf-red)]/30 shadow-[var(--pf-shadow-md)]"
           : "border-[var(--pf-border)] bg-white hover:border-[var(--pf-gray-300)]",
-        highlight && !selected && "border-[var(--pf-red)]/40 bg-gradient-to-b from-[var(--pf-red-muted)] to-white"
+        highlight &&
+          !selected &&
+          "border-[var(--pf-red)]/40 bg-gradient-to-b from-[var(--pf-red-muted)] to-white"
       )}
     >
       {highlight ? (
         <span className="inline-block rounded-full bg-[var(--pf-red)] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-          Popular
+          Best for research
         </span>
-      ) : null}
+      ) : (
+        <span className="inline-block rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--pf-gray-500)]">
+          Full workspace
+        </span>
+      )}
       <h3 className="mt-2 text-lg font-bold tracking-tight">{name}</h3>
-      <p className="mt-2">
+      <p className="mt-1 text-xs leading-relaxed text-[var(--pf-gray-500)]">{tagline}</p>
+      <p className="mt-3">
         <span className="text-3xl font-bold tracking-tight">{price}</span>
         <span className="text-[var(--pf-gray-500)]">{period}</span>
       </p>
-      <ul className="mt-4 space-y-2.5">
+      <ul className="mt-4 space-y-2">
         {features.map((f) => (
           <li key={f} className="flex gap-2 text-sm text-[var(--pf-gray-600)]">
             <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--pf-red)]" strokeWidth={2.5} />
@@ -374,7 +421,7 @@ function PlanCard({
         ))}
       </ul>
       <p className="mt-4 text-xs font-semibold text-[var(--pf-red)]">
-        {selected ? "Selected" : "Select plan"}
+        {selected ? "Selected" : `Select ${tier === "pro" ? "Pro" : "Member"}`}
       </p>
     </button>
   );

@@ -85,10 +85,10 @@ export default function JoinSuccessPage() {
             </div>
             <h1 className="mt-6 text-2xl font-bold">You&apos;re in</h1>
             <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
-              Membership is active.{" "}
+              Membership is active — feed, watchlist, Fueled desk, and your track record are ready.{" "}
               {needs2fa
                 ? "Set up two-factor authentication to enter the workspace."
-                : "Head to your dashboard."}
+                : "Open your dashboard to explore the member feed or follow top callers from rankings."}
             </p>
             <Button
               className="mt-8"
