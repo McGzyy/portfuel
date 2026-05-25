@@ -70,6 +70,7 @@ feature/phase-3-stripe-billing
 | Member vs Pro tier + Pro gates | ✅ | `membership_tier` on users |
 | Stripe Customer Portal | ✅ | Profile → Manage billing |
 | Real Terms / Privacy copy | ✅ | `/terms`, `/privacy`; required on `/join` |
+| Value audit & feature roadmap | ✅ | See [VALUE-ROADMAP.md](./VALUE-ROADMAP.md) |
 
 ---
 

@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { HotTickersStrip } from "@/components/dashboard/HotTickersStrip";
 import { OverviewHero } from "@/components/dashboard/OverviewHero";
 import { OverviewShortcutBar } from "@/components/dashboard/OverviewShortcutBar";
 import { OverviewCommunityPulse } from "@/components/dashboard/OverviewCommunityPulse";
+import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
+import { ProValueCard } from "@/components/pro/ProValueCard";
+import { getHotTickersFromCalls } from "@/lib/calls/hot-tickers";
+import { fetchWeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerformanceChart";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
@@ -67,21 +72,30 @@ export default async function DashboardOverviewPage({
   const memberStats = await loadMemberStats(session.userId);
 
   const performingCalls = (await loadFeedCalls("performing")).map(mapCallForCard);
+  const latestCalls = (await loadFeedCalls("latest")).map(mapCallForCard);
   const communityPulse = summarizeFeed(performingCalls);
+  const hotTickers = getHotTickersFromCalls(
+    latestCalls.map((c) => ({ symbol: c.symbol, return_pct: c.return_pct })),
+    8
+  );
+  const weeklyQuota = await fetchWeeklyQuotaStatus(
+    session.userId,
+    session.membershipTier ?? null
+  );
 
   const ownProfile = await fetchOwnProfile(session);
   const ownCalls = ownProfile.calls;
   const performanceSeries = buildCumulativeReturnSeries(ownCalls);
 
-  const latestPreviews = (await loadFeedCalls("latest"))
+  const latestPreviews = latestCalls
     .filter((c) => !c.is_fueled)
     .slice(0, 5)
-    .map((c) => toPreview(mapCallForCard(c)));
+    .map((c) => toPreview(c));
 
-  const fueledPreviews = (await loadFeedCalls("latest"))
+  const fueledPreviews = latestCalls
     .filter((c) => c.is_fueled)
     .slice(0, 3)
-    .map((c) => toPreview(mapCallForCard(c)));
+    .map((c) => toPreview(c));
 
   let watchlistPreview: Awaited<ReturnType<typeof fetchWatchlist>> = [];
   try {
@@ -105,6 +119,12 @@ export default async function DashboardOverviewPage({
       />
 
       <OverviewShortcutBar />
+
+      <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} />
+
+      {proLocked ? <ProValueCard /> : null}
+
+      <HotTickersStrip tickers={hotTickers} />
 
       <OverviewCommunityPulse
         summary={communityPulse}

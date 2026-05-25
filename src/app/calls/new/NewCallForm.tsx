@@ -13,9 +13,19 @@ import { Label } from "@/components/ui/label";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Card, CardContent } from "@/components/ui/card";
 import { TradeSetupPreview } from "@/components/calls/TradeSetupPreview";
+import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
 import type { HeaderUser } from "@/lib/auth/session-user";
+import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 
-export function NewCallForm({ user }: { user: HeaderUser }) {
+export function NewCallForm({
+  user,
+  weeklyQuota,
+  showUpgrade,
+}: {
+  user: HeaderUser;
+  weeklyQuota: WeeklyQuotaStatus;
+  showUpgrade?: boolean;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialAsset =
@@ -111,6 +121,8 @@ export function NewCallForm({ user }: { user: HeaderUser }) {
         description="Share your thesis with members. Stocks get news and filings on the ticker page; crypto must be on major exchanges."
         className="border-none pb-4"
       />
+
+      <MemberQuotaStrip quota={weeklyQuota} showUpgrade={showUpgrade} className="mb-6" />
 
       <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
         <CardContent className="pt-6">
