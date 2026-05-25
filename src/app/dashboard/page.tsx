@@ -33,6 +33,7 @@ import {
 import { FollowingFeedPanel } from "@/components/dashboard/FollowingFeedPanel";
 import { fetchFollowingIds, fetchFollowingMembers } from "@/lib/follows/service";
 import { filterCallsByFollowing } from "@/lib/calls/filter-feed";
+import { fetchDeskBrief } from "@/lib/desk/brief";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import { formatPct, formatPrice } from "@/lib/utils";
 
@@ -120,6 +121,8 @@ export default async function DashboardOverviewPage({
     /* optional */
   }
 
+  const deskBrief = await fetchDeskBrief();
+
   const displayLabel =
     session.displayName ??
     (session.role === "admin" ? "Administrator" : session.username);
@@ -142,7 +145,11 @@ export default async function DashboardOverviewPage({
 
       <HotTickersStrip tickers={hotTickers} />
 
-      <FueledDeskHero featured={featuredDesk} totalDeskCalls={fueledCalls.length} />
+      <FueledDeskHero
+        featured={featuredDesk}
+        totalDeskCalls={fueledCalls.length}
+        weeklyNote={deskBrief.weeklyNote}
+      />
 
       <FollowingFeedPanel following={followingMembers} previews={followingPreviews} />
 

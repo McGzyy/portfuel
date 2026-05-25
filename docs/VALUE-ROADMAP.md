@@ -109,7 +109,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 |------|----------------|-------------|
 | Overview | Good hero + sparkline | Add hot tickers, quota, Pro card, desk promo |
 | Feed | Strong cards | Hype badge, ✅ “new since last visit,” Pro analytics table |
-| Desk | Distinct dark lane | Weekly desk note / pinned thesis |
+| Desk | Distinct dark lane | ✅ Weekly desk note / pinned thesis (admin → Desk tab) |
 | Watchlist | Functional | Live % change column, alerts (Pro) |
 | Ticker | Best page | Cross-link intel from watchlist; Pro preview blur |
 | Rankings | Clean | Member sparklines, ✅ trusted badge explainer |

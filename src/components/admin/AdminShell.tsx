@@ -5,15 +5,24 @@ import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { AdminMembersPanel } from "@/components/admin/AdminMembersPanel";
 import { AdminAnalyticsPanel } from "@/components/admin/AdminAnalyticsPanel";
+import { AdminDeskPanel } from "@/components/admin/AdminDeskPanel";
 
 const tabs = [
   { id: "members", label: "Members" },
   { id: "analytics", label: "Analytics" },
+  { id: "desk", label: "Desk" },
 ] as const;
+
+type AdminTab = (typeof tabs)[number]["id"];
+
+function parseTab(raw: string | null): AdminTab {
+  if (raw === "analytics" || raw === "desk") return raw;
+  return "members";
+}
 
 export function AdminShell() {
   const searchParams = useSearchParams();
-  const tab = searchParams.get("tab") === "analytics" ? "analytics" : "members";
+  const tab = parseTab(searchParams.get("tab"));
 
   return (
     <>
@@ -36,7 +45,13 @@ export function AdminShell() {
           </Link>
         ))}
       </nav>
-      {tab === "analytics" ? <AdminAnalyticsPanel /> : <AdminMembersPanel />}
+      {tab === "analytics" ? (
+        <AdminAnalyticsPanel />
+      ) : tab === "desk" ? (
+        <AdminDeskPanel />
+      ) : (
+        <AdminMembersPanel />
+      )}
     </>
   );
 }

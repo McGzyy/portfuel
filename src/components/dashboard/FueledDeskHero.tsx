@@ -8,9 +8,11 @@ import { formatPct, timeAgo } from "@/lib/utils";
 export function FueledDeskHero({
   featured,
   totalDeskCalls,
+  weeklyNote,
 }: {
   featured: CallPreviewData | null;
   totalDeskCalls: number;
+  weeklyNote?: string | null;
 }) {
   const thesisPreview =
     featured?.thesis && featured.thesis.length > 160
@@ -50,6 +52,15 @@ export function FueledDeskHero({
           </Link>
         </div>
       </div>
+
+      {weeklyNote ? (
+        <p className="mt-5 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm leading-relaxed text-slate-300">
+          <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-red-300/90">
+            Desk note · this week
+          </span>
+          {weeklyNote.length > 220 ? `${weeklyNote.slice(0, 217)}…` : weeklyNote}
+        </p>
+      ) : null}
 
       {featured ? (
         <Link

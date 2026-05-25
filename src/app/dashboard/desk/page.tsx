@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import { CallCard } from "@/components/calls/CallCard";
+import { FueledDeskBrief } from "@/components/dashboard/FueledDeskBrief";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
+import { fetchDeskBrief } from "@/lib/desk/brief";
 import { loadFeedCalls, mapCallForCard } from "@/lib/dashboard/data";
 
+export const metadata: Metadata = {
+  title: "Fueled desk",
+};
+
 export default async function DashboardDeskPage() {
+  const deskBrief = await fetchDeskBrief();
   const latest = await loadFeedCalls("latest");
   const performing = await loadFeedCalls("performing");
   const hypeScores = await fetchHypeScoresBySymbols([
@@ -24,13 +31,17 @@ export default async function DashboardDeskPage() {
         description="Official PortFuel research — curated desk theses, clearly separated from the member feed."
       />
 
-      <section className="pf-fueled-desk p-6 sm:p-8">
-        <p className="pf-eyebrow">PortFuel research</p>
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-400">
-          These calls are published by the PortFuel desk. They carry the Fueled badge and represent
-          institutional-quality theses for the community.
-        </p>
-      </section>
+      <FueledDeskBrief brief={deskBrief} />
+
+      {!deskBrief.weeklyNote && !deskBrief.pinnedCall ? (
+        <section className="pf-fueled-desk mt-6 p-6 sm:p-8">
+          <p className="pf-eyebrow">PortFuel research</p>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-400">
+            These calls are published by the PortFuel desk. They carry the Fueled badge and
+            represent institutional-quality theses for the community.
+          </p>
+        </section>
+      ) : null}
 
       <section className="mt-8">
         <h2 className="mb-4 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
@@ -42,9 +53,11 @@ export default async function DashboardDeskPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {fueledLatest.map((call) => (
-              <CallCard key={call.id} call={call} interactive />
-            ))}
+            {fueledLatest
+              .filter((call) => call.id !== deskBrief.pinnedCall?.id)
+              .map((call) => (
+                <CallCard key={call.id} call={call} interactive />
+              ))}
           </div>
         )}
       </section>
