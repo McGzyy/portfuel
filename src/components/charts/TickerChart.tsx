@@ -12,6 +12,11 @@ import {
   type Time,
   type SeriesMarker,
 } from "lightweight-charts";
+import {
+  PF_CHART,
+  chartGridOptions,
+  chartLayoutOptions,
+} from "@/lib/charts/theme";
 
 export type ChartMarker = {
   time: number;
@@ -45,26 +50,36 @@ export function TickerChart({
 
     const chart = createChart(containerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: "#ffffff" },
-        textColor: "#374151",
+        background: { type: ColorType.Solid, color: PF_CHART.layout.background },
+        textColor: PF_CHART.layout.text,
+        fontFamily: chartLayoutOptions().fontFamily,
+        fontSize: chartLayoutOptions().fontSize,
       },
-      grid: {
-        vertLines: { color: "#f3f4f6" },
-        horzLines: { color: "#f3f4f6" },
-      },
+      grid: chartGridOptions(),
       width: containerRef.current.clientWidth,
-      height: 380,
-      timeScale: { borderColor: "#e5e7eb" },
-      rightPriceScale: { borderColor: "#e5e7eb" },
+      height: PF_CHART.height,
+      timeScale: {
+        borderColor: PF_CHART.border,
+        timeVisible: true,
+        secondsVisible: false,
+      },
+      rightPriceScale: {
+        borderColor: PF_CHART.border,
+        scaleMargins: { top: 0.08, bottom: 0.12 },
+      },
+      crosshair: {
+        vertLine: { color: "rgba(15, 20, 25, 0.12)", labelBackgroundColor: "#0f1419" },
+        horzLine: { color: "rgba(15, 20, 25, 0.12)", labelBackgroundColor: "#0f1419" },
+      },
     });
 
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: "#10b981",
-      downColor: "#e31b23",
-      borderUpColor: "#10b981",
-      borderDownColor: "#e31b23",
-      wickUpColor: "#10b981",
-      wickDownColor: "#e31b23",
+      upColor: PF_CHART.candle.up,
+      downColor: PF_CHART.candle.down,
+      borderUpColor: PF_CHART.candle.up,
+      borderDownColor: PF_CHART.candle.down,
+      wickUpColor: PF_CHART.candle.wickUp,
+      wickDownColor: PF_CHART.candle.wickDown,
     });
 
     chartRef.current = chart;
@@ -102,7 +117,7 @@ export function TickerChart({
     const seriesMarkers: SeriesMarker<Time>[] = markers.map((m) => ({
       time: m.time as Time,
       position: "aboveBar",
-      color: m.color ?? "#E31B23",
+      color: m.color ?? PF_CHART.marker.default,
       shape: "circle",
       text: m.label,
     }));
@@ -111,10 +126,5 @@ export function TickerChart({
     chartRef.current?.timeScale().fitContent();
   }, [candles, markers]);
 
-  return (
-    <div
-      ref={containerRef}
-      className="w-full overflow-hidden rounded-xl border border-[var(--pf-border)]"
-    />
-  );
+  return <div ref={containerRef} className="h-[400px] w-full min-h-[320px]" />;
 }

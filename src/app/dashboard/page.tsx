@@ -15,6 +15,10 @@ import {
 } from "@/lib/dashboard/data";
 import { buildFeedHref } from "@/lib/dashboard/nav";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
+import {
+  isProIntelligenceLocked,
+  sessionToProContext,
+} from "@/lib/features/pro-intelligence";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import { formatPct, formatPrice } from "@/lib/utils";
 
@@ -53,6 +57,7 @@ export default async function DashboardOverviewPage({
   }
 
   const session = await requireDashboardSession();
+  const proLocked = isProIntelligenceLocked(sessionToProContext(session));
   const memberStats = await loadMemberStats(session.userId);
 
   const performingCalls = (await loadFeedCalls("performing")).map(mapCallForCard);
@@ -91,7 +96,7 @@ export default async function DashboardOverviewPage({
 
       <OverviewShortcutBar />
 
-      <OverviewCommunityPulse summary={communityPulse} />
+      <OverviewCommunityPulse summary={communityPulse} proLocked={proLocked} />
 
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="lg:col-span-8">

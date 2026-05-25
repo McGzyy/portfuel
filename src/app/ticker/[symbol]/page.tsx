@@ -4,7 +4,9 @@ import { Plus } from "lucide-react";
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
+import { ChartFrame } from "@/components/charts/ChartFrame";
 import { TickerChartClient } from "@/components/charts/TickerChartClient";
+import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import { TickerIntelPanel } from "@/components/ticker/TickerIntelPanel";
 import { CallThesisBlock } from "@/components/calls/CallThesisBlock";
 import { TickerChartLegend } from "@/components/ticker/TickerChartLegend";
@@ -19,6 +21,10 @@ import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { summarizeTickerCommunity } from "@/lib/calls/ticker-community-stats";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
+import {
+  isProIntelligenceLocked,
+  sessionToProContext,
+} from "@/lib/features/pro-intelligence";
 
 export async function generateMetadata({
   params,
@@ -52,6 +58,7 @@ export default async function TickerPage({
   }
 
   const communityStats = summarizeTickerCommunity(intel?.calls ?? []);
+  const proLocked = isProIntelligenceLocked(sessionToProContext(session));
 
   const emptyIntel = {
     symbol,
@@ -79,26 +86,38 @@ export default async function TickerPage({
           backLabel="Watchlist"
         />
 
-        <div className="pf-ticker-chart-frame mt-8">
+        <ChartFrame
+          className="mt-8"
+          title="Price history"
+          subtitle="Member call markers on the chart"
+          legend={
+            intel?.candles?.length ? (
+              <TickerChartLegend callCount={intel.markers?.length ?? 0} embedded />
+            ) : undefined
+          }
+        >
           {intel?.candles?.length ? (
-            <>
-              <TickerChartClient candles={intel.candles} markers={intel.markers ?? []} />
-              <TickerChartLegend callCount={intel.markers?.length ?? 0} />
-            </>
+            <TickerChartClient candles={intel.candles} markers={intel.markers ?? []} />
           ) : (
-            <div className="flex h-[380px] flex-col items-center justify-center gap-2 px-6 text-center text-sm text-[var(--pf-gray-500)]">
+            <div className="flex h-[400px] flex-col items-center justify-center gap-2 px-6 text-center text-sm text-[var(--pf-gray-500)]">
               <p className="font-medium text-[var(--pf-gray-600)]">Chart unavailable</p>
               <p className="max-w-sm text-xs">
                 Price history loads from market data. Check your API key or try another symbol.
               </p>
             </div>
           )}
-        </div>
+        </ChartFrame>
       </section>
 
       <TickerCommunityBar stats={communityStats} />
 
-      <TickerIntelPanel intel={intel ?? emptyIntel} />
+      <ProIntelligenceGate
+        locked={proLocked}
+        title="Pro market intel"
+        description="News, earnings, SEC filings, and company stats — unlocked with PortFuel member access."
+      >
+        <TickerIntelPanel intel={intel ?? emptyIntel} />
+      </ProIntelligenceGate>
 
       <section className="border-t border-[var(--pf-border)] pt-10">
         <WorkspacePageHeader

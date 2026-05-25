@@ -14,7 +14,11 @@ import {
   type FeedFilter,
 } from "@/lib/calls/filter-feed";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
-import { loadFeedCalls, mapCallForCard } from "@/lib/dashboard/data";
+import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
+import {
+  isProIntelligenceLocked,
+  sessionToProContext,
+} from "@/lib/features/pro-intelligence";
 
 export const metadata: Metadata = {
   title: "Member feed",
@@ -30,6 +34,9 @@ export default async function DashboardFeedPage({
 }: {
   searchParams: Promise<{ tab?: string; filter?: string; q?: string }>;
 }) {
+  const session = await requireDashboardSession();
+  const proLocked = isProIntelligenceLocked(sessionToProContext(session));
+
   const { tab, filter: filterParam, q } = await searchParams;
   const mode = tab === "performing" ? "performing" : "latest";
   const feedFilter = parseFilter(filterParam);
@@ -62,7 +69,7 @@ export default async function DashboardFeedPage({
 
       {feedSummary.count > 0 ? (
         <div className="mt-6">
-          <FeedSummaryBar summary={feedSummary} mode={mode} />
+          <FeedSummaryBar summary={feedSummary} mode={mode} proLocked={proLocked} />
         </div>
       ) : null}
 
