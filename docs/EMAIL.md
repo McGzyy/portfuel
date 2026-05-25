@@ -7,7 +7,7 @@ PortFuel sends **in-app** notifications plus optional **email** via [Resend](htt
 | Channel | Event |
 |--------|--------|
 | In-app | Comments, votes, watchlist new calls |
-| Instant email | Watchlist new call, comment on your call |
+| Instant email | Watchlist new call, comment on your call, followed member new call |
 | Weekly digest | Desk stats, hot calls, unread count (Mondays 14:00 UTC) |
 
 Votes do not trigger email (too noisy).

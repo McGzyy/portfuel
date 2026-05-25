@@ -233,3 +233,34 @@ export async function notifyWatchlistNewCall(opts: {
     });
   }
 }
+
+export async function notifyFollowedMemberNewCall(opts: {
+  callId: string;
+  symbol: string;
+  callerUserId: string;
+  callerUsername: string;
+  callerDisplayName: string | null;
+  direction: string;
+}) {
+  if (isDemoMode()) return;
+
+  const db = createServiceClient();
+  const { data: followers } = await db
+    .from("user_follows")
+    .select("follower_id")
+    .eq("following_id", opts.callerUserId);
+
+  const name = opts.callerDisplayName ?? opts.callerUsername;
+  for (const f of followers ?? []) {
+    const row = f as { follower_id: string };
+    await createNotification({
+      userId: row.follower_id,
+      type: "followed_member_call",
+      title: `${name} published a new call`,
+      body: `${opts.symbol} · ${opts.direction} thesis`,
+      href: `/ticker/${opts.symbol}`,
+      refCallId: opts.callId,
+      actorUserId: opts.callerUserId,
+    });
+  }
+}

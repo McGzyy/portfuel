@@ -63,8 +63,8 @@ export function ProfileEmailSection() {
         Email alerts
       </p>
       <p className="mt-2 text-sm text-[var(--pf-gray-500)]">
-        Get a weekly workspace digest and instant emails when someone comments on your call or
-        posts on a ticker in your watchlist.
+        Get a weekly workspace digest and instant emails when someone comments on your call, posts
+        on a watchlist ticker, or publishes a call from a member you follow.
       </p>
 
       {!prefs.emailConfigured ? (

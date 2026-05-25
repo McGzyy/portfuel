@@ -77,7 +77,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 2. ✅ **Hot tickers** on overview — symbols with most community activity (wired `HotTickersStrip`).
 3. ✅ **Pro value card** on overview when locked — checklist of what Pro unlocks + upgrade CTA.
 4. ✅ **Hype badge on feed cards** — symbols with hype ≥ 15 show on `CallCard`.
-5. **Fueled desk hero** on overview — stronger CTA to desk (house IP).
+5. **Fueled desk hero** on overview — stronger CTA to desk (house IP). *(still open)*
 
 ### Next (high ROI, ~1 week)
 6. ✅ **Watchlist move alerts** — % since add (`baseline_price` migration); Pro sees alert strip ±5%.
@@ -88,9 +88,9 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 10. **Expand Pro analytics** — distribution chart on profile; feed “top target progress” table.
 
 ### After that (differentiation)
-11. **Follow members** — feed filter for followed usernames.
+11. ✅ **Follow members** — profile follow button, **Following** feed filter, overview panel, alerts when followed members publish.
 12. ✅ **In-app notifications** — bell + `/notifications`; comments, votes, watchlist calls.
-13. **Email digest** — weekly summary (after in-app).
+13. ✅ **Email digest** — weekly summary (Resend; enable when domain verified).
 13. **Messaging** (original vision) — DMs or threaded replies.
 14. **Screener lite** — “most called this week,” “best 30d return,” export CSV (Pro).
 15. **Admin time-series charts** — signups, MRR proxy, calls/day (`docs/CHARTS.md` step 5).

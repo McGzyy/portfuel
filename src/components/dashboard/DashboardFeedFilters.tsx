@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 
 const filters = [
   { key: "all", label: "All members" },
+  { key: "following", label: "Following" },
   { key: "equity", label: "Stocks" },
   { key: "crypto", label: "Crypto" },
 ] as const;

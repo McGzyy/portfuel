@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, MessageSquare, ThumbsUp, TrendingUp } from "lucide-react";
+import { Bell, MessageSquare, ThumbsUp, TrendingUp, UserPlus } from "lucide-react";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { Button } from "@/components/ui/button";
 import { cn, timeAgo } from "@/lib/utils";
@@ -17,6 +17,8 @@ function iconForType(type: NotificationType) {
       return ThumbsUp;
     case "comment_on_call":
       return MessageSquare;
+    case "followed_member_call":
+      return UserPlus;
     default:
       return Bell;
   }

@@ -29,6 +29,9 @@ import {
   isProIntelligenceLocked,
   sessionToProContext,
 } from "@/lib/features/pro-intelligence";
+import { FollowingFeedPanel } from "@/components/dashboard/FollowingFeedPanel";
+import { fetchFollowingIds, fetchFollowingMembers } from "@/lib/follows/service";
+import { filterCallsByFollowing } from "@/lib/calls/filter-feed";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import { formatPct, formatPrice } from "@/lib/utils";
 
@@ -94,6 +97,12 @@ export default async function DashboardOverviewPage({
   const ownCalls = ownProfile.calls;
   const performanceSeries = buildCumulativeReturnSeries(ownCalls);
 
+  const followingMembers = await fetchFollowingMembers(session.userId);
+  const followingIds = new Set(await fetchFollowingIds(session.userId));
+  const followingPreviews = filterCallsByFollowing(latestRaw, followingIds)
+    .slice(0, 4)
+    .map((c) => toPreview(mapCallForCard(c, hypeScores)));
+
   const latestPreviews = latestCalls
     .filter((c) => !c.is_fueled)
     .slice(0, 5)
@@ -132,6 +141,8 @@ export default async function DashboardOverviewPage({
       {proLocked ? <ProValueCard /> : null}
 
       <HotTickersStrip tickers={hotTickers} />
+
+      <FollowingFeedPanel following={followingMembers} previews={followingPreviews} />
 
       <OverviewCommunityPulse
         summary={communityPulse}

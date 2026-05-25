@@ -12,9 +12,11 @@ import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { Button } from "@/components/ui/button";
 import {
   filterCallsFeed,
+  filterCallsByFollowing,
   filterCallsBySearch,
   type FeedFilter,
 } from "@/lib/calls/filter-feed";
+import { fetchFollowingIds } from "@/lib/follows/service";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
 import {
@@ -28,7 +30,14 @@ export const metadata: Metadata = {
 };
 
 function parseFilter(raw?: string): FeedFilter {
-  if (raw === "fueled" || raw === "equity" || raw === "crypto") return raw;
+  if (
+    raw === "fueled" ||
+    raw === "equity" ||
+    raw === "crypto" ||
+    raw === "following"
+  ) {
+    return raw;
+  }
   return "all";
 }
 
@@ -48,9 +57,16 @@ export default async function DashboardFeedPage({
   const searchQuery = q?.trim() ?? "";
 
   const allFeedCalls = await loadFeedCalls(mode);
+  let memberCalls = allFeedCalls.filter((c) => !c.is_fueled);
+
+  if (feedFilter === "following") {
+    const followingIds = new Set(await fetchFollowingIds(session.userId));
+    memberCalls = filterCallsByFollowing(memberCalls, followingIds);
+  }
+
   let calls = filterCallsFeed(
-    allFeedCalls.filter((c) => !c.is_fueled),
-    feedFilter === "fueled" ? "all" : feedFilter
+    memberCalls,
+    feedFilter === "fueled" || feedFilter === "following" ? "all" : feedFilter
   );
   calls = filterCallsBySearch(calls, searchQuery);
   const hypeScores = await fetchHypeScoresBySymbols(calls.map((c) => c.symbol));
@@ -95,11 +111,19 @@ export default async function DashboardFeedPage({
           <div className="pf-workspace-panel px-6 py-16 text-center">
             <p className="font-medium text-[var(--pf-gray-700)]">No calls match this view</p>
             <p className="mt-2 text-sm text-[var(--pf-gray-500)]">
-              Try different filters or publish a new thesis.
+              {feedFilter === "following"
+                ? "Follow members from rankings or their profile to see their calls here."
+                : "Try different filters or publish a new thesis."}
             </p>
-            <Link href="/calls/new" className="mt-6 inline-block">
-              <Button>Submit a call</Button>
-            </Link>
+            {feedFilter === "following" ? (
+              <Link href="/rankings" className="mt-6 inline-block">
+                <Button variant="outline">Browse rankings</Button>
+              </Link>
+            ) : (
+              <Link href="/calls/new" className="mt-6 inline-block">
+                <Button>Submit a call</Button>
+              </Link>
+            )}
           </div>
         ) : (
           mapped.map((call) => (

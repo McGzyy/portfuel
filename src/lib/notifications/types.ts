@@ -1,4 +1,8 @@
-export type NotificationType = "comment_on_call" | "vote_on_call" | "watchlist_call";
+export type NotificationType =
+  | "comment_on_call"
+  | "vote_on_call"
+  | "watchlist_call"
+  | "followed_member_call";
 
 export type UserNotification = {
   id: string;

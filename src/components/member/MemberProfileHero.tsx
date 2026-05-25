@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { FollowMemberButton } from "@/components/member/FollowMemberButton";
 import { formatPct } from "@/lib/utils";
 import type { PublicMemberProfile } from "@/lib/users/public-profile";
 
 export function MemberProfileHero({
   member,
   isSelf,
+  initialFollowing,
 }: {
   member: PublicMemberProfile;
   isSelf?: boolean;
+  initialFollowing?: boolean;
 }) {
   const since = new Date(member.created_at).toLocaleDateString("en-US", {
     month: "short",
@@ -33,14 +36,23 @@ export function MemberProfileHero({
             ) : null}
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-            Rank score
-          </p>
-          <p className="text-3xl font-bold tabular-nums tracking-tight">
-            {member.rank_score.toFixed(1)}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">Member since {since}</p>
+        <div className="flex flex-col items-end gap-3 text-right">
+          {!isSelf ? (
+            <FollowMemberButton
+              memberId={member.id}
+              memberUsername={member.username}
+              initialFollowing={initialFollowing ?? false}
+            />
+          ) : null}
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+              Rank score
+            </p>
+            <p className="text-3xl font-bold tabular-nums tracking-tight">
+              {member.rank_score.toFixed(1)}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">Member since {since}</p>
+          </div>
         </div>
       </div>
 

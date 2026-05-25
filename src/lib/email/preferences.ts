@@ -30,7 +30,11 @@ export async function fetchEmailPrefs(userId: string): Promise<EmailPrefs | null
   };
 }
 
-const INSTANT_EMAIL_TYPES: NotificationType[] = ["watchlist_call", "comment_on_call"];
+const INSTANT_EMAIL_TYPES: NotificationType[] = [
+  "watchlist_call",
+  "comment_on_call",
+  "followed_member_call",
+];
 
 export function shouldSendInstantEmail(
   type: NotificationType,

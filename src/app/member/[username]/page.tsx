@@ -14,6 +14,7 @@ import {
 } from "@/components/dashboard/WorkspacePageHeader";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
+import { isFollowing } from "@/lib/follows/service";
 import { fetchMemberPublicCalls } from "@/lib/users/public-profile";
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { SITE_NAME } from "@/lib/seo/site";
@@ -51,6 +52,8 @@ export default async function MemberProfilePage({
   if (!member) notFound();
 
   const isSelf = session.username.toLowerCase() === member.username.toLowerCase();
+  const initialFollowing =
+    !isSelf && (await isFollowing(session.userId, member.id));
   const trackRecord = summarizeMemberTrackRecord(calls);
   const returnSeries = buildCumulativeReturnSeries(calls);
 
@@ -59,7 +62,11 @@ export default async function MemberProfilePage({
       <WorkspaceBackLink />
 
       <div className="mt-6">
-        <MemberProfileHero member={member} isSelf={isSelf} />
+        <MemberProfileHero
+          member={member}
+          isSelf={isSelf}
+          initialFollowing={initialFollowing}
+        />
       </div>
 
       <div className="mt-6">

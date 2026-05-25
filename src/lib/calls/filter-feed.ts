@@ -1,6 +1,14 @@
 import type { CallWithUser } from "@/lib/db/supabase";
 
-export type FeedFilter = "all" | "fueled" | "equity" | "crypto";
+export type FeedFilter = "all" | "fueled" | "equity" | "crypto" | "following";
+
+export function filterCallsByFollowing(
+  calls: CallWithUser[],
+  followingIds: Set<string>
+): CallWithUser[] {
+  if (followingIds.size === 0) return [];
+  return calls.filter((c) => followingIds.has(c.user_id));
+}
 
 export function filterCallsFeed(
   calls: CallWithUser[],

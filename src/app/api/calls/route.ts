@@ -4,7 +4,10 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { requireActiveMember } from "@/lib/auth/session";
 import { getQuote, getCryptoLastPrice } from "@/lib/market/finnhub";
 import { fetchCallsFeed } from "@/lib/calls/service";
-import { notifyWatchlistNewCall } from "@/lib/notifications/service";
+import {
+  notifyFollowedMemberNewCall,
+  notifyWatchlistNewCall,
+} from "@/lib/notifications/service";
 import { validateSymbol } from "@/lib/market/validate-symbol";
 
 const createSchema = z.object({
@@ -112,6 +115,15 @@ export async function POST(request: Request) {
       .eq("id", session.userId);
 
     void notifyWatchlistNewCall({
+      callId: call.id,
+      symbol: call.symbol,
+      callerUserId: session.userId,
+      callerUsername: session.username,
+      callerDisplayName: session.displayName,
+      direction: body.direction,
+    });
+
+    void notifyFollowedMemberNewCall({
       callId: call.id,
       symbol: call.symbol,
       callerUserId: session.userId,
