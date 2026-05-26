@@ -18,6 +18,7 @@ export const TIER_COMPARISON_ROWS: TierComparisonRow[] = [
   { feature: "Ticker compare (2–3 symbols)", member: false, pro: true },
   { feature: "Watchlist move & earnings alerts", member: false, pro: true },
   { feature: "Return distribution on profile", member: false, pro: true },
+  { feature: "AI thesis coach (educational)", member: "2/mo", pro: "30/mo" },
 ];
 
 export type PlanCardContent = {
@@ -56,6 +57,7 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
       "6 calls/week · news, earnings & SEC",
       "Screener, ticker compare & CSV export",
       "Watchlist move alerts & earnings calendar",
+      "30 AI thesis coach reviews + track-record context",
     ],
   },
 };

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Card, CardContent } from "@/components/ui/card";
 import { TradeSetupPreview } from "@/components/calls/TradeSetupPreview";
+import { ThesisCoachPanel } from "@/components/ai/ThesisCoachPanel";
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
 import type { HeaderUser } from "@/lib/auth/session-user";
 import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
@@ -21,10 +22,12 @@ export function NewCallForm({
   user,
   weeklyQuota,
   showUpgrade,
+  isPro,
 }: {
   user: HeaderUser;
   weeklyQuota: WeeklyQuotaStatus;
   showUpgrade?: boolean;
+  isPro: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -257,6 +260,21 @@ export function NewCallForm({
                 stopPrice={stopPrice}
               />
             </section>
+
+            <ThesisCoachPanel
+              isPro={isPro}
+              showUpgrade={showUpgrade}
+              draft={() => ({
+                symbol,
+                assetClass,
+                direction,
+                thesis,
+                entryPrice: entryPrice ? parseFloat(entryPrice) : null,
+                targetPrice: targetPrice ? parseFloat(targetPrice) : null,
+                stopPrice: stopPrice ? parseFloat(stopPrice) : null,
+                timeframeTag: timeframeTag || null,
+              })}
+            />
 
             {error ? (
               <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-sm text-[var(--pf-red)]">

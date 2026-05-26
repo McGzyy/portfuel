@@ -228,8 +228,9 @@ git push -u origin feature/phase-1-app-shell
 
 ## Supabase / ops checklist (once per environment)
 
-- [ ] All migrations applied in SQL Editor (including `20260524300000_username_password_auth.sql`, `20260524400000_user_watchlist.sql`, `20260524500000_stripe_billing.sql`, `20260524600000_watchlist_baseline.sql`, `20260524700000_user_notifications.sql`, `20260524800000_user_email_notifications.sql`, `20260524900000_user_follows.sql`, `20260525000000_desk_brief.sql`, `20260525100000_desk_portfolio.sql`, `20260525200000_desk_portfolio_notifications.sql`)
+- [ ] All migrations applied in SQL Editor (including `20260524300000_username_password_auth.sql`, `20260524400000_user_watchlist.sql`, `20260524500000_stripe_billing.sql`, `20260524600000_watchlist_baseline.sql`, `20260524700000_user_notifications.sql`, `20260524800000_user_email_notifications.sql`, `20260524900000_user_follows.sql`, `20260525000000_desk_brief.sql`, `20260525100000_desk_portfolio.sql`, `20260525200000_desk_portfolio_notifications.sql`, `20260525300000_ai_coach_usage.sql`)
 - [ ] Resend: `RESEND_API_KEY`, `EMAIL_FROM` — see [EMAIL.md](./EMAIL.md)
+- [ ] AI coach: `OPENAI_API_KEY` + migration `20260525300000_ai_coach_usage.sql` — see [AI.md](./AI.md)
 - [ ] Admin password set (`ADMIN_USERNAME`, `ADMIN_PASSWORD`, `scripts/set-admin-password.mjs`)
 - [ ] Admin seeded (`scripts/seed.mjs` or `scripts/reset-admin-totp.mjs`)
 - [ ] Crypto allowlist cron triggered once (production)

@@ -100,7 +100,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 16. Real-time quotes (paid Finnhub tier).
 17. Mobile PWA + push.
 18. Broker read-only sync (Plaid) for “your book vs calls.”
-19. AI thesis summary / risk flags (careful compliance).
+19. ✅ **AI thesis coach** — educational review on new call; Member 2/mo, Pro 30/mo + track-record context.
 
 ---
 

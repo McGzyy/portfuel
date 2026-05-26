@@ -20,6 +20,7 @@ export default async function NewCallPage() {
       user={toHeaderUser(session)}
       weeklyQuota={weeklyQuota}
       showUpgrade={proLocked}
+      isPro={!proLocked}
     />
   );
 }
