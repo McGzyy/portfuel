@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buildFeedHref } from "@/lib/dashboard/nav";
+import { buildFeedHref, type FeedTab } from "@/lib/dashboard/nav";
 import { cn } from "@/lib/utils";
 
 const filters = [
@@ -15,14 +15,14 @@ export function DashboardFeedFilters({
   searchQuery,
 }: {
   active: string;
-  tab: "latest" | "performing";
+  tab: FeedTab;
   searchQuery?: string;
 }) {
   return (
     <div className="flex flex-wrap gap-2" role="group" aria-label="Filter feed">
       {filters.map((f) => {
         const href = buildFeedHref({
-          tab: tab === "performing" ? "performing" : undefined,
+          tab: tab === "latest" ? undefined : tab,
           filter: f.key === "all" ? undefined : f.key,
           q: searchQuery,
         });

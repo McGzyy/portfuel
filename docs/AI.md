@@ -48,6 +48,10 @@ Usage counters live in `user_ai_usage` — run migrations `20260525300000_ai_coa
 - **Ticker page** — thesis coach on your own call cards only
 - **Feed, ticker, profiles** — **Quick summary** expand on each call (`Case: … · Risk: …`)
 
+## Admin desk draft
+
+**Admin → Desk** includes “Draft with AI” for weekly notes and portfolio theses (bullets → prose). Uses the same `OPENAI_API_KEY`; does not count against member coach quotas.
+
 ## Compliance
 
 System prompts forbid buy/sell/hold and price targets. UI shows a fixed disclaimer on every response.

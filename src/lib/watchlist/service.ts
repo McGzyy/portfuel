@@ -111,6 +111,20 @@ export async function addOpenPortfolioToWatchlist(
   return { ok: true, added, alreadyOnList, watchlistFull };
 }
 
+export async function isSymbolOnWatchlist(userId: string, symbol: string): Promise<boolean> {
+  if (isDemoMode()) return false;
+
+  const db = createServiceClient();
+  const { data } = await db
+    .from("user_watchlist")
+    .select("symbol")
+    .eq("user_id", userId)
+    .eq("symbol", symbol.toUpperCase())
+    .maybeSingle();
+
+  return Boolean(data);
+}
+
 export async function removeFromWatchlist(
   userId: string,
   symbol: string

@@ -52,13 +52,16 @@ export const DASHBOARD_NAV: {
   },
 ];
 
+export type FeedTab = "latest" | "performing" | "progress";
+
 export function buildFeedHref(opts: {
-  tab?: "performing";
+  tab?: FeedTab;
   filter?: string;
   q?: string;
 }): string {
   const params = new URLSearchParams();
   if (opts.tab === "performing") params.set("tab", "performing");
+  if (opts.tab === "progress") params.set("tab", "progress");
   if (opts.filter && opts.filter !== "all") params.set("filter", opts.filter);
   if (opts.q?.trim()) params.set("q", opts.q.trim());
   const qs = params.toString();

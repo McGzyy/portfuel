@@ -26,6 +26,14 @@ export function filterCallsFeed(
   }
 }
 
+export function sortCallsByTargetProgress(calls: CallWithUser[]): CallWithUser[] {
+  return [...calls].sort((a, b) => {
+    const ap = a.target_progress != null ? Number(a.target_progress) : -1;
+    const bp = b.target_progress != null ? Number(b.target_progress) : -1;
+    return bp - ap;
+  });
+}
+
 export function filterCallsBySearch(calls: CallWithUser[], query: string): CallWithUser[] {
   const q = query.trim().toLowerCase();
   if (!q) return calls;

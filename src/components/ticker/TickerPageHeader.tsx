@@ -5,6 +5,7 @@ import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatPct, formatPrice } from "@/lib/utils";
+import { TickerWatchlistChip } from "@/components/ticker/TickerWatchlistChip";
 import type { loadTickerIntel } from "@/lib/market/ticker-intel";
 
 export function TickerPageHeader({
@@ -13,12 +14,14 @@ export function TickerPageHeader({
   session,
   backHref,
   backLabel,
+  onWatchlist,
 }: {
   symbol: string;
   intel: Awaited<ReturnType<typeof loadTickerIntel>> | null;
   session: boolean;
   backHref?: string;
   backLabel?: string;
+  onWatchlist?: boolean;
 }) {
   const change = intel?.quote?.changePct;
   const changeAccent =
@@ -52,6 +55,7 @@ export function TickerPageHeader({
           <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
             {intel?.companyName ?? symbol}
           </p>
+          {onWatchlist ? <TickerWatchlistChip symbol={symbol} /> : null}
           {intel?.quote ? (
             <div className="mt-4 flex flex-wrap items-baseline gap-3">
               <p className="text-3xl font-bold tabular-nums tracking-tight text-[var(--pf-black)]">

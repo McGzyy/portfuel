@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { TabNav } from "@/components/layout/TabNav";
 import { DashboardFeedFilters } from "@/components/dashboard/DashboardFeedFilters";
 import { DashboardFeedSearch } from "@/components/dashboard/DashboardFeedSearch";
-import { buildFeedHref } from "@/lib/dashboard/nav";
+import { buildFeedHref, type FeedTab } from "@/lib/dashboard/nav";
 import type { FeedFilter } from "@/lib/calls/filter-feed";
 
 export function FeedToolbar({
@@ -12,7 +12,7 @@ export function FeedToolbar({
   resultCount,
   newCount = 0,
 }: {
-  mode: "latest" | "performing";
+  mode: FeedTab;
   feedFilter: FeedFilter;
   searchQuery: string;
   resultCount: number;
@@ -53,7 +53,11 @@ export function FeedToolbar({
       </div>
       <p className="text-xs text-[var(--pf-gray-500)]">
         {resultCount} call{resultCount === 1 ? "" : "s"} ·{" "}
-        {mode === "performing" ? "30-day top returns" : "Newest first"}
+        {mode === "performing"
+          ? "30-day top returns"
+          : mode === "progress"
+            ? "Highest target progress first"
+            : "Newest first"}
         {newCount > 0 ? (
           <span className="font-semibold text-emerald-700">
             {" "}

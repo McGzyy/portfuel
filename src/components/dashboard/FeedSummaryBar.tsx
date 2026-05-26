@@ -3,6 +3,7 @@ import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import { formatPct } from "@/lib/utils";
 import type { FeedSummary } from "@/lib/calls/feed-summary";
+import type { FeedTab } from "@/lib/dashboard/nav";
 
 export function FeedSummaryBar({
   summary,
@@ -11,7 +12,7 @@ export function FeedSummaryBar({
   proGateCta,
 }: {
   summary: FeedSummary;
-  mode: "latest" | "performing";
+  mode: FeedTab;
   proLocked: boolean;
   proGateCta: ProGateCta;
 }) {

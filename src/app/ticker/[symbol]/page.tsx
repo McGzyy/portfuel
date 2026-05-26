@@ -18,6 +18,7 @@ import { toHeaderUser } from "@/lib/auth/session-user";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { summarizeTickerCommunity } from "@/lib/calls/ticker-community-stats";
+import { isSymbolOnWatchlist } from "@/lib/watchlist/service";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
 import {
   getProGateCta,
@@ -61,6 +62,10 @@ export default async function TickerPage({
   const proLocked = session ? isProIntelligenceLocked(proContext) : true;
   const proGateCta = getProGateCta(proContext);
   const isPro = session ? !proLocked : false;
+  const onWatchlist =
+    session?.subscriptionStatus === "active"
+      ? await isSymbolOnWatchlist(session.userId, symbol)
+      : false;
 
   const emptyIntel = {
     symbol,
@@ -86,6 +91,7 @@ export default async function TickerPage({
           session={Boolean(session)}
           backHref="/dashboard/watchlist"
           backLabel="Watchlist"
+          onWatchlist={onWatchlist}
         />
 
         <TickerChartSection

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { DeskBriefAdmin } from "@/lib/desk/brief";
+import { AdminDeskDraftHelper } from "@/components/admin/AdminDeskDraftHelper";
 import { AdminDeskPortfolioPanel } from "@/components/admin/AdminDeskPortfolioPanel";
 
 export function AdminDeskPanel() {
@@ -98,6 +99,11 @@ export function AdminDeskPanel() {
             className="mt-2 w-full rounded-lg border border-[var(--pf-border)] px-3 py-2 text-sm"
           />
         </label>
+
+        <AdminDeskDraftHelper
+          kind="weekly_note"
+          onApply={(text) => setWeeklyNote(text)}
+        />
 
         <label className="mt-4 block text-sm font-medium text-[var(--pf-gray-700)]">
           Pinned desk call

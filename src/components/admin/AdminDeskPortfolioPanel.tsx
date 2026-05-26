@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { AdminDeskDraftHelper } from "@/components/admin/AdminDeskDraftHelper";
 import type { DeskPortfolioEntry } from "@/lib/desk/portfolio";
 
 type AdminPortfolioPayload = {
@@ -312,6 +313,13 @@ export function AdminDeskPortfolioPanel() {
             />
           </label>
         </div>
+
+        <AdminDeskDraftHelper
+          kind="portfolio_thesis"
+          symbol={form.symbol}
+          direction={form.direction}
+          onApply={(text) => setForm((f) => ({ ...f, thesis: text }))}
+        />
 
         <label className="mt-4 block text-sm font-medium text-[var(--pf-gray-700)]">
           Thesis

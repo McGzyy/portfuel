@@ -15,8 +15,10 @@ import {
   filterCallsFeed,
   filterCallsByFollowing,
   filterCallsBySearch,
+  sortCallsByTargetProgress,
   type FeedFilter,
 } from "@/lib/calls/filter-feed";
+import type { FeedTab } from "@/lib/dashboard/nav";
 import { FeedVisitTracker } from "@/components/dashboard/FeedVisitTracker";
 import { fetchFollowingIds } from "@/lib/follows/service";
 import {
@@ -53,17 +55,21 @@ export default async function DashboardFeedPage({
 }: {
   searchParams: Promise<{ tab?: string; filter?: string; q?: string }>;
 }) {
+  function parseTab(raw?: string): FeedTab {
+    if (raw === "performing" || raw === "progress") return raw;
+    return "latest";
+  }
   const session = await requireDashboardSession();
   const proContext = sessionToProContext(session);
   const proLocked = isProIntelligenceLocked(proContext);
   const proGateCta = getProGateCta(proContext);
 
   const { tab, filter: filterParam, q } = await searchParams;
-  const mode = tab === "performing" ? "performing" : "latest";
+  const mode = parseTab(tab);
   const feedFilter = parseFilter(filterParam);
   const searchQuery = q?.trim() ?? "";
 
-  const allFeedCalls = await loadFeedCalls(mode);
+  const allFeedCalls = await loadFeedCalls(mode === "progress" ? "latest" : mode);
   let memberCalls = allFeedCalls.filter((c) => !c.is_fueled);
 
   if (feedFilter === "following") {
@@ -76,6 +82,9 @@ export default async function DashboardFeedPage({
     feedFilter === "fueled" || feedFilter === "following" ? "all" : feedFilter
   );
   calls = filterCallsBySearch(calls, searchQuery);
+  if (mode === "progress") {
+    calls = sortCallsByTargetProgress(calls);
+  }
   const hypeScores = await fetchHypeScoresBySymbols(calls.map((c) => c.symbol));
   const mapped = calls.map((c) => mapCallForCard(c, hypeScores));
   const cookieStore = await cookies();
