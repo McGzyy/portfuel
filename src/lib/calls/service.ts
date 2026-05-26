@@ -5,6 +5,7 @@ import {
   getDemoCallsFeed,
   getDemoPublicTeasers,
 } from "@/lib/demo/fixtures";
+import { processCallMilestones } from "@/lib/notifications/milestones";
 import { refreshMemberRankings } from "@/lib/users/rankings";
 import { getQuote, getCryptoLastPrice } from "@/lib/market/finnhub";
 import {
@@ -92,7 +93,10 @@ export async function fetchCallsBySymbol(symbol: string): Promise<CallWithUser[]
   return (data ?? []) as CallWithUser[];
 }
 
-export async function refreshQuotesAndScores(): Promise<{ updated: number }> {
+export async function refreshQuotesAndScores(): Promise<{
+  updated: number;
+  milestonesNotified: number;
+}> {
   const db = createServiceClient();
   const { data: calls, error } = await db.from("calls").select("*");
   if (error) throw error;
@@ -130,6 +134,17 @@ export async function refreshQuotesAndScores(): Promise<{ updated: number }> {
   }
 
   let updated = 0;
+  const milestoneRows: {
+    id: string;
+    user_id: string;
+    symbol: string;
+    direction: string;
+    entry_price: number | null;
+    target_price: number | null;
+    return_pct: number | null;
+    target_progress: number | null;
+  }[] = [];
+
   for (const call of calls ?? []) {
     const last = priceMap.get(call.symbol);
     if (!last) continue;
@@ -172,6 +187,17 @@ export async function refreshQuotesAndScores(): Promise<{ updated: number }> {
       } as never)
       .eq("id", call.id);
     updated++;
+
+    milestoneRows.push({
+      id: call.id,
+      user_id: call.user_id,
+      symbol: call.symbol,
+      direction: call.direction,
+      entry_price: call.entry_price,
+      target_price: call.target_price,
+      return_pct: returnPct,
+      target_progress: targetProgress,
+    });
   }
 
   for (const sym of symbols) {
@@ -197,5 +223,7 @@ export async function refreshQuotesAndScores(): Promise<{ updated: number }> {
 
   await refreshMemberRankings();
 
-  return { updated };
+  const { notified: milestonesNotified } = await processCallMilestones(milestoneRows);
+
+  return { updated, milestonesNotified };
 }

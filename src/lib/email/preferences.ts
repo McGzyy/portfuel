@@ -35,6 +35,7 @@ const INSTANT_EMAIL_TYPES: NotificationType[] = [
   "comment_on_call",
   "followed_member_call",
   "desk_portfolio_update",
+  "call_milestone",
 ];
 
 export function shouldSendInstantEmail(

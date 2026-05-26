@@ -3,7 +3,8 @@ export type NotificationType =
   | "vote_on_call"
   | "watchlist_call"
   | "followed_member_call"
-  | "desk_portfolio_update";
+  | "desk_portfolio_update"
+  | "call_milestone";
 
 export type UserNotification = {
   id: string;
