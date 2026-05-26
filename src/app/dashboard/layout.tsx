@@ -4,6 +4,7 @@ import { WorkspaceSidebar } from "@/components/dashboard/WorkspaceSidebar";
 import { WorkspaceContent } from "@/components/dashboard/WorkspaceContent";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { toHeaderUser } from "@/lib/auth/session-user";
+import { countUnreadDmThreads } from "@/lib/messages/service";
 import { workspaceMetadata } from "@/lib/seo/site";
 
 export const metadata = workspaceMetadata;
@@ -14,6 +15,12 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await requireDashboardSession();
+  let dmUnread = 0;
+  try {
+    dmUnread = await countUnreadDmThreads(session.userId);
+  } catch {
+    /* optional */
+  }
 
   return (
     <AppShell user={toHeaderUser(session)} mainClassName="!max-w-none !px-0 !py-0">
@@ -26,11 +33,12 @@ export default async function DashboardLayout({
               (session.role === "admin" ? "Administrator" : session.username)
             }
             isAdmin={session.role === "admin"}
+            dmUnread={dmUnread}
           />
         </div>
         <div className="pf-workspace-main">
           <div className="border-b border-[var(--pf-border)] bg-white lg:hidden">
-            <MemberNav />
+            <MemberNav dmUnread={dmUnread} />
           </div>
           <WorkspaceContent>{children}</WorkspaceContent>
         </div>

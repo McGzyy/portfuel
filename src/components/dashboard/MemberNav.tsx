@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DASHBOARD_NAV } from "@/lib/dashboard/nav";
+import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { cn } from "@/lib/utils";
 
 /** Compact horizontal nav — mobile / tablet only; desktop uses WorkspaceSidebar */
-export function MemberNav() {
+export function MemberNav({ dmUnread = 0 }: { dmUnread?: number }) {
   const pathname = usePathname();
 
   return (
@@ -31,7 +32,12 @@ export function MemberNav() {
                 : "bg-[var(--pf-gray-100)] text-[var(--pf-gray-600)]"
             )}
           >
-            {item.label}
+            <span className="inline-flex items-center gap-1.5">
+              {item.label}
+              {item.href === "/dashboard/messages" ? (
+                <DmUnreadBadge initial={dmUnread} className="min-w-[1rem] px-1" />
+              ) : null}
+            </span>
           </Link>
         );
       })}

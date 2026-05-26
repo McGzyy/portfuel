@@ -13,6 +13,7 @@ import {
   type Time,
   type SeriesMarker,
   type IPriceLine,
+  type MouseEventParams,
 } from "lightweight-charts";
 import type { CandlePoint, ChartMarker, PriceLine } from "@/lib/charts/types";
 import {
@@ -50,6 +51,11 @@ export function TickerChart({
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const markersRef = useRef<ReturnType<typeof createSeriesMarkers<Time>> | null>(null);
   const priceLinesRef = useRef<IPriceLine[]>([]);
+  const markerDataRef = useRef(markers);
+
+  useEffect(() => {
+    markerDataRef.current = markers;
+  }, [markers]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -99,7 +105,20 @@ export function TickerChart({
     });
     ro.observe(containerRef.current);
 
+    const onClick = (param: MouseEventParams<Time>) => {
+      if (param.time == null) return;
+      const t = param.time as number;
+      const hit = markerDataRef.current.find((m) => m.time === t && m.callId);
+      if (!hit?.callId) return;
+      const el = document.getElementById(`thesis-${hit.callId}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      el?.classList.add("pf-thesis-highlight");
+      window.setTimeout(() => el?.classList.remove("pf-thesis-highlight"), 2200);
+    };
+    chart.subscribeClick(onClick);
+
     return () => {
+      chart.unsubscribeClick(onClick);
       ro.disconnect();
       chart.remove();
       chartRef.current = null;

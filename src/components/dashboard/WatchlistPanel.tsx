@@ -6,6 +6,8 @@ import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { WatchlistMoveAlerts } from "@/components/dashboard/WatchlistMoveAlerts";
+import { MiniSparkline } from "@/components/charts/MiniSparkline";
+import type { LinePoint } from "@/lib/charts/types";
 import { formatPct, formatPrice } from "@/lib/utils";
 import { WATCHLIST_MOVE_ALERT_PCT } from "@/lib/watchlist/service";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
@@ -56,6 +58,7 @@ export function WatchlistPanel({
   proUnlocked?: boolean;
 }) {
   const [items, setItems] = useState<WatchlistEntry[]>([]);
+  const [sparklines, setSparklines] = useState<Record<string, LinePoint[]>>({});
   const [symbol, setSymbol] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -84,6 +87,23 @@ export function WatchlistPanel({
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (items.length === 0) return;
+    const symbols = items.map((i) => i.symbol).join(",");
+    const controller = new AbortController();
+    void fetch(`/api/market/sparklines?symbols=${encodeURIComponent(symbols)}`, {
+      signal: controller.signal,
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { series?: Record<string, LinePoint[]> } | null) => {
+        if (data?.series) setSparklines(data.series);
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => controller.abort();
+  }, [items]);
 
   async function addSymbol(e: React.FormEvent) {
     e.preventDefault();
@@ -202,6 +222,12 @@ export function WatchlistPanel({
               key={item.symbol}
               className="group flex items-center gap-2 rounded-lg border border-transparent px-2 py-2 hover:border-[var(--pf-border)] hover:bg-[var(--pf-gray-50)]"
             >
+              <MiniSparkline
+                points={sparklines[item.symbol] ?? []}
+                width={48}
+                height={20}
+                className="hidden sm:block"
+              />
               <Link
                 href={`/ticker/${item.symbol}`}
                 className="min-w-0 flex-1"

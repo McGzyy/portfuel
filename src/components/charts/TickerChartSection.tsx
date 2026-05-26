@@ -45,10 +45,14 @@ export function TickerChartSection({
     <ChartFrame
       className={className}
       title="Price history"
-      subtitle="Member call markers · adjust range"
+      subtitle="Click a marker to jump to thesis · adjust range"
       legend={
         hasData ? (
-          <TickerChartLegend callCount={filteredMarkers.length} embedded />
+          <TickerChartLegend
+            callCount={filteredMarkers.length}
+            levelCount={priceLines.length}
+            embedded
+          />
         ) : undefined
       }
     >

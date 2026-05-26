@@ -14,6 +14,8 @@ export type ChartMarker = {
   label: string;
   color?: string;
   kind?: ChartMarkerKind;
+  /** Scroll target on ticker page when marker is clicked */
+  callId?: string;
 };
 
 /** Horizontal levels on ticker charts (entry / target / stop) — Phase G1. */

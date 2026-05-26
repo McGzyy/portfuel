@@ -40,6 +40,7 @@ export function MessagesWorkspace() {
     setActiveThread(data.thread as DmThreadDetail);
     setActiveId(threadId);
     void loadThreads();
+    window.dispatchEvent(new Event("portfuel:dm-unread-changed"));
   }, [loadThreads]);
 
   useEffect(() => {

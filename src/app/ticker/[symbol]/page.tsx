@@ -164,8 +164,8 @@ export default async function TickerPage({
             </div>
           ) : (
             (intel?.calls ?? []).map((c) => (
+              <div key={c.id} id={`thesis-${c.id}`} className="scroll-mt-24">
               <CallThesisBlock
-                key={c.id}
                 call={{
                   ...c,
                   user_id: c.user_id,
@@ -186,6 +186,7 @@ export default async function TickerPage({
                 showUpgrade={session ? proLocked : false}
                 canGenerateSummary={isPro}
               />
+              </div>
             ))
           )}
         </div>

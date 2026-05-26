@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
 import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
+import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
@@ -32,10 +33,12 @@ export function WorkspaceSidebar({
   username,
   displayName,
   isAdmin,
+  dmUnread = 0,
 }: {
   username: string;
   displayName: string;
   isAdmin?: boolean;
+  dmUnread?: number;
 }) {
   const pathname = usePathname();
 
@@ -100,9 +103,12 @@ export function WorkspaceSidebar({
                       )}
                       strokeWidth={2.25}
                     />
-                    <span className="min-w-0">
-                      <span className="block text-sm font-semibold leading-tight">
-                        {item.label}
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-2">
+                        <span className="text-sm font-semibold leading-tight">{item.label}</span>
+                        {item.href === "/dashboard/messages" ? (
+                          <DmUnreadBadge initial={dmUnread} />
+                        ) : null}
                       </span>
                       <span
                         className={cn(

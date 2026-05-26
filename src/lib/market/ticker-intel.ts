@@ -33,6 +33,7 @@ export type TickerIntel = {
     label: string;
     color?: string;
     kind?: "long" | "short" | "fueled";
+    callId?: string;
   }[];
   calls: CallWithUser[];
   news: CompanyNewsItem[];
@@ -141,6 +142,7 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
         | "long"
         | "short"
         | "fueled",
+      callId: c.id,
     };
   });
 

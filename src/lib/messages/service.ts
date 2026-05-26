@@ -104,6 +104,11 @@ export async function findOrCreateThread(
   return { threadId };
 }
 
+export async function countUnreadDmThreads(userId: string): Promise<number> {
+  const threads = await listThreads(userId);
+  return threads.filter((t) => t.unread).length;
+}
+
 export async function listThreads(userId: string): Promise<DmThreadSummary[]> {
   if (isDemoMode()) return getDemoThreadSummaries(userId);
 
