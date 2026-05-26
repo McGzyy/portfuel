@@ -112,12 +112,14 @@ body {
   position: sticky;
   top: 3.5rem;
   align-self: flex-start;
+  height: calc(100vh - 3.5rem);
   max-height: calc(100vh - 3.5rem);
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .pf-workspace-sidebar {
-  min-height: calc(100vh - 3.5rem);
+  height: 100%;
+  min-height: 0;
 }
 
 @media (min-width: 1024px) {

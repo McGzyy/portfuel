@@ -1,4 +1,9 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { MiniSparkline } from "@/components/charts/MiniSparkline";
+import type { LinePoint } from "@/lib/charts/types";
 
 export type HotTicker = {
   symbol: string;
@@ -7,10 +12,35 @@ export type HotTicker = {
 };
 
 export function HotTickersStrip({ tickers }: { tickers: HotTicker[] }) {
+  const [series, setSeries] = useState<Record<string, LinePoint[]>>({});
+
+  const symbolKey = useMemo(
+    () => tickers.map((t) => t.symbol).join(","),
+    [tickers]
+  );
+
+  useEffect(() => {
+    if (tickers.length === 0) return;
+
+    const controller = new AbortController();
+    void fetch(`/api/market/sparklines?symbols=${encodeURIComponent(symbolKey)}`, {
+      signal: controller.signal,
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { series?: Record<string, LinePoint[]> } | null) => {
+        if (data?.series) setSeries(data.series);
+      })
+      .catch(() => {
+        /* ignore */
+      });
+
+    return () => controller.abort();
+  }, [symbolKey, tickers.length]);
+
   if (tickers.length === 0) return null;
 
   return (
-    <section className="mt-4" aria-label="Active tickers in feed">
+    <section aria-label="Active tickers in feed">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
         Hot in feed
       </p>
@@ -19,9 +49,10 @@ export function HotTickersStrip({ tickers }: { tickers: HotTicker[] }) {
           <Link
             key={t.symbol}
             href={`/ticker/${t.symbol}`}
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--pf-border)] bg-white px-3 py-1.5 text-xs font-semibold shadow-[var(--pf-shadow-sm)] transition-colors hover:border-[var(--pf-gray-200)] hover:bg-[var(--pf-gray-50)]"
+            className="inline-flex items-center gap-2.5 rounded-full border border-[var(--pf-border)] bg-white py-1.5 pl-3 pr-3.5 text-xs font-semibold shadow-[var(--pf-shadow-sm)] transition-colors hover:border-[var(--pf-gray-200)] hover:bg-[var(--pf-gray-50)]"
           >
-            <span className="text-[var(--pf-black)]">{t.symbol}</span>
+            <MiniSparkline points={series[t.symbol] ?? []} />
+            <span className="font-mono text-[var(--pf-black)]">{t.symbol}</span>
             <span className="tabular-nums text-[var(--pf-gray-400)]">
               {t.callCount} call{t.callCount === 1 ? "" : "s"}
             </span>

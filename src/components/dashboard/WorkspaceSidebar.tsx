@@ -40,8 +40,8 @@ export function WorkspaceSidebar({
   const pathname = usePathname();
 
   return (
-    <aside className="pf-workspace-sidebar flex h-full w-full flex-col">
-      <div className="border-b border-[var(--pf-border)] px-5 py-5">
+    <aside className="pf-workspace-sidebar flex h-full min-h-0 w-full flex-col">
+      <div className="shrink-0 border-b border-[var(--pf-border)] px-5 py-4">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
           Member workspace
         </p>
@@ -61,11 +61,14 @@ export function WorkspaceSidebar({
         ) : null}
       </div>
 
-      <div className="px-3 pt-3">
+      <div className="shrink-0 px-3 pt-2">
         <WorkspaceGuide />
       </div>
 
-      <nav className="flex-1 space-y-5 overflow-y-auto p-3 pt-2" aria-label="Workspace">
+      <nav
+        className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-3 pt-2"
+        aria-label="Workspace"
+      >
         {WORKSPACE_NAV_GROUPS.map((group) => (
           <div key={group.title}>
             <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
@@ -118,7 +121,7 @@ export function WorkspaceSidebar({
         ))}
       </nav>
 
-      <div className="space-y-2 border-t border-[var(--pf-border)] p-3">
+      <div className="shrink-0 space-y-1.5 border-t border-[var(--pf-border)] p-3">
         <Link
           href="/calls/new"
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--pf-red)] px-3 py-2.5 text-sm font-semibold text-white shadow-[var(--pf-shadow-sm)] transition-colors hover:bg-[var(--pf-red-hover)]"
