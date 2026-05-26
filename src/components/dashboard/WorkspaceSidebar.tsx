@@ -14,7 +14,8 @@ import {
   ExternalLink,
   Shield,
 } from "lucide-react";
-import { DASHBOARD_NAV, type DashboardNavIcon } from "@/lib/dashboard/nav";
+import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
+import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
@@ -60,46 +61,61 @@ export function WorkspaceSidebar({
         ) : null}
       </div>
 
-      <nav className="flex-1 space-y-1 p-3 pt-4" aria-label="Workspace">
-        {DASHBOARD_NAV.map((item) => {
-          const Icon = ICONS[item.icon];
-          const active =
-            item.exact === true
-              ? pathname === item.href
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+      <div className="px-3 pt-3">
+        <WorkspaceGuide />
+      </div>
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex gap-3 rounded-lg px-3 py-2.5 transition-all duration-150",
-                active
-                  ? "bg-[var(--pf-black)] text-white shadow-[var(--pf-shadow-md)]"
-                  : "text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-100)] hover:text-[var(--pf-black)]"
-              )}
-            >
-              <Icon
-                className={cn(
-                  "mt-0.5 h-4 w-4 shrink-0",
-                  active ? "text-[var(--pf-red)]" : "text-[var(--pf-gray-400)]"
-                )}
-                strokeWidth={2.25}
-              />
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold leading-tight">{item.label}</span>
-                <span
-                  className={cn(
-                    "mt-0.5 block text-[11px] leading-snug",
-                    active ? "text-slate-400" : "text-[var(--pf-gray-400)]"
-                  )}
-                >
-                  {item.description}
-                </span>
-              </span>
-            </Link>
-          );
-        })}
+      <nav className="flex-1 space-y-5 overflow-y-auto p-3 pt-2" aria-label="Workspace">
+        {WORKSPACE_NAV_GROUPS.map((group) => (
+          <div key={group.title}>
+            <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+              {group.title}
+            </p>
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const Icon = ICONS[item.icon];
+                const active =
+                  item.exact === true
+                    ? pathname === item.href
+                    : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex gap-3 rounded-lg px-3 py-2 transition-all duration-150",
+                      active
+                        ? "bg-[var(--pf-black)] text-white shadow-[var(--pf-shadow-md)]"
+                        : "text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-100)] hover:text-[var(--pf-black)]"
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "mt-0.5 h-4 w-4 shrink-0",
+                        active ? "text-[var(--pf-red)]" : "text-[var(--pf-gray-400)]"
+                      )}
+                      strokeWidth={2.25}
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold leading-tight">
+                        {item.label}
+                      </span>
+                      <span
+                        className={cn(
+                          "mt-0.5 block text-[11px] leading-snug",
+                          active ? "text-slate-400" : "text-[var(--pf-gray-400)]"
+                        )}
+                      >
+                        {item.description}
+                      </span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       <div className="space-y-2 border-t border-[var(--pf-border)] p-3">

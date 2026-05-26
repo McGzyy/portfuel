@@ -4,9 +4,14 @@ import { redirect } from "next/navigation";
 import { HotTickersStrip } from "@/components/dashboard/HotTickersStrip";
 import { OverviewHero } from "@/components/dashboard/OverviewHero";
 import { OverviewShortcutBar } from "@/components/dashboard/OverviewShortcutBar";
-import { OverviewCommunityPulse } from "@/components/dashboard/OverviewCommunityPulse";
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
-import { ProValueCard } from "@/components/pro/ProValueCard";
+import { ProUpgradeBanner } from "@/components/pro/ProUpgradeBanner";
+import { WorkspaceLiveBar } from "@/components/dashboard/WorkspaceLiveBar";
+import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
+import { YourPositionsStrip } from "@/components/dashboard/YourPositionsStrip";
+import { OverviewSection } from "@/components/dashboard/OverviewSection";
+import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
+import { fetchWorkspacePulse } from "@/lib/workspace/pulse";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { getHotTickersFromCalls } from "@/lib/calls/hot-tickers";
 import { fetchWeeklyQuotaStatus } from "@/lib/members/weekly-quota";
@@ -14,9 +19,10 @@ import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerform
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { FueledDeskHero } from "@/components/dashboard/FueledDeskHero";
-import { FueledDeskPanel } from "@/components/dashboard/FueledDeskPanel";
 import { WorkspacePanel } from "@/components/dashboard/WorkspacePanel";
 import { CallPreviewRow, type CallPreviewData } from "@/components/dashboard/CallPreviewRow";
+import type { CallCardData } from "@/components/calls/CallCard";
+import type { fetchUserRecentCalls } from "@/lib/users/profile";
 import {
   loadFeedCalls,
   loadMemberStats,
@@ -25,11 +31,7 @@ import {
 } from "@/lib/dashboard/data";
 import { buildFeedHref } from "@/lib/dashboard/nav";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
-import {
-  getProGateCta,
-  isProIntelligenceLocked,
-  sessionToProContext,
-} from "@/lib/features/pro-intelligence";
+import { isProIntelligenceLocked, sessionToProContext } from "@/lib/features/pro-intelligence";
 import { FollowingFeedPanel } from "@/components/dashboard/FollowingFeedPanel";
 import { fetchFollowingIds, fetchFollowingMembers } from "@/lib/follows/service";
 import { filterCallsByFollowing } from "@/lib/calls/filter-feed";
@@ -41,6 +43,28 @@ import { formatPct, formatPrice } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "Overview",
 };
+
+type OwnCallRow = Awaited<ReturnType<typeof fetchUserRecentCalls>>[number];
+
+function toOwnStripCard(
+  c: OwnCallRow,
+  username: string,
+  displayName: string | null
+): CallCardData {
+  return {
+    id: c.id,
+    symbol: c.symbol,
+    asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
+    direction: c.direction as "long" | "short",
+    thesis: c.thesis,
+    called_at: c.called_at,
+    return_pct: c.return_pct,
+    is_fueled: Boolean(c.is_fueled),
+    display_name: displayName,
+    pin: username,
+    username,
+  };
+}
 
 function toPreview(
   c: ReturnType<typeof mapCallForCard>
@@ -75,14 +99,17 @@ export default async function DashboardOverviewPage({
   const session = await requireDashboardSession();
   const proContext = sessionToProContext(session);
   const proLocked = isProIntelligenceLocked(proContext);
-  const proGateCta = getProGateCta(proContext);
   const memberStats = await loadMemberStats(session.userId);
 
   const performingRaw = await loadFeedCalls("performing");
   const latestRaw = await loadFeedCalls("latest");
+  const ownProfile = await fetchOwnProfile(session);
+  const ownCalls = ownProfile.calls;
+
   const hypeScores = await fetchHypeScoresBySymbols([
     ...performingRaw.map((c) => c.symbol),
     ...latestRaw.map((c) => c.symbol),
+    ...ownCalls.map((c) => c.symbol),
   ]);
   const performingCalls = performingRaw.map((c) => mapCallForCard(c, hypeScores));
   const latestCalls = latestRaw.map((c) => mapCallForCard(c, hypeScores));
@@ -96,8 +123,6 @@ export default async function DashboardOverviewPage({
     session.membershipTier ?? null
   );
 
-  const ownProfile = await fetchOwnProfile(session);
-  const ownCalls = ownProfile.calls;
   const performanceSeries = buildCumulativeReturnSeries(ownCalls);
 
   const followingMembers = await fetchFollowingMembers(session.userId);
@@ -125,12 +150,27 @@ export default async function DashboardOverviewPage({
   const deskBrief = await fetchDeskBrief();
   const portfolio = await fetchDeskPortfolio();
 
+  let workspacePulse = null;
+  try {
+    workspacePulse = await fetchWorkspacePulse(session.userId);
+  } catch {
+    /* optional */
+  }
+
+  const ownCallCards = ownCalls.map((c) =>
+    toOwnStripCard(c, session.username, session.displayName)
+  );
+
   const displayLabel =
     session.displayName ??
     (session.role === "admin" ? "Administrator" : session.username);
 
+  const avgPulse = communityPulse.avgReturnPct;
+  const avgAccent =
+    avgPulse == null ? undefined : avgPulse >= 0 ? ("positive" as const) : ("negative" as const);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <OverviewHero
         displayName={displayLabel}
         username={session.username}
@@ -139,110 +179,92 @@ export default async function DashboardOverviewPage({
         callsCount={memberStats?.calls_count}
       />
 
-      <OverviewShortcutBar />
+      <WorkspaceLiveBar initial={workspacePulse} />
 
-      <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <OverviewShortcutBar />
+        <div className="flex flex-wrap items-center gap-2">
+          <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} />
+          <WorkspaceGuide />
+        </div>
+      </div>
 
-      {proLocked ? <ProValueCard /> : null}
+      {proLocked ? <ProUpgradeBanner /> : null}
 
-      <HotTickersStrip tickers={hotTickers} />
+      {communityPulse.count > 0 ? (
+        <MetricsStrip
+          eyebrow="Community · 30 days"
+          items={[
+            { label: "Active calls", value: String(communityPulse.count), hint: "Marked" },
+            {
+              label: "Avg return",
+              value: formatPct(avgPulse),
+              hint: "Community",
+              accent: avgAccent,
+            },
+            {
+              label: "Winners",
+              value: String(communityPulse.winners),
+              hint: `${communityPulse.losers} red`,
+            },
+          ]}
+        />
+      ) : null}
 
-      <FueledDeskHero
-        featured={featuredDesk}
-        totalDeskCalls={fueledCalls.length}
-        weeklyNote={deskBrief.weeklyNote}
-      />
-
-      <FollowingFeedPanel following={followingMembers} previews={followingPreviews} />
-
-      <OverviewCommunityPulse
-        summary={communityPulse}
-        proLocked={proLocked}
-        proGateCta={proGateCta}
-      />
-
-      <div className="grid gap-6 lg:grid-cols-12">
-        <div className="lg:col-span-8">
-          <WorkspacePanel
-            title="Latest from members"
-            subtitle="Newest community theses — open the feed for the full board"
-            href={buildFeedHref({})}
-            className="min-h-[320px]"
+      <div className="grid gap-8 lg:grid-cols-12">
+        <div className="space-y-8 lg:col-span-7 xl:col-span-8">
+          <OverviewSection
+            title="Your activity"
+            subtitle="Desk highlight and calls you published"
           >
-            {latestPreviews.length === 0 ? (
-              <p className="px-3 py-8 text-center text-sm text-[var(--pf-gray-500)]">
-                No member calls yet.
-              </p>
-            ) : (
-              <div className="divide-y divide-[var(--pf-border)]">
-                {latestPreviews.map((call) => (
-                  <CallPreviewRow key={call.id} call={call} />
-                ))}
-              </div>
-            )}
-          </WorkspacePanel>
+            <div className="space-y-4">
+              <FueledDeskHero
+                featured={featuredDesk}
+                totalDeskCalls={fueledCalls.length}
+                weeklyNote={deskBrief.weeklyNote}
+              />
+              <YourPositionsStrip calls={ownCallCards} username={session.username} />
+            </div>
+          </OverviewSection>
+
+          <OverviewSection
+            title="Community"
+            subtitle="What members are trading right now"
+          >
+            <div className="space-y-4">
+              <HotTickersStrip tickers={hotTickers} />
+              <WorkspacePanel
+                title="Latest from members"
+                subtitle="Newest theses — full board on the feed"
+                href={buildFeedHref({})}
+              >
+                {latestPreviews.length === 0 ? (
+                  <p className="px-3 py-8 text-center text-sm text-[var(--pf-gray-500)]">
+                    No member calls yet.
+                  </p>
+                ) : (
+                  <div className="divide-y divide-[var(--pf-border)]">
+                    {latestPreviews.map((call) => (
+                      <CallPreviewRow key={call.id} call={call} />
+                    ))}
+                  </div>
+                )}
+              </WorkspacePanel>
+            </div>
+          </OverviewSection>
         </div>
 
-        <div className="space-y-6 lg:col-span-4">
+        <div className="space-y-6 lg:col-span-5 xl:col-span-4">
           <OverviewPerformanceChart
             points={performanceSeries}
             profileHref={`/member/${session.username}`}
           />
 
-          {portfolio.length > 0 ? (
-            <div className="pf-workspace-panel p-5">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                Fueled portfolio
-              </p>
-              <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-                {portfolio.filter((e) => e.status === "open").length} active thesis
-                {portfolio.filter((e) => e.status === "open").length === 1 ? "" : "es"} ·
-                {" "}live marks
-              </p>
-              <div className="mt-3 space-y-2">
-                {portfolio
-                  .filter((e) => e.status === "open")
-                  .slice(0, 3)
-                  .map((e) => (
-                    <Link
-                      key={e.id}
-                      href={`/ticker/${e.symbol}`}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2"
-                    >
-                      <div className="min-w-0">
-                        <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
-                          {e.symbol}
-                        </span>
-                        <p className="truncate text-xs text-[var(--pf-gray-500)]">
-                          {e.direction} · conviction {e.conviction}/5
-                        </p>
-                      </div>
-                      <span
-                        className={
-                          e.return_pct == null
-                            ? "text-xs font-bold tabular-nums text-[var(--pf-gray-500)]"
-                            : e.return_pct >= 0
-                              ? "text-xs font-bold tabular-nums text-emerald-600"
-                              : "text-xs font-bold tabular-nums text-rose-600"
-                        }
-                      >
-                        {formatPct(e.return_pct)}
-                      </span>
-                    </Link>
-                  ))}
-              </div>
-              <Link
-                href="/dashboard/desk"
-                className="mt-3 inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
-              >
-                View model portfolio →
-              </Link>
-            </div>
-          ) : null}
+          <FollowingFeedPanel following={followingMembers} previews={followingPreviews} />
 
           <WorkspacePanel
             title="Watchlist"
-            subtitle="Symbols you’re tracking"
+            subtitle="Symbols you track"
             href="/dashboard/watchlist"
           >
             {watchlistPreview.length === 0 ? (
@@ -269,7 +291,46 @@ export default async function DashboardOverviewPage({
             )}
           </WorkspacePanel>
 
-          <FueledDeskPanel calls={fueledPreviews} />
+          {portfolio.length > 0 ? (
+            <WorkspacePanel
+              title="Fueled portfolio"
+              subtitle="House open theses"
+              href="/dashboard/desk"
+            >
+              <div className="divide-y divide-[var(--pf-border)]">
+                {portfolio
+                  .filter((e) => e.status === "open")
+                  .slice(0, 4)
+                  .map((e) => (
+                    <Link
+                      key={e.id}
+                      href={`/ticker/${e.symbol}`}
+                      className="flex items-center justify-between gap-3 px-3 py-3 hover:bg-[var(--pf-gray-50)]"
+                    >
+                      <div className="min-w-0">
+                        <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
+                          {e.symbol}
+                        </span>
+                        <p className="text-xs text-[var(--pf-gray-500)]">
+                          {e.direction} · {e.conviction}/5
+                        </p>
+                      </div>
+                      <span
+                        className={
+                          e.return_pct == null
+                            ? "text-xs font-bold tabular-nums text-[var(--pf-gray-500)]"
+                            : e.return_pct >= 0
+                              ? "text-xs font-bold tabular-nums text-emerald-600"
+                              : "text-xs font-bold tabular-nums text-rose-600"
+                        }
+                      >
+                        {formatPct(e.return_pct)}
+                      </span>
+                    </Link>
+                  ))}
+              </div>
+            </WorkspacePanel>
+          ) : null}
         </div>
       </div>
 
