@@ -1,4 +1,5 @@
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
+import { ChartFrame } from "@/components/charts/ChartFrame";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import { formatPct } from "@/lib/utils";
@@ -24,27 +25,37 @@ export function FeedSummaryBar({
 
   return (
     <div className="space-y-4">
-      <MetricsStrip
-        eyebrow="Feed intelligence"
-        items={[
-          {
-            label: "Avg return",
-            value: formatPct(avg),
-            hint: mode === "performing" ? "30-day movers" : "This view",
-            accent: avgAccent,
-          },
-          {
-            label: "Winners",
-            value: String(summary.winners),
-            hint: "Positive P&L",
-          },
-          {
-            label: "Long / short",
-            value: `${summary.longCount} / ${summary.shortCount}`,
-            hint: "Position mix",
-          },
-        ]}
-      />
+      <ChartFrame
+        title="Feed intelligence"
+        subtitle={mode === "performing" ? "30-day movers in this view" : "Community pulse for this feed"}
+      >
+        <MetricsStrip
+          variant="embedded"
+          items={[
+            {
+              label: "Avg return",
+              value: formatPct(avg),
+              hint: mode === "performing" ? "30-day movers" : "This view",
+              accent: avgAccent,
+            },
+            {
+              label: "Winners",
+              value: String(summary.winners),
+              hint: "Positive P&L",
+            },
+            {
+              label: "Long / short",
+              value: `${summary.longCount} / ${summary.shortCount}`,
+              hint: "Position mix",
+            },
+            {
+              label: "Active calls",
+              value: String(summary.count),
+              hint: "In view",
+            },
+          ]}
+        />
+      </ChartFrame>
 
       <ProIntelligenceGate
         locked={proLocked}
@@ -53,29 +64,31 @@ export function FeedSummaryBar({
         description="Target progress, desk thesis counts, and deeper performance slices — Pro Intelligence ($129/mo)."
         compact
       >
-        <MetricsStrip
-          eyebrow="Pro analytics"
-          items={[
-            {
-              label: "Fueled",
-              value: String(summary.fueledCount),
-              hint: "Desk theses in view",
-            },
-            {
-              label: "To target",
-              value:
-                summary.avgTargetProgress != null
-                  ? `${summary.avgTargetProgress.toFixed(0)}%`
-                  : "—",
-              hint: "Avg progress",
-            },
-            {
-              label: "Losers",
-              value: String(summary.losers),
-              hint: "Negative P&L",
-            },
-          ]}
-        />
+        <ChartFrame title="Pro analytics" subtitle="Desk theses and target progress in this feed">
+          <MetricsStrip
+            variant="embedded"
+            items={[
+              {
+                label: "Fueled",
+                value: String(summary.fueledCount),
+                hint: "Desk theses in view",
+              },
+              {
+                label: "To target",
+                value:
+                  summary.avgTargetProgress != null
+                    ? `${summary.avgTargetProgress.toFixed(0)}%`
+                    : "—",
+                hint: "Avg progress",
+              },
+              {
+                label: "Losers",
+                value: String(summary.losers),
+                hint: "Negative P&L",
+              },
+            ]}
+          />
+        </ChartFrame>
       </ProIntelligenceGate>
     </div>
   );

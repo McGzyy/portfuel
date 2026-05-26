@@ -15,30 +15,34 @@ export function MetricsStrip({
 }: {
   eyebrow?: string;
   items: MetricItem[];
-  variant?: "light" | "dark";
+  variant?: "light" | "dark" | "embedded";
   className?: string;
 }) {
   if (items.length === 0) return null;
 
   const dark = variant === "dark";
+  const embedded = variant === "embedded";
 
   return (
     <section
       className={cn(
-        "pf-metrics-strip",
+        !embedded && "pf-metrics-strip",
         dark && "pf-metrics-strip-dark",
+        embedded && "px-4 py-4",
         className
       )}
       aria-label={eyebrow}
     >
-      <p
-        className={cn(
-          "pf-metrics-strip-eyebrow",
-          dark ? "text-red-300/80" : undefined
-        )}
-      >
-        {eyebrow}
-      </p>
+      {embedded ? null : (
+        <p
+          className={cn(
+            "pf-metrics-strip-eyebrow",
+            dark ? "text-red-300/80" : undefined
+          )}
+        >
+          {eyebrow}
+        </p>
+      )}
       <div className="pf-metrics-strip-grid">
         {items.map((item) => (
           <div key={item.label} className="pf-metrics-strip-cell">

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ChartFrame } from "@/components/charts/ChartFrame";
+import { HorizontalBarChart } from "@/components/charts/HorizontalBarChart";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import type { CallCardData } from "@/components/calls/CallCard";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
@@ -16,44 +18,40 @@ export function ProFeedLeadersPanel({
   const leaders = [...calls]
     .filter((c) => c.target_progress != null)
     .sort((a, b) => (b.target_progress ?? 0) - (a.target_progress ?? 0))
-    .slice(0, 6);
+    .slice(0, 8);
+
+  const barItems = leaders.map((c) => ({
+    id: c.id,
+    label: c.symbol,
+    value: Math.max(0, c.target_progress ?? 0),
+    href: `/ticker/${c.symbol}`,
+    sublabel: `@${c.username ?? c.pin} · ${formatPct(c.return_pct)} return`,
+    valueLabel: `${Math.round(c.target_progress ?? 0)}% to target`,
+  }));
 
   const body = (
-    <div className="pf-workspace-panel p-5">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-        Pro · target progress leaders
-      </p>
-      <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-        Calls closest to their stated targets in this feed view.
-      </p>
+    <ChartFrame
+      title="Target progress leaders"
+      subtitle="Calls closest to their stated targets in this feed view"
+    >
       {leaders.length === 0 ? (
-        <p className="mt-4 text-sm text-[var(--pf-gray-500)]">No target progress data in this view yet.</p>
+        <p className="px-4 py-8 text-center text-sm text-[var(--pf-gray-500)]">
+          No target progress data in this view yet.
+        </p>
       ) : (
-        <ul className="mt-4 space-y-2">
-          {leaders.map((c) => (
-            <li
-              key={c.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2"
-            >
-              <div className="min-w-0">
-                <Link
-                  href={`/ticker/${c.symbol}`}
-                  className="font-mono text-sm font-bold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
-                >
-                  {c.symbol}
-                </Link>
-                <p className="truncate text-xs text-[var(--pf-gray-500)]">
-                  @{c.username ?? c.pin} · {formatPct(c.return_pct)} return
-                </p>
-              </div>
-              <span className="shrink-0 text-sm font-bold tabular-nums text-emerald-600">
-                {Math.round(c.target_progress ?? 0)}% to target
-              </span>
-            </li>
-          ))}
-        </ul>
+        <HorizontalBarChart items={barItems} maxItems={8} />
       )}
-    </div>
+      {leaders.length > 0 ? (
+        <div className="border-t border-[var(--pf-border)] px-4 py-3 text-center">
+          <Link
+            href="/dashboard/feed?tab=progress"
+            className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
+          >
+            View full progress board →
+          </Link>
+        </div>
+      ) : null}
+    </ChartFrame>
   );
 
   return (

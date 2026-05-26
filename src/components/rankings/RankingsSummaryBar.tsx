@@ -1,4 +1,5 @@
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
+import { ChartFrame } from "@/components/charts/ChartFrame";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import type { RankingsSummary } from "@/lib/calls/rankings-summary";
@@ -16,14 +17,16 @@ export function RankingsSummaryBar({
 
   return (
     <div className="mb-8 space-y-4">
-      <MetricsStrip
-        eyebrow="Leaderboard pulse"
-        items={[
-          { label: "Ranked members", value: String(summary.rankedCount) },
-          { label: "Trusted", value: String(summary.trustedCount) },
-          { label: "Total calls", value: String(summary.totalCalls) },
-        ]}
-      />
+      <ChartFrame title="Leaderboard pulse" subtitle="Community rank activity at a glance">
+        <MetricsStrip
+          variant="embedded"
+          items={[
+            { label: "Ranked members", value: String(summary.rankedCount) },
+            { label: "Trusted", value: String(summary.trustedCount) },
+            { label: "Total calls", value: String(summary.totalCalls) },
+          ]}
+        />
+      </ChartFrame>
 
       <ProIntelligenceGate
         locked={proLocked}
@@ -32,22 +35,24 @@ export function RankingsSummaryBar({
         description="Win-rate aggregates and top score breakdowns — Pro Intelligence ($129/mo)."
         compact
       >
-        <MetricsStrip
-          eyebrow="Pro rankings"
-          items={[
-            {
-              label: "Avg win rate",
-              value:
-                summary.avgWinRate != null ? `${summary.avgWinRate.toFixed(0)}%` : "—",
-              hint: "Across ranked",
-            },
-            {
-              label: "Top score",
-              value: summary.topScore != null ? summary.topScore.toFixed(1) : "—",
-              hint: "#1 member",
-            },
-          ]}
-        />
+        <ChartFrame title="Pro rankings" subtitle="Aggregate performance across ranked members">
+          <MetricsStrip
+            variant="embedded"
+            items={[
+              {
+                label: "Avg win rate",
+                value:
+                  summary.avgWinRate != null ? `${summary.avgWinRate.toFixed(0)}%` : "—",
+                hint: "Across ranked",
+              },
+              {
+                label: "Top score",
+                value: summary.topScore != null ? summary.topScore.toFixed(1) : "—",
+                hint: "#1 member",
+              },
+            ]}
+          />
+        </ChartFrame>
       </ProIntelligenceGate>
     </div>
   );

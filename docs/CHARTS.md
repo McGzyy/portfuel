@@ -86,13 +86,13 @@ Ticker pages: candlesticks + member call markers. Styling: `pf-ticker-chart-fram
 
 ---
 
-## Phase G4 — Pro terminal
+## Phase G4 — Pro terminal ✅
 
-| Task | Detail |
+| Task | Status |
 |------|--------|
-| Compare sync | Shared range + crosshair across panes. |
-| Screener viz | Bar chart or heat grid for “most called” / “best return”. |
-| Pro strips | Feed/rankings analytics use `ChartFrame` not raw divs. |
+| Compare sync | ✅ `CompareMultiLineChart` — shared scale + crosshair |
+| Screener viz | ✅ `HorizontalBarChart` in `ScreenerChartPanels` |
+| Pro strips | ✅ Feed, rankings, Pro feed leaders in `ChartFrame` |
 
 ---
 

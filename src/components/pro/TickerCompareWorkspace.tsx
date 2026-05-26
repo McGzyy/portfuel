@@ -2,18 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
+import { ChartFrame } from "@/components/charts/ChartFrame";
 import { ChartLoadingSkeleton } from "@/components/charts/ChartLoadingSkeleton";
+import { CompareMultiLineChart } from "@/components/charts/CompareMultiLineChart";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import { candlesToNormalizedLine } from "@/lib/charts/normalize";
 import type { CandlePoint, LinePoint } from "@/lib/charts/types";
 import { formatPct } from "@/lib/utils";
-
-const ReturnLineChart = dynamic(
-  () => import("@/components/charts/ReturnLineChart").then((m) => m.ReturnLineChart),
-  { ssr: false, loading: () => <ChartLoadingSkeleton height={160} /> }
-);
 
 type CompareSlot = {
   symbol: string;
@@ -160,12 +156,20 @@ export function TickerCompareWorkspace({
       {error ? <p className="text-sm text-[var(--pf-red)]">{error}</p> : null}
 
       {loading ? (
-        <div className="grid gap-4 md:grid-cols-3">
-          {symbols.map((sym) => (
-            <ChartLoadingSkeleton key={sym} height={160} />
-          ))}
-        </div>
-      ) : (
+        <ChartLoadingSkeleton height={320} />
+      ) : slots.length >= 2 ? (
+        <ChartFrame
+          title="Synced compare"
+          subtitle="Shared time scale and crosshair · % change from 3-month start"
+        >
+          <CompareMultiLineChart
+            series={slots.map((s) => ({ symbol: s.symbol, points: s.points }))}
+            height={320}
+          />
+        </ChartFrame>
+      ) : null}
+
+      {!loading && slots.length >= 2 ? (
         <div
           className={
             slots.length === 2
@@ -197,18 +201,11 @@ export function TickerCompareWorkspace({
                   </span>
                 ) : null}
               </div>
-              <p className="mt-1 text-[10px] text-[var(--pf-gray-400)]">% vs 3M start</p>
-              {slot.points.length > 0 ? (
-                <div className="mt-2">
-                  <ReturnLineChart points={slot.points} height={160} compact />
-                </div>
-              ) : (
-                <p className="mt-6 text-center text-xs text-[var(--pf-gray-500)]">No chart data</p>
-              )}
+              <p className="mt-1 text-[10px] text-[var(--pf-gray-400)]">Today&apos;s move</p>
             </div>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 
