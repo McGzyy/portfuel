@@ -1,6 +1,10 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { sendPortfuelEmail } from "@/lib/email/client";
 import { isEmailConfigured } from "@/lib/email/config";
+import {
+  buildWeeklyDigestSections,
+  buildWeeklyDigestSnapshot,
+} from "@/lib/email/digest-content";
 import { weeklyDigestEmail } from "@/lib/email/templates";
 
 const DIGEST_INTERVAL_MS = 7 * 24 * 3600 * 1000;
@@ -18,6 +22,7 @@ export async function runWeeklyDigestBatch(): Promise<DigestRunResult> {
 
   const db = createServiceClient();
   const cutoff = new Date(Date.now() - DIGEST_INTERVAL_MS).toISOString();
+  const snapshot = await buildWeeklyDigestSnapshot();
 
   const { data: users, error } = await db
     .from("users")
@@ -47,15 +52,12 @@ export async function runWeeklyDigestBatch(): Promise<DigestRunResult> {
       avg_return_pct: number | null;
     };
 
-    if (
-      row.email_digest_last_sent_at &&
-      row.email_digest_last_sent_at > cutoff
-    ) {
+    if (row.email_digest_last_sent_at && row.email_digest_last_sent_at > cutoff) {
       skipped++;
       continue;
     }
 
-    const ok = await sendWeeklyDigestForUser(row.id);
+    const ok = await sendWeeklyDigestForUser(row.id, snapshot);
     if (ok) sent++;
     else skipped++;
   }
@@ -63,7 +65,10 @@ export async function runWeeklyDigestBatch(): Promise<DigestRunResult> {
   return { attempted: (users ?? []).length, sent, skipped };
 }
 
-export async function sendWeeklyDigestForUser(userId: string): Promise<boolean> {
+export async function sendWeeklyDigestForUser(
+  userId: string,
+  snapshot?: Awaited<ReturnType<typeof buildWeeklyDigestSnapshot>>
+): Promise<boolean> {
   if (!isEmailConfigured()) return false;
 
   const db = createServiceClient();
@@ -88,61 +93,16 @@ export async function sendWeeklyDigestForUser(userId: string): Promise<boolean> 
 
   if (!row.email_digest_enabled || !row.notify_email?.trim()) return false;
 
-  const sections: { heading: string; lines: string[] }[] = [];
-
-  const yourLines: string[] = [];
-  if (row.calls_count > 0) {
-    yourLines.push(`${row.calls_count} published call${row.calls_count === 1 ? "" : "s"}`);
-    if (row.win_rate != null) yourLines.push(`Win rate: ${Math.round(row.win_rate)}%`);
-    if (row.avg_return_pct != null) {
-      yourLines.push(`Average return: ${Number(row.avg_return_pct).toFixed(1)}%`);
-    }
-  } else {
-    yourLines.push("No calls yet — publish your first thesis from the desk.");
-  }
-  sections.push({ heading: "Your desk", lines: yourLines });
-
-  const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
-  const { data: hotCalls } = await db
-    .from("calls")
-    .select("symbol, direction, return_pct, vote_score, users!inner(username)")
-    .gte("created_at", since)
-    .order("vote_score", { ascending: false })
-    .limit(5);
-
-  const feedLines = (hotCalls ?? []).map((c) => {
-    const row = c as {
-      symbol: string;
-      direction: string;
-      return_pct: number | null;
-      users: { username: string } | { username: string }[];
-    };
-    const u = Array.isArray(row.users) ? row.users[0] : row.users;
-    const who = u?.username ? `@${u.username}` : "Member";
-    const ret =
-      row.return_pct != null ? ` · ${Number(row.return_pct).toFixed(1)}%` : "";
-    return `${row.symbol} ${row.direction} by ${who}${ret}`;
-  });
-
-  sections.push({
-    heading: "Hot this week",
-    lines: feedLines.length ? feedLines : ["Quiet week — check the feed for new theses."],
-  });
-
-  const { count: unread } = await db
-    .from("user_notifications")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .is("read_at", null);
-
-  sections.push({
-    heading: "In-app",
-    lines: [
-      unread && unread > 0
-        ? `${unread} unread notification${unread === 1 ? "" : "s"}`
-        : "You're caught up on notifications",
-    ],
-  });
+  const shared = snapshot ?? (await buildWeeklyDigestSnapshot());
+  const sections = await buildWeeklyDigestSections(
+    userId,
+    {
+      calls_count: row.calls_count,
+      win_rate: row.win_rate,
+      avg_return_pct: row.avg_return_pct,
+    },
+    shared
+  );
 
   const tpl = weeklyDigestEmail({
     displayName: row.display_name,

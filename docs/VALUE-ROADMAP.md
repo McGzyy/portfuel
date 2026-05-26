@@ -84,7 +84,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 6. ✅ **Watchlist move alerts** — % since add (`baseline_price` migration); Pro sees alert strip ±5%.
 7. ✅ **Earnings calendar (Pro)** — next 14 days for watchlist equities (`/dashboard/watchlist`).
 8. ✅ **Pro feed leaders** — target progress top 6 on member feed.
-8. **Call performance digest** — weekly email: your calls marked, community top movers.
+8. ✅ **Call performance digest** — weekly email: Fueled portfolio, your calls marked, 30d top movers.
 9. ✅ **Ticker compare** — 2–3 symbols side-by-side mini charts (Pro) at `/dashboard/compare`.
 10. ✅ **Expand Pro analytics** — return distribution on profile; feed target progress leaders shipped earlier.
 

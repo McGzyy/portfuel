@@ -67,7 +67,7 @@ export function weeklyDigestEmail(opts: {
     ctaLabel: "Open workspace",
   });
 
-  return { subject: "Your PortFuel weekly digest", html, text };
+  return { subject: "Your PortFuel week — desk portfolio & performance", html, text };
 }
 
 function escapeHtml(s: string): string {

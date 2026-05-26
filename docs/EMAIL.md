@@ -8,7 +8,7 @@ PortFuel sends **in-app** notifications plus optional **email** via [Resend](htt
 |--------|--------|
 | In-app | Comments, votes, watchlist new calls |
 | Instant email | Watchlist new call, comment on your call, followed member new call |
-| Weekly digest | Desk stats, hot calls, unread count (Mondays 14:00 UTC) |
+| Weekly digest | Fueled portfolio + desk note, your marked calls, 30d top movers, new this week (Mondays 14:00 UTC) |
 
 Votes do not trigger email (too noisy).
 

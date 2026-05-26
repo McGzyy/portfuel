@@ -63,8 +63,9 @@ export function ProfileEmailSection() {
         Email alerts
       </p>
       <p className="mt-2 text-sm text-[var(--pf-gray-500)]">
-        Get a weekly workspace digest and instant emails when someone comments on your call, posts
-        on a watchlist ticker, or publishes a call from a member you follow.
+        Weekly digest: Fueled model portfolio marks, your published calls, community top movers,
+        and new feed activity. Instant emails for comments, watchlist calls, desk updates, and
+        followed members.
       </p>
 
       {!prefs.emailConfigured ? (
