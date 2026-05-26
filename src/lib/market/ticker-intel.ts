@@ -27,7 +27,13 @@ export type TickerIntel = {
   quote: { price: number; changePct: number } | null;
   hypeScore: number;
   candles: { time: number; open: number; high: number; low: number; close: number }[];
-  markers: { time: number; price: number; label: string; color?: string }[];
+  markers: {
+    time: number;
+    price: number;
+    label: string;
+    color?: string;
+    kind?: "long" | "short" | "fueled";
+  }[];
   calls: CallWithUser[];
   news: CompanyNewsItem[];
   earnings: EarningsItem[];
@@ -131,6 +137,10 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
       price: Number(c.price_at_call ?? c.entry_price ?? quote?.price ?? 0),
       label: `${name} ${c.direction}`,
       color: c.is_fueled ? "#E31B23" : c.direction === "long" ? "#10b981" : "#f43f5e",
+      kind: (c.is_fueled ? "fueled" : c.direction === "long" ? "long" : "short") as
+        | "long"
+        | "short"
+        | "fueled",
     };
   });
 

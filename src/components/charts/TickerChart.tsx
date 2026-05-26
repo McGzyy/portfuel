@@ -6,13 +6,15 @@ import {
   createSeriesMarkers,
   ColorType,
   CandlestickSeries,
+  LineStyle,
   type IChartApi,
   type ISeriesApi,
   type CandlestickData,
   type Time,
   type SeriesMarker,
+  type IPriceLine,
 } from "lightweight-charts";
-import type { CandlePoint, ChartMarker } from "@/lib/charts/types";
+import type { CandlePoint, ChartMarker, PriceLine } from "@/lib/charts/types";
 import {
   PF_CHART,
   chartGridOptions,
@@ -21,17 +23,33 @@ import {
 
 export type { CandlePoint, ChartMarker } from "@/lib/charts/types";
 
+function markerShape(m: ChartMarker): SeriesMarker<Time>["shape"] {
+  if (m.kind === "fueled") return "square";
+  if (m.kind === "long") return "arrowUp";
+  if (m.kind === "short") return "arrowDown";
+  return "circle";
+}
+
+function markerPosition(m: ChartMarker): SeriesMarker<Time>["position"] {
+  if (m.kind === "long") return "belowBar";
+  if (m.kind === "short") return "aboveBar";
+  return "aboveBar";
+}
+
 export function TickerChart({
   candles,
   markers,
+  priceLines = [],
 }: {
   candles: CandlePoint[];
   markers: ChartMarker[];
+  priceLines?: PriceLine[];
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const markersRef = useRef<ReturnType<typeof createSeriesMarkers<Time>> | null>(null);
+  const priceLinesRef = useRef<IPriceLine[]>([]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -87,6 +105,7 @@ export function TickerChart({
       chartRef.current = null;
       seriesRef.current = null;
       markersRef.current = null;
+      priceLinesRef.current = [];
     };
   }, []);
 
@@ -104,15 +123,33 @@ export function TickerChart({
 
     const seriesMarkers: SeriesMarker<Time>[] = markers.map((m) => ({
       time: m.time as Time,
-      position: "aboveBar",
+      position: markerPosition(m),
+      price: m.price,
       color: m.color ?? PF_CHART.marker.default,
-      shape: "circle",
+      shape: markerShape(m),
       text: m.label,
     }));
     markersRef.current?.setMarkers(seriesMarkers);
 
+    for (const pl of priceLinesRef.current) {
+      seriesRef.current.removePriceLine(pl);
+    }
+    priceLinesRef.current = [];
+
+    for (const line of priceLines) {
+      const pl = seriesRef.current.createPriceLine({
+        price: line.price,
+        color: line.color ?? PF_CHART.marker.default,
+        lineWidth: 1,
+        lineStyle: line.style === "dashed" ? LineStyle.Dashed : LineStyle.Solid,
+        axisLabelVisible: true,
+        title: line.label,
+      });
+      priceLinesRef.current.push(pl);
+    }
+
     chartRef.current?.timeScale().fitContent();
-  }, [candles, markers]);
+  }, [candles, markers, priceLines]);
 
   return <div ref={containerRef} className="h-[400px] w-full min-h-[320px]" />;
 }

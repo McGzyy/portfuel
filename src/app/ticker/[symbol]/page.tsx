@@ -22,6 +22,7 @@ import { isDemoMode } from "@/lib/demo/config";
 import { summarizeTickerCommunity } from "@/lib/calls/ticker-community-stats";
 import { isSymbolOnWatchlist } from "@/lib/watchlist/service";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
+import { buildTickerPriceLines } from "@/lib/charts/price-lines";
 import {
   getProGateCta,
   isProIntelligenceLocked,
@@ -88,6 +89,10 @@ export default async function TickerPage({
   const isEquityIntel = intelData.assetClass === "equity";
   const intelGateLocked = proLocked && isEquityIntel;
   const intelTeaser = buildIntelTeaserSummary(intelData);
+  const chartPriceLines = buildTickerPriceLines({
+    calls: intel?.calls ?? [],
+    viewerUserId: session?.userId,
+  });
 
   const body = (
     <div className="space-y-6">
@@ -105,6 +110,7 @@ export default async function TickerPage({
           className="mt-8"
           candles={intel?.candles ?? []}
           markers={intel?.markers ?? []}
+          priceLines={chartPriceLines}
         />
       </section>
 

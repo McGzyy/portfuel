@@ -6,11 +6,14 @@ export type CandlePoint = {
   close: number;
 };
 
+export type ChartMarkerKind = "long" | "short" | "fueled";
+
 export type ChartMarker = {
   time: number;
   price: number;
   label: string;
   color?: string;
+  kind?: ChartMarkerKind;
 };
 
 /** Horizontal levels on ticker charts (entry / target / stop) — Phase G1. */

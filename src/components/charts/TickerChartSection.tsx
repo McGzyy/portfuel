@@ -6,7 +6,7 @@ import { ChartFrame } from "@/components/charts/ChartFrame";
 import { ChartRangeToolbar } from "@/components/charts/ChartRangeToolbar";
 import { ChartLoadingSkeleton } from "@/components/charts/ChartLoadingSkeleton";
 import { TickerChartLegend } from "@/components/ticker/TickerChartLegend";
-import type { CandlePoint, ChartMarker, ChartRangeKey } from "@/lib/charts/types";
+import type { CandlePoint, ChartMarker, ChartRangeKey, PriceLine } from "@/lib/charts/types";
 import { filterCandlesByRange, filterMarkersByRange } from "@/lib/charts/range";
 
 const TickerChart = dynamic(
@@ -20,10 +20,12 @@ const TickerChart = dynamic(
 export function TickerChartSection({
   candles,
   markers,
+  priceLines = [],
   className,
 }: {
   candles: CandlePoint[];
   markers: ChartMarker[];
+  priceLines?: PriceLine[];
   className?: string;
 }) {
   const [range, setRange] = useState<ChartRangeKey>("1y");
@@ -54,7 +56,11 @@ export function TickerChartSection({
         <div className="space-y-3 p-3">
           <ChartRangeToolbar value={range} onChange={setRange} />
           {filteredCandles.length > 0 ? (
-            <TickerChart candles={filteredCandles} markers={filteredMarkers} />
+            <TickerChart
+              candles={filteredCandles}
+              markers={filteredMarkers}
+              priceLines={priceLines}
+            />
           ) : (
             <div className="flex h-[280px] items-center justify-center text-sm text-[var(--pf-gray-500)]">
               No candles in this range — try a wider window.
