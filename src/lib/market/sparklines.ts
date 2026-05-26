@@ -18,7 +18,7 @@ export async function fetchSymbolSparkline(symbol: string): Promise<LinePoint[]>
 export async function fetchSparklinesForSymbols(
   symbols: string[]
 ): Promise<Record<string, LinePoint[]>> {
-  const unique = [...new Set(symbols.map((s) => s.toUpperCase()))].slice(0, 8);
+  const unique = [...new Set(symbols.map((s) => s.toUpperCase()))].slice(0, 12);
   const entries = await Promise.all(
     unique.map(async (symbol) => {
       try {

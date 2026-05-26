@@ -35,7 +35,9 @@ Ticker pages: candlesticks + member call markers. Styling: `pf-ticker-chart-fram
 
 | Surface | Component | Notes |
 |---------|-----------|--------|
-| Ticker | `TickerChartSection` | Range toolbar 1M–ALL, call markers |
+| Ticker | `TickerChartSection` | Range toolbar 1M–ALL, call markers, price lines (G1) |
+| Hot tickers / watchlist / feed / overview | `MiniSparkline`, `SparklineProvider` | Batched 30d closes (G2) |
+| Rankings | `RankScoreBar` | Relative score bar (G2) |
 | Profile / member | `MemberReturnChart` | Cumulative return from calls |
 | Own profile | Same + distribution | `MemberReturnDistribution` (Pro) |
 | Overview | `OverviewPerformanceChart` | Workspace sparkline |
@@ -60,17 +62,17 @@ Ticker pages: candlesticks + member call markers. Styling: `pf-ticker-chart-fram
 
 ---
 
-## Phase G2 — Workspace rhythm
+## Phase G2 — Workspace rhythm ✅
 
 **Goal:** Overview, watchlist, feed, and rankings share the same mini-chart DNA.
 
-| Task | Detail |
+| Task | Status |
 |------|--------|
-| `MiniSparkline` | Reusable client component: `LinePoint[]`, fixed height ~32px, theme colors. |
-| Hot tickers | `HotTickersStrip` — 30d sparkline per symbol + call count. |
-| Watchlist rows | Optional sparkline column next to % change. |
-| Feed cards | Optional right-rail sparkline (lazy load; don’t block LCP). |
-| Rankings | Bar or spark for rank score / 30d return (keep lightweight). |
+| `MiniSparkline` + `SparklineProvider` | ✅ Batched fetch, lazy on feed |
+| Hot tickers | ✅ |
+| Watchlist rows | ✅ |
+| Feed cards + overview previews + following | ✅ Right-rail sparkline |
+| Rankings | ✅ `RankScoreBar` vs leader |
 
 ---
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { RankScoreBar } from "@/components/rankings/RankScoreBar";
 import type { LeaderboardEntry } from "@/lib/calls/leaderboard";
 
 export function LeaderboardTable({
@@ -9,6 +10,8 @@ export function LeaderboardTable({
   rows: LeaderboardEntry[];
   embedded?: boolean;
 }) {
+  const maxScore = rows.length > 0 ? Math.max(...rows.map((r) => r.rank_score)) : 0;
+
   if (rows.length === 0) {
     return (
       <div className="pf-empty">
@@ -33,6 +36,7 @@ export function LeaderboardTable({
             <th className="px-4 py-3">Caller</th>
             <th className="hidden px-4 py-3 sm:table-cell">Handle</th>
             <th className="px-4 py-3 text-right">Score</th>
+            <th className="hidden px-4 py-3 text-right lg:table-cell">Momentum</th>
             <th className="hidden px-4 py-3 text-right sm:table-cell">Win rate</th>
             <th className="hidden px-4 py-3 text-right md:table-cell">Calls</th>
           </tr>
@@ -68,6 +72,9 @@ export function LeaderboardTable({
               </td>
               <td className="px-4 py-4 text-right font-bold tabular-nums text-[var(--pf-black)]">
                 {row.rank_score.toFixed(1)}
+              </td>
+              <td className="hidden px-4 py-4 lg:table-cell">
+                <RankScoreBar score={row.rank_score} maxScore={maxScore} />
               </td>
               <td className="hidden px-4 py-4 text-right tabular-nums text-[var(--pf-gray-600)] sm:table-cell">
                 {row.win_rate != null ? `${row.win_rate.toFixed(0)}%` : "—"}

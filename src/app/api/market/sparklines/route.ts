@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     .split(",")
     .map((s) => s.trim().toUpperCase())
     .filter(Boolean)
-    .slice(0, 8);
+    .slice(0, 12);
 
   if (symbols.length === 0) {
     return NextResponse.json({ series: {} });

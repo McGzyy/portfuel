@@ -5,6 +5,7 @@ import { CallPriceMetrics } from "@/components/calls/CallPriceMetrics";
 import { ThesisCoachInline } from "@/components/ai/ThesisCoachInline";
 import { ThesisSummaryExpand } from "@/components/ai/ThesisSummaryExpand";
 import { Card, CardContent } from "@/components/ui/card";
+import { SymbolSparkline } from "@/components/charts/SymbolSparkline";
 import { cn, formatPct, timeAgo } from "@/lib/utils";
 import type { TeaserCallRow } from "@/lib/db/supabase";
 
@@ -51,6 +52,8 @@ type CallCardProps = {
   showUpgrade?: boolean;
   showSummary?: boolean;
   canGenerateSummary?: boolean;
+  /** Requires SparklineProvider ancestor — lazy-loaded on feed. */
+  showSparkline?: boolean;
 };
 
 export function CallCard({
@@ -63,6 +66,7 @@ export function CallCard({
   showUpgrade,
   showSummary = true,
   canGenerateSummary = false,
+  showSparkline = false,
 }: CallCardProps) {
   const handle = /^\d{5}$/.test(call.pin) ? call.pin : `@${call.pin}`;
   const name = call.display_name ?? `Trader ${handle}`;
@@ -140,11 +144,16 @@ export function CallCard({
               <span className="tabular-nums text-[var(--pf-gray-400)]">· {handle}</span>
             </p>
           </div>
-          <div className="shrink-0 text-right">
-            <p className={cn("text-xl font-bold tabular-nums tracking-tight", retClass)}>
-              {formatPct(ret)}
-            </p>
-            <p className="text-xs text-[var(--pf-gray-400)]">{timeAgo(call.called_at)}</p>
+          <div className="flex shrink-0 items-start gap-2.5">
+            {showSparkline ? (
+              <SymbolSparkline symbol={call.symbol} width={56} height={28} className="mt-0.5" />
+            ) : null}
+            <div className="text-right">
+              <p className={cn("text-xl font-bold tabular-nums tracking-tight", retClass)}>
+                {formatPct(ret)}
+              </p>
+              <p className="text-xs text-[var(--pf-gray-400)]">{timeAgo(call.called_at)}</p>
+            </div>
           </div>
         </div>
         <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-[var(--pf-gray-700)]">

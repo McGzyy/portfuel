@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { CallPreviewRow, type CallPreviewData } from "@/components/dashboard/CallPreviewRow";
+import { FeedPreviewList } from "@/components/dashboard/FeedPreviewList";
+import type { CallPreviewData } from "@/components/dashboard/CallPreviewRow";
 import { WorkspacePanel } from "@/components/dashboard/WorkspacePanel";
 import { buildFeedHref } from "@/lib/dashboard/nav";
 import type { FollowedMember } from "@/lib/follows/types";
@@ -40,11 +41,7 @@ export function FollowingFeedPanel({
           No recent calls from people you follow.
         </p>
       ) : (
-        <div className="divide-y divide-[var(--pf-border)]">
-          {previews.map((call) => (
-            <CallPreviewRow key={call.id} call={call} />
-          ))}
-        </div>
+        <FeedPreviewList previews={previews} />
       )}
     </WorkspacePanel>
   );

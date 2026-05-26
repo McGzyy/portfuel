@@ -20,7 +20,8 @@ import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { FueledDeskHero } from "@/components/dashboard/FueledDeskHero";
 import { WorkspacePanel } from "@/components/dashboard/WorkspacePanel";
-import { CallPreviewRow, type CallPreviewData } from "@/components/dashboard/CallPreviewRow";
+import { FeedPreviewList } from "@/components/dashboard/FeedPreviewList";
+import type { CallPreviewData } from "@/components/dashboard/CallPreviewRow";
 import type { CallCardData } from "@/components/calls/CallCard";
 import type { fetchUserRecentCalls } from "@/lib/users/profile";
 import {
@@ -243,11 +244,7 @@ export default async function DashboardOverviewPage({
                     No member calls yet.
                   </p>
                 ) : (
-                  <div className="divide-y divide-[var(--pf-border)]">
-                    {latestPreviews.map((call) => (
-                      <CallPreviewRow key={call.id} call={call} />
-                    ))}
-                  </div>
+                  <FeedPreviewList previews={latestPreviews} />
                 )}
               </WorkspacePanel>
             </div>

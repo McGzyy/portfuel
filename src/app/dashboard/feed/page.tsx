@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { CallCard } from "@/components/calls/CallCard";
+import { FeedCallList } from "@/components/dashboard/FeedCallList";
 import {
   WorkspacePageHeader,
   WorkspaceHeaderAction,
@@ -147,16 +147,11 @@ export default async function DashboardFeedPage({
             )}
           </div>
         ) : (
-          mapped.map((call) => (
-            <CallCard
-              key={call.id}
-              call={call}
-              interactive
-              isNew={isCallNewSinceSeen(call.called_at, feedSeenAt)}
-              canGenerateSummary={!proLocked}
-              showUpgrade={proLocked}
-            />
-          ))
+          <FeedCallList
+            calls={mapped}
+            feedSeenAt={feedSeenAt}
+            proLocked={proLocked}
+          />
         )}
       </div>
     </>

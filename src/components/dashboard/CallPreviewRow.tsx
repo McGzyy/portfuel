@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { SymbolSparkline } from "@/components/charts/SymbolSparkline";
 import { cn, formatPct, timeAgo } from "@/lib/utils";
 
 export type CallPreviewData = {
@@ -17,9 +20,11 @@ export type CallPreviewData = {
 export function CallPreviewRow({
   call,
   variant = "default",
+  showSparkline = false,
 }: {
   call: CallPreviewData;
   variant?: "default" | "on-dark";
+  showSparkline?: boolean;
 }) {
   const slug = call.username && !/^\d{5}$/.test(call.username) ? call.username : null;
   const name = call.display_name ?? (slug ? `@${slug}` : "Member");
@@ -49,24 +54,29 @@ export function CallPreviewRow({
           </Badge>
           {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
         </div>
-        <div className="shrink-0 text-right">
-          <p
-            className={cn(
-              "text-sm font-bold tabular-nums",
-              ret == null
-                ? dark
-                  ? "text-slate-500"
-                  : "text-[var(--pf-gray-400)]"
-                : ret >= 0
-                  ? "text-emerald-500"
-                  : "text-rose-500"
-            )}
-          >
-            {formatPct(ret)}
-          </p>
-          <p className={cn("text-[10px]", dark ? "text-slate-500" : "text-[var(--pf-gray-400)]")}>
-            {timeAgo(call.called_at)}
-          </p>
+        <div className="flex shrink-0 items-start gap-2">
+          {showSparkline ? (
+            <SymbolSparkline symbol={call.symbol} width={48} height={22} className="mt-0.5" />
+          ) : null}
+          <div className="text-right">
+            <p
+              className={cn(
+                "text-sm font-bold tabular-nums",
+                ret == null
+                  ? dark
+                    ? "text-slate-500"
+                    : "text-[var(--pf-gray-400)]"
+                  : ret >= 0
+                    ? "text-emerald-500"
+                    : "text-rose-500"
+              )}
+            >
+              {formatPct(ret)}
+            </p>
+            <p className={cn("text-[10px]", dark ? "text-slate-500" : "text-[var(--pf-gray-400)]")}>
+              {timeAgo(call.called_at)}
+            </p>
+          </div>
         </div>
       </div>
       <p
