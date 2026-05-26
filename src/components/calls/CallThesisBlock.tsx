@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { ThesisCoachInline } from "@/components/ai/ThesisCoachInline";
 import { CallEngagement } from "@/components/calls/CallEngagement";
 import { CallPriceMetrics } from "@/components/calls/CallPriceMetrics";
 import { formatPct, timeAgo } from "@/lib/utils";
 
 type ThesisCall = {
   id: string;
+  user_id?: string;
   symbol?: string;
+  asset_class?: "equity" | "crypto";
   direction: "long" | "short";
   thesis: string;
   called_at: string;
@@ -31,10 +34,17 @@ type ThesisCall = {
 export function CallThesisBlock({
   call,
   interactive,
+  viewerUserId,
+  isPro,
+  showUpgrade,
 }: {
   call: ThesisCall;
   interactive: boolean;
+  viewerUserId?: string | null;
+  isPro?: boolean;
+  showUpgrade?: boolean;
 }) {
+  const isOwnCall = Boolean(viewerUserId && call.user_id && viewerUserId === call.user_id);
   const handle = call.users.username
     ? `@${call.users.username}`
     : /^\d{5}$/.test(call.users.pin)
@@ -95,6 +105,22 @@ export function CallThesisBlock({
         initialCommentCount={call.comment_count}
         interactive={interactive}
       />
+      {isOwnCall && call.symbol ? (
+        <ThesisCoachInline
+          isPro={Boolean(isPro)}
+          showUpgrade={showUpgrade}
+          draft={{
+            symbol: call.symbol,
+            assetClass: call.asset_class ?? "equity",
+            direction: call.direction,
+            thesis: call.thesis,
+            entryPrice: call.entry_price,
+            targetPrice: call.target_price,
+            stopPrice: call.stop_price ?? null,
+            timeframeTag: call.timeframe_tag,
+          }}
+        />
+      ) : null}
     </article>
   );
 }

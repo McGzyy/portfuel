@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { CallEngagement } from "@/components/calls/CallEngagement";
 import { CallPriceMetrics } from "@/components/calls/CallPriceMetrics";
+import { ThesisCoachInline } from "@/components/ai/ThesisCoachInline";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn, formatPct, timeAgo } from "@/lib/utils";
 import type { TeaserCallRow } from "@/lib/db/supabase";
@@ -44,9 +45,20 @@ type CallCardProps = {
   compact?: boolean;
   interactive?: boolean;
   isNew?: boolean;
+  showThesisCoach?: boolean;
+  isPro?: boolean;
+  showUpgrade?: boolean;
 };
 
-export function CallCard({ call, compact, interactive = false, isNew }: CallCardProps) {
+export function CallCard({
+  call,
+  compact,
+  interactive = false,
+  isNew,
+  showThesisCoach,
+  isPro,
+  showUpgrade,
+}: CallCardProps) {
   const handle = /^\d{5}$/.test(call.pin) ? call.pin : `@${call.pin}`;
   const name = call.display_name ?? `Trader ${handle}`;
   const ret = call.return_pct;
@@ -165,6 +177,22 @@ export function CallCard({ call, compact, interactive = false, isNew }: CallCard
           interactive={interactive}
           compact={compact}
         />
+        {showThesisCoach ? (
+          <ThesisCoachInline
+            isPro={Boolean(isPro)}
+            showUpgrade={showUpgrade}
+            draft={{
+              symbol: call.symbol,
+              assetClass: (call.asset_class ?? "equity") as "equity" | "crypto",
+              direction: call.direction,
+              thesis: call.thesis,
+              entryPrice: call.entry_price ?? null,
+              targetPrice: call.target_price ?? null,
+              stopPrice: call.stop_price ?? null,
+              timeframeTag: call.timeframe_tag ?? null,
+            }}
+          />
+        ) : null}
       </CardContent>
     </Card>
   );

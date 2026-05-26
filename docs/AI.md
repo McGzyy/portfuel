@@ -32,6 +32,8 @@ Usage is stored in `user_ai_usage` — run migration `20260525300000_ai_coach_us
 ## UI
 
 - **Submit a call** (`/calls/new`) — “Review my thesis” before publish
+- **Your profile** — monthly quota strip; thesis coach on each of your published calls
+- **Ticker page** — thesis coach on your own call cards only
 
 ## Compliance
 

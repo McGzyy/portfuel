@@ -58,8 +58,9 @@ export default async function TickerPage({
 
   const communityStats = summarizeTickerCommunity(intel?.calls ?? []);
   const proContext = sessionToProContext(session);
-  const proLocked = isProIntelligenceLocked(proContext);
+  const proLocked = session ? isProIntelligenceLocked(proContext) : true;
   const proGateCta = getProGateCta(proContext);
+  const isPro = session ? !proLocked : false;
 
   const emptyIntel = {
     symbol,
@@ -140,6 +141,8 @@ export default async function TickerPage({
                 key={c.id}
                 call={{
                   ...c,
+                  user_id: c.user_id,
+                  asset_class: c.asset_class,
                   symbol: c.symbol,
                   stop_price: c.stop_price,
                   last_price: c.last_price,
@@ -151,6 +154,9 @@ export default async function TickerPage({
                   },
                 }}
                 interactive={Boolean(session)}
+                viewerUserId={session?.userId}
+                isPro={isPro}
+                showUpgrade={session ? proLocked : false}
               />
             ))
           )}

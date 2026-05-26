@@ -18,7 +18,10 @@ import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { ProfileBillingSection } from "@/components/billing/ProfileBillingSection";
+import { ProfileAiCoachStrip } from "@/components/profile/ProfileAiCoachStrip";
 import { ProfileEmailSection } from "@/components/profile/ProfileEmailSection";
+import { fetchAiCoachUsage } from "@/lib/ai/usage";
+import { isAiCoachConfigured } from "@/lib/ai/config";
 import { ProfileBillingSync } from "@/app/profile/BillingSync";
 import { isDemoMode } from "@/lib/demo/config";
 import { MemberReturnDistribution } from "@/components/pro/MemberReturnDistribution";
@@ -54,6 +57,12 @@ export default async function ProfilePage() {
   const trackRecord = summarizeMemberTrackRecord(calls);
   const returnSeries = buildCumulativeReturnSeries(calls);
   const returnBuckets = buildReturnDistribution(calls);
+  const aiUsage = await fetchAiCoachUsage({
+    userId: session.userId,
+    membershipTier: session.membershipTier ?? null,
+    role: session.role,
+    configured: isAiCoachConfigured(),
+  });
 
   return (
     <AppShell user={toHeaderUser(session)}>
@@ -141,6 +150,9 @@ export default async function ProfilePage() {
                     is_trusted: member.trusted,
                   }}
                   interactive
+                  showThesisCoach
+                  isPro={!proLocked}
+                  showUpgrade={proLocked}
                 />
               </li>
             ))}
