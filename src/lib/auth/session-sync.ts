@@ -28,13 +28,16 @@ type DbBillingRow = {
   totp_verified: boolean;
   display_name: string | null;
   role: SessionPayload["role"];
+  onboarding_completed_at: string | null;
 };
 
 async function fetchBillingRow(userId: string): Promise<DbBillingRow | null> {
   const db = createServiceClient();
   const { data } = await db
     .from("users")
-    .select("subscription_status, membership_tier, totp_verified, display_name, role")
+    .select(
+      "subscription_status, membership_tier, totp_verified, display_name, role, onboarding_completed_at"
+    )
     .eq("id", userId)
     .maybeSingle();
   return data as DbBillingRow | null;
@@ -46,8 +49,13 @@ function sessionChanged(before: SessionPayload, after: SessionPayload): boolean 
     before.membershipTier !== after.membershipTier ||
     before.totpVerified !== after.totpVerified ||
     before.role !== after.role ||
-    before.displayName !== after.displayName
+    before.displayName !== after.displayName ||
+    before.onboardingCompleted !== after.onboardingCompleted
   );
+}
+
+function onboardingCompletedFromRow(row: DbBillingRow): boolean {
+  return row.role === "admin" || Boolean(row.onboarding_completed_at);
 }
 
 /** Align JWT billing fields with Supabase (Stripe webhooks, portal, admin). */
@@ -75,6 +83,7 @@ export function jwtPayloadToSession(payload: Record<string, unknown>): SessionPa
     subscriptionStatus: payload.subscriptionStatus as SessionPayload["subscriptionStatus"],
     membershipTier,
     totpVerified: Boolean(payload.totpVerified),
+    onboardingCompleted: Boolean(payload.onboardingCompleted),
   };
 }
 
@@ -92,6 +101,7 @@ export async function refreshSessionFromDatabase(
       totpVerified: row.totp_verified,
       displayName: row.display_name ?? session.displayName,
       role: row.role,
+      onboardingCompleted: onboardingCompletedFromRow(row),
     };
 
     if (!sessionChanged(session, merged)) {

@@ -8,6 +8,7 @@ import { checkRateLimit, recordAuthAttempt } from "@/lib/auth/rate-limit";
 import { createSession } from "@/lib/auth/session";
 import { normalizeUsername } from "@/lib/auth/username";
 import { verifyTotpToken } from "@/lib/auth/totp";
+import { needsOnboarding } from "@/lib/onboarding/service";
 
 const schema = z.object({
   username: z.string().min(3).max(32),
@@ -73,11 +74,16 @@ export async function POST(request: Request) {
       subscriptionStatus: user.subscription_status,
       membershipTier: user.membership_tier ?? null,
       totpVerified: user.totp_verified,
+      onboardingCompleted: !needsOnboarding(user),
     });
+
+    const needsOnboardingWizard =
+      isActive && user.totp_verified && needsOnboarding(user);
 
     return NextResponse.json({
       ok: true,
       needsDisplayName: !user.display_name,
+      needsOnboarding: needsOnboardingWizard,
       needsTwoFactorSetup: isActive && !user.totp_verified,
       role: user.role,
       subscriptionStatus: user.subscription_status,

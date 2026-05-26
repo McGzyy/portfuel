@@ -4,6 +4,7 @@ import { createSession } from "@/lib/auth/session";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { confirmCheckoutSession } from "@/lib/stripe/webhooks";
 import type { MembershipTier } from "@/lib/stripe/config";
+import { needsOnboarding } from "@/lib/onboarding/service";
 
 const schema = z.object({
   sessionId: z.string().min(1),
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
       subscriptionStatus: "active",
       membershipTier: tier as MembershipTier,
       totpVerified: user.totp_verified,
+      onboardingCompleted: !needsOnboarding(user),
     });
 
     return NextResponse.json({

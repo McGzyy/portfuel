@@ -91,6 +91,7 @@ export async function getSession(): Promise<SessionPayload | null> {
       subscriptionStatus: payload.subscriptionStatus as SessionPayload["subscriptionStatus"],
       membershipTier,
       totpVerified: Boolean(payload.totpVerified),
+      onboardingCompleted: Boolean(payload.onboardingCompleted),
     };
 
     const { session: synced, token: freshToken } = await refreshSessionFromDatabase(base);

@@ -8,4 +8,5 @@ export type SessionPayload = {
   subscriptionStatus: "pending" | "active" | "cancelled";
   membershipTier?: MembershipTier | null;
   totpVerified: boolean;
+  onboardingCompleted: boolean;
 };

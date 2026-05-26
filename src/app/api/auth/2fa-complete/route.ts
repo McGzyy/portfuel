@@ -44,6 +44,7 @@ export async function POST(request: Request) {
     await createSession({
       ...session,
       totpVerified: true,
+      onboardingCompleted: session.onboardingCompleted,
     });
 
     return NextResponse.json({ ok: true });

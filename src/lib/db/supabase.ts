@@ -28,6 +28,7 @@ export type Database = {
           email_instant_enabled: boolean;
           email_digest_enabled: boolean;
           email_digest_last_sent_at: string | null;
+          onboarding_completed_at: string | null;
           created_at: string;
           updated_at: string;
         };

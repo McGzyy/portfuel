@@ -90,7 +90,7 @@ export async function middleware(request: NextRequest) {
             freshToken
           );
         }
-      } else if (!pathname.startsWith("/onboarding") && pathname !== "/join") {
+      } else if (pathname !== "/join" && !pathname.startsWith("/join/")) {
         return withFreshCookie(
           NextResponse.redirect(new URL("/join?pending=1", request.url)),
           freshToken
@@ -111,6 +111,27 @@ export async function middleware(request: NextRequest) {
     }
 
     if (totpVerified && pathname === twoFactorSetupPath) {
+      const dest =
+        isActive && role !== "admin" && !session.onboardingCompleted
+          ? "/onboarding"
+          : "/dashboard";
+      return withFreshCookie(NextResponse.redirect(new URL(dest, request.url)), freshToken);
+    }
+
+    if (
+      isActive &&
+      totpVerified &&
+      role !== "admin" &&
+      !session.onboardingCompleted &&
+      !pathname.startsWith("/onboarding")
+    ) {
+      return withFreshCookie(
+        NextResponse.redirect(new URL("/onboarding", request.url)),
+        freshToken
+      );
+    }
+
+    if (pathname.startsWith("/onboarding") && session.onboardingCompleted) {
       return withFreshCookie(
         NextResponse.redirect(new URL("/dashboard", request.url)),
         freshToken
@@ -134,8 +155,12 @@ export async function middleware(request: NextRequest) {
           freshToken
         );
       }
+      const dest =
+        isActive && session.role !== "admin" && !session.onboardingCompleted
+          ? "/onboarding"
+          : "/dashboard";
       return withFreshCookie(
-        NextResponse.redirect(new URL("/dashboard", request.url)),
+        NextResponse.redirect(new URL(dest, request.url)),
         freshToken
       );
     }

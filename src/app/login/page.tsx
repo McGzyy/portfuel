@@ -52,7 +52,7 @@ export default function LoginPage() {
       }
       if (data.needsTwoFactorSetup) {
         router.push("/security/2fa");
-      } else if (data.needsDisplayName) {
+      } else if (data.needsOnboarding) {
         router.push("/onboarding");
       } else if (data.subscriptionStatus === "pending" && data.role !== "admin") {
         router.push("/join?pending=1");

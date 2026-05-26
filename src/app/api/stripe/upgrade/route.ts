@@ -43,6 +43,7 @@ export async function POST(request: Request) {
       subscriptionStatus: "active",
       membershipTier: tier,
       totpVerified: session.totpVerified,
+      onboardingCompleted: session.onboardingCompleted,
     });
 
     return NextResponse.json({ ok: true, tier });
