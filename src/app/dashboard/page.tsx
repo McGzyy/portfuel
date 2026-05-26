@@ -34,6 +34,7 @@ import { FollowingFeedPanel } from "@/components/dashboard/FollowingFeedPanel";
 import { fetchFollowingIds, fetchFollowingMembers } from "@/lib/follows/service";
 import { filterCallsByFollowing } from "@/lib/calls/filter-feed";
 import { fetchDeskBrief } from "@/lib/desk/brief";
+import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import { formatPct, formatPrice } from "@/lib/utils";
 
@@ -122,6 +123,7 @@ export default async function DashboardOverviewPage({
   }
 
   const deskBrief = await fetchDeskBrief();
+  const portfolio = await fetchDeskPortfolio();
 
   const displayLabel =
     session.displayName ??
@@ -186,6 +188,57 @@ export default async function DashboardOverviewPage({
             points={performanceSeries}
             profileHref={`/member/${session.username}`}
           />
+
+          {portfolio.length > 0 ? (
+            <div className="pf-workspace-panel p-5">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                Fueled portfolio
+              </p>
+              <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
+                {portfolio.filter((e) => e.status === "open").length} active thesis
+                {portfolio.filter((e) => e.status === "open").length === 1 ? "" : "es"} ·
+                {" "}live marks
+              </p>
+              <div className="mt-3 space-y-2">
+                {portfolio
+                  .filter((e) => e.status === "open")
+                  .slice(0, 3)
+                  .map((e) => (
+                    <Link
+                      key={e.id}
+                      href={`/ticker/${e.symbol}`}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2"
+                    >
+                      <div className="min-w-0">
+                        <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
+                          {e.symbol}
+                        </span>
+                        <p className="truncate text-xs text-[var(--pf-gray-500)]">
+                          {e.direction} · conviction {e.conviction}/5
+                        </p>
+                      </div>
+                      <span
+                        className={
+                          e.return_pct == null
+                            ? "text-xs font-bold tabular-nums text-[var(--pf-gray-500)]"
+                            : e.return_pct >= 0
+                              ? "text-xs font-bold tabular-nums text-emerald-600"
+                              : "text-xs font-bold tabular-nums text-rose-600"
+                        }
+                      >
+                        {formatPct(e.return_pct)}
+                      </span>
+                    </Link>
+                  ))}
+              </div>
+              <Link
+                href="/dashboard/desk"
+                className="mt-3 inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
+              >
+                View model portfolio →
+              </Link>
+            </div>
+          ) : null}
 
           <WorkspacePanel
             title="Watchlist"

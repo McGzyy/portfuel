@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { CallCard } from "@/components/calls/CallCard";
 import { FueledDeskBrief } from "@/components/dashboard/FueledDeskBrief";
+import { DeskPortfolioPanel } from "@/components/desk/DeskPortfolioPanel";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { fetchDeskBrief } from "@/lib/desk/brief";
+import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
 import { loadFeedCalls, mapCallForCard } from "@/lib/dashboard/data";
 
 export const metadata: Metadata = {
@@ -12,6 +14,7 @@ export const metadata: Metadata = {
 
 export default async function DashboardDeskPage() {
   const deskBrief = await fetchDeskBrief();
+  const portfolio = await fetchDeskPortfolio();
   const latest = await loadFeedCalls("latest");
   const performing = await loadFeedCalls("performing");
   const hypeScores = await fetchHypeScoresBySymbols([
@@ -32,6 +35,10 @@ export default async function DashboardDeskPage() {
       />
 
       <FueledDeskBrief brief={deskBrief} />
+
+      <div className="mt-6">
+        <DeskPortfolioPanel entries={portfolio} />
+      </div>
 
       {!deskBrief.weeklyNote && !deskBrief.pinnedCall ? (
         <section className="pf-fueled-desk mt-6 p-6 sm:p-8">

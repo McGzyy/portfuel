@@ -32,8 +32,8 @@ export function FueledDeskHero({
               PortFuel Fueled desk
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300">
-              Curated theses from the PortFuel desk — separate from the member feed. Your
-              subscription includes full access to desk calls, charts, and updates.
+              Curated theses and a desk-maintained model portfolio with live marks — separate from
+              the member feed. Full access to desk calls, charts, and updates.
             </p>
           </div>
         </div>

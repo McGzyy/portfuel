@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { DeskBriefAdmin } from "@/lib/desk/brief";
+import { AdminDeskPortfolioPanel } from "@/components/admin/AdminDeskPortfolioPanel";
 
 export function AdminDeskPanel() {
   const [data, setData] = useState<DeskBriefAdmin | null>(null);
@@ -127,6 +128,8 @@ export function AdminDeskPanel() {
           {error ? <span className="text-sm text-rose-600">{error}</span> : null}
         </div>
       </div>
+
+      <AdminDeskPortfolioPanel />
     </div>
   );
 }

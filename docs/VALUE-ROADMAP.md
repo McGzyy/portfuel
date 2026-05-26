@@ -16,7 +16,7 @@ Goal: **$79 Member** feels like a professional trading workspace; **$129 Pro Int
 | Rankings / leaderboard | ✅ | Public + member depth |
 | Watchlist + symbol lookup | ✅ | Needs migration `20260524400000_user_watchlist.sql` |
 | Profile + public member pages + return curve | ✅ | Social proof / track record |
-| Fueled desk (house research lane) | ✅ | Premium content lane |
+| Fueled desk + model portfolio (house research) | ✅ | Live marks on open desk theses |
 | 2FA, Stripe billing, legal | ✅ | Production-ready |
 
 ### Pro Intelligence ($129/mo) — thin vs price ⚠️
@@ -78,6 +78,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 3. ✅ **Pro value card** on overview when locked — checklist of what Pro unlocks + upgrade CTA.
 4. ✅ **Hype badge on feed cards** — symbols with hype ≥ 15 show on `CallCard`.
 5. ✅ **Fueled desk hero** on overview — stronger CTA to desk (house IP).
+6. ✅ **Fueled model portfolio** — admin-managed open theses (equity + crypto) with entry/target/stop and live return % on desk + overview.
 
 ### Next (high ROI, ~1 week)
 6. ✅ **Watchlist move alerts** — % since add (`baseline_price` migration); Pro sees alert strip ±5%.
