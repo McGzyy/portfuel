@@ -13,6 +13,8 @@ export function ProIntelligenceGate({
   children,
   className,
   compact,
+  variant = "default",
+  teaser,
 }: {
   locked: boolean;
   cta?: ProGateCta;
@@ -21,20 +23,37 @@ export function ProIntelligenceGate({
   children: React.ReactNode;
   className?: string;
   compact?: boolean;
+  /** `preview` — blurred peek + optional teaser strip (ticker intel). */
+  variant?: "default" | "preview";
+  teaser?: React.ReactNode;
 }) {
   if (!locked) {
     return <div className={className}>{children}</div>;
   }
 
+  const isPreview = variant === "preview";
+
   return (
-    <div className={cn("pf-pro-gate relative", className)}>
-      <div className="pf-pro-gate-content" aria-hidden>
+    <div
+      className={cn(
+        "pf-pro-gate relative",
+        isPreview && "pf-pro-gate-preview",
+        className
+      )}
+    >
+      {teaser ? (
+        <div className="pf-pro-gate-teaser border border-b-0 border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-4 rounded-t-[var(--pf-radius-lg)]">
+          {teaser}
+        </div>
+      ) : null}
+      <div className="pf-pro-gate-content" aria-hidden={!isPreview}>
         {children}
       </div>
       <div
         className={cn(
           "pf-pro-gate-overlay",
-          compact && "pf-pro-gate-overlay-compact"
+          compact && "pf-pro-gate-overlay-compact",
+          isPreview && "pf-pro-gate-overlay-preview"
         )}
       >
         <div className="pf-pro-gate-card">

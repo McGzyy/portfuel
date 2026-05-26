@@ -200,6 +200,28 @@ body {
   opacity: 0.55;
 }
 
+.pf-pro-gate-preview .pf-pro-gate-content {
+  max-height: 22rem;
+  overflow: hidden;
+  filter: blur(9px);
+  opacity: 0.65;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 100%);
+}
+
+.pf-pro-gate-teaser + .pf-pro-gate-content {
+  border-radius: 0;
+}
+
+.pf-pro-gate-preview:not(:has(.pf-pro-gate-teaser)) .pf-pro-gate-content {
+  border-radius: var(--pf-radius-lg);
+}
+
+.pf-intel-teaser-headline {
+  filter: blur(4px);
+  user-select: none;
+}
+
 .pf-pro-gate-overlay {
   position: absolute;
   inset: 0;
@@ -212,6 +234,17 @@ body {
     rgba(255, 255, 255, 0.92) 40%
   );
   padding: 1.5rem;
+}
+
+.pf-pro-gate-overlay-preview {
+  align-items: flex-end;
+  padding-bottom: 1.25rem;
+  background: linear-gradient(
+    180deg,
+    rgba(248, 250, 252, 0.15) 0%,
+    rgba(255, 255, 255, 0.75) 42%,
+    rgba(255, 255, 255, 0.96) 100%
+  );
 }
 
 .pf-pro-gate-overlay-compact {

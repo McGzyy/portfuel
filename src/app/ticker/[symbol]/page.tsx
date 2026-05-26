@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { TickerChartSection } from "@/components/charts/TickerChartSection";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import { TickerIntelPanel } from "@/components/ticker/TickerIntelPanel";
+import { TickerIntelTeaser } from "@/components/ticker/TickerIntelTeaser";
+import { buildIntelTeaserSummary } from "@/lib/market/intel-teaser";
 import { CallThesisBlock } from "@/components/calls/CallThesisBlock";
 import { TickerPageHeader } from "@/components/ticker/TickerPageHeader";
 import { TickerCommunityBar } from "@/components/ticker/TickerCommunityBar";
@@ -82,6 +84,11 @@ export default async function TickerPage({
     profile: null,
   };
 
+  const intelData = intel ?? emptyIntel;
+  const isEquityIntel = intelData.assetClass === "equity";
+  const intelGateLocked = proLocked && isEquityIntel;
+  const intelTeaser = buildIntelTeaserSummary(intelData);
+
   const body = (
     <div className="space-y-6">
       <section className="pf-ticker-shell">
@@ -103,14 +110,22 @@ export default async function TickerPage({
 
       <TickerCommunityBar stats={communityStats} />
 
-      <ProIntelligenceGate
-        locked={proLocked}
-        cta={proGateCta}
-        title="Pro market intel"
-        description="News, earnings, SEC filings, and company stats — Pro Intelligence ($129/mo)."
-      >
-        <TickerIntelPanel intel={intel ?? emptyIntel} />
-      </ProIntelligenceGate>
+      {isEquityIntel ? (
+        <ProIntelligenceGate
+          locked={intelGateLocked}
+          cta={proGateCta}
+          variant="preview"
+          title="Unlock full market intel"
+          description="Read headlines, earnings, SEC filings, and company stats on every equity ticker — included with Pro Intelligence ($129/mo)."
+          teaser={
+            intelGateLocked ? <TickerIntelTeaser summary={intelTeaser} /> : undefined
+          }
+        >
+          <TickerIntelPanel intel={intelData} />
+        </ProIntelligenceGate>
+      ) : (
+        <TickerIntelPanel intel={intelData} />
+      )}
 
       <section className="border-t border-[var(--pf-border)] pt-10">
         <WorkspacePageHeader
