@@ -6,7 +6,10 @@ import {
   tierFromStripeSubscription,
 } from "@/lib/stripe/subscription";
 
-export async function upgradeMemberToPro(userId: string) {
+export async function upgradeMemberToPro(
+  userId: string,
+  opts?: { prorationDate?: number }
+) {
   const user = await findUserById(userId);
   if (!user) throw new Error("user_not_found");
 
@@ -33,6 +36,7 @@ export async function upgradeMemberToPro(userId: string) {
   const updated = await stripe.subscriptions.update(user.stripe_subscription_id, {
     items: [{ id: item.id, price: proPriceId }],
     proration_behavior: "create_prorations",
+    ...(opts?.prorationDate != null ? { proration_date: opts.prorationDate } : {}),
     metadata: {
       ...sub.metadata,
       userId,

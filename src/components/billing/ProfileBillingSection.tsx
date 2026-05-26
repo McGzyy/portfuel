@@ -1,8 +1,8 @@
 import {
   CompleteCheckoutButton,
   ManageBillingButton,
-  UpgradeToProButton,
 } from "@/components/billing/BillingActions";
+import { UpgradeToProButton } from "@/components/billing/UpgradeToProButton";
 import { isStripeConfigured } from "@/lib/stripe/config";
 
 export function ProfileBillingSection({
@@ -49,15 +49,16 @@ export function ProfileBillingSection({
         </p>
       ) : null}
 
+      {subscriptionStatus === "active" && membershipTier === "member" ? (
+        <UpgradeToProButton className="mt-4 max-w-md" />
+      ) : null}
+
       <div className="mt-4 flex flex-wrap gap-3">
         {subscriptionStatus === "pending" || subscriptionStatus === "cancelled" ? (
           <>
             <CompleteCheckoutButton tier="member" label="Subscribe — Member $79/mo" />
             <CompleteCheckoutButton tier="pro" label="Subscribe — Pro $129/mo" />
           </>
-        ) : null}
-        {subscriptionStatus === "active" && membershipTier === "member" ? (
-          <UpgradeToProButton />
         ) : null}
         {stripeCustomerId &&
         (subscriptionStatus === "active" || subscriptionStatus === "cancelled") ? (

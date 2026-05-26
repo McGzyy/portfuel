@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { createSession, getSession } from "@/lib/auth/session";
 import { findUserById } from "@/lib/stripe/subscription";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { upgradeMemberToPro } from "@/lib/stripe/upgrade";
 
-export async function POST() {
+const bodySchema = z.object({
+  prorationDate: z.number().int().positive().optional(),
+});
+
+export async function POST(request: Request) {
   if (!isStripeConfigured()) {
     return NextResponse.json({ error: "stripe_not_configured" }, { status: 503 });
   }
@@ -15,7 +20,16 @@ export async function POST() {
   }
 
   try {
-    const { tier } = await upgradeMemberToPro(session.userId);
+    let prorationDate: number | undefined;
+    try {
+      const raw = await request.json();
+      const parsed = bodySchema.safeParse(raw);
+      if (parsed.success) prorationDate = parsed.data.prorationDate;
+    } catch {
+      /* empty body is fine */
+    }
+
+    const { tier } = await upgradeMemberToPro(session.userId, { prorationDate });
     const user = await findUserById(session.userId);
     if (!user) {
       return NextResponse.json({ error: "user_not_found" }, { status: 404 });

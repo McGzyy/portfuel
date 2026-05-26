@@ -63,7 +63,7 @@ Pending users (logged in): `/join?pending=1` or profile **Complete checkout**.
 
 Active subscribers: profile → **Manage billing** (Stripe Customer Portal).
 
-**Member → Pro upgrade:** Active Member plans can use **Upgrade to Pro** on profile (prorated via Stripe subscription update). Webhook `customer.subscription.updated` keeps Supabase in sync if the client path races.
+**Member → Pro upgrade:** Active Member plans use **Upgrade to Pro** on profile. The UI loads a Stripe **invoice preview** (`GET /api/stripe/upgrade-preview`) showing estimated proration before confirm (`POST /api/stripe/upgrade` with matching `prorationDate`). Webhook `customer.subscription.updated` keeps Supabase in sync if the client path races.
 
 **Session sync:** After portal or webhook changes, JWT billing fields refresh from Supabase on each request (middleware + `getSession`). Returning from portal lands on `/profile?billing=return` to refresh the page.
 
