@@ -31,6 +31,7 @@ export function AdminDeskDraftHelper({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          source: "bullets",
           kind,
           bullets: bullets.trim(),
           symbol: symbol?.trim() || undefined,

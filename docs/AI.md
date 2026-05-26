@@ -52,6 +52,15 @@ Usage counters live in `user_ai_usage` — run migrations `20260525300000_ai_coa
 
 **Admin → Desk** includes “Draft with AI” for weekly notes and portfolio theses (bullets → prose). Uses the same `OPENAI_API_KEY`; does not count against member coach quotas.
 
+### Research this week
+
+At the top of **Admin → Desk**, **Research this week** loads the last 7 days of Finnhub company headlines for **open** model portfolio symbols (`GET /api/admin/desk-research`). Requires `FINNHUB_API_KEY` for live equity news; crypto positions show a note that equity-style news is not available.
+
+- **Draft weekly note from headlines** — `POST /api/admin/desk-draft` with `source: "headlines"`, `kind: "weekly_note"`; fills the weekly desk note field (you still **Save desk brief**).
+- **Draft thesis** (per equity symbol with headlines) — same endpoint with `kind: "portfolio_thesis"` and `symbol`; fills the portfolio form below.
+
+This is **not** the Monday weekly digest email (`/api/cron/weekly-digest`). It only helps you write desk copy and portfolio theses from public headlines.
+
 ## Compliance
 
 System prompts forbid buy/sell/hold and price targets. UI shows a fixed disclaimer on every response.

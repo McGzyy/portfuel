@@ -3,7 +3,33 @@ import { generateText } from "ai";
 import { isDemoMode } from "@/lib/demo/config";
 import { getAiModelId, isAiCoachConfigured } from "@/lib/ai/config";
 
+import {
+  headlinesToBullets,
+  type DeskSymbolResearch,
+} from "@/lib/desk/research";
+
 export type DeskDraftKind = "portfolio_thesis" | "weekly_note";
+
+export async function generateDeskDraftFromHeadlines(input: {
+  kind: DeskDraftKind;
+  symbols: DeskSymbolResearch[];
+  symbol?: string;
+  direction?: "long" | "short";
+}): Promise<{ text: string } | { error: string }> {
+  const bullets = headlinesToBullets(
+    input.symbols,
+    input.kind === "portfolio_thesis" ? input.symbol : undefined
+  );
+  if (bullets.trim().length < 8) {
+    return { error: "no_headlines" };
+  }
+  return generateDeskDraft({
+    kind: input.kind,
+    bullets,
+    symbol: input.symbol,
+    direction: input.direction,
+  });
+}
 
 export async function generateDeskDraft(input: {
   kind: DeskDraftKind;

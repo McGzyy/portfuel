@@ -4,9 +4,14 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { DeskBriefAdmin } from "@/lib/desk/brief";
 import { AdminDeskDraftHelper } from "@/components/admin/AdminDeskDraftHelper";
+import { AdminDeskResearchPanel } from "@/components/admin/AdminDeskResearchPanel";
 import { AdminDeskPortfolioPanel } from "@/components/admin/AdminDeskPortfolioPanel";
 
 export function AdminDeskPanel() {
+  const [thesisPrefill, setThesisPrefill] = useState<{
+    symbol: string;
+    thesis: string;
+  } | null>(null);
   const [data, setData] = useState<DeskBriefAdmin | null>(null);
   const [weeklyNote, setWeeklyNote] = useState("");
   const [pinnedCallId, setPinnedCallId] = useState<string>("");
@@ -79,7 +84,14 @@ export function AdminDeskPanel() {
   }
 
   return (
-    <div className="mt-8 max-w-2xl space-y-6">
+    <div className="mt-8 max-w-3xl space-y-6">
+      <AdminDeskResearchPanel
+        onApplyWeeklyNote={(text) => setWeeklyNote(text)}
+        onApplyPortfolioThesis={(symbol, text) =>
+          setThesisPrefill({ symbol: symbol.toUpperCase(), thesis: text })
+        }
+      />
+
       <div className="pf-workspace-panel p-5">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
           Fueled desk brief
@@ -135,7 +147,10 @@ export function AdminDeskPanel() {
         </div>
       </div>
 
-      <AdminDeskPortfolioPanel />
+      <AdminDeskPortfolioPanel
+        thesisPrefill={thesisPrefill}
+        onThesisPrefillConsumed={() => setThesisPrefill(null)}
+      />
     </div>
   );
 }

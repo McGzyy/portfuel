@@ -23,7 +23,13 @@ const emptyForm = {
   status: "open" as "open" | "closed",
 };
 
-export function AdminDeskPortfolioPanel() {
+export function AdminDeskPortfolioPanel({
+  thesisPrefill,
+  onThesisPrefillConsumed,
+}: {
+  thesisPrefill?: { symbol: string; thesis: string } | null;
+  onThesisPrefillConsumed?: () => void;
+} = {}) {
   const [data, setData] = useState<AdminPortfolioPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -53,6 +59,38 @@ export function AdminDeskPortfolioPanel() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!thesisPrefill || loading) return;
+    const entry = data?.entries.find(
+      (e) => e.symbol.toUpperCase() === thesisPrefill.symbol.toUpperCase()
+    );
+    if (entry) {
+      setEditingId(entry.id);
+      setForm({
+        assetClass: entry.asset_class,
+        symbol: entry.symbol,
+        direction: entry.direction,
+        conviction: entry.conviction,
+        horizonTag: entry.horizon_tag ?? "",
+        thesis: thesisPrefill.thesis,
+        entryPrice: entry.entry_price != null ? String(entry.entry_price) : "",
+        targetPrice: entry.target_price != null ? String(entry.target_price) : "",
+        stopPrice: entry.stop_price != null ? String(entry.stop_price) : "",
+        status: entry.status,
+      });
+    } else {
+      setEditingId(null);
+      setForm({
+        ...emptyForm,
+        symbol: thesisPrefill.symbol,
+        thesis: thesisPrefill.thesis,
+      });
+    }
+    setMessage("");
+    setError("");
+    onThesisPrefillConsumed?.();
+  }, [thesisPrefill, data?.entries, loading, onThesisPrefillConsumed]);
 
   function resetForm() {
     setEditingId(null);
