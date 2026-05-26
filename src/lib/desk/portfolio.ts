@@ -2,6 +2,10 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { getCryptoLastPrice, getQuote } from "@/lib/market/finnhub";
 import { resolveCryptoAsset } from "@/lib/market/crypto-allowlist";
+import {
+  notifyDeskPortfolioUpdate,
+  type DeskPortfolioNotifyAction,
+} from "@/lib/notifications/service";
 
 export type DeskPortfolioEntry = {
   id: string;
@@ -192,6 +196,16 @@ export async function upsertDeskPortfolioEntry(input: {
 
   const db = createServiceClient();
 
+  let prior: { status: string; direction: string } | null = null;
+  if (input.id) {
+    const { data: existing } = await db
+      .from("desk_portfolio")
+      .select("status, direction")
+      .eq("id", input.id)
+      .maybeSingle();
+    prior = existing as { status: string; direction: string } | null;
+  }
+
   let finnhub_symbol: string | null = null;
   if (input.assetClass === "crypto") {
     const resolved = await resolveCryptoAsset(sym);
@@ -222,17 +236,50 @@ export async function upsertDeskPortfolioEntry(input: {
     console.error("[desk/portfolio/upsert]", error);
     return { error: "db_error" };
   }
+
+  let action: DeskPortfolioNotifyAction;
+  if (!prior) {
+    action = "added";
+  } else if (prior.status !== "closed" && input.status === "closed") {
+    action = "closed";
+  } else {
+    action = "updated";
+  }
+
+  void notifyDeskPortfolioUpdate({
+    symbol: sym,
+    direction: input.direction,
+    action,
+  });
+
   return { ok: true };
 }
 
 export async function deleteDeskPortfolioEntry(id: string): Promise<{ ok: true } | { error: string }> {
   if (isDemoMode()) return { error: "demo_readonly" };
   const db = createServiceClient();
+
+  const { data: row } = await db
+    .from("desk_portfolio")
+    .select("symbol, direction")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await db.from("desk_portfolio").delete().eq("id", id);
   if (error) {
     console.error("[desk/portfolio/delete]", error);
     return { error: "db_error" };
   }
+
+  if (row) {
+    const r = row as { symbol: string; direction: string };
+    void notifyDeskPortfolioUpdate({
+      symbol: r.symbol,
+      direction: r.direction,
+      action: "removed",
+    });
+  }
+
   return { ok: true };
 }
 

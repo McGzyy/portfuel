@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, MessageSquare, ThumbsUp, TrendingUp, UserPlus } from "lucide-react";
+import { Bell, Flame, MessageSquare, ThumbsUp, TrendingUp, UserPlus } from "lucide-react";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { Button } from "@/components/ui/button";
 import { cn, timeAgo } from "@/lib/utils";
@@ -19,6 +19,8 @@ function iconForType(type: NotificationType) {
       return MessageSquare;
     case "followed_member_call":
       return UserPlus;
+    case "desk_portfolio_update":
+      return Flame;
     default:
       return Bell;
   }
@@ -80,7 +82,7 @@ export function NotificationsList() {
       <WorkspacePageHeader
         eyebrow="Activity"
         title="Notifications"
-        description="Comments and votes on your calls, plus new theses on watchlist symbols."
+        description="Desk portfolio updates, watchlist calls, comments, votes, and followed members."
         action={
           unread > 0 ? (
             <Button size="sm" variant="secondary" onClick={markAllRead}>

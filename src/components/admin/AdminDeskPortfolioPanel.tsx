@@ -177,7 +177,7 @@ export function AdminDeskPortfolioPanel() {
         </p>
         <p className="mt-1 text-sm text-[var(--pf-gray-600)]">
           Active desk theses with entry, target, stop, and live marks — shown on Fueled desk and
-          overview sidebar.
+          overview sidebar. Saves notify all active members (in-app + email if enabled).
         </p>
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2">

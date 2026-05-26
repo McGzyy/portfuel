@@ -234,6 +234,65 @@ export async function notifyWatchlistNewCall(opts: {
   }
 }
 
+export type DeskPortfolioNotifyAction = "added" | "updated" | "closed" | "removed";
+
+export async function notifyDeskPortfolioUpdate(opts: {
+  symbol: string;
+  direction: string;
+  action: DeskPortfolioNotifyAction;
+}): Promise<void> {
+  if (isDemoMode()) return;
+
+  const db = createServiceClient();
+  const { data: members } = await db
+    .from("users")
+    .select("id")
+    .in("subscription_status", ["active", "trialing"]);
+
+  const actionCopy: Record<DeskPortfolioNotifyAction, { title: string; body: string }> = {
+    added: {
+      title: `New desk position · ${opts.symbol}`,
+      body: `Fueled model portfolio opened a ${opts.direction} thesis on ${opts.symbol}.`,
+    },
+    updated: {
+      title: `Desk portfolio update · ${opts.symbol}`,
+      body: `The Fueled desk updated its ${opts.direction} thesis on ${opts.symbol}.`,
+    },
+    closed: {
+      title: `Desk position closed · ${opts.symbol}`,
+      body: `The Fueled desk closed its ${opts.direction} thesis on ${opts.symbol}.`,
+    },
+    removed: {
+      title: `Desk portfolio change · ${opts.symbol}`,
+      body: `A desk portfolio entry for ${opts.symbol} was removed.`,
+    },
+  };
+
+  const copy = actionCopy[opts.action];
+  const since = new Date(Date.now() - 6 * 3600000).toISOString();
+
+  for (const m of members ?? []) {
+    const userId = (m as { id: string }).id;
+    const { data: existing } = await db
+      .from("user_notifications")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("type", "desk_portfolio_update")
+      .eq("title", copy.title)
+      .gte("created_at", since)
+      .limit(1);
+    if (existing?.length) continue;
+
+    await createNotification({
+      userId,
+      type: "desk_portfolio_update",
+      title: copy.title,
+      body: copy.body,
+      href: "/dashboard/desk",
+    });
+  }
+}
+
 export async function notifyFollowedMemberNewCall(opts: {
   callId: string;
   symbol: string;

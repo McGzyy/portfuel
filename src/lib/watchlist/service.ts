@@ -62,6 +62,55 @@ export async function addToWatchlist(
   return { ok: true };
 }
 
+export async function addOpenPortfolioToWatchlist(
+  userId: string
+): Promise<
+  | { ok: true; added: number; alreadyOnList: number; watchlistFull: boolean }
+  | { error: string }
+> {
+  if (isDemoMode()) return { error: "demo_readonly" };
+
+  const db = createServiceClient();
+  const { data: openPositions } = await db
+    .from("desk_portfolio")
+    .select("symbol")
+    .eq("status", "open");
+
+  const symbols = [...new Set((openPositions ?? []).map((r) => (r as { symbol: string }).symbol))];
+  if (symbols.length === 0) {
+    return { ok: true, added: 0, alreadyOnList: 0, watchlistFull: false };
+  }
+
+  const { data: existing } = await db
+    .from("user_watchlist")
+    .select("symbol")
+    .eq("user_id", userId);
+
+  const onList = new Set((existing ?? []).map((r) => (r as { symbol: string }).symbol));
+  let added = 0;
+  let alreadyOnList = 0;
+  let watchlistFull = false;
+
+  for (const sym of symbols) {
+    if (onList.has(sym)) {
+      alreadyOnList++;
+      continue;
+    }
+    const result = await addToWatchlist(userId, sym);
+    if ("error" in result) {
+      if (result.error === "watchlist_full") {
+        watchlistFull = true;
+        break;
+      }
+      continue;
+    }
+    added++;
+    onList.add(sym);
+  }
+
+  return { ok: true, added, alreadyOnList, watchlistFull };
+}
+
 export async function removeFromWatchlist(
   userId: string,
   symbol: string

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CallCard } from "@/components/calls/CallCard";
 import { FueledDeskBrief } from "@/components/dashboard/FueledDeskBrief";
 import { DeskPortfolioPanel } from "@/components/desk/DeskPortfolioPanel";
+import { DeskPortfolioWatchlistButton } from "@/components/desk/DeskPortfolioWatchlistButton";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { fetchDeskBrief } from "@/lib/desk/brief";
@@ -38,6 +39,9 @@ export default async function DashboardDeskPage() {
 
       <div className="mt-6">
         <DeskPortfolioPanel entries={portfolio} />
+        <DeskPortfolioWatchlistButton
+          openCount={portfolio.filter((e) => e.status === "open").length}
+        />
       </div>
 
       {!deskBrief.weeklyNote && !deskBrief.pinnedCall ? (
