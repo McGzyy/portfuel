@@ -1,65 +1,142 @@
-# Charts roadmap (PortFuel)
+# Charts & graphs (PortFuel)
 
-Charts are a core part of the paid product. **Do not add one-off chart libraries per page** — extend the shared stack below.
+Charts are the **visual spine** of the product. **Do not add one-off chart libraries per page** — extend the shared stack below.
+
+Product roadmap context: [VALUE-ROADMAP.md](./VALUE-ROADMAP.md) → **Charts & graphs — flagship initiative**.
+
+---
 
 ## Current stack
 
 | Layer | Choice | Where |
 |-------|--------|--------|
 | Price (OHLC) | [lightweight-charts](https://tradingview.github.io/lightweight-charts/) v5 | `src/components/charts/TickerChart.tsx` |
+| Theme | `src/lib/charts/theme.ts` | Colors, grid, fonts (`--pf-*`) |
+| Container | `ChartFrame`, `ChartRangeToolbar`, skeleton | `src/components/charts/` |
 | Data | Finnhub candles + call markers | `src/lib/market/ticker-intel.ts` |
-| Client boundary | `TickerChartClient` (dynamic, no SSR) | `src/components/charts/TickerChartClient.tsx` |
+| Client boundary | `TickerChartClient` (dynamic, no SSR) | `TickerChartSection` |
 
-Ticker pages already render candlesticks + member call markers. Styling lives in `pf-ticker-chart-frame` (`globals.css`).
+Ticker pages: candlesticks + member call markers. Styling: `pf-ticker-chart-frame` in `globals.css`.
 
-## Principles (before building more charts)
+---
 
-1. **Server fetches, client renders** — candles/quotes/aggregates from API routes or server components; chart components stay `"use client"`.
-2. **Shared theme** — one `chartTheme.ts` for colors, grid, fonts (match `--pf-black`, `--pf-red`, gray scale).
-3. **Shared container** — use `pf-ticker-chart-frame` or a new `ChartFrame` wrapper (title, legend, loading, empty).
-4. **Resize-safe** — `ResizeObserver` on container (already pattern in `TickerChart`).
-5. **Performance** — cap points (e.g. 500 candles), downsample for overview sparklines.
+## Principles
 
-## Planned chart surfaces (priority)
+1. **Server fetches, client renders** — candles/quotes/aggregates from API or RSC; chart components stay `"use client"`.
+2. **Shared theme** — all charts import `chartTheme` (no hardcoded hex in components).
+3. **Shared container** — `ChartFrame` (title, subtitle, legend, loading, empty).
+4. **Resize-safe** — `ResizeObserver` on container (`TickerChart` pattern).
+5. **Performance** — cap points (~500 candles); downsample sparklines.
+6. **Calls > indicators** — entry/target/stop and attributed markers beat indicator overload.
 
-| Surface | Type | Library | Notes |
-|---------|------|---------|--------|
-| Ticker page | Candlestick + markers | lightweight-charts | Polish theme, crosshair, timeframe tabs |
-| Dashboard overview | Sparkline / mini equity curve | lightweight-charts or SVG | Member P&L trend |
-| Member profile | Return distribution / cumulative | lightweight-charts histogram or line | From `calls.return_pct` |
-| Rankings | Bar / leaderboard spark | lightweight-charts or CSS bars | Keep lightweight |
-| Admin analytics | Time series (signups, calls/day) | lightweight-charts | After admin metrics API stable |
-| Feed (optional) | Sector heatmap | CSS grid first, chart later | Lower priority |
+---
 
-## Not recommended (for now)
+## Shipped surfaces ✅
 
-- **Recharts** — fine for marketing, but a second mental model vs trading charts.
-- **Chart.js** — weaker financial defaults.
-- **TradingView widget** — licensing/branding; keep in-house.
+| Surface | Component | Notes |
+|---------|-----------|--------|
+| Ticker | `TickerChartSection` | Range toolbar 1M–ALL, call markers |
+| Profile / member | `MemberReturnChart` | Cumulative return from calls |
+| Own profile | Same + distribution | `MemberReturnDistribution` (Pro) |
+| Overview | `OverviewPerformanceChart` | Workspace sparkline |
+| Compare (Pro) | `TickerCompareWorkspace` | Normalized lines, 2–3 symbols |
+| Admin | `AdminDailyChart` | Signups & calls/day |
 
-## Implementation order (when you pick charts up)
+---
 
-1. ~~Extract `src/lib/charts/theme.ts` + `ChartFrame.tsx`.~~ ✅ Done — ticker page uses these.
-2. ~~Refine ticker chart (theme, toolbar, loading skeleton).~~ ✅ `TickerChartSection` + `ChartRangeToolbar`.
-3. ~~Member profile cumulative return line.~~ ✅ `MemberReturnChart` on `/member` and `/profile`.
-4. ~~Dashboard workspace mini-chart.~~ ✅ Overview performance sparkline.
-5. ~~Admin analytics — MetricsStrip (time-series charts later).~~ ✅ Daily signup & call charts on `/admin?tab=analytics`.
+## Phase G1 — Ticker truth (start here)
+
+**Goal:** The ticker chart is the canonical PortFuel chart — everything else should feel like a sibling.
+
+| Task | Detail |
+|------|--------|
+| Price lines | Horizontal lines for **entry**, **target**, **stop** on the viewer’s own call (and optional desk thesis levels). |
+| Marker taxonomy | Distinct shapes/colors: member long/short, Fueled desk, community cluster. |
+| Interaction | Crosshair shows OHLC + nearest call label; click marker scrolls to thesis block. |
+| Legend | `TickerChartLegend` lists marker types + count in range. |
+| Empty / loading | Skeleton + “no candles” states match `ChartFrame` everywhere. |
+
+**Data:** extend `ChartMarker` or add `PriceLine` type in `src/lib/charts/types.ts`; build series in `ticker-intel.ts` or ticker page from `calls` row.
+
+---
+
+## Phase G2 — Workspace rhythm
+
+**Goal:** Overview, watchlist, feed, and rankings share the same mini-chart DNA.
+
+| Task | Detail |
+|------|--------|
+| `MiniSparkline` | Reusable client component: `LinePoint[]`, fixed height ~32px, theme colors. |
+| Hot tickers | `HotTickersStrip` — 30d sparkline per symbol + call count. |
+| Watchlist rows | Optional sparkline column next to % change. |
+| Feed cards | Optional right-rail sparkline (lazy load; don’t block LCP). |
+| Rankings | Bar or spark for rank score / 30d return (keep lightweight). |
+
+---
+
+## Phase G3 — Track record story
+
+| Task | Detail |
+|------|--------|
+| Profile curve | Win/loss markers on cumulative line; optional max drawdown band. |
+| Desk aggregate | Model portfolio combined equity curve (open positions weighted or equal). |
+| Deep link | Profile chart point → ticker at call date. |
+
+---
+
+## Phase G4 — Pro terminal
+
+| Task | Detail |
+|------|--------|
+| Compare sync | Shared range + crosshair across panes. |
+| Screener viz | Bar chart or heat grid for “most called” / “best return”. |
+| Pro strips | Feed/rankings analytics use `ChartFrame` not raw divs. |
+
+---
+
+## Phase G5 — Data & depth (only if on-brand)
+
+- Intraday candles (Finnhub paid tier).
+- Volume histogram under price.
+- Minimal overlays: SMA(20), VWAP — **max 2**, Pro-only if gated.
+
+**Not recommended:** Recharts on workspace, Chart.js, TradingView embedded widget (licensing).
+
+---
 
 ## API / data contracts
 
-Define typed series in `src/lib/charts/types.ts`:
+`src/lib/charts/types.ts`:
 
 ```ts
-export type CandleSeries = { time: number; open: number; high: number; low: number; close: number }[];
+export type CandleSeries = CandlePoint[];
 export type LinePoint = { time: number; value: number };
 export type ChartMarker = { time: number; price: number; label: string; color?: string };
+export type PriceLine = { price: number; label: string; color?: string; style?: "solid" | "dashed" };
 ```
 
-Reuse `CandlePoint` / `ChartMarker` from `TickerChart.tsx` when extracting.
+Reuse across ticker, compare, and sparklines.
 
-## Files to touch
+---
 
-- `src/components/charts/` — all chart UI
-- `src/lib/market/` — market series
-- `src/lib/calls/` — call-derived series (returns, progress)
-- `docs/DEVELOPMENT.md` — link here from build order
+## Files to touch (by phase)
+
+| Phase | Primary paths |
+|-------|----------------|
+| G1 | `TickerChart.tsx`, `ticker-intel.ts`, `TickerChartSection.tsx`, `types.ts` |
+| G2 | `HotTickersStrip.tsx`, `WatchlistPanel.tsx`, new `MiniSparkline.tsx` |
+| G3 | `MemberReturnChart.tsx`, `desk/portfolio.ts`, desk page |
+| G4 | `TickerCompareWorkspace.tsx`, screener components |
+
+---
+
+## Testing checklist
+
+- [ ] Ticker: range change preserves markers in window.
+- [ ] Ticker: 0 candles, crypto vs equity.
+- [ ] Profile: 0 calls, 1 call, many calls.
+- [ ] Compare: 2 and 3 symbols, mismatched histories.
+- [ ] Mobile: chart resizes without blank canvas.
+- [ ] Demo mode: fixtures render without Finnhub.
+
+Update [VALUE-ROADMAP.md](./VALUE-ROADMAP.md) when a phase ships.

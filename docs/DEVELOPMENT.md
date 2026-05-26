@@ -71,6 +71,7 @@ feature/phase-3-stripe-billing
 | Stripe Customer Portal | ✅ | Profile → Manage billing |
 | Real Terms / Privacy copy | ✅ | `/terms`, `/privacy`; required on `/join` |
 | Value audit & feature roadmap | ✅ | See [VALUE-ROADMAP.md](./VALUE-ROADMAP.md) |
+| Charts / graphs initiative (phased) | 📋 | See [CHARTS.md](./CHARTS.md) — **G1 ticker levels** is the recommended start |
 
 ---
 

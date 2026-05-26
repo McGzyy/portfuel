@@ -88,19 +88,32 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 9. ✅ **Ticker compare** — 2–3 symbols side-by-side mini charts (Pro) at `/dashboard/compare`.
 10. ✅ **Expand Pro analytics** — return distribution on profile; feed target progress leaders shipped earlier.
 
-### After that (differentiation)
+### Shipped — house value & growth (recent)
 11. ✅ **Follow members** — profile follow button, **Following** feed filter, overview panel, alerts when followed members publish.
-12. ✅ **In-app notifications** — bell + `/notifications`; comments, votes, watchlist calls.
+12. ✅ **In-app notifications** — bell + `/notifications`; comments, votes, watchlist calls, desk updates, call milestones, DMs.
 13. ✅ **Email digest** — weekly summary (Resend; enable when domain verified).
-13. **Messaging** (original vision) — DMs or threaded replies.
 14. ✅ **Screener lite** — “most called this week,” “best 30d return,” export CSV (Pro) at `/dashboard/screener`.
 15. ✅ **Admin time-series charts** — signups & calls/day (30d) on admin analytics tab.
+16. ✅ **Fueled model portfolio** + desk notifications + watchlist bulk-add.
+17. ✅ **AI thesis coach** + one-line summaries + admin desk research / headline drafts.
+18. ✅ **Member onboarding** — display name (if needed) → watchlist seed → tour (`onboarding_completed_at`).
+19. ✅ **Stripe proration preview** — upgrade estimate on profile before Member → Pro.
+20. ✅ **Direct messages** — 1:1 inbox at `/dashboard/messages`, profile **Message** CTA.
+21. ✅ **Pro intel teaser** — blurred equity research stack + headline counts on ticker for Members.
 
-### Later (premium polish)
-16. Real-time quotes (paid Finnhub tier).
-17. Mobile PWA + push.
-18. Broker read-only sync (Plaid) for “your book vs calls.”
-19. ✅ **AI thesis coach** — educational review on new call; Member 2/mo, Pro 30/mo + track-record context.
+### Active polish queue (~1 week total, can split PRs)
+| # | Item | Why |
+|---|------|-----|
+| P1 | **Hot tickers / overview wiring** | Ensure `HotTickersStrip` + `YourPositionsStrip` (open calls) feel native on overview, not orphaned components. |
+| P2 | **Messaging v2** | Read receipts, unread badge on sidebar Messages, optional “typing” later. |
+| P3 | **Launch / marketing pass** | Sales page ↔ real feature list; tier comparison sync with `plans.ts`; join flow copy. |
+| P4 | **Dashboard walkthrough gaps** | Feed “new since visit,” watchlist → ticker intel cross-links, rankings trusted explainer. |
+
+### Later (platform & monetization)
+- Real-time quotes (paid Finnhub tier).
+- Mobile PWA + push.
+- Broker read-only sync (Plaid) for “your book vs calls.”
+- Group / thread messaging (only if DMs prove usage).
 
 ---
 
@@ -112,7 +125,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 | Feed | Strong cards | Hype badge, ✅ “new since last visit,” Pro analytics table |
 | Desk | Distinct dark lane | ✅ Weekly desk note / pinned thesis (admin → Desk tab) |
 | Watchlist | Functional | Live % change column, alerts (Pro) |
-| Ticker | Best page | Cross-link intel from watchlist; Pro preview blur |
+| Ticker | Best page | ✅ Pro preview blur; **graphs** — entry/target/stop lines, desk markers (see below) |
 | Rankings | Clean | Member sparklines, ✅ trusted badge explainer |
 | Profile | Good | Quota, tier benefits, upgrade |
 | Calls/new | Form OK | Quota header, symbol validation UX, preview card |
@@ -121,9 +134,62 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 
 ## Unused code to wire (quick wins)
 
-- `HotTickersStrip.tsx` — overview
+- `HotTickersStrip.tsx` — overview (component exists; **P1** polishes placement + data)
 - `YourPositionsStrip.tsx` — repurpose as “Your open calls” (active calls count)
 - `DashboardQuickNav.tsx` — optional mobile shortcuts
+
+---
+
+## Charts & graphs — flagship initiative (ties the site together)
+
+**Expect multiple weeks.** This is not a single PR; it is the visual spine of PortFuel. Technical direction lives in **[CHARTS.md](./CHARTS.md)** — one stack (`lightweight-charts` + shared `ChartFrame` / theme), no library sprawl.
+
+**Why it matters:** Members already trust **calls on a chart**. The gap is the same chart language everywhere else — overview, desk, feed, rankings, profile, compare — so the product feels like one terminal, not separate pages.
+
+### What exists today ✅
+
+| Surface | Chart type | Location |
+|---------|------------|----------|
+| Ticker | Candles + call markers + range toolbar | `TickerChartSection` |
+| Profile / member | Cumulative return line | `MemberReturnChart` |
+| Overview | Performance sparkline | `OverviewPerformanceChart` |
+| Pro compare | Normalized multi-symbol lines | `TickerCompareWorkspace` |
+| Pro profile | Return distribution | `MemberReturnDistribution` |
+| Admin | Daily signups / calls | `AdminDailyChart` |
+
+### Graph system — phased plan
+
+| Phase | Focus | Surfaces | Est. effort |
+|-------|--------|----------|-------------|
+| **G1 — Ticker truth** | Entry / target / stop price lines per call; Fueled desk marker style; crosshair + legend polish; marker click → thesis | Ticker | 1–2 weeks |
+| **G2 — Workspace rhythm** | Shared mini-chart component; hot tickers + watchlist rows with 30d sparkline; feed card optional sparkline; rankings row bars | Overview, feed, watchlist, rankings | 1–2 weeks |
+| **G3 — Track record story** | Profile: drawdown shading, win/loss markers on cumulative line; “your call” highlight on ticker from profile; desk model portfolio **aggregate** equity curve | Profile, desk, ticker | 2 weeks |
+| **G4 — Pro terminal** | Compare: sync crosshair, shared range; screener heatmap or bar grid; sector / hype visualization (CSS-first) | Compare, screener, Pro strips | 2–3 weeks |
+| **G5 — Data & depth** | Intraday (if Finnhub tier allows); volume histogram; 2–3 indicators max (SMA, VWAP) — only if still on-brand | Ticker, compare | 3+ weeks |
+
+### Graph principles (product, not TradingView clone)
+
+1. **Calls are the hero** — markers, levels, and return % matter more than 50 indicators.
+2. **Same colors everywhere** — long/short, Fueled desk, win/loss from `src/lib/charts/theme.ts`.
+3. **Server data, client draw** — keep Finnhub + Supabase fetch on server; charts stay client-only.
+4. **Cap points** — 500 candles max on ticker; downsample overview sparklines.
+5. **Pro differentiation** — advanced compare + distribution + future heatmaps; Member gets full ticker + profile curves.
+
+### Suggested branch order when starting graphs
+
+```
+feature/charts-g1-ticker-levels
+feature/charts-g2-workspace-sparklines
+feature/charts-g3-profile-desk-curves
+feature/charts-g4-pro-compare-sync
+```
+
+### Success metrics (graphs)
+
+- Ticker page time-on-page and return visits
+- % members who change chart range (engagement signal)
+- Profile → ticker clicks from return chart
+- Pro upgrade attributed to compare / analytics (survey or CTA clicks)
 
 ---
 
@@ -132,6 +198,8 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 **Member:** “Publish theses, track performance on charts, and compete on the leaderboard.”
 
 **Pro:** “Research stack on every ticker, deeper analytics, 3× call quota, and alerts on what the community is moving.”
+
+**Charts (when marketed):** “One visual language from ticker to profile to desk — every call plotted on price, every track record on a curve.”
 
 Avoid claiming real-time data or personalized advice. Emphasize **community intelligence + structure**.
 

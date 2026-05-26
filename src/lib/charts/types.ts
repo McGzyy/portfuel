@@ -13,6 +13,14 @@ export type ChartMarker = {
   color?: string;
 };
 
+/** Horizontal levels on ticker charts (entry / target / stop) — Phase G1. */
+export type PriceLine = {
+  price: number;
+  label: string;
+  color?: string;
+  style?: "solid" | "dashed";
+};
+
 export type LinePoint = {
   time: number;
   value: number;
