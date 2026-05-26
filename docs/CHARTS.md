@@ -76,13 +76,13 @@ Ticker pages: candlesticks + member call markers. Styling: `pf-ticker-chart-fram
 
 ---
 
-## Phase G3 — Track record story
+## Phase G3 — Track record story ✅
 
-| Task | Detail |
+| Task | Status |
 |------|--------|
-| Profile curve | Win/loss markers on cumulative line; optional max drawdown band. |
-| Desk aggregate | Model portfolio combined equity curve (open positions weighted or equal). |
-| Deep link | Profile chart point → ticker at call date. |
+| Profile curve | ✅ Win/loss markers, max drawdown stat, `ReturnChartPoint` |
+| Desk aggregate | ✅ `DeskPortfolioChart` equal-weight basket curve |
+| Deep link | ✅ Click point → `/ticker/[symbol]` |
 
 ---
 

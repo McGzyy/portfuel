@@ -31,6 +31,16 @@ export type LinePoint = {
   value: number;
 };
 
+export type ReturnOutcome = "win" | "loss" | "flat";
+
+/** Cumulative return point with optional call metadata (G3). */
+export type ReturnChartPoint = LinePoint & {
+  callId?: string;
+  symbol?: string;
+  outcome?: ReturnOutcome;
+  label?: string;
+};
+
 export type ChartRangeKey = "1m" | "3m" | "6m" | "1y" | "all";
 
 export const CHART_RANGE_SECONDS: Record<Exclude<ChartRangeKey, "all">, number> = {

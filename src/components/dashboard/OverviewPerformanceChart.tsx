@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { ReturnLineChart } from "@/components/charts/ReturnLineChart";
-import type { LinePoint } from "@/lib/charts/types";
+import type { ReturnChartPoint } from "@/lib/charts/types";
 import { formatPct } from "@/lib/utils";
 
 export function OverviewPerformanceChart({
   points,
   profileHref,
 }: {
-  points: LinePoint[];
+  points: ReturnChartPoint[];
   profileHref: string;
 }) {
   const last = points[points.length - 1]?.value;
@@ -33,7 +33,7 @@ export function OverviewPerformanceChart({
       </div>
       <div className="p-2">
         {points.length > 0 ? (
-          <ReturnLineChart points={points} height={140} compact />
+          <ReturnLineChart points={points} height={140} compact interactive showMarkers />
         ) : (
           <div className="flex h-[140px] flex-col items-center justify-center px-4 text-center text-xs text-[var(--pf-gray-500)]">
             <p>Publish a call to start tracking performance.</p>

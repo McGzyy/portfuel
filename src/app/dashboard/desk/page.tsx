@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { CallCard } from "@/components/calls/CallCard";
 import { FueledDeskBrief } from "@/components/dashboard/FueledDeskBrief";
 import { DeskPortfolioPanel } from "@/components/desk/DeskPortfolioPanel";
+import { DeskPortfolioChart } from "@/components/charts/DeskPortfolioChart";
+import { buildDeskPortfolioCurve } from "@/lib/charts/desk-portfolio-curve";
 import { DeskPortfolioWatchlistButton } from "@/components/desk/DeskPortfolioWatchlistButton";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
@@ -23,6 +25,7 @@ export default async function DashboardDeskPage() {
 
   const deskBrief = await fetchDeskBrief();
   const portfolio = await fetchDeskPortfolio();
+  const portfolioCurve = buildDeskPortfolioCurve(portfolio);
   const latest = await loadFeedCalls("latest");
   const performing = await loadFeedCalls("performing");
   const hypeScores = await fetchHypeScoresBySymbols([
@@ -44,11 +47,14 @@ export default async function DashboardDeskPage() {
 
       <FueledDeskBrief brief={deskBrief} />
 
-      <div className="mt-6">
-        <DeskPortfolioPanel entries={portfolio} />
-        <DeskPortfolioWatchlistButton
-          openCount={portfolio.filter((e) => e.status === "open").length}
-        />
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <DeskPortfolioChart points={portfolioCurve} />
+        <div>
+          <DeskPortfolioPanel entries={portfolio} />
+          <DeskPortfolioWatchlistButton
+            openCount={portfolio.filter((e) => e.status === "open").length}
+          />
+        </div>
       </div>
 
       {!deskBrief.weeklyNote && !deskBrief.pinnedCall ? (

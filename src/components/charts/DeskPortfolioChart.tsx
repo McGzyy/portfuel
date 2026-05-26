@@ -9,14 +9,12 @@ import { filterLineByRange } from "@/lib/charts/range";
 import { computeMaxDrawdown } from "@/lib/charts/cumulative-return";
 import { formatPct } from "@/lib/utils";
 
-export function MemberReturnChart({
+export function DeskPortfolioChart({
   points,
   className,
-  interactive = true,
 }: {
   points: ReturnChartPoint[];
   className?: string;
-  interactive?: boolean;
 }) {
   const [range, setRange] = useState<ChartRangeKey>("all");
   const filtered = useMemo(
@@ -29,11 +27,11 @@ export function MemberReturnChart({
     return (
       <ChartFrame
         className={className}
-        title="Cumulative return"
-        subtitle="Running sum of marked-to-market returns on published calls"
+        title="Model portfolio curve"
+        subtitle="Equal-weight return across open desk positions"
       >
         <div className="flex h-[200px] items-center justify-center px-6 text-center text-sm text-[var(--pf-gray-500)]">
-          Returns appear here once calls are marked to market.
+          Open desk positions will plot here as the model portfolio grows.
         </div>
       </ChartFrame>
     );
@@ -41,32 +39,12 @@ export function MemberReturnChart({
 
   const last = filtered[filtered.length - 1]?.value ?? points[points.length - 1]?.value;
   const lastAccent = last == null ? "" : last >= 0 ? "text-emerald-600" : "text-rose-600";
-  const wins = points.filter((p) => p.outcome === "win").length;
-  const losses = points.filter((p) => p.outcome === "loss").length;
 
   return (
     <ChartFrame
       className={className}
-      title="Cumulative return"
-      subtitle={
-        interactive
-          ? "Win/loss markers · click a point to open the ticker"
-          : "Running sum of marked-to-market returns on published calls"
-      }
-      legend={
-        wins + losses > 0 ? (
-          <div className="flex flex-wrap items-center gap-4 px-4 py-2 text-xs text-[var(--pf-gray-500)]">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-0 w-0 border-x-[4px] border-b-[6px] border-x-transparent border-b-emerald-600" />
-              Win ({wins})
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-0 w-0 border-x-[4px] border-t-[6px] border-x-transparent border-t-rose-500" />
-              Loss ({losses})
-            </span>
-          </div>
-        ) : undefined
-      }
+      title="Model portfolio curve"
+      subtitle="Equal-weight live return · click a point for the ticker"
     >
       <div className="space-y-3 p-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -74,14 +52,14 @@ export function MemberReturnChart({
           <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--pf-gray-500)]">
             {last != null ? (
               <p>
-                Total{" "}
+                Basket{" "}
                 <span className={`font-bold tabular-nums ${lastAccent}`}>
                   {formatPct(last)}
                 </span>
               </p>
             ) : null}
             {drawdown ? (
-              <p className="text-xs" title="Peak-to-trough on cumulative return">
+              <p className="text-xs">
                 Max drawdown{" "}
                 <span className="font-semibold tabular-nums text-rose-600">
                   −{drawdown.pct.toFixed(1)}%
@@ -91,12 +69,7 @@ export function MemberReturnChart({
           </div>
         </div>
         {filtered.length > 0 ? (
-          <ReturnLineChart
-            points={filtered}
-            height={260}
-            interactive={interactive}
-            showMarkers
-          />
+          <ReturnLineChart points={filtered} height={240} interactive showMarkers />
         ) : (
           <div className="flex h-[200px] items-center justify-center text-sm text-[var(--pf-gray-500)]">
             No data in this range.
