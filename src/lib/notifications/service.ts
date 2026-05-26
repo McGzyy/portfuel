@@ -323,3 +323,22 @@ export async function notifyFollowedMemberNewCall(opts: {
     });
   }
 }
+
+export async function notifyDirectMessage(opts: {
+  recipientId: string;
+  senderId: string;
+  senderUsername: string;
+  senderDisplayName: string | null;
+  threadId: string;
+  preview: string;
+}) {
+  const name = opts.senderDisplayName ?? opts.senderUsername;
+  await createNotification({
+    userId: opts.recipientId,
+    type: "direct_message",
+    title: `Message from ${name}`,
+    body: opts.preview,
+    href: `/dashboard/messages?thread=${opts.threadId}`,
+    actorUserId: opts.senderId,
+  });
+}

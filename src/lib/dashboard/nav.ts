@@ -4,7 +4,8 @@ export type DashboardNavIcon =
   | "flame"
   | "bookmark"
   | "scan"
-  | "compare";
+  | "compare"
+  | "messages";
 
 export const DASHBOARD_NAV: {
   href: string;
@@ -37,6 +38,12 @@ export const DASHBOARD_NAV: {
     label: "Watchlist",
     description: "Symbols & lookup",
     icon: "bookmark",
+  },
+  {
+    href: "/dashboard/messages",
+    label: "Messages",
+    description: "DMs with members",
+    icon: "messages",
   },
   {
     href: "/dashboard/screener",

@@ -9,6 +9,7 @@ import {
   Rows3,
   ScanSearch,
   GitCompare,
+  MessageCircle,
   Plus,
   ExternalLink,
   Shield,
@@ -23,6 +24,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   bookmark: Bookmark,
   scan: ScanSearch,
   compare: GitCompare,
+  messages: MessageCircle,
 };
 
 export function WorkspaceSidebar({

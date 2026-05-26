@@ -3,7 +3,16 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, Flame, MessageSquare, Target, ThumbsUp, TrendingUp, UserPlus } from "lucide-react";
+import {
+  Bell,
+  Flame,
+  MessageCircle,
+  MessageSquare,
+  Target,
+  ThumbsUp,
+  TrendingUp,
+  UserPlus,
+} from "lucide-react";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { Button } from "@/components/ui/button";
 import { cn, timeAgo } from "@/lib/utils";
@@ -23,6 +32,8 @@ function iconForType(type: NotificationType) {
       return Flame;
     case "call_milestone":
       return Target;
+    case "direct_message":
+      return MessageCircle;
     default:
       return Bell;
   }

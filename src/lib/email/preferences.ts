@@ -36,6 +36,7 @@ const INSTANT_EMAIL_TYPES: NotificationType[] = [
   "followed_member_call",
   "desk_portfolio_update",
   "call_milestone",
+  "direct_message",
 ];
 
 export function shouldSendInstantEmail(

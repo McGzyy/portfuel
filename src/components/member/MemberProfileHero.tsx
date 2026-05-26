@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { FollowMemberButton } from "@/components/member/FollowMemberButton";
+import { MessageMemberButton } from "@/components/member/MessageMemberButton";
 import { formatPct } from "@/lib/utils";
 import type { PublicMemberProfile } from "@/lib/users/public-profile";
 
@@ -38,11 +39,14 @@ export function MemberProfileHero({
         </div>
         <div className="flex flex-col items-end gap-3 text-right">
           {!isSelf ? (
-            <FollowMemberButton
-              memberId={member.id}
-              memberUsername={member.username}
-              initialFollowing={initialFollowing ?? false}
-            />
+            <div className="flex flex-wrap justify-end gap-2">
+              <MessageMemberButton username={member.username} />
+              <FollowMemberButton
+                memberId={member.id}
+                memberUsername={member.username}
+                initialFollowing={initialFollowing ?? false}
+              />
+            </div>
           ) : null}
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
