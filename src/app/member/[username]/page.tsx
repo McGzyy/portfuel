@@ -20,6 +20,10 @@ import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { SITE_NAME } from "@/lib/seo/site";
 import { isDemoMode } from "@/lib/demo/config";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
+import {
+  isProIntelligenceLocked,
+  sessionToProContext,
+} from "@/lib/features/pro-intelligence";
 
 export async function generateMetadata({
   params,
@@ -56,6 +60,7 @@ export default async function MemberProfilePage({
     !isSelf && (await isFollowing(session.userId, member.id));
   const trackRecord = summarizeMemberTrackRecord(calls);
   const returnSeries = buildCumulativeReturnSeries(calls);
+  const proLocked = isProIntelligenceLocked(sessionToProContext(session));
 
   return (
     <AppShell user={toHeaderUser(session)}>
@@ -124,6 +129,8 @@ export default async function MemberProfilePage({
                     is_trusted: member.trusted,
                   }}
                   interactive
+                  canGenerateSummary={!proLocked}
+                  showUpgrade={proLocked}
                 />
               </li>
             ))}

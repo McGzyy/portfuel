@@ -153,6 +153,7 @@ export default async function ProfilePage() {
                   showThesisCoach
                   isPro={!proLocked}
                   showUpgrade={proLocked}
+                  canGenerateSummary={!proLocked}
                 />
               </li>
             ))}

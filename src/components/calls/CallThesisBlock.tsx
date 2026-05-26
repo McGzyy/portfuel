@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ThesisCoachInline } from "@/components/ai/ThesisCoachInline";
+import { ThesisSummaryExpand } from "@/components/ai/ThesisSummaryExpand";
 import { CallEngagement } from "@/components/calls/CallEngagement";
 import { CallPriceMetrics } from "@/components/calls/CallPriceMetrics";
 import { formatPct, timeAgo } from "@/lib/utils";
@@ -37,12 +38,14 @@ export function CallThesisBlock({
   viewerUserId,
   isPro,
   showUpgrade,
+  canGenerateSummary,
 }: {
   call: ThesisCall;
   interactive: boolean;
   viewerUserId?: string | null;
   isPro?: boolean;
   showUpgrade?: boolean;
+  canGenerateSummary?: boolean;
 }) {
   const isOwnCall = Boolean(viewerUserId && call.user_id && viewerUserId === call.user_id);
   const handle = call.users.username
@@ -90,6 +93,13 @@ export function CallThesisBlock({
       </div>
       <p className="mt-1 text-xs text-[var(--pf-gray-400)]">{timeAgo(call.called_at)}</p>
       <p className="mt-3 text-sm leading-relaxed text-[var(--pf-gray-700)]">{call.thesis}</p>
+      {interactive ? (
+        <ThesisSummaryExpand
+          callId={call.id}
+          canGenerate={Boolean(canGenerateSummary)}
+          showUpgrade={showUpgrade}
+        />
+      ) : null}
       <CallPriceMetrics
         entry_price={call.entry_price}
         target_price={call.target_price}

@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { CallEngagement } from "@/components/calls/CallEngagement";
 import { CallPriceMetrics } from "@/components/calls/CallPriceMetrics";
 import { ThesisCoachInline } from "@/components/ai/ThesisCoachInline";
+import { ThesisSummaryExpand } from "@/components/ai/ThesisSummaryExpand";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn, formatPct, timeAgo } from "@/lib/utils";
 import type { TeaserCallRow } from "@/lib/db/supabase";
@@ -48,6 +49,8 @@ type CallCardProps = {
   showThesisCoach?: boolean;
   isPro?: boolean;
   showUpgrade?: boolean;
+  showSummary?: boolean;
+  canGenerateSummary?: boolean;
 };
 
 export function CallCard({
@@ -58,6 +61,8 @@ export function CallCard({
   showThesisCoach,
   isPro,
   showUpgrade,
+  showSummary = true,
+  canGenerateSummary = false,
 }: CallCardProps) {
   const handle = /^\d{5}$/.test(call.pin) ? call.pin : `@${call.pin}`;
   const name = call.display_name ?? `Trader ${handle}`;
@@ -145,6 +150,13 @@ export function CallCard({
         <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-[var(--pf-gray-700)]">
           {call.thesis}
         </p>
+        {showSummary ? (
+          <ThesisSummaryExpand
+            callId={call.id}
+            canGenerate={canGenerateSummary}
+            showUpgrade={showUpgrade}
+          />
+        ) : null}
         {hasMetrics ? (
           <CallPriceMetrics
             entry_price={call.entry_price}

@@ -19,6 +19,7 @@ export const TIER_COMPARISON_ROWS: TierComparisonRow[] = [
   { feature: "Watchlist move & earnings alerts", member: false, pro: true },
   { feature: "Return distribution on profile", member: false, pro: true },
   { feature: "AI thesis coach (educational)", member: "2/mo", pro: "30/mo" },
+  { feature: "One-line thesis summaries on calls", member: "Read cache", pro: "Generate" },
 ];
 
 export type PlanCardContent = {
@@ -43,6 +44,7 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
       "2 published calls per week",
       "Watchlist, follow members & alerts",
       "Ticker charts, rankings & track record",
+      "2 AI thesis coach reviews · read cached quick summaries",
     ],
   },
   pro: {
@@ -58,6 +60,7 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
       "Screener, ticker compare & CSV export",
       "Watchlist move alerts & earnings calendar",
       "30 AI thesis coach reviews + track-record context",
+      "Generate one-line thesis summaries on feed & ticker (60/mo)",
     ],
   },
 };

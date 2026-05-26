@@ -157,6 +157,7 @@ export default async function TickerPage({
                 viewerUserId={session?.userId}
                 isPro={isPro}
                 showUpgrade={session ? proLocked : false}
+                canGenerateSummary={isPro}
               />
             ))
           )}

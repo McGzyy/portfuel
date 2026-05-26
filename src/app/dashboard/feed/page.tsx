@@ -144,6 +144,8 @@ export default async function DashboardFeedPage({
               call={call}
               interactive
               isNew={isCallNewSinceSeen(call.called_at, feedSeenAt)}
+              canGenerateSummary={!proLocked}
+              showUpgrade={proLocked}
             />
           ))
         )}

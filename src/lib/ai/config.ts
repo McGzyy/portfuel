@@ -10,6 +10,16 @@ export const AI_COACH_MONTHLY_LIMIT: Record<MembershipTier | "admin", number> = 
   admin: 200,
 };
 
+/** Generating new one-line summaries (reads of cached summaries are free). */
+export const AI_SUMMARY_MONTHLY_LIMIT: Record<MembershipTier | "admin", number> = {
+  member: 0,
+  pro: 60,
+  admin: 500,
+};
+
+export const AI_SUMMARY_DISCLAIMER =
+  "AI summary for skimming only — not investment advice. Read the full thesis.";
+
 export function isAiCoachConfigured(): boolean {
   const key = process.env.OPENAI_API_KEY?.trim();
   return Boolean(key?.startsWith("sk-"));
@@ -25,4 +35,19 @@ export function limitForRole(
 ): number {
   if (role === "admin") return AI_COACH_MONTHLY_LIMIT.admin;
   return AI_COACH_MONTHLY_LIMIT[tier === "pro" ? "pro" : "member"];
+}
+
+export function summaryLimitForRole(
+  tier: MembershipTier | null,
+  role: "member" | "admin"
+): number {
+  if (role === "admin") return AI_SUMMARY_MONTHLY_LIMIT.admin;
+  return AI_SUMMARY_MONTHLY_LIMIT[tier === "pro" ? "pro" : "member"];
+}
+
+export function canGenerateSummary(
+  tier: MembershipTier | null,
+  role: "member" | "admin"
+): boolean {
+  return role === "admin" || tier === "pro";
 }

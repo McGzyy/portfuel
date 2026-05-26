@@ -7,13 +7,20 @@ import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader"
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { fetchDeskBrief } from "@/lib/desk/brief";
 import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
-import { loadFeedCalls, mapCallForCard } from "@/lib/dashboard/data";
+import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
+import {
+  isProIntelligenceLocked,
+  sessionToProContext,
+} from "@/lib/features/pro-intelligence";
 
 export const metadata: Metadata = {
   title: "Fueled desk",
 };
 
 export default async function DashboardDeskPage() {
+  const session = await requireDashboardSession();
+  const proLocked = isProIntelligenceLocked(sessionToProContext(session));
+
   const deskBrief = await fetchDeskBrief();
   const portfolio = await fetchDeskPortfolio();
   const latest = await loadFeedCalls("latest");
@@ -67,7 +74,13 @@ export default async function DashboardDeskPage() {
             {fueledLatest
               .filter((call) => call.id !== deskBrief.pinnedCall?.id)
               .map((call) => (
-                <CallCard key={call.id} call={call} interactive />
+                <CallCard
+                  key={call.id}
+                  call={call}
+                  interactive
+                  canGenerateSummary={!proLocked}
+                  showUpgrade={proLocked}
+                />
               ))}
           </div>
         )}
@@ -80,7 +93,13 @@ export default async function DashboardDeskPage() {
           </h2>
           <div className="space-y-4">
             {fueledPerforming.map((call) => (
-              <CallCard key={call.id} call={call} interactive />
+              <CallCard
+                key={call.id}
+                call={call}
+                interactive
+                canGenerateSummary={!proLocked}
+                showUpgrade={proLocked}
+              />
             ))}
           </div>
         </section>

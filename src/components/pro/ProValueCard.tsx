@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 
 const PRO_FEATURES = [
   "AI thesis coach — 30 reviews/mo with your track record in context",
+  "One-line thesis summaries on any call (generate 60/mo; Members read cached)",
   "News, earnings & SEC filings on every equity ticker",
   "Pro feed & rankings analytics (target progress, win-rate depth)",
   "6 published calls per week (vs 2 on Member)",
