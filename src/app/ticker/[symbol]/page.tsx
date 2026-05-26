@@ -108,9 +108,11 @@ export default async function TickerPage({
 
         <TickerChartSection
           className="mt-8"
-          candles={intel?.candles ?? []}
+          symbol={symbol}
+          initialCandles={intel?.candles ?? []}
           markers={intel?.markers ?? []}
           priceLines={chartPriceLines}
+          proUnlocked={isPro}
         />
       </section>
 

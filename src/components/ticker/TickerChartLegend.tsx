@@ -3,13 +3,15 @@ import { cn } from "@/lib/utils";
 export function TickerChartLegend({
   callCount,
   levelCount = 0,
+  showDepth = false,
   embedded,
 }: {
   callCount: number;
   levelCount?: number;
+  showDepth?: boolean;
   embedded?: boolean;
 }) {
-  if (callCount === 0 && levelCount === 0) return null;
+  if (callCount === 0 && levelCount === 0 && !showDepth) return null;
 
   return (
     <div
@@ -49,6 +51,25 @@ export function TickerChartLegend({
           <span className="inline-flex items-center gap-1.5">
             <span className="h-0 w-8 border-t border-slate-500" />
             Entry
+          </span>
+        </>
+      ) : null}
+      {showDepth ? (
+        <>
+          <span className="font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            Depth
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2 w-3 rounded-sm bg-slate-300" />
+            Volume
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-0 w-6 border-t-2 border-blue-600" />
+            SMA 20
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-0 w-6 border-t border-dashed border-violet-600" />
+            VWAP
           </span>
         </>
       ) : null}

@@ -35,6 +35,7 @@ export async function GET(
         high: candles.h[i],
         low: candles.l[i],
         close: candles.c[i],
+        volume: candles.v?.[i] != null ? Number(candles.v[i]) : undefined,
       })) ?? [];
 
     const markers = calls.map((c) => {

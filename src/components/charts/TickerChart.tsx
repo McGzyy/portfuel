@@ -6,6 +6,8 @@ import {
   createSeriesMarkers,
   ColorType,
   CandlestickSeries,
+  HistogramSeries,
+  LineSeries,
   LineStyle,
   type IChartApi,
   type ISeriesApi,
@@ -14,8 +16,10 @@ import {
   type SeriesMarker,
   type IPriceLine,
   type MouseEventParams,
+  type HistogramData,
+  type LineData,
 } from "lightweight-charts";
-import type { CandlePoint, ChartMarker, PriceLine } from "@/lib/charts/types";
+import type { CandlePoint, ChartMarker, LinePoint, PriceLine } from "@/lib/charts/types";
 import {
   PF_CHART,
   chartGridOptions,
@@ -23,6 +27,9 @@ import {
 } from "@/lib/charts/theme";
 
 export type { CandlePoint, ChartMarker } from "@/lib/charts/types";
+
+const SMA_COLOR = "#2563eb";
+const VWAP_COLOR = "#7c3aed";
 
 function markerShape(m: ChartMarker): SeriesMarker<Time>["shape"] {
   if (m.kind === "fueled") return "square";
@@ -41,14 +48,23 @@ export function TickerChart({
   candles,
   markers,
   priceLines = [],
+  showVolume = true,
+  smaPoints = [],
+  vwapPoints = [],
 }: {
   candles: CandlePoint[];
   markers: ChartMarker[];
   priceLines?: PriceLine[];
+  showVolume?: boolean;
+  smaPoints?: LinePoint[];
+  vwapPoints?: LinePoint[];
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const volumeRef = useRef<ISeriesApi<"Histogram"> | null>(null);
+  const smaRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const vwapRef = useRef<ISeriesApi<"Line"> | null>(null);
   const markersRef = useRef<ReturnType<typeof createSeriesMarkers<Time>> | null>(null);
   const priceLinesRef = useRef<IPriceLine[]>([]);
   const markerDataRef = useRef(markers);
@@ -69,7 +85,7 @@ export function TickerChart({
       },
       grid: chartGridOptions(),
       width: containerRef.current.clientWidth,
-      height: PF_CHART.height,
+      height: showVolume ? 440 : PF_CHART.height,
       timeScale: {
         borderColor: PF_CHART.border,
         timeVisible: true,
@@ -77,7 +93,7 @@ export function TickerChart({
       },
       rightPriceScale: {
         borderColor: PF_CHART.border,
-        scaleMargins: { top: 0.08, bottom: 0.12 },
+        scaleMargins: showVolume ? { top: 0.06, bottom: 0.28 } : { top: 0.08, bottom: 0.12 },
       },
       crosshair: {
         vertLine: { color: "rgba(15, 20, 25, 0.12)", labelBackgroundColor: "#0f1419" },
@@ -97,6 +113,36 @@ export function TickerChart({
     chartRef.current = chart;
     seriesRef.current = series;
     markersRef.current = createSeriesMarkers(series);
+
+    if (showVolume) {
+      const vol = chart.addSeries(HistogramSeries, {
+        color: "#94a3b8",
+        priceFormat: { type: "volume" },
+        priceScaleId: "volume",
+      });
+      chart.priceScale("volume").applyOptions({
+        scaleMargins: { top: 0.78, bottom: 0 },
+      });
+      volumeRef.current = vol;
+    }
+
+    smaRef.current = chart.addSeries(LineSeries, {
+      color: SMA_COLOR,
+      lineWidth: 2,
+      lineStyle: LineStyle.Solid,
+      priceLineVisible: false,
+      lastValueVisible: true,
+      title: "SMA 20",
+    });
+
+    vwapRef.current = chart.addSeries(LineSeries, {
+      color: VWAP_COLOR,
+      lineWidth: 2,
+      lineStyle: LineStyle.Dashed,
+      priceLineVisible: false,
+      lastValueVisible: true,
+      title: "VWAP",
+    });
 
     const ro = new ResizeObserver(() => {
       if (containerRef.current) {
@@ -123,10 +169,13 @@ export function TickerChart({
       chart.remove();
       chartRef.current = null;
       seriesRef.current = null;
+      volumeRef.current = null;
+      smaRef.current = null;
+      vwapRef.current = null;
       markersRef.current = null;
       priceLinesRef.current = [];
     };
-  }, []);
+  }, [showVolume]);
 
   useEffect(() => {
     if (!seriesRef.current || candles.length === 0) return;
@@ -139,6 +188,34 @@ export function TickerChart({
       close: c.close,
     }));
     seriesRef.current.setData(data);
+
+    if (volumeRef.current && showVolume) {
+      const volData: HistogramData[] = candles.map((c) => ({
+        time: c.time as Time,
+        value: c.volume ?? 0,
+        color:
+          c.close >= c.open ? "rgba(5, 150, 105, 0.35)" : "rgba(227, 27, 35, 0.35)",
+      }));
+      volumeRef.current.setData(volData);
+    }
+
+    if (smaRef.current) {
+      const smaData: LineData[] = smaPoints.map((p) => ({
+        time: p.time as Time,
+        value: p.value,
+      }));
+      smaRef.current.setData(smaData);
+      smaRef.current.applyOptions({ visible: smaPoints.length > 0 });
+    }
+
+    if (vwapRef.current) {
+      const vwapData: LineData[] = vwapPoints.map((p) => ({
+        time: p.time as Time,
+        value: p.value,
+      }));
+      vwapRef.current.setData(vwapData);
+      vwapRef.current.applyOptions({ visible: vwapPoints.length > 0 });
+    }
 
     const seriesMarkers: SeriesMarker<Time>[] = markers.map((m) => ({
       time: m.time as Time,
@@ -168,7 +245,9 @@ export function TickerChart({
     }
 
     chartRef.current?.timeScale().fitContent();
-  }, [candles, markers, priceLines]);
+  }, [candles, markers, priceLines, showVolume, smaPoints, vwapPoints]);
 
-  return <div ref={containerRef} className="h-[400px] w-full min-h-[320px]" />;
+  const h = showVolume ? 440 : PF_CHART.height;
+
+  return <div ref={containerRef} className="w-full min-h-[320px]" style={{ height: h }} />;
 }

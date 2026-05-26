@@ -127,6 +127,7 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
       high: candlesRaw.h[i],
       low: candlesRaw.l[i],
       close: candlesRaw.c[i],
+      volume: candlesRaw.v?.[i] != null ? Number(candlesRaw.v[i]) : undefined,
     })) ?? [];
 
   const markers = calls.map((c) => {

@@ -4,7 +4,17 @@ export type CandlePoint = {
   high: number;
   low: number;
   close: number;
+  volume?: number;
 };
+
+/** Finnhub resolution for stock/candle (G5). */
+export type ChartCandleResolution = "D" | "60" | "15";
+
+export const CHART_RESOLUTION_LABELS: { key: ChartCandleResolution; label: string; proOnly?: boolean }[] = [
+  { key: "D", label: "Daily" },
+  { key: "60", label: "1H", proOnly: true },
+  { key: "15", label: "15m", proOnly: true },
+];
 
 export type ChartMarkerKind = "long" | "short" | "fueled";
 

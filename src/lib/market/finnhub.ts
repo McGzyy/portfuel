@@ -100,18 +100,25 @@ export async function getCompanyProfile(symbol: string): Promise<CompanyProfile 
   }
 }
 
-export async function getDailyCandles(
+export type FinnhubCandleResolution = "D" | "60" | "15" | "5" | "30";
+
+export async function getStockCandles(
   symbol: string,
   from: number,
-  to: number
+  to: number,
+  resolution: FinnhubCandleResolution = "D"
 ): Promise<FinnhubCandle | null> {
   try {
-    const data = await finnhubFetch<FinnhubCandle>("/stock/candle", {
-      symbol: symbol.toUpperCase(),
-      resolution: "D",
-      from: String(from),
-      to: String(to),
-    });
+    const data = await finnhubFetch<FinnhubCandle>(
+      "/stock/candle",
+      {
+        symbol: symbol.toUpperCase(),
+        resolution,
+        from: String(from),
+        to: String(to),
+      },
+      resolution === "D" ? 300 : 60
+    );
     if (data.s !== "ok") return null;
     return data;
   } catch {
@@ -119,18 +126,40 @@ export async function getDailyCandles(
   }
 }
 
-export async function getCryptoCandles(
-  finnhubSymbol: string,
+export async function getDailyCandles(
+  symbol: string,
   from: number,
   to: number
 ): Promise<FinnhubCandle | null> {
+  return getStockCandles(symbol, from, to, "D");
+}
+
+export async function getIntradayCandles(
+  symbol: string,
+  resolution: "60" | "15",
+  from: number,
+  to: number
+): Promise<FinnhubCandle | null> {
+  return getStockCandles(symbol, from, to, resolution);
+}
+
+export async function getCryptoCandles(
+  finnhubSymbol: string,
+  from: number,
+  to: number,
+  resolution: FinnhubCandleResolution = "D"
+): Promise<FinnhubCandle | null> {
   try {
-    const data = await finnhubFetch<FinnhubCandle>("/crypto/candle", {
-      symbol: finnhubSymbol,
-      resolution: "D",
-      from: String(from),
-      to: String(to),
-    });
+    const data = await finnhubFetch<FinnhubCandle>(
+      "/crypto/candle",
+      {
+        symbol: finnhubSymbol,
+        resolution,
+        from: String(from),
+        to: String(to),
+      },
+      resolution === "D" ? 300 : 60
+    );
     if (data.s !== "ok") return null;
     return data;
   } catch {

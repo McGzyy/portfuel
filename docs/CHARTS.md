@@ -96,11 +96,14 @@ Ticker pages: candlesticks + member call markers. Styling: `pf-ticker-chart-fram
 
 ---
 
-## Phase G5 — Data & depth (only if on-brand)
+## Phase G5 — Data & depth ✅
 
-- Intraday candles (Finnhub paid tier).
-- Volume histogram under price.
-- Minimal overlays: SMA(20), VWAP — **max 2**, Pro-only if gated.
+| Feature | Access | Implementation |
+|---------|--------|----------------|
+| Volume histogram | All members | `HistogramSeries` on ticker chart |
+| SMA(20) overlay | Pro | `computeSma` + toggle |
+| VWAP overlay | Pro | `computeVwap` + toggle |
+| Intraday 1H / 15m | Pro | `GET /api/tickers/[symbol]/candles?resolution=` |
 
 **Not recommended:** Recharts on workspace, Chart.js, TradingView embedded widget (licensing).
 
