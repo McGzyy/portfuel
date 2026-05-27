@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { SiteFooter } from "@/components/marketing/SiteFooter";
-import { LeaderboardTable } from "@/components/rankings/LeaderboardTable";
-import { RankingsTrustedNote } from "@/components/rankings/RankingsTrustedNote";
-import { RankingsSummaryBar } from "@/components/rankings/RankingsSummaryBar";
-import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
-import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
+import { RankingsPageContent } from "@/components/rankings/RankingsPageContent";
 import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/seo/site";
@@ -29,12 +26,15 @@ export const metadata: Metadata = {
 
 export default async function RankingsPage() {
   const session = await getSession();
+  if (session) {
+    redirect("/dashboard/rankings");
+  }
+
   const proContext = sessionToProContext(session);
   const proLocked = isProIntelligenceLocked(proContext);
   const proGateCta = getProGateCta(proContext);
 
   let rows: Awaited<ReturnType<typeof fetchLeaderboard>> = [];
-
   if (isDemoMode() || hasSupabaseConfig()) {
     try {
       rows = await fetchLeaderboard(30);
@@ -47,51 +47,24 @@ export default async function RankingsPage() {
 
   return (
     <>
-      <SiteHeader user={session ? toHeaderUser(session) : undefined} showAuth={!session} />
+      <SiteHeader showAuth />
       <div className="pf-app-bg flex-1">
         <div className="mx-auto max-w-4xl px-4 py-12">
-          {session ? (
-            <WorkspaceBackLink href="/dashboard" label="Workspace" />
-          ) : null}
-
-          <div className={session ? "mt-6" : undefined}>
-            <WorkspacePageHeader
-              eyebrow="Community"
-              title="Rankings"
-              description="Ranked by cumulative call score — return performance plus community votes. Refreshes when quotes update."
-              className="mb-8 pb-8"
-            />
+          <RankingsPageContent
+            rows={rows}
+            summary={summary}
+            proLocked={proLocked}
+            proGateCta={proGateCta}
+            loggedIn={false}
+          />
+          <div className="mt-8 flex justify-center gap-3">
+            <Link href="/login">
+              <Button variant="secondary">Sign in</Button>
+            </Link>
+            <Link href="/join">
+              <Button>{COPY.ctaGetAccess}</Button>
+            </Link>
           </div>
-
-          <div className="mt-8">
-            <RankingsSummaryBar
-              summary={summary}
-              proLocked={proLocked}
-              proGateCta={proGateCta}
-            />
-            <RankingsTrustedNote />
-            <div className="pf-workspace-panel mt-6 overflow-hidden">
-              <LeaderboardTable rows={rows} embedded />
-            </div>
-          </div>
-
-          {!session ? (
-            <p className="mt-8 text-center text-sm text-[var(--pf-gray-500)]">
-              Want the live workspace and full theses?{" "}
-              <Link href="/join" className="font-semibold text-[var(--pf-red)] hover:underline">
-                {COPY.ctaGetAccess}
-              </Link>
-            </p>
-          ) : (
-            <div className="mt-8 flex justify-center gap-3">
-              <Link href="/dashboard">
-                <Button variant="secondary">Workspace</Button>
-              </Link>
-              <Link href="/dashboard/feed">
-                <Button>Member feed</Button>
-              </Link>
-            </div>
-          )}
         </div>
       </div>
       <SiteFooter />

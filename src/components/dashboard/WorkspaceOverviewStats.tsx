@@ -37,7 +37,7 @@ export function WorkspaceOverviewStats({
         label="Rank score"
         value={rankScore != null ? rankScore.toFixed(1) : "—"}
         hint="Leaderboard"
-        href="/rankings"
+        href="/dashboard/rankings"
       />
       {quota ? (
         <WorkspaceStatCard

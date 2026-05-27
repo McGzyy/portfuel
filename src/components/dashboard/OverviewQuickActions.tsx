@@ -29,7 +29,7 @@ const actions = [
     icon: Star,
   },
   {
-    href: "/rankings",
+    href: "/dashboard/rankings",
     label: "Rankings",
     description: "Leaderboard & scores",
     icon: BarChart3,

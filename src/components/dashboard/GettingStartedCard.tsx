@@ -59,7 +59,7 @@ export function GettingStartedCard() {
           <p className="mt-1.5 text-xs text-[var(--pf-gray-500)]">
             Following turns the feed into a tight list of traders you trust.
           </p>
-          <Link href="/rankings" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-red)] hover:underline">
+          <Link href="/dashboard/rankings" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-red)] hover:underline">
             Browse rankings <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>

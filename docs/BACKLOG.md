@@ -6,7 +6,7 @@ Items captured for later — not in active development unless promoted to [VALUE
 
 ## Admin: Tweet → Fueled call (AI draft)
 
-**Status:** Deferred — do not implement until prioritized.
+**Status:** v1 shipped — Admin → Social → paste text, generate draft, publish manually. No auto-publish.
 
 ### Problem
 
@@ -80,7 +80,7 @@ The brand X account needs regular activity before launch traffic matters. Manual
 - Every post links back to a real PortFuel page with measurable clicks.
 - No regulatory-style claims (“guaranteed”, “buy now”) in templates.
 
-### Success criteria
+### Tweet → Fueled success criteria
 
 - Admin can go tweet → published Fueled call in &lt; 5 minutes with one symbol choice step.
 - Zero accidental multi-ticker calls without explicit selection.

@@ -7,10 +7,12 @@ import { AdminMembersPanel } from "@/components/admin/AdminMembersPanel";
 import { AdminAnalyticsPanel } from "@/components/admin/AdminAnalyticsPanel";
 import { AdminDeskPanel } from "@/components/admin/AdminDeskPanel";
 import { AdminLaunchPanel } from "@/components/admin/AdminLaunchPanel";
+import { AdminSocialPanel } from "@/components/admin/AdminSocialPanel";
 
 const tabs = [
   { id: "members", label: "Members" },
   { id: "launch", label: "Launch" },
+  { id: "social", label: "Social" },
   { id: "analytics", label: "Analytics" },
   { id: "desk", label: "Desk" },
 ] as const;
@@ -18,7 +20,7 @@ const tabs = [
 type AdminTab = (typeof tabs)[number]["id"];
 
 function parseTab(raw: string | null): AdminTab {
-  if (raw === "analytics" || raw === "desk" || raw === "launch") return raw;
+  if (raw === "analytics" || raw === "desk" || raw === "launch" || raw === "social") return raw;
   return "members";
 }
 
@@ -53,6 +55,8 @@ export function AdminShell() {
         <AdminDeskPanel />
       ) : tab === "launch" ? (
         <AdminLaunchPanel />
+      ) : tab === "social" ? (
+        <AdminSocialPanel />
       ) : (
         <AdminMembersPanel />
       )}

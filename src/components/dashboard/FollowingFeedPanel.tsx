@@ -17,11 +17,11 @@ export function FollowingFeedPanel({
       <WorkspacePanel
         title="Following"
         subtitle="Calls from members you track"
-        href="/rankings"
+        href="/dashboard/rankings"
       >
         <p className="px-3 py-6 text-center text-sm text-[var(--pf-gray-500)]">
           Follow top callers from{" "}
-          <Link href="/rankings" className="font-semibold text-[var(--pf-red)] hover:underline">
+          <Link href="/dashboard/rankings" className="font-semibold text-[var(--pf-red)] hover:underline">
             rankings
           </Link>{" "}
           or their profile — new theses show here and in your feed.

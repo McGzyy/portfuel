@@ -7,7 +7,8 @@ export type DashboardNavIcon =
   | "bookmark"
   | "scan"
   | "compare"
-  | "messages";
+  | "messages"
+  | "trophy";
 
 export type DashboardNavItem = {
   href: string;
@@ -48,6 +49,12 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
     label: "Messages",
     description: "DMs with members",
     icon: "messages",
+  },
+  {
+    href: "/dashboard/rankings",
+    label: "Rankings",
+    description: "Leaderboard & rank scores",
+    icon: "trophy",
   },
   {
     href: "/dashboard/screener",
@@ -117,7 +124,7 @@ export const WORKSPACE_GUIDE_SECTIONS: {
         description: "Private DMs with other members.",
       },
       {
-        href: "/rankings",
+        href: "/dashboard/rankings",
         label: "Rankings",
         description: "Leaderboard and members to follow.",
       },

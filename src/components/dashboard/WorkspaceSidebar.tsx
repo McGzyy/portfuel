@@ -12,6 +12,7 @@ import {
   MessageCircle,
   Plus,
   Shield,
+  Trophy,
 } from "lucide-react";
 import { COPY } from "@/lib/copy";
 import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
@@ -27,6 +28,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   scan: ScanSearch,
   compare: GitCompare,
   messages: MessageCircle,
+  trophy: Trophy,
 };
 
 export function WorkspaceSidebar({
