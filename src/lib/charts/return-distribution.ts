@@ -1,7 +1,10 @@
+import { returnBucketTone, type BarTone } from "@/lib/design/chart-bars";
+
 export type ReturnBucket = {
   label: string;
   count: number;
   pct: number;
+  tone: BarTone;
 };
 
 const BUCKETS: { label: string; min: number; max: number | null }[] = [
@@ -34,5 +37,6 @@ export function buildReturnDistribution(
     label: b.label,
     count: counts[i],
     pct: Math.round((counts[i] / total) * 100),
+    tone: returnBucketTone(b.label),
   })).filter((b) => b.count > 0 || total > 0);
 }

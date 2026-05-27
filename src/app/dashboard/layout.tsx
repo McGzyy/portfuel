@@ -23,7 +23,11 @@ export default async function DashboardLayout({
   }
 
   return (
-    <AppShell user={toHeaderUser(session)} mainClassName="!max-w-none !px-0 !py-0">
+    <AppShell
+      user={toHeaderUser(session)}
+      headerMode="workspace"
+      mainClassName="!max-w-none !px-0 !py-0"
+    >
       <div className="pf-workspace">
         <div className="pf-workspace-sidebar-wrap">
           <WorkspaceSidebar

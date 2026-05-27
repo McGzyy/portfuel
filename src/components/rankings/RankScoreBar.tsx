@@ -17,9 +17,9 @@ export function RankScoreBar({
       className={cn("flex items-center justify-end gap-2", className)}
       title={`${score.toFixed(1)} of ${maxScore.toFixed(1)} leader score`}
     >
-      <div className="h-1.5 w-14 overflow-hidden rounded-full bg-[var(--pf-gray-100)]">
+      <div className="h-1.5 w-14 overflow-hidden rounded-full bg-[var(--pf-chart-muted)]">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-[var(--pf-red)] to-[var(--pf-red-hover)]"
+          className="pf-bar-fill bg-slate-700"
           style={{ width: `${pct}%` }}
         />
       </div>

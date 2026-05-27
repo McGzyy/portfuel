@@ -28,16 +28,27 @@ const TIPS = [
   },
 ] as const;
 
-export function WorkspaceWalkthroughTips() {
+export function WorkspaceWalkthroughTips({
+  enabled = true,
+}: {
+  /** Hide for members who already finished onboarding. */
+  enabled?: boolean;
+}) {
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
+    if (!enabled) {
+      setDismissed(true);
+      return;
+    }
     try {
       setDismissed(localStorage.getItem(STORAGE_KEY) === "1");
     } catch {
       setDismissed(false);
     }
-  }, []);
+  }, [enabled]);
+
+  if (!enabled) return null;
 
   function dismiss() {
     try {

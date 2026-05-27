@@ -5,6 +5,14 @@
   --pf-red-hover: #c41820;
   --pf-red-muted: #fef2f2;
   --pf-red-ring: rgba(227, 27, 35, 0.18);
+  --pf-positive: #059669;
+  --pf-positive-muted: #ecfdf5;
+  --pf-negative: #e11d48;
+  --pf-negative-muted: #fff1f2;
+  --pf-warning: #d97706;
+  --pf-warning-muted: #fffbeb;
+  --pf-chart: #475569;
+  --pf-chart-muted: #e2e8f0;
   --pf-black: #0f1419;
   --pf-gray-50: #f8fafc;
   --pf-gray-100: #f1f5f9;
@@ -379,6 +387,20 @@ body {
   border: 1px solid var(--pf-border);
   background: #fff;
   box-shadow: var(--pf-shadow-sm);
+}
+
+.pf-text-positive {
+  color: var(--pf-positive);
+}
+
+.pf-text-negative {
+  color: var(--pf-negative);
+}
+
+.pf-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.35s ease;
 }
 
 .pf-preview-row {

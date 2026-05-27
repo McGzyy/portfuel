@@ -8,7 +8,6 @@ import { OverviewShortcutBar } from "@/components/dashboard/OverviewShortcutBar"
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
 import { ProUpgradeBanner } from "@/components/pro/ProUpgradeBanner";
 import { WorkspaceLiveBar } from "@/components/dashboard/WorkspaceLiveBar";
-import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
 import { WorkspaceWalkthroughTips } from "@/components/dashboard/WorkspaceWalkthroughTips";
 import { OverviewSection } from "@/components/dashboard/OverviewSection";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
@@ -190,7 +189,7 @@ export default async function DashboardOverviewPage({
 
       <WorkspaceLiveBar initial={workspacePulse} />
 
-      <WorkspaceWalkthroughTips />
+      <WorkspaceWalkthroughTips enabled={!session.onboardingCompleted} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-3">
@@ -199,10 +198,7 @@ export default async function DashboardOverviewPage({
             <DashboardQuickNav />
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} />
-          <WorkspaceGuide />
-        </div>
+        <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} />
       </div>
 
       {proLocked ? <ProUpgradeBanner /> : null}

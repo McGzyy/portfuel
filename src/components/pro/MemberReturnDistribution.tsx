@@ -1,6 +1,8 @@
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
+import { barFillClass } from "@/lib/design/chart-bars";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import type { ReturnBucket } from "@/lib/charts/return-distribution";
+import { cn } from "@/lib/utils";
 
 export function MemberReturnDistribution({
   buckets,
@@ -35,9 +37,9 @@ export function MemberReturnDistribution({
                   {b.count} call{b.count === 1 ? "" : "s"} · {b.pct}%
                 </span>
               </div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--pf-gray-100)]">
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--pf-chart-muted)]">
                 <div
-                  className="h-full rounded-full bg-[var(--pf-red)] transition-all"
+                  className={cn("pf-bar-fill", barFillClass(b.tone))}
                   style={{ width: `${Math.max(8, (b.count / max) * 100)}%` }}
                 />
               </div>

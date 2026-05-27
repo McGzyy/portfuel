@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { barFillClass, type BarTone } from "@/lib/design/chart-bars";
 import { cn } from "@/lib/utils";
 
 export type BarChartItem = {
@@ -16,11 +17,14 @@ export function HorizontalBarChart({
   items,
   maxItems = 10,
   valueFormatter = (v) => String(v),
+  barTone = "neutral",
   className,
 }: {
   items: BarChartItem[];
   maxItems?: number;
   valueFormatter?: (value: number) => string;
+  /** Brand red is reserved for marketing; data bars default to slate. */
+  barTone?: BarTone;
   className?: string;
 }) {
   const rows = items.slice(0, maxItems);
@@ -47,9 +51,9 @@ export function HorizontalBarChart({
             {row.sublabel ? (
               <p className="mt-0.5 truncate text-[10px] text-[var(--pf-gray-400)]">{row.sublabel}</p>
             ) : null}
-            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--pf-gray-100)]">
+            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--pf-chart-muted)]">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[var(--pf-red)] to-[var(--pf-red-hover)]"
+                className={cn("pf-bar-fill", barFillClass(barTone))}
                 style={{ width: `${pct}%` }}
               />
             </div>
