@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AdminCommunityHint } from "@/components/dashboard/AdminCommunityHint";
+import { GettingStartedCard } from "@/components/dashboard/GettingStartedCard";
 import { OverviewActivityPanels } from "@/components/dashboard/OverviewActivityPanels";
 import {
   WorkspacePageHeader,
@@ -171,6 +172,8 @@ export default async function DashboardOverviewPage({
   const avgPulse = communityPulse.avgReturnPct;
   const avgAccent =
     avgPulse == null ? undefined : avgPulse >= 0 ? ("positive" as const) : ("negative" as const);
+  const showGettingStarted =
+    ownCalls.length === 0 && watchlistPreview.length === 0 && followingMembers.length === 0;
 
   return (
     <div className="space-y-6">
@@ -194,6 +197,8 @@ export default async function DashboardOverviewPage({
       />
 
       {workspacePulse ? <WorkspaceLiveBar initial={workspacePulse} compact /> : null}
+
+      {showGettingStarted ? <GettingStartedCard /> : null}
 
       {session.role === "admin" && communityPulse.count === 0 && latestPreviews.length === 0 ? (
         <AdminCommunityHint />
