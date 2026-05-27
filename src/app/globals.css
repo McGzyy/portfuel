@@ -240,6 +240,40 @@ body {
   animation: pf-thesis-highlight 2.2s ease-out;
 }
 
+@keyframes pf-dm-typing-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+.pf-dm-typing-dot {
+  animation: pf-dm-typing-bounce 1.2s ease-in-out infinite;
+}
+
+.pf-dm-typing-dot-delay-1 {
+  animation-delay: 0.15s;
+}
+
+.pf-dm-typing-dot-delay-2 {
+  animation-delay: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-dm-typing-dot,
+  .pf-dm-typing-dot-delay-1,
+  .pf-dm-typing-dot-delay-2 {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
 .pf-pro-gate {
   overflow: hidden;
   border-radius: var(--pf-radius-lg);

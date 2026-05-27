@@ -105,7 +105,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 | # | Item | Why |
 |---|------|-----|
 | P1 | ✅ **Hot tickers / overview wiring** | `OverviewActivityPanels` (open calls + hot tickers in workspace panels), open-call filter, mobile `DashboardQuickNav`. |
-| P2 | ✅ **Messaging v2** | Read receipts (“Seen” via `last_read_at`), sidebar/mobile unread badges, thread polling; typing deferred. |
+| P2 | ✅ **Messaging v2** | Read receipts, unread badges, thread polling, DM typing indicator (`dm_typing` + heartbeat poll). |
 | P3 | ✅ **Launch / marketing pass** | Landing feature grid + `plans.ts` as source of truth; tier table prices from plans; join/success copy; Pro gate labels synced. |
 | P4 | ✅ **Dashboard walkthrough gaps** | Feed “new since visit” banner + filter, watchlist → ticker intel cross-links, rankings trusted explainer, overview tips card, onboarding tour steps. |
 

@@ -7,6 +7,8 @@ import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { cn, timeAgo } from "@/lib/utils";
+import { DmTypingIndicator } from "@/components/messages/DmTypingIndicator";
+import { useDmTyping } from "@/components/messages/useDmTyping";
 import type { DmMessage, DmThreadDetail, DmThreadSummary } from "@/lib/messages/types";
 
 export function MessagesWorkspace() {
@@ -23,6 +25,7 @@ export function MessagesWorkspace() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const { otherTyping } = useDmTyping(activeId, draft);
 
   const loadThreads = useCallback(async () => {
     const res = await fetch("/api/messages");
@@ -86,7 +89,7 @@ export function MessagesWorkspace() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeThread?.messages.length]);
+  }, [activeThread?.messages.length, otherTyping]);
 
   useEffect(() => {
     if (!activeId) return;
@@ -114,6 +117,13 @@ export function MessagesWorkspace() {
         t ? { ...t, messages: [...t.messages, msg] } : t
       );
       setDraft("");
+      if (activeId) {
+        void fetch(`/api/messages/${activeId}/typing`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ typing: false }),
+        });
+      }
       void loadThreads();
       window.dispatchEvent(new Event("portfuel:dm-unread-changed"));
     } catch {
@@ -244,6 +254,9 @@ export function MessagesWorkspace() {
                     </div>
                   </div>
                 ))}
+                {otherTyping ? (
+                  <DmTypingIndicator name={otherName ?? "Member"} />
+                ) : null}
                 <div ref={bottomRef} />
               </div>
               <form

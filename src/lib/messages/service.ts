@@ -1,7 +1,9 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { getDemoThreadDetail, getDemoThreadSummaries } from "@/lib/messages/demo";
+import { DM_TYPING_TTL_MS } from "@/lib/messages/constants";
 import { dmThreadKey } from "@/lib/messages/thread-key";
+import { isDemoOtherTyping, setDemoTyping } from "@/lib/messages/typing-demo";
 import type { DmMessage, DmThreadDetail, DmThreadSummary } from "@/lib/messages/types";
 import { notifyDirectMessage } from "@/lib/notifications/service";
 
@@ -301,6 +303,8 @@ export async function sendDirectMessage(input: {
     .update({ updated_at: now } as never)
     .eq("id", input.threadId);
 
+  await setDmTyping(input.senderId, input.threadId, false);
+
   const row = msg as { id: string; sender_id: string; body: string; created_at: string };
 
   const { data: recipient } = await db
@@ -346,4 +350,80 @@ export async function openThreadWithUsername(
   const recipient = await findUserIdByUsername(recipientUsername);
   if (!recipient) return { error: "user_not_found" };
   return findOrCreateThread(userId, recipient.id);
+}
+
+export async function setDmTyping(
+  userId: string,
+  threadId: string,
+  typing: boolean
+): Promise<{ ok: true } | { error: string }> {
+  if (isDemoMode()) {
+    setDemoTyping(threadId, userId, typing);
+    return { ok: true };
+  }
+
+  if (!(await assertParticipant(userId, threadId))) {
+    return { error: "forbidden" };
+  }
+
+  const db = createServiceClient();
+  if (!typing) {
+    await db
+      .from("dm_typing")
+      .delete()
+      .eq("thread_id", threadId)
+      .eq("user_id", userId);
+    return { ok: true };
+  }
+
+  const { error } = await db.from("dm_typing").upsert(
+    {
+      thread_id: threadId,
+      user_id: userId,
+      typing_at: new Date().toISOString(),
+    } as never,
+    { onConflict: "thread_id,user_id" }
+  );
+
+  if (error) {
+    console.error("[messages/setTyping]", error);
+    return { error: "db_error" };
+  }
+
+  return { ok: true };
+}
+
+export async function isOtherParticipantTyping(
+  userId: string,
+  threadId: string
+): Promise<boolean> {
+  if (isDemoMode()) {
+    return isDemoOtherTyping(threadId, userId);
+  }
+
+  if (!(await assertParticipant(userId, threadId))) {
+    return false;
+  }
+
+  const db = createServiceClient();
+  const { data: other } = await db
+    .from("dm_participants")
+    .select("user_id")
+    .eq("thread_id", threadId)
+    .neq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
+
+  if (!other) return false;
+
+  const cutoff = new Date(Date.now() - DM_TYPING_TTL_MS).toISOString();
+  const { data: typing } = await db
+    .from("dm_typing")
+    .select("typing_at")
+    .eq("thread_id", threadId)
+    .eq("user_id", (other as { user_id: string }).user_id)
+    .gte("typing_at", cutoff)
+    .maybeSingle();
+
+  return Boolean(typing);
 }
