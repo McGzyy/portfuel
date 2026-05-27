@@ -3,6 +3,7 @@ import { isDemoMode } from "@/lib/demo/config";
 import { getQuote } from "@/lib/market/finnhub";
 import { getDemoWatchlist } from "@/lib/watchlist/demo";
 import { detectAssetClassForSymbol } from "@/lib/watchlist/symbol-detect";
+import { enrichWatchlistActivity } from "@/lib/watchlist/activity";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 
 const MAX_WATCHLIST = 24;
@@ -22,7 +23,8 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
   if (error) throw error;
 
   const entries = (data ?? []) as WatchlistEntry[];
-  return enrichWatchlistQuotes(entries);
+  const withQuotes = await enrichWatchlistQuotes(entries);
+  return enrichWatchlistActivity(userId, withQuotes);
 }
 
 export async function addToWatchlist(

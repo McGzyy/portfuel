@@ -290,13 +290,21 @@ export default async function DashboardOverviewPage({
                 {watchlistPreview.map((w) => (
                   <li key={w.symbol}>
                     <Link href={`/ticker/${w.symbol}`} className="pf-watchlist-mini">
-                      <span className="font-mono font-bold text-[var(--pf-black)]">
+                      <span className="flex items-center gap-1.5 font-mono font-bold text-[var(--pf-black)]">
                         {w.symbol}
+                        {w.has_unread_call_alert ? (
+                          <span
+                            className="h-1.5 w-1.5 rounded-full bg-[var(--pf-red)]"
+                            title="New community call"
+                          />
+                        ) : null}
                       </span>
                       <span className="text-xs tabular-nums text-[var(--pf-gray-500)]">
-                        {w.last_price != null
-                          ? `$${formatPrice(Number(w.last_price))}`
-                          : formatPct(w.return_pct)}
+                        {w.has_unread_call_alert
+                          ? "New call"
+                          : w.last_price != null
+                            ? `$${formatPrice(Number(w.last_price))}`
+                            : formatPct(w.return_pct)}
                       </span>
                     </Link>
                   </li>

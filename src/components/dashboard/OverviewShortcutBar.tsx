@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Flame, LayoutGrid, Plus, Star } from "lucide-react";
+import { Flame, LayoutGrid, MessageCircle, Plus, Star } from "lucide-react";
 
 const shortcuts = [
   { href: "/calls/new", label: "New call", icon: Plus, accent: true },
   { href: "/dashboard/feed", label: "Member feed", icon: LayoutGrid },
   { href: "/dashboard/desk", label: "Fueled desk", icon: Flame },
   { href: "/dashboard/watchlist", label: "Watchlist", icon: Star },
+  { href: "/dashboard/messages", label: "Messages", icon: MessageCircle },
 ] as const;
 
 export function OverviewShortcutBar() {

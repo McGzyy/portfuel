@@ -48,6 +48,8 @@ export function getDemoWatchlist(_userId: string): WatchlistEntry[] {
       last_price: last,
       return_pct: DEMO_RETURNS[s.symbol] ?? null,
       change_since_add_pct,
+      community_calls_7d: s.symbol === "NVDA" ? 3 : s.symbol === "BTC" ? 1 : 0,
+      has_unread_call_alert: s.symbol === "NVDA",
     };
   });
 }

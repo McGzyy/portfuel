@@ -66,7 +66,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
   1. **Market intel** (news, earnings, filings) — already built; make it discoverable from feed/watchlist.
   2. **Pro analytics** — expand beyond one extra MetricsStrip (win rate distribution, target progress leaders, sector breakdown).
   3. **Operational perks** — 6 calls/week, **earnings week calendar**, **watchlist alerts** (email or in-app).
-  4. **Future flagship** — alert when a watched symbol gets a new member call or hits return threshold.
+  4. **Watchlist call alerts** — in-app notifications + watchlist row badges for new community calls (7d counts + unread).
 
 ---
 

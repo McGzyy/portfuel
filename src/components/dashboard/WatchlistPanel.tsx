@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { LineChart, Plus, X } from "lucide-react";
+import { Bell, LineChart, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { WatchlistMoveAlerts } from "@/components/dashboard/WatchlistMoveAlerts";
@@ -255,13 +255,26 @@ export function WatchlistPanel({
                     ) : null}
                   </span>
                 </div>
-                {item.last_price != null ? (
+                {item.last_price != null || item.community_calls_7d || item.has_unread_call_alert ? (
                   <p className="text-[10px] tabular-nums text-[var(--pf-gray-400)]">
-                    ${formatPrice(Number(item.last_price))}
+                    {item.last_price != null ? (
+                      <>${formatPrice(Number(item.last_price))}</>
+                    ) : null}
+                    {item.has_unread_call_alert ? (
+                      <span className="ml-2 inline-flex items-center gap-0.5 font-semibold text-[var(--pf-red)]">
+                        <Bell className="h-2.5 w-2.5" aria-hidden />
+                        New community call
+                      </span>
+                    ) : (item.community_calls_7d ?? 0) > 0 ? (
+                      <span className="ml-2 font-medium text-[var(--pf-gray-600)]">
+                        · {item.community_calls_7d} member call
+                        {item.community_calls_7d === 1 ? "" : "s"} (7d)
+                      </span>
+                    ) : null}
                     {proUnlocked &&
                     item.change_since_add_pct != null &&
                     Math.abs(item.change_since_add_pct) >= WATCHLIST_MOVE_ALERT_PCT ? (
-                      <span className="ml-2 font-semibold text-amber-700">· Alert</span>
+                      <span className="ml-2 font-semibold text-amber-700">· Price alert</span>
                     ) : null}
                   </p>
                 ) : null}

@@ -7,4 +7,8 @@ export type WatchlistEntry = {
   return_pct?: number | null;
   /** % change from baseline_price to last_price */
   change_since_add_pct?: number | null;
+  /** Member calls on this symbol in the last 7 days */
+  community_calls_7d?: number;
+  /** Unread watchlist_call notification for this symbol */
+  has_unread_call_alert?: boolean;
 };
