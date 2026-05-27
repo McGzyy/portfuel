@@ -20,19 +20,37 @@ import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { COPY } from "@/lib/copy";
 import { formatPrice } from "@/lib/utils";
 
+function readPublishQuery(sp: URLSearchParams) {
+  const directionParam = sp.get("direction");
+  return {
+    fromTweet: sp.get("from") === "tweet",
+    publishFueled: sp.get("fueled") === "1",
+    direction:
+      directionParam === "short" ? ("short" as const) : ("long" as const),
+    thesis: sp.get("thesis") ?? "",
+    entryPrice: sp.get("entry") ?? "",
+    targetPrice: sp.get("target") ?? "",
+    stopPrice: sp.get("stop") ?? "",
+    timeframeTag: sp.get("timeframe") ?? "",
+  };
+}
+
 export function NewCallForm({
   user,
   weeklyQuota,
   showUpgrade,
   isPro,
+  isAdmin = false,
 }: {
   user: HeaderUser;
   weeklyQuota: WeeklyQuotaStatus;
   showUpgrade?: boolean;
   isPro: boolean;
+  isAdmin?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryDraft = readPublishQuery(searchParams);
   const initialAsset =
     searchParams.get("asset") === "crypto" ? "crypto" : "equity";
   const initialSymbol = (searchParams.get("symbol") ?? "").toUpperCase();
@@ -42,12 +60,15 @@ export function NewCallForm({
   const [symbolHint, setSymbolHint] = useState("");
   const [symbolValid, setSymbolValid] = useState<boolean | null>(null);
   const [marketPrice, setMarketPrice] = useState<number | null>(null);
-  const [direction, setDirection] = useState<"long" | "short">("long");
-  const [thesis, setThesis] = useState("");
-  const [entryPrice, setEntryPrice] = useState("");
-  const [targetPrice, setTargetPrice] = useState("");
-  const [stopPrice, setStopPrice] = useState("");
-  const [timeframeTag, setTimeframeTag] = useState("");
+  const [direction, setDirection] = useState<"long" | "short">(queryDraft.direction);
+  const [thesis, setThesis] = useState(queryDraft.thesis);
+  const [entryPrice, setEntryPrice] = useState(queryDraft.entryPrice);
+  const [targetPrice, setTargetPrice] = useState(queryDraft.targetPrice);
+  const [stopPrice, setStopPrice] = useState(queryDraft.stopPrice);
+  const [timeframeTag, setTimeframeTag] = useState(queryDraft.timeframeTag);
+  const [publishFueled, setPublishFueled] = useState(
+    isAdmin && queryDraft.publishFueled
+  );
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -90,6 +111,7 @@ export function NewCallForm({
           targetPrice: targetPrice ? parseFloat(targetPrice) : undefined,
           stopPrice: stopPrice ? parseFloat(stopPrice) : undefined,
           timeframeTag: timeframeTag || undefined,
+          isFueled: isAdmin && publishFueled ? true : undefined,
         }),
       });
       const data = await res.json();
@@ -132,6 +154,12 @@ export function NewCallForm({
 
       <MemberQuotaStrip quota={weeklyQuota} showUpgrade={showUpgrade} className="mb-6" />
 
+      {queryDraft.fromTweet ? (
+        <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Prefilled from a social draft — confirm symbol, levels, and thesis before publishing.
+        </div>
+      ) : null}
+
       <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -159,6 +187,19 @@ export function NewCallForm({
                   ]}
                 />
               </div>
+              {isAdmin ? (
+                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2.5 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={publishFueled}
+                    onChange={(e) => setPublishFueled(e.target.checked)}
+                    className="h-4 w-4 accent-[var(--pf-red)]"
+                  />
+                  <span className="font-medium text-[var(--pf-gray-800)]">
+                    Publish as Fueled desk call
+                  </span>
+                </label>
+              ) : null}
               <div>
                 <Label htmlFor="symbol">Symbol</Label>
                 <Input

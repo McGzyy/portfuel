@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import type { TweetDeskDraft } from "@/lib/ai/tweet-desk-draft";
 import { COPY } from "@/lib/copy";
+import { buildPublishUrlFromDeskDraft } from "@/lib/social/desk-draft-url";
 
 type XConfigSummary = {
   enabled: boolean;
@@ -79,6 +80,10 @@ export function AdminSocialPanel() {
       });
       const json = await res.json();
       if (!res.ok) {
+        if (json.error === "already_posted") {
+          setXMessage("Already posted for this content — use force in API or wait for new content.");
+          return;
+        }
         setXMessage(json.error ?? "Post failed.");
         return;
       }
@@ -126,10 +131,12 @@ export function AdminSocialPanel() {
     }
   }
 
-  const publishHref =
-    draft?.suggestedSymbol && draft
-      ? `${COPY.newCallHref}?asset=equity&symbol=${encodeURIComponent(draft.suggestedSymbol)}`
-      : COPY.newCallHref;
+  const publishHref = draft
+    ? buildPublishUrlFromDeskDraft(
+        { ...draft, suggestedSymbol: chosenSymbol || draft.suggestedSymbol },
+        { fueled: true }
+      )
+    : null;
 
   return (
     <div className="mt-8 space-y-8">
@@ -313,9 +320,11 @@ export function AdminSocialPanel() {
                     Open desk admin
                   </Button>
                 </Link>
-                <Link href={publishHref}>
-                  <Button size="sm">Continue in publish form →</Button>
-                </Link>
+                {publishHref ? (
+                  <Link href={publishHref}>
+                    <Button size="sm">Continue in publish form →</Button>
+                  </Link>
+                ) : null}
               </div>
             </div>
           ) : null}

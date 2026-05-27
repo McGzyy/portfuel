@@ -19,6 +19,7 @@ const createSchema = z.object({
   targetPrice: z.number().positive().optional(),
   stopPrice: z.number().positive().optional(),
   timeframeTag: z.string().max(32).optional(),
+  isFueled: z.boolean().optional(),
 });
 
 export async function GET(request: Request) {
@@ -86,6 +87,8 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString(),
     } as never);
 
+    const isFueled = body.isFueled === true && session.role === "admin";
+
     const { data: call, error } = await db
       .from("calls")
       .insert({
@@ -100,6 +103,7 @@ export async function POST(request: Request) {
         timeframe_tag: body.timeframeTag ?? null,
         price_at_call: priceAtCall,
         last_price: priceAtCall,
+        is_fueled: isFueled,
       } as never)
       .select("id, symbol")
       .single();

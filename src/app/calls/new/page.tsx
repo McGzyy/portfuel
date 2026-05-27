@@ -21,6 +21,7 @@ export default async function NewCallPage() {
       weeklyQuota={weeklyQuota}
       showUpgrade={proLocked}
       isPro={!proLocked}
+      isAdmin={session.role === "admin"}
     />
   );
 }

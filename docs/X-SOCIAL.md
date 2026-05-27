@@ -57,6 +57,13 @@ Every template ends with: `Not investment advice.`
 - [ ] No price targets or “guaranteed” language in templates
 - [ ] Rate: aim 3–5 posts/week max until engagement is measured
 
-## Idempotency (later)
+## Idempotency
 
-v1 does not persist post logs — avoid double-posting the same Fueled call by using admin preview/post manually until `social_post_log` table is added.
+Table `social_post_log` (`post_type` + `ref_id` unique) records live posts:
+
+- **Fueled** — ref is the call UUID (latest desk call).
+- **Leaderboard** — ref is `leaderboard-YYYY-MM-DD` (one post per week).
+
+Cron and admin live posts skip content that was already sent. Dry runs do not write to the log.
+
+Apply migration: `supabase/migrations/20260525900000_social_post_log.sql`

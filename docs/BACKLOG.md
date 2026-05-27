@@ -42,7 +42,7 @@ Curated narratives often start on X/Twitter. Admin wants to paste a tweet (or th
 
 ## X (Twitter): automated posts to keep the account active
 
-**Status:** Deferred — product discovery; do not implement until API access and content policy are defined.
+**Status:** v1 shipped — Admin → Social, cron, `social_post_log` idempotency (`docs/X-SOCIAL.md`). Add post types when ready.
 
 ### Problem
 

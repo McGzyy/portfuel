@@ -4,10 +4,12 @@ import { requireAdmin } from "@/lib/auth/session";
 import { composeXPost } from "@/lib/social/x-compose";
 import { postToX } from "@/lib/social/x-client";
 import { xConfigSummary } from "@/lib/social/x-config";
+import { hasSocialPostBeenSent, recordSocialPost } from "@/lib/social/post-log";
 
 const schema = z.object({
   type: z.enum(["fueled", "leaderboard"]),
   dryRun: z.boolean().optional(),
+  force: z.boolean().optional(),
 });
 
 export async function POST(request: Request) {
@@ -20,6 +22,20 @@ export async function POST(request: Request) {
     }
 
     const config = xConfigSummary();
+
+    if (!body.dryRun && !body.force) {
+      const alreadySent = await hasSocialPostBeenSent(body.type, composed.refId);
+      if (alreadySent) {
+        return NextResponse.json({
+          ok: false,
+          error: "already_posted",
+          text: composed.text,
+          refId: composed.refId,
+          config,
+        });
+      }
+    }
+
     if (body.dryRun || config.dryRun || !config.configured) {
       console.info("[admin/social/post dry-run]", composed.text);
       return NextResponse.json({
@@ -34,6 +50,14 @@ export async function POST(request: Request) {
     const posted = await postToX(composed.text);
     if (!posted.ok) {
       return NextResponse.json({ error: posted.error, text: composed.text }, { status: 502 });
+    }
+
+    if (!posted.dryRun) {
+      await recordSocialPost({
+        postType: body.type,
+        refId: composed.refId,
+        tweetId: posted.tweetId,
+      });
     }
 
     return NextResponse.json({
