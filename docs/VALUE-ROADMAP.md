@@ -110,6 +110,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 | P4 | ✅ **Dashboard walkthrough gaps** | Feed “new since visit” banner + filter, watchlist → ticker intel cross-links, rankings trusted explainer, overview tips card, onboarding tour steps. |
 
 ### Later (platform & monetization)
+- **Admin: Tweet → Fueled call (AI draft)** — paste tweet, pick ticker, edit, publish. Spec: [BACKLOG.md](./BACKLOG.md).
 - Real-time quotes (paid Finnhub tier).
 - Mobile PWA + push.
 - Broker read-only sync (Plaid) for “your book vs calls.”
@@ -123,12 +124,12 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 |------|----------------|-------------|
 | Overview | ✅ Hot tickers + open calls panels, quota, Pro card, desk promo | — |
 | Feed | Strong cards | Hype badge, ✅ “new since last visit,” Pro analytics table |
-| Desk | Distinct dark lane | ✅ Weekly desk note / pinned thesis (admin → Desk tab) |
+| Desk | ✅ Light workspace panels + weekly note | Pinned thesis card matches member UI |
 | Watchlist | Functional | Live % change column, alerts (Pro) |
 | Ticker | Best page | ✅ Pro preview blur; **graphs** — entry/target/stop lines, desk markers (see below) |
 | Rankings | Clean | Member sparklines, ✅ trusted badge explainer |
 | Profile | Good | Quota, tier benefits, upgrade |
-| Calls/new | Form OK | Quota header, symbol validation UX, preview card |
+| Calls/new | ✅ Market price + “Use as entry” | Thesis coach, trade setup preview |
 
 ---
 

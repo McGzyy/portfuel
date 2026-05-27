@@ -9,6 +9,7 @@ import {
 import { FeedToolbar } from "@/components/dashboard/FeedToolbar";
 import { FeedSummaryBar } from "@/components/dashboard/FeedSummaryBar";
 import { ProFeedLeadersPanel } from "@/components/pro/ProFeedLeadersPanel";
+import { ProIntelDiscoverStrip } from "@/components/pro/ProIntelDiscoverStrip";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { Button } from "@/components/ui/button";
 import {
@@ -113,6 +114,12 @@ export default async function DashboardFeedPage({
       />
 
       <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} className="mt-4" />
+
+      {proLocked ? (
+        <div className="mt-4">
+          <ProIntelDiscoverStrip />
+        </div>
+      ) : null}
 
       <FeedToolbar
         mode={mode}

@@ -17,6 +17,7 @@ import { ThesisCoachPanel } from "@/components/ai/ThesisCoachPanel";
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
 import type { HeaderUser } from "@/lib/auth/session-user";
 import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
+import { formatPrice } from "@/lib/utils";
 
 export function NewCallForm({
   user,
@@ -39,6 +40,7 @@ export function NewCallForm({
   const [symbol, setSymbol] = useState(initialSymbol);
   const [symbolHint, setSymbolHint] = useState("");
   const [symbolValid, setSymbolValid] = useState<boolean | null>(null);
+  const [marketPrice, setMarketPrice] = useState<number | null>(null);
   const [direction, setDirection] = useState<"long" | "short">("long");
   const [thesis, setThesis] = useState("");
   const [entryPrice, setEntryPrice] = useState("");
@@ -173,6 +175,23 @@ export function NewCallForm({
                         : undefined
                   }
                 />
+                {symbolValid && marketPrice != null ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-[var(--pf-gray-600)]">
+                      Market{" "}
+                      <span className="font-mono font-semibold tabular-nums text-[var(--pf-black)]">
+                        ${formatPrice(marketPrice)}
+                      </span>
+                    </span>
+                    <button
+                      type="button"
+                      className="rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-1 text-[11px] font-semibold text-[var(--pf-gray-700)] hover:bg-[var(--pf-gray-50)]"
+                      onClick={() => setEntryPrice(String(marketPrice))}
+                    >
+                      Use as entry
+                    </button>
+                  </div>
+                ) : null}
                 {symbolHint ? (
                   <p
                     className={`mt-1.5 text-xs font-medium ${

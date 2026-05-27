@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AdminCommunityHint } from "@/components/dashboard/AdminCommunityHint";
 import { OverviewActivityPanels } from "@/components/dashboard/OverviewActivityPanels";
 import {
   WorkspacePageHeader,
@@ -193,6 +194,10 @@ export default async function DashboardOverviewPage({
       />
 
       {workspacePulse ? <WorkspaceLiveBar initial={workspacePulse} compact /> : null}
+
+      {session.role === "admin" && communityPulse.count === 0 && latestPreviews.length === 0 ? (
+        <AdminCommunityHint />
+      ) : null}
 
       {proLocked ? <ProUpgradeBanner /> : null}
 

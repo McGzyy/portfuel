@@ -58,11 +58,13 @@ export default async function DashboardDeskPage() {
       </div>
 
       {!deskBrief.weeklyNote && !deskBrief.pinnedCall ? (
-        <section className="pf-fueled-desk mt-6 p-6 sm:p-8">
-          <p className="pf-eyebrow">PortFuel research</p>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-400">
-            These calls are published by the PortFuel desk. They carry the Fueled badge and
-            represent institutional-quality theses for the community.
+        <section className="pf-workspace-panel mt-6 px-5 py-6">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            PortFuel research
+          </p>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
+            Desk theses carry the Fueled badge and are separate from the member feed. Admins publish
+            the weekly note and pinned call in Admin → Desk.
           </p>
         </section>
       ) : null}

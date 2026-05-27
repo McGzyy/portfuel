@@ -1,10 +1,18 @@
-import { getQuote } from "@/lib/market/finnhub";
+import { getCryptoLastPrice, getQuote } from "@/lib/market/finnhub";
 import { resolveCryptoAsset } from "@/lib/market/crypto-allowlist";
 
 export type AssetClass = "equity" | "crypto";
 
 export type SymbolValidation =
-  | { ok: true; assetClass: AssetClass; symbol: string; finnhubSymbol?: string; name?: string }
+  | {
+      ok: true;
+      assetClass: AssetClass;
+      symbol: string;
+      finnhubSymbol?: string;
+      name?: string;
+      /** Latest market price when available (for call entry helper). */
+      lastPrice?: number;
+    }
   | { ok: false; error: string };
 
 export async function validateSymbol(
@@ -23,12 +31,14 @@ export async function validateSymbol(
           "Not on the major-exchange list (Coinbase/Kraken). Memecoins and unlisted tokens are not supported.",
       };
     }
+    const lastPrice = await getCryptoLastPrice(asset.finnhub_symbol);
     return {
       ok: true,
       assetClass: "crypto",
       symbol: asset.symbol,
       finnhubSymbol: asset.finnhub_symbol,
       name: asset.display_name ?? asset.symbol,
+      lastPrice: lastPrice ?? undefined,
     };
   }
 
@@ -37,5 +47,5 @@ export async function validateSymbol(
     return { ok: false, error: "Unknown stock ticker. Check the symbol (e.g. AAPL, NVDA)." };
   }
 
-  return { ok: true, assetClass: "equity", symbol: sym };
+  return { ok: true, assetClass: "equity", symbol: sym, lastPrice: quote.c };
 }
