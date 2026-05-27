@@ -4,6 +4,7 @@ import { HypeMeter } from "@/components/brand/HypeMeter";
 import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { MarketDataNote } from "@/components/market/MarketDataNote";
 import { formatPct, formatPrice } from "@/lib/utils";
 import { TickerWatchlistChip } from "@/components/ticker/TickerWatchlistChip";
 import type { loadTickerIntel } from "@/lib/market/ticker-intel";
@@ -72,6 +73,7 @@ export function TickerPageHeader({
                   {formatPct(change)}
                 </span>
               ) : null}
+              <MarketDataNote className="mt-2 w-full" />
             </div>
           ) : null}
         </div>

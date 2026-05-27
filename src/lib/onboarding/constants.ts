@@ -47,7 +47,7 @@ export const ONBOARDING_TOUR_STEPS: OnboardingTourStep[] = [
   },
   {
     icon: PenLine,
-    title: "Submit a call",
+    title: "Publish a call",
     body: "Publish your thesis with entry, target, and stop. Your track record builds on your profile.",
     href: "/calls/new",
   },

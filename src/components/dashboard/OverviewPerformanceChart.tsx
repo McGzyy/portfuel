@@ -41,7 +41,7 @@ export function OverviewPerformanceChart({
               href="/calls/new"
               className="mt-2 font-semibold text-[var(--pf-red)] hover:underline"
             >
-              Submit a call →
+              Publish a call →
             </Link>
           </div>
         )}

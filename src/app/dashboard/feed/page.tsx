@@ -29,6 +29,7 @@ import {
   isCallNewSinceSeen,
   parseFeedSeenAt,
 } from "@/lib/feed/last-seen";
+import { COPY } from "@/lib/copy";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
 import {
@@ -165,7 +166,7 @@ export default async function DashboardFeedPage({
               </Link>
             ) : (
               <Link href="/calls/new" className="mt-6 inline-block">
-                <Button>Submit a call</Button>
+                <Button>{COPY.publishCallCta}</Button>
               </Link>
             )}
           </div>

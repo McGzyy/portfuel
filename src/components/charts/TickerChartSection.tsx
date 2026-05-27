@@ -16,6 +16,7 @@ import type {
 } from "@/lib/charts/types";
 import { filterCandlesByRange, filterMarkersByRange } from "@/lib/charts/range";
 import { computeSma, computeVwap, hasVolumeData } from "@/lib/charts/indicators";
+import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
 
 const TickerChart = dynamic(
   () => import("@/components/charts/TickerChart").then((m) => m.TickerChart),
@@ -107,7 +108,7 @@ export function TickerChartSection({
     <ChartFrame
       className={className}
       title="Price history"
-      subtitle="Volume, Pro overlays (SMA · VWAP), and intraday intervals"
+      subtitle={`Volume, Pro overlays (SMA · VWAP), and intraday intervals · ${quotesRefreshLabel()}`}
       legend={
         hasData ? (
           <TickerChartLegend

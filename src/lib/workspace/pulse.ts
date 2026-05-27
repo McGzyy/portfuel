@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { getHotTickersFromCalls } from "@/lib/calls/hot-tickers";
+import { QUOTES_REFRESH_MINUTES } from "@/lib/market/quote-cadence";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 
 export type WorkspacePulseTapeItem = {
@@ -22,7 +23,7 @@ export async function fetchWorkspacePulse(userId: string): Promise<WorkspacePuls
   if (isDemoMode()) {
     return {
       serverTime,
-      quotesRefreshMinutes: 15,
+      quotesRefreshMinutes: QUOTES_REFRESH_MINUTES,
       callsLast24h: 12,
       tape: [
         { symbol: "NVDA", label: "NVDA", changePct: 2.4 },
@@ -89,7 +90,7 @@ export async function fetchWorkspacePulse(userId: string): Promise<WorkspacePuls
 
   return {
     serverTime,
-    quotesRefreshMinutes: 15,
+    quotesRefreshMinutes: QUOTES_REFRESH_MINUTES,
     callsLast24h: count ?? 0,
     tape,
   };

@@ -16,7 +16,7 @@ export function LeaderboardTable({
     return (
       <div className="pf-empty">
         <p className="font-medium text-[var(--pf-gray-700)]">No ranked callers yet</p>
-        <p className="mt-1 text-sm">Submit calls and build your track record.</p>
+        <p className="mt-1 text-sm">Publish calls and build your track record.</p>
       </div>
     );
   }

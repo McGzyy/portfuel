@@ -120,7 +120,7 @@ export default async function ProfilePage() {
 
         {calls.length === 0 ? (
           <div className="pf-workspace-panel px-6 py-14 text-center text-sm text-[var(--pf-gray-500)]">
-            No calls yet. Submit your first thesis from the workspace.
+            No calls yet. Publish your first thesis from the workspace.
           </div>
         ) : (
           <ul className="space-y-4">

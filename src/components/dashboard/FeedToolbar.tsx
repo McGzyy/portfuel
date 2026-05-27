@@ -5,6 +5,7 @@ import { DashboardFeedSearch } from "@/components/dashboard/DashboardFeedSearch"
 import { FeedNewBanner } from "@/components/dashboard/FeedNewBanner";
 import { buildFeedHref, type FeedTab } from "@/lib/dashboard/nav";
 import type { FeedFilter } from "@/lib/calls/filter-feed";
+import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
 
 export function FeedToolbar({
   mode,
@@ -83,6 +84,8 @@ export function FeedToolbar({
           </span>
         ) : null}
         {searchQuery ? ` · “${searchQuery}”` : ""}
+        {" · "}
+        {quotesRefreshLabel()}
       </p>
     </div>
   );

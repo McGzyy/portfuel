@@ -17,6 +17,7 @@ import { ThesisCoachPanel } from "@/components/ai/ThesisCoachPanel";
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
 import type { HeaderUser } from "@/lib/auth/session-user";
 import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
+import { COPY } from "@/lib/copy";
 import { formatPrice } from "@/lib/utils";
 
 export function NewCallForm({
@@ -124,7 +125,7 @@ export function NewCallForm({
       </Link>
 
       <PageHeader
-        title="Submit a call"
+        title={COPY.publishCallCta}
         description="Share your thesis with members. Stocks get news and filings on the ticker page; crypto must be on major exchanges."
         className="border-none pb-4"
       />

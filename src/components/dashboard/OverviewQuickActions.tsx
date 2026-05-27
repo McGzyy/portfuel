@@ -4,7 +4,7 @@ import { BarChart3, Flame, LayoutGrid, Plus, Star } from "lucide-react";
 const actions = [
   {
     href: "/calls/new",
-    label: "Submit call",
+    label: "Publish call",
     description: "Publish a new thesis",
     icon: Plus,
     primary: true,
