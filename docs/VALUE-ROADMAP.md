@@ -104,10 +104,10 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 ### Active polish queue (~1 week total, can split PRs)
 | # | Item | Why |
 |---|------|-----|
-| P1 | **Hot tickers / overview wiring** | Ensure `HotTickersStrip` + `YourPositionsStrip` (open calls) feel native on overview, not orphaned components. |
-| P2 | **Messaging v2** | Read receipts, unread badge on sidebar Messages, optional “typing” later. |
-| P3 | **Launch / marketing pass** | Sales page ↔ real feature list; tier comparison sync with `plans.ts`; join flow copy. |
-| P4 | **Dashboard walkthrough gaps** | Feed “new since visit,” watchlist → ticker intel cross-links, rankings trusted explainer. |
+| P1 | ✅ **Hot tickers / overview wiring** | `OverviewActivityPanels` (open calls + hot tickers in workspace panels), open-call filter, mobile `DashboardQuickNav`. |
+| P2 | ✅ **Messaging v2** | Read receipts (“Seen” via `last_read_at`), sidebar/mobile unread badges, thread polling; typing deferred. |
+| P3 | ✅ **Launch / marketing pass** | Landing feature grid + `plans.ts` as source of truth; tier table prices from plans; join/success copy; Pro gate labels synced. |
+| P4 | ✅ **Dashboard walkthrough gaps** | Feed “new since visit” banner + filter, watchlist → ticker intel cross-links, rankings trusted explainer, overview tips card, onboarding tour steps. |
 
 ### Later (platform & monetization)
 - Real-time quotes (paid Finnhub tier).
@@ -121,7 +121,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 
 | Area | Feels premium? | Improvement |
 |------|----------------|-------------|
-| Overview | Good hero + sparkline | Add hot tickers, quota, Pro card, desk promo |
+| Overview | ✅ Hot tickers + open calls panels, quota, Pro card, desk promo | — |
 | Feed | Strong cards | Hype badge, ✅ “new since last visit,” Pro analytics table |
 | Desk | Distinct dark lane | ✅ Weekly desk note / pinned thesis (admin → Desk tab) |
 | Watchlist | Functional | Live % change column, alerts (Pro) |
@@ -134,9 +134,8 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 
 ## Unused code to wire (quick wins)
 
-- `HotTickersStrip.tsx` — overview (component exists; **P1** polishes placement + data)
-- `YourPositionsStrip.tsx` — repurpose as “Your open calls” (active calls count)
-- `DashboardQuickNav.tsx` — optional mobile shortcuts
+- ✅ `HotTickersStrip.tsx` + `YourPositionsStrip.tsx` — wired via `OverviewActivityPanels` on overview
+- ✅ `DashboardQuickNav.tsx` — mobile overview shortcuts
 
 ---
 

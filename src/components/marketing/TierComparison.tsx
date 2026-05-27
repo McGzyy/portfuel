@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { TierComparisonTable } from "@/components/marketing/TierComparisonTable";
-import { TIER_COMPARISON_ROWS } from "@/lib/marketing/plans";
+import { formatTierPrice, TIER_COMPARISON_ROWS } from "@/lib/marketing/plans";
 
 export function TierComparison() {
   return (
@@ -20,7 +20,7 @@ export function TierComparison() {
         </div>
         <div className="mt-8 text-center">
           <Link href="/join">
-            <Button size="lg">Start with Member — upgrade anytime</Button>
+            <Button size="lg">Start with Member {formatTierPrice("member")} — upgrade anytime</Button>
           </Link>
         </div>
       </div>

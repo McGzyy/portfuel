@@ -3,6 +3,7 @@ import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
+import { formatProUpgradeCta } from "@/lib/marketing/plans";
 import { cn } from "@/lib/utils";
 
 export function ProIntelligenceGate({
@@ -76,7 +77,7 @@ function ProGateActions({ cta }: { cta: ProGateCta }) {
     return (
       <>
         <Link href="/profile" className="mt-4 inline-block">
-          <Button size="sm">Upgrade to Pro — $129/mo</Button>
+          <Button size="sm">{formatProUpgradeCta()}</Button>
         </Link>
         <p className="mt-2 text-center text-xs text-[var(--pf-gray-500)]">
           Prorated when you upgrade from Member.

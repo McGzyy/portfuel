@@ -29,5 +29,7 @@ export type DmThreadDetail = {
     username: string;
     display_name: string | null;
   };
+  /** When the other participant last read this thread (for read receipts on your messages). */
+  other_last_read_at: string | null;
   messages: DmMessage[];
 };

@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { HotTickersStrip } from "@/components/dashboard/HotTickersStrip";
+import { OverviewActivityPanels } from "@/components/dashboard/OverviewActivityPanels";
+import { DashboardQuickNav } from "@/components/dashboard/DashboardQuickNav";
 import { OverviewHero } from "@/components/dashboard/OverviewHero";
 import { OverviewShortcutBar } from "@/components/dashboard/OverviewShortcutBar";
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
 import { ProUpgradeBanner } from "@/components/pro/ProUpgradeBanner";
 import { WorkspaceLiveBar } from "@/components/dashboard/WorkspaceLiveBar";
 import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
-import { YourPositionsStrip } from "@/components/dashboard/YourPositionsStrip";
+import { WorkspaceWalkthroughTips } from "@/components/dashboard/WorkspaceWalkthroughTips";
 import { OverviewSection } from "@/components/dashboard/OverviewSection";
+import { isOpenMemberCall } from "@/lib/calls/open-calls";
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import { fetchWorkspacePulse } from "@/lib/workspace/pulse";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
@@ -161,6 +163,10 @@ export default async function DashboardOverviewPage({
   const ownCallCards = ownCalls.map((c) =>
     toOwnStripCard(c, session.username, session.displayName)
   );
+  const openCallCards = ownCallCards.filter((c) => {
+    const row = ownCalls.find((r) => r.id === c.id);
+    return row ? isOpenMemberCall(row) : true;
+  });
 
   const displayLabel =
     session.displayName ??
@@ -182,8 +188,15 @@ export default async function DashboardOverviewPage({
 
       <WorkspaceLiveBar initial={workspacePulse} />
 
+      <WorkspaceWalkthroughTips />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <OverviewShortcutBar />
+        <div className="space-y-3">
+          <OverviewShortcutBar />
+          <div className="lg:hidden">
+            <DashboardQuickNav />
+          </div>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} />
           <WorkspaceGuide />
@@ -212,20 +225,23 @@ export default async function DashboardOverviewPage({
         />
       ) : null}
 
+      <OverviewActivityPanels
+        openCalls={openCallCards}
+        username={session.username}
+        hotTickers={hotTickers}
+      />
+
       <div className="grid gap-8 lg:grid-cols-12">
         <div className="space-y-8 lg:col-span-7 xl:col-span-8">
           <OverviewSection
-            title="Your activity"
-            subtitle="Desk highlight and calls you published"
+            title="Fueled desk"
+            subtitle="House research and model portfolio"
           >
-            <div className="space-y-4">
-              <FueledDeskHero
-                featured={featuredDesk}
-                totalDeskCalls={fueledCalls.length}
-                weeklyNote={deskBrief.weeklyNote}
-              />
-              <YourPositionsStrip calls={ownCallCards} username={session.username} />
-            </div>
+            <FueledDeskHero
+              featured={featuredDesk}
+              totalDeskCalls={fueledCalls.length}
+              weeklyNote={deskBrief.weeklyNote}
+            />
           </OverviewSection>
 
           <OverviewSection
@@ -233,7 +249,6 @@ export default async function DashboardOverviewPage({
             subtitle="What members are trading right now"
           >
             <div className="space-y-4">
-              <HotTickersStrip tickers={hotTickers} />
               <WorkspacePanel
                 title="Latest from members"
                 subtitle="Newest theses — full board on the feed"
@@ -261,7 +276,7 @@ export default async function DashboardOverviewPage({
 
           <WorkspacePanel
             title="Watchlist"
-            subtitle="Symbols you track"
+            subtitle="Tap a symbol for chart & ticker intel"
             href="/dashboard/watchlist"
           >
             {watchlistPreview.length === 0 ? (

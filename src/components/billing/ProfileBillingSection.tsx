@@ -3,6 +3,7 @@ import {
   ManageBillingButton,
 } from "@/components/billing/BillingActions";
 import { UpgradeToProButton } from "@/components/billing/UpgradeToProButton";
+import { formatTierPriceLong } from "@/lib/marketing/plans";
 import { isStripeConfigured } from "@/lib/stripe/config";
 
 export function ProfileBillingSection({
@@ -56,8 +57,8 @@ export function ProfileBillingSection({
       <div className="mt-4 flex flex-wrap gap-3">
         {subscriptionStatus === "pending" || subscriptionStatus === "cancelled" ? (
           <>
-            <CompleteCheckoutButton tier="member" label="Subscribe — Member $79/mo" />
-            <CompleteCheckoutButton tier="pro" label="Subscribe — Pro $129/mo" />
+            <CompleteCheckoutButton tier="member" label={`Subscribe — ${formatTierPriceLong("member")}`} />
+            <CompleteCheckoutButton tier="pro" label={`Subscribe — ${formatTierPriceLong("pro")}`} />
           </>
         ) : null}
         {stripeCustomerId &&

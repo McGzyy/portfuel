@@ -3,6 +3,7 @@ import { ChartFrame } from "@/components/charts/ChartFrame";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import type { RankingsSummary } from "@/lib/calls/rankings-summary";
+import { formatProIntelligenceLabel } from "@/lib/marketing/plans";
 
 export function RankingsSummaryBar({
   summary,
@@ -32,7 +33,7 @@ export function RankingsSummaryBar({
         locked={proLocked}
         cta={proGateCta}
         title="Pro leaderboard depth"
-        description="Win-rate aggregates and top score breakdowns — Pro Intelligence ($129/mo)."
+        description={`Win-rate aggregates and top score breakdowns — included with ${formatProIntelligenceLabel()}.`}
         compact
       >
         <ChartFrame title="Pro rankings" subtitle="Aggregate performance across ranked members">

@@ -11,7 +11,14 @@ export type HotTicker = {
   avgReturnPct: number | null;
 };
 
-export function HotTickersStrip({ tickers }: { tickers: HotTicker[] }) {
+export function HotTickersStrip({
+  tickers,
+  embedded = false,
+}: {
+  tickers: HotTicker[];
+  /** Hide outer label when inside WorkspacePanel */
+  embedded?: boolean;
+}) {
   const [series, setSeries] = useState<Record<string, LinePoint[]>>({});
 
   const symbolKey = useMemo(
@@ -41,10 +48,12 @@ export function HotTickersStrip({ tickers }: { tickers: HotTicker[] }) {
 
   return (
     <section aria-label="Active tickers in feed">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-        Hot in feed
-      </p>
-      <div className="mt-2 flex flex-wrap gap-2">
+      {!embedded ? (
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+          Hot in feed
+        </p>
+      ) : null}
+      <div className={embedded ? "flex flex-wrap gap-2" : "mt-2 flex flex-wrap gap-2"}>
         {tickers.map((t) => (
           <Link
             key={t.symbol}

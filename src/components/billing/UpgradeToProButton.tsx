@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatMoneyFromCents } from "@/lib/stripe/format-money";
+import { PLAN_BY_TIER } from "@/lib/marketing/plans";
 import type { MemberToProUpgradePreview } from "@/lib/stripe/upgrade-preview";
 
 function formatPeriodEnd(iso: string): string {
@@ -81,7 +82,7 @@ export function UpgradeToProButton({ className }: { className?: string }) {
 
   const proMonthly = preview
     ? formatMoneyFromCents(preview.proMonthlyCents, preview.currency)
-    : "$129";
+    : PLAN_BY_TIER.pro.price;
 
   if (previewLoading) {
     return (

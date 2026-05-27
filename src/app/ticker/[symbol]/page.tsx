@@ -14,6 +14,7 @@ import { TickerPageHeader } from "@/components/ticker/TickerPageHeader";
 import { TickerCommunityBar } from "@/components/ticker/TickerCommunityBar";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { COPY } from "@/lib/copy";
+import { formatProIntelligenceLabel } from "@/lib/marketing/plans";
 import { SITE_NAME } from "@/lib/seo/site";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
@@ -124,7 +125,7 @@ export default async function TickerPage({
           cta={proGateCta}
           variant="preview"
           title="Unlock full market intel"
-          description="Read headlines, earnings, SEC filings, and company stats on every equity ticker — included with Pro Intelligence ($129/mo)."
+          description={`Read headlines, earnings, SEC filings, and company stats on every equity ticker — included with ${formatProIntelligenceLabel()}.`}
           teaser={
             intelGateLocked ? <TickerIntelTeaser summary={intelTeaser} /> : undefined
           }

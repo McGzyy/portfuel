@@ -1,6 +1,6 @@
 import { Check, Minus } from "lucide-react";
 import type { MembershipTier } from "@/lib/stripe/config";
-import type { TierComparisonRow } from "@/lib/marketing/plans";
+import { formatTierColumnHeader, PLAN_BY_TIER, type TierComparisonRow } from "@/lib/marketing/plans";
 import { cn } from "@/lib/utils";
 
 function Cell({ value }: { value: boolean | string }) {
@@ -36,7 +36,7 @@ export function TierComparisonTable({
                 highlightTier === "member" && "bg-[var(--pf-red-muted)]/50 text-[var(--pf-red)]"
               )}
             >
-              Member $79
+              {formatTierColumnHeader("member")}
             </th>
             <th
               className={cn(
@@ -47,7 +47,8 @@ export function TierComparisonTable({
                   : "text-[var(--pf-red)]"
               )}
             >
-              Pro $129
+              {formatTierColumnHeader("pro")}
+              <span className="sr-only">{PLAN_BY_TIER.pro.name}</span>
             </th>
           </tr>
         </thead>

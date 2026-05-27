@@ -5,6 +5,7 @@ import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import { formatPct } from "@/lib/utils";
 import type { FeedSummary } from "@/lib/calls/feed-summary";
 import type { FeedTab } from "@/lib/dashboard/nav";
+import { formatProIntelligenceLabel } from "@/lib/marketing/plans";
 
 export function FeedSummaryBar({
   summary,
@@ -61,7 +62,7 @@ export function FeedSummaryBar({
         locked={proLocked}
         cta={proGateCta}
         title="Pro feed analytics"
-        description="Target progress, desk thesis counts, and deeper performance slices — Pro Intelligence ($129/mo)."
+        description={`Target progress, desk thesis counts, and deeper performance slices — included with ${formatProIntelligenceLabel()}.`}
         compact
       >
         <ChartFrame title="Pro analytics" subtitle="Desk theses and target progress in this feed">

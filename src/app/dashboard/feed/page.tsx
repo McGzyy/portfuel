@@ -53,7 +53,7 @@ function parseFilter(raw?: string): FeedFilter {
 export default async function DashboardFeedPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; filter?: string; q?: string }>;
+  searchParams: Promise<{ tab?: string; filter?: string; q?: string; new?: string }>;
 }) {
   function parseTab(raw?: string): FeedTab {
     if (raw === "performing" || raw === "progress") return raw;
@@ -64,7 +64,8 @@ export default async function DashboardFeedPage({
   const proLocked = isProIntelligenceLocked(proContext);
   const proGateCta = getProGateCta(proContext);
 
-  const { tab, filter: filterParam, q } = await searchParams;
+  const { tab, filter: filterParam, q, new: newParam } = await searchParams;
+  const showNewOnly = newParam === "1";
   const mode = parseTab(tab);
   const feedFilter = parseFilter(filterParam);
   const searchQuery = q?.trim() ?? "";
@@ -86,10 +87,13 @@ export default async function DashboardFeedPage({
     calls = sortCallsByTargetProgress(calls);
   }
   const hypeScores = await fetchHypeScoresBySymbols(calls.map((c) => c.symbol));
-  const mapped = calls.map((c) => mapCallForCard(c, hypeScores));
   const cookieStore = await cookies();
   const feedSeenAt = parseFeedSeenAt(cookieStore.get(FEED_SEEN_COOKIE)?.value);
+  let mapped = calls.map((c) => mapCallForCard(c, hypeScores));
   const newCount = mapped.filter((c) => isCallNewSinceSeen(c.called_at, feedSeenAt)).length;
+  if (showNewOnly) {
+    mapped = mapped.filter((c) => isCallNewSinceSeen(c.called_at, feedSeenAt));
+  }
   const feedSummary = summarizeFeed(mapped);
 
   return (
@@ -107,6 +111,7 @@ export default async function DashboardFeedPage({
         searchQuery={searchQuery}
         resultCount={mapped.length}
         newCount={newCount}
+        showNewOnly={showNewOnly}
       />
       <FeedVisitTracker />
 
@@ -132,9 +137,11 @@ export default async function DashboardFeedPage({
           <div className="pf-workspace-panel px-6 py-16 text-center">
             <p className="font-medium text-[var(--pf-gray-700)]">No calls match this view</p>
             <p className="mt-2 text-sm text-[var(--pf-gray-500)]">
-              {feedFilter === "following"
-                ? "Follow members from rankings or their profile to see their calls here."
-                : "Try different filters or publish a new thesis."}
+              {showNewOnly
+                ? "No new calls match this filter — try showing all calls or check back after members publish."
+                : feedFilter === "following"
+                  ? "Follow members from rankings or their profile to see their calls here."
+                  : "Try different filters or publish a new thesis."}
             </p>
             {feedFilter === "following" ? (
               <Link href="/rankings" className="mt-6 inline-block">

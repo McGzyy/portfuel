@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BarChart3, Compass, PenLine, TrendingUp } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,30 +12,10 @@ import { cn } from "@/lib/utils";
 import {
   ONBOARDING_MAX_SYMBOLS,
   ONBOARDING_MIN_SYMBOLS,
+  ONBOARDING_TOUR_STEPS,
 } from "@/lib/onboarding/constants";
 
 type Step = "name" | "watchlist" | "tour";
-
-const TOUR_STEPS = [
-  {
-    icon: TrendingUp,
-    title: "Member feed",
-    body: "Latest and top-performing calls from the community — votes, comments, and live return %.",
-    href: "/dashboard",
-  },
-  {
-    icon: Compass,
-    title: "Fueled desk",
-    body: "House model portfolio and weekly desk note — curated research without hunting Twitter.",
-    href: "/dashboard/desk",
-  },
-  {
-    icon: PenLine,
-    title: "Submit a call",
-    body: "Publish your thesis with entry, target, and stop. Your track record builds on your profile.",
-    href: "/calls/new",
-  },
-] as const;
 
 export function OnboardingWizard() {
   const router = useRouter();
@@ -220,14 +200,14 @@ export function OnboardingWizard() {
     );
   }
 
-  const tour = TOUR_STEPS[tourIndex];
+  const tour = ONBOARDING_TOUR_STEPS[tourIndex];
   const TourIcon = tour.icon;
-  const isLastTour = tourIndex === TOUR_STEPS.length - 1;
+  const isLastTour = tourIndex === ONBOARDING_TOUR_STEPS.length - 1;
 
   return (
     <AuthShell
       title="Quick tour"
-      subtitle={`Step ${needsDisplayName ? 3 : 2} of 3 — ${tourIndex + 1}/${TOUR_STEPS.length}`}
+      subtitle={`${tourIndex + 1} of ${ONBOARDING_TOUR_STEPS.length} — quick tour`}
     >
       <div className="rounded-xl border border-[var(--pf-border)] bg-white p-5">
         <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
@@ -244,7 +224,7 @@ export function OnboardingWizard() {
       </div>
 
       <div className="mt-4 flex justify-center gap-1.5">
-        {TOUR_STEPS.map((_, i) => (
+        {ONBOARDING_TOUR_STEPS.map((_, i) => (
           <span
             key={i}
             className={cn(

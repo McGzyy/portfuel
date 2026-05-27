@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatTierPrice } from "@/lib/marketing/plans";
 
 /** Slim overview upsell — full list stays on profile / join. */
 export function ProUpgradeBanner() {
@@ -13,7 +14,7 @@ export function ProUpgradeBanner() {
         <div>
           <p className="text-sm font-bold text-[var(--pf-black)]">Unlock Pro Intelligence</p>
           <p className="text-xs text-[var(--pf-gray-600)]">
-            Ticker intel, screener, compare, 6 calls/week, and deeper analytics — $129/mo.
+            Ticker intel, screener, compare, intraday charts, 6 calls/week — {formatTierPrice("pro")}.
           </p>
         </div>
       </div>

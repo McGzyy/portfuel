@@ -10,7 +10,7 @@ export function PricingPlans() {
         <SectionHeader
           eyebrow="Plans"
           title="Choose your edge"
-          description="Secure checkout with Stripe. Two-factor required after activation."
+          description="Secure checkout with Stripe. Member is the full workspace; Pro adds the research terminal. Two-factor required after activation."
         />
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           {PLAN_ORDER.map((tier) => {

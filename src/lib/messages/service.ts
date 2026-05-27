@@ -202,13 +202,16 @@ export async function getThreadDetail(
 
   const { data: others } = await db
     .from("dm_participants")
-    .select("user_id, users!inner(id, username, display_name)")
+    .select("user_id, last_read_at, users!inner(id, username, display_name)")
     .eq("thread_id", threadId)
     .neq("user_id", userId)
     .limit(1);
 
   const otherRow = others?.[0] as
-    | { users: { id: string; username: string; display_name: string | null } }
+    | {
+        users: { id: string; username: string; display_name: string | null };
+        last_read_at: string | null;
+      }
     | undefined;
   if (!otherRow) return null;
 
@@ -235,6 +238,7 @@ export async function getThreadDetail(
   return {
     id: threadId,
     other_user: otherRow.users,
+    other_last_read_at: otherRow.last_read_at,
     messages,
   };
 }

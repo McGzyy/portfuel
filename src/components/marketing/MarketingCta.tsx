@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
+import { MARKETING_PRICE_SUMMARY } from "@/lib/marketing/plans";
 
 export function MarketingCta() {
   return (
@@ -10,8 +11,7 @@ export function MarketingCta() {
           Ready to join the action?
         </h2>
         <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-white/80">
-          Member from $79/mo · Pro Intelligence $129/mo. Full workspace, live marks, ticker intel,
-          and rankings.
+          {MARKETING_PRICE_SUMMARY}. Full workspace, Fueled desk, ticker intel, DMs, and rankings.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link href="/join">

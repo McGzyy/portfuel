@@ -11,7 +11,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TierComparisonTable } from "@/components/marketing/TierComparisonTable";
 import { CompleteCheckoutButton } from "@/components/billing/BillingActions";
 import type { MembershipTier } from "@/lib/stripe/config";
-import { PLAN_BY_TIER, PLAN_ORDER, TIER_COMPARISON_ROWS } from "@/lib/marketing/plans";
+import {
+  formatTierPrice,
+  MARKETING_PRICE_SUMMARY,
+  PLAN_BY_TIER,
+  PLAN_ORDER,
+  TIER_COMPARISON_ROWS,
+} from "@/lib/marketing/plans";
 import { cn } from "@/lib/utils";
 
 type Step = "plan" | "account" | "done";
@@ -107,9 +113,14 @@ export default function JoinPage() {
         <h1 className="pf-display mt-3 text-2xl sm:text-3xl">Join PortFuel</h1>
         <p className="pf-lead mx-auto mt-3 max-w-xl text-sm">
           {stripeEnabled
-            ? "Pick Member or Pro Intelligence, create your account, and checkout with Stripe. Upgrade anytime from profile — 2FA required after activation."
+            ? `Choose Member (${formatTierPrice("member")}) or Pro Intelligence (${formatTierPrice("pro")}), create your account, and checkout with Stripe. Member includes the full workspace — desk, feed, charts, and DMs. Upgrade anytime from profile; 2FA required after activation.`
             : "Create your account — billing activates manually until Stripe is configured on this environment."}
         </p>
+        {stripeEnabled ? (
+          <p className="mx-auto mt-2 max-w-lg text-center text-xs text-[var(--pf-gray-500)]">
+            {MARKETING_PRICE_SUMMARY}
+          </p>
+        ) : null}
       </div>
       <div className="mx-auto max-w-4xl px-4 py-10">
         {cancelled ? (
@@ -127,8 +138,9 @@ export default function JoinPage() {
                   Complete membership checkout
                 </p>
                 <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
-                  Your account exists but isn&apos;t active yet. Choose the plan that fits — Member
-                  is the full workspace; Pro adds research tools and 6 calls/week.
+                  Your account exists but isn&apos;t active yet. Member ({formatTierPrice("member")})
+                  is the full workspace — feed, desk, charts, and DMs. Pro (
+                  {formatTierPrice("pro")}) adds news, screeners, intraday charts, and 6 calls/week.
                 </p>
               </div>
               {stripeEnabled ? (

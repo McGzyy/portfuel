@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { TickerLookupBar } from "@/components/dashboard/TickerLookupBar";
+import { WatchlistIntelHint } from "@/components/dashboard/WatchlistIntelHint";
 import { WatchlistPanel } from "@/components/dashboard/WatchlistPanel";
 import { EarningsCalendarPanel } from "@/components/pro/EarningsCalendarPanel";
 import { requireDashboardSession } from "@/lib/dashboard/data";
@@ -33,6 +34,10 @@ export default async function DashboardWatchlistPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <TickerLookupBar />
+      </div>
+
+      <div className="mt-6">
+        <WatchlistIntelHint />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">

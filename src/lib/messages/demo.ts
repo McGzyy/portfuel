@@ -31,6 +31,7 @@ export function getDemoThreadDetail(
   return {
     id: threadId,
     other_user: DEMO_OTHER,
+    other_last_read_at: new Date(now - 4800000).toISOString(),
     messages: [
       {
         id: "demo-msg-1",

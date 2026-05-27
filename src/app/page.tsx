@@ -6,6 +6,7 @@ import { PublicHighlightCard } from "@/components/calls/PublicHighlightCard";
 import { HeroDashboardMock } from "@/components/marketing/HeroDashboardMock";
 import { HowItWorks } from "@/components/marketing/HowItWorks";
 import { MarketingCta } from "@/components/marketing/MarketingCta";
+import { ProductFeatureGrid } from "@/components/marketing/ProductFeatureGrid";
 import { PricingPlans } from "@/components/marketing/PricingPlans";
 import { TierComparison } from "@/components/marketing/TierComparison";
 import { MembersFeedGate } from "@/components/marketing/MembersFeedGate";
@@ -19,6 +20,7 @@ import {
 } from "@/lib/calls/public-teasers";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import type { TeaserCallRow } from "@/lib/db/supabase";
+import { LANDING_STAT_TILES } from "@/lib/marketing/plans";
 import { SITE_TAGLINE } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
@@ -61,9 +63,9 @@ export default async function LandingPage() {
                 </span>
               </h1>
               <p className="pf-lead mt-6 lg:max-w-lg">
-                Curated theses, live performance tracking, ticker intel, and rankings — built for
-                members who treat calls like a profession. Public previews show verified winners
-                only.
+                Curated theses, Fueled desk research, live performance tracking, ticker intel, DMs,
+                and rankings — built for members who treat calls like a profession. Public previews
+                show verified winners only.
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
                 <Link href="/join">
@@ -76,9 +78,9 @@ export default async function LandingPage() {
                 </Link>
               </div>
               <div className="mt-10 grid grid-cols-3 gap-3">
-                <StatTile icon={LineChart} label="Ticker intel" value="Charts + theses" />
-                <StatTile icon={Lock} label="Workspace" value="Members only" />
-                <StatTile icon={BarChart3} label="Rankings" value="Live scores" />
+                <StatTile icon={LineChart} label={LANDING_STAT_TILES[0].label} value={LANDING_STAT_TILES[0].value} />
+                <StatTile icon={Lock} label={LANDING_STAT_TILES[1].label} value={LANDING_STAT_TILES[1].value} />
+                <StatTile icon={BarChart3} label={LANDING_STAT_TILES[2].label} value={LANDING_STAT_TILES[2].value} />
               </div>
             </div>
             <div className="relative lg:pl-4">
@@ -88,6 +90,7 @@ export default async function LandingPage() {
         </section>
 
         <HowItWorks />
+        <ProductFeatureGrid />
         <PricingPlans />
         <TierComparison />
 

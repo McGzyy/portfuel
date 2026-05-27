@@ -3,6 +3,7 @@ import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import { formatPct } from "@/lib/utils";
 import type { FeedSummary } from "@/lib/calls/feed-summary";
+import { formatProIntelligenceLabel } from "@/lib/marketing/plans";
 
 export function OverviewCommunityPulse({
   summary,
@@ -47,7 +48,7 @@ export function OverviewCommunityPulse({
         locked={proLocked}
         cta={proGateCta}
         title="Pro community analytics"
-        description="Desk thesis counts and position mix analytics — Pro Intelligence ($129/mo)."
+        description={`Desk thesis counts and position mix analytics — included with ${formatProIntelligenceLabel()}.`}
         compact
       >
         <MetricsStrip

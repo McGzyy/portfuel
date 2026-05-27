@@ -1,20 +1,7 @@
 import Link from "next/link";
 import { Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const PRO_FEATURES = [
-  "AI thesis coach — 30 reviews/mo with your track record in context",
-  "One-line thesis summaries on any call (generate 60/mo; Members read cached)",
-  "News, earnings & SEC filings on every equity ticker",
-  "Pro feed & rankings analytics (target progress, win-rate depth)",
-  "6 published calls per week (vs 2 on Member)",
-  "Watchlist move alerts (±5% since you added a symbol)",
-  "Earnings calendar for your watchlist (next 14 days)",
-  "Target progress leaders on the member feed",
-  "Community screener — most called symbols & best 30-day returns (CSV export)",
-  "Ticker compare — 2–3 symbols on one normalized chart",
-  "Return distribution on your profile track record",
-] as const;
+import { formatProIntelligenceLabel, PRO_VALUE_BULLETS } from "@/lib/marketing/plans";
 
 export function ProValueCard({ className }: { className?: string }) {
   return (
@@ -27,7 +14,7 @@ export function ProValueCard({ className }: { className?: string }) {
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-red)]">
-            Pro Intelligence · $129/mo
+            {formatProIntelligenceLabel()}
           </p>
           <h2 className="mt-1 text-lg font-bold tracking-tight text-[var(--pf-black)]">
             Unlock the research layer
@@ -37,15 +24,15 @@ export function ProValueCard({ className }: { className?: string }) {
             thesis you follow.
           </p>
           <ul className="mt-4 space-y-2">
-            {PRO_FEATURES.map((f) => (
-              <li key={f} className="flex gap-2 text-sm text-[var(--pf-gray-700)]">
+            {PRO_VALUE_BULLETS.map((f) => (
+              <li key={f} className="flex gap-2 text-sm text-[var(--pf-gray-600)]">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--pf-red)]" strokeWidth={2.5} />
                 {f}
               </li>
             ))}
           </ul>
           <Link href="/profile" className="mt-5 inline-block">
-            <Button size="sm">Upgrade to Pro</Button>
+            <Button size="sm">View upgrade on profile</Button>
           </Link>
         </div>
       </div>

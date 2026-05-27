@@ -30,17 +30,19 @@ export function MessagesWorkspace() {
     if (res.ok) setThreads(data.threads ?? []);
   }, []);
 
-  const loadThread = useCallback(async (threadId: string) => {
+  const loadThread = useCallback(async (threadId: string, silent = false) => {
     const res = await fetch(`/api/messages/${threadId}`);
     const data = await res.json();
     if (!res.ok) {
-      setError("Could not load conversation.");
+      if (!silent) setError("Could not load conversation.");
       return;
     }
     setActiveThread(data.thread as DmThreadDetail);
     setActiveId(threadId);
-    void loadThreads();
-    window.dispatchEvent(new Event("portfuel:dm-unread-changed"));
+    if (!silent) {
+      void loadThreads();
+      window.dispatchEvent(new Event("portfuel:dm-unread-changed"));
+    }
   }, [loadThreads]);
 
   useEffect(() => {
@@ -86,6 +88,12 @@ export function MessagesWorkspace() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeThread?.messages.length]);
 
+  useEffect(() => {
+    if (!activeId) return;
+    const id = setInterval(() => void loadThread(activeId, true), 20_000);
+    return () => clearInterval(id);
+  }, [activeId, loadThread]);
+
   async function send() {
     if (!activeId || draft.trim().length < 1) return;
     setSending(true);
@@ -107,6 +115,7 @@ export function MessagesWorkspace() {
       );
       setDraft("");
       void loadThreads();
+      window.dispatchEvent(new Event("portfuel:dm-unread-changed"));
     } catch {
       setError("Send failed.");
     } finally {
@@ -120,6 +129,15 @@ export function MessagesWorkspace() {
 
   const otherName =
     activeThread?.other_user.display_name ?? activeThread?.other_user.username;
+
+  const otherReadAt = activeThread?.other_last_read_at
+    ? new Date(activeThread.other_last_read_at).getTime()
+    : 0;
+
+  function messageSeen(createdAt: string): boolean {
+    if (!otherReadAt) return false;
+    return otherReadAt >= new Date(createdAt).getTime();
+  }
 
   return (
     <>
@@ -214,11 +232,14 @@ export function MessagesWorkspace() {
                       <p className="whitespace-pre-wrap break-words">{m.body}</p>
                       <p
                         className={cn(
-                          "mt-1 text-[10px]",
+                          "mt-1 flex items-center justify-end gap-2 text-[10px]",
                           m.is_mine ? "text-slate-400" : "text-[var(--pf-gray-400)]"
                         )}
                       >
-                        {timeAgo(m.created_at)}
+                        <span>{timeAgo(m.created_at)}</span>
+                        {m.is_mine && messageSeen(m.created_at) ? (
+                          <span className="font-semibold text-slate-300">Seen</span>
+                        ) : null}
                       </p>
                     </div>
                   </div>

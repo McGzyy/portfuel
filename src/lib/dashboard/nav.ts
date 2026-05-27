@@ -169,12 +169,14 @@ export function buildFeedHref(opts: {
   tab?: FeedTab;
   filter?: string;
   q?: string;
+  newSince?: boolean;
 }): string {
   const params = new URLSearchParams();
   if (opts.tab === "performing") params.set("tab", "performing");
   if (opts.tab === "progress") params.set("tab", "progress");
   if (opts.filter && opts.filter !== "all") params.set("filter", opts.filter);
   if (opts.q?.trim()) params.set("q", opts.q.trim());
+  if (opts.newSince) params.set("new", "1");
   const qs = params.toString();
   return qs ? `/dashboard/feed?${qs}` : "/dashboard/feed";
 }

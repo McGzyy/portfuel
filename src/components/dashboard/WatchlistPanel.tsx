@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, X } from "lucide-react";
+import { LineChart, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { WatchlistMoveAlerts } from "@/components/dashboard/WatchlistMoveAlerts";
@@ -180,7 +180,9 @@ export function WatchlistPanel({
         Watchlist
       </p>
       <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-        Track tickers you care about — jump straight to chart and member calls.
+        Track tickers you care about — open{" "}
+        <span className="font-semibold text-[var(--pf-gray-700)]">Chart &amp; intel</span> for live
+        price, community calls, and desk context.
       </p>
 
       <form onSubmit={addSymbol} className="mt-3 flex gap-2">
@@ -228,10 +230,7 @@ export function WatchlistPanel({
                 height={20}
                 className="hidden sm:block"
               />
-              <Link
-                href={`/ticker/${item.symbol}`}
-                className="min-w-0 flex-1"
-              >
+              <Link href={`/ticker/${item.symbol}`} className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
                     {item.symbol}
@@ -250,9 +249,7 @@ export function WatchlistPanel({
                       </span>
                     ) : null}
                     {item.return_pct != null ? (
-                      <span
-                        className={`text-[10px] font-medium tabular-nums text-[var(--pf-gray-500)]`}
-                      >
+                      <span className="text-[10px] font-medium tabular-nums text-[var(--pf-gray-500)]">
                         Call book {formatPct(item.return_pct)}
                       </span>
                     ) : null}
@@ -268,6 +265,14 @@ export function WatchlistPanel({
                     ) : null}
                   </p>
                 ) : null}
+              </Link>
+              <Link
+                href={`/ticker/${item.symbol}`}
+                className="hidden shrink-0 items-center gap-1 rounded-full border border-[var(--pf-border)] bg-white px-2 py-1 text-[10px] font-semibold text-[var(--pf-gray-700)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)] group-hover:inline-flex sm:inline-flex"
+                title={`${item.symbol} chart and intel`}
+              >
+                <LineChart className="h-3 w-3" aria-hidden />
+                Intel
               </Link>
               <button
                 type="button"
