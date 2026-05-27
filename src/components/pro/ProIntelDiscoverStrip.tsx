@@ -10,7 +10,8 @@ const LINKS = [
 ] as const;
 
 /** Member feed: surface Pro research tools without another full-width banner. */
-export function ProIntelDiscoverStrip() {
+export function ProIntelDiscoverStrip({ symbol }: { symbol?: string }) {
+  const intelHref = symbol ? `/ticker/${symbol}` : "/ticker/NVDA";
   return (
     <section className="rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-4 py-3 shadow-[var(--pf-shadow-sm)]">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -28,8 +29,8 @@ export function ProIntelDiscoverStrip() {
         <div className="flex flex-wrap items-center gap-2">
           {LINKS.map(({ href, label, icon: Icon }) => (
             <Link
-              key={href}
-              href={href}
+              key={label}
+              href={label === "Ticker intel" ? intelHref : href}
               className="inline-flex items-center gap-1.5 rounded-full border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-1.5 text-xs font-semibold text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-white"
             >
               <Icon className="h-3.5 w-3.5" />

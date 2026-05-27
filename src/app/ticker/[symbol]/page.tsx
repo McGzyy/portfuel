@@ -12,6 +12,7 @@ import { buildIntelTeaserSummary } from "@/lib/market/intel-teaser";
 import { CallThesisBlock } from "@/components/calls/CallThesisBlock";
 import { TickerPageHeader } from "@/components/ticker/TickerPageHeader";
 import { TickerCommunityBar } from "@/components/ticker/TickerCommunityBar";
+import { ProIntelDiscoverStrip } from "@/components/pro/ProIntelDiscoverStrip";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { COPY } from "@/lib/copy";
 import { formatProIntelligenceLabel } from "@/lib/marketing/plans";
@@ -115,6 +116,12 @@ export default async function TickerPage({
           priceLines={chartPriceLines}
           proUnlocked={isPro}
         />
+
+        {intelGateLocked ? (
+          <div className="mt-4">
+            <ProIntelDiscoverStrip symbol={symbol} />
+          </div>
+        ) : null}
       </section>
 
       <TickerCommunityBar stats={communityStats} />
