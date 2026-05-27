@@ -36,8 +36,49 @@ Curated narratives often start on X/Twitter. Admin wants to paste a tweet (or th
 ### Out of scope (v1 of this feature)
 
 - Auto-scraping X API / monitoring accounts.
-- Auto-posting to X from PortFuel.
 - Member-facing “import tweet” (admin only).
+
+---
+
+## X (Twitter): automated posts to keep the account active
+
+**Status:** Deferred — product discovery; do not implement until API access and content policy are defined.
+
+### Problem
+
+The brand X account needs regular activity before launch traffic matters. Manual posting does not scale; we want **safe, on-brand automation** that drives people to PortFuel without spam or compliance risk.
+
+### Candidate post types (evaluate later)
+
+| Type | Source | Notes |
+|------|--------|--------|
+| New **Fueled** desk call | `calls` where `is_fueled` | Link to ticker or call; admin-approved template. |
+| **Winning / milestone** call | Cron after quote refresh | Only when threshold met; avoid noise. |
+| **Weekly leaderboard** snippet | Rankings job | Top 3 + link to `/rankings`. |
+| **Market pulse** | Hot tickers from member calls | “Members watching NVDA” — no price advice. |
+| **Launch / digest** | Admin Launch checklist | Human-triggered first; automate when stable. |
+
+### Technical notes (when we build)
+
+| Area | Approach |
+|------|----------|
+| API | X API v2 (OAuth 2.0 user context or app-only for read); store tokens in env / Vercel secrets. |
+| Queue | Cron or Workflow: `POST /api/cron/x-digest` with idempotency keys per post type. |
+| Safety | Dry-run mode, admin toggle per post type, rate limits, “not investment advice” footer, block list for symbols. |
+| Draft | Optional Admin preview before first automated send. |
+| Linking | UTM params (`utm_source=x&utm_medium=social`) on all outbound URLs. |
+
+### Out of scope (v1)
+
+- Auto-replying to mentions or DMs.
+- Scraping other accounts’ tweets (see Tweet → Fueled for **inbound** curation only).
+- Posting member UGC without explicit opt-in.
+
+### Success criteria
+
+- Account posts 3–5×/week with zero manual copy-paste.
+- Every post links back to a real PortFuel page with measurable clicks.
+- No regulatory-style claims (“guaranteed”, “buy now”) in templates.
 
 ### Success criteria
 

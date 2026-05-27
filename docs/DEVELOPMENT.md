@@ -32,7 +32,7 @@ feature/phase-3-stripe-billing
 
 See **[LAUNCH-PLAYBOOK.md](./LAUNCH-PLAYBOOK.md)** — Fueled desk rhythm, preview mode, founding members. Admin UI: `/admin?tab=launch`.
 
-Deferred ideas: **[BACKLOG.md](./BACKLOG.md)** (e.g. tweet → Fueled AI draft).
+Deferred ideas: **[BACKLOG.md](./BACKLOG.md)** (e.g. tweet → Fueled AI draft, X auto-posting).
 
 ## What’s done (on `main`)
 
