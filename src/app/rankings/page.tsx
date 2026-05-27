@@ -6,6 +6,7 @@ import { LeaderboardTable } from "@/components/rankings/LeaderboardTable";
 import { RankingsTrustedNote } from "@/components/rankings/RankingsTrustedNote";
 import { RankingsSummaryBar } from "@/components/rankings/RankingsSummaryBar";
 import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
+import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/seo/site";
@@ -53,20 +54,14 @@ export default async function RankingsPage() {
             <WorkspaceBackLink href="/dashboard" label="Workspace" />
           ) : null}
 
-          <header
-            className={session ? "mt-6 border-b border-[var(--pf-border)] pb-8" : "border-b border-[var(--pf-border)] pb-8"}
-          >
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--pf-red)]">
-              Community rankings
-            </p>
-            <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
-              Leaderboard
-            </h1>
-            <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-500)]">
-              Ranked by cumulative call score — return performance plus community votes. Refreshes
-              when quotes update.
-            </p>
-          </header>
+          <div className={session ? "mt-6" : undefined}>
+            <WorkspacePageHeader
+              eyebrow="Community"
+              title="Rankings"
+              description="Ranked by cumulative call score — return performance plus community votes. Refreshes when quotes update."
+              className="mb-8 pb-8"
+            />
+          </div>
 
           <div className="mt-8">
             <RankingsSummaryBar
