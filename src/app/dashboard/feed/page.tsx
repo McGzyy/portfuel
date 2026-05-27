@@ -4,7 +4,7 @@ import Link from "next/link";
 import { FeedCallList } from "@/components/dashboard/FeedCallList";
 import {
   WorkspacePageHeader,
-  WorkspaceHeaderAction,
+  WorkspaceNewCallAction,
 } from "@/components/dashboard/WorkspacePageHeader";
 import { FeedToolbar } from "@/components/dashboard/FeedToolbar";
 import { FeedSummaryBar } from "@/components/dashboard/FeedSummaryBar";
@@ -110,7 +110,7 @@ export default async function DashboardFeedPage({
         eyebrow="Community"
         title="Member feed"
         description="Search and filter community calls — latest, top performers, or symbols you follow."
-        action={<WorkspaceHeaderAction href="/calls/new" label="New call" />}
+        action={<WorkspaceNewCallAction />}
         className="mb-6 pb-6"
       />
 
@@ -165,7 +165,7 @@ export default async function DashboardFeedPage({
                 <Button variant="outline">Browse rankings</Button>
               </Link>
             ) : (
-              <Link href="/calls/new" className="mt-6 inline-block">
+              <Link href={COPY.newCallHref} className="mt-6 inline-block">
                 <Button>{COPY.publishCallCta}</Button>
               </Link>
             )}

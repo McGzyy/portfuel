@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import type { AiCoachUsageStatus } from "@/lib/ai/usage";
 import { AI_COACH_MONTHLY_LIMIT } from "@/lib/ai/config";
+import { COPY } from "@/lib/copy";
 
 export function ProfileAiCoachStrip({ usage }: { usage: AiCoachUsageStatus }) {
   const tierLabel = usage.tier === "pro" ? "Pro Intelligence" : "Member";
@@ -35,10 +36,10 @@ export function ProfileAiCoachStrip({ usage }: { usage: AiCoachUsageStatus }) {
         ) : null}
       </div>
       <Link
-        href="/calls/new"
+        href={COPY.newCallHref}
         className="shrink-0 text-sm font-semibold text-[var(--pf-red)] hover:underline"
       >
-        New call →
+        {COPY.newCall} →
       </Link>
     </section>
   );

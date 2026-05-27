@@ -25,7 +25,7 @@ If everything is empty, enable **preview mode** (see below) for demos and screen
 1. **Publish 2–3 Fueled calls** on liquid symbols you can explain (Admin → Desk).
 2. **Write a weekly desk note** (2–4 sentences: macro or sector narrative).
 3. **Add 3–5 model portfolio positions** aligned with those theses (optional but strong on overview).
-4. **Submit 1–2 of your own member calls** so your profile and return chart exist.
+4. **Publish 1–2 of your own member calls** so your profile and return chart exist.
 5. **Run quote refresh** — cron on Vercel should handle this; confirm tickers show prices.
 6. **Invite 3–5 founding members** personally (DM/email) — not a public launch post yet.
 7. **Use preview mode** only for sales calls; production should use real data when possible.

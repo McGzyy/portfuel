@@ -68,9 +68,20 @@ export function FueledDeskPreview({
           </p>
         </Link>
       ) : (
-        <p className="rounded-lg border border-dashed border-[var(--pf-border)] px-4 py-8 text-center text-sm text-[var(--pf-gray-500)]">
-          No desk thesis yet — browse the member feed for community ideas.
-        </p>
+        <div className="rounded-lg border border-dashed border-[var(--pf-border)] px-4 py-8 text-center text-sm text-[var(--pf-gray-500)]">
+          <p className="font-medium text-[var(--pf-gray-600)]">No desk thesis yet</p>
+          <p className="mt-1 text-xs leading-relaxed">
+            House research appears here when published. Browse the{" "}
+            <Link href="/dashboard/desk" className="font-semibold text-[var(--pf-red)] hover:underline">
+              Fueled desk
+            </Link>{" "}
+            or the{" "}
+            <Link href="/dashboard/feed" className="font-semibold text-[var(--pf-red)] hover:underline">
+              member feed
+            </Link>{" "}
+            for community ideas.
+          </p>
+        </div>
       )}
     </div>
   );

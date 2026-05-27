@@ -9,6 +9,9 @@ export const COPY = {
   memberFeed: "Member feed",
   /** Nav / header link to the publish flow */
   newCall: "New call",
+  newCallHref: "/calls/new",
+  /** Watchlist row when a new community call landed on a symbol */
+  watchlistNewCall: "New call",
   /** Primary verb on the publish form and empty states */
   publishCall: "Publish call",
   publishCallCta: "Publish a call",

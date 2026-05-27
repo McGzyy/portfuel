@@ -310,7 +310,7 @@ export function NewCallForm({
               size="lg"
               disabled={loading || symbolValid === false}
             >
-              {loading ? "Publishing…" : "Publish call"}
+              {loading ? COPY.publishingCall : COPY.publishCall}
             </Button>
           </form>
         </CardContent>

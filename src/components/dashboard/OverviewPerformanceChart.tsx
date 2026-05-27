@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ReturnLineChart } from "@/components/charts/ReturnLineChart";
 import type { ReturnChartPoint } from "@/lib/charts/types";
+import { COPY } from "@/lib/copy";
 import { formatPct } from "@/lib/utils";
 
 export function OverviewPerformanceChart({
@@ -38,10 +39,10 @@ export function OverviewPerformanceChart({
           <div className="flex h-[140px] flex-col items-center justify-center px-4 text-center text-xs text-[var(--pf-gray-500)]">
             <p>Publish a call to start tracking performance.</p>
             <Link
-              href="/calls/new"
+              href={COPY.newCallHref}
               className="mt-2 font-semibold text-[var(--pf-red)] hover:underline"
             >
-              Publish a call →
+              {COPY.publishCallCta} →
             </Link>
           </div>
         )}

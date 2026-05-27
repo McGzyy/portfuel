@@ -9,7 +9,7 @@ import { MemberTrackRecordStrip } from "@/components/member/MemberTrackRecordStr
 import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
 import {
   WorkspacePageHeader,
-  WorkspaceHeaderAction,
+  WorkspaceNewCallAction,
 } from "@/components/dashboard/WorkspacePageHeader";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
@@ -114,7 +114,7 @@ export default async function ProfilePage() {
           eyebrow="Your book"
           title="Published calls"
           description="Your public track record — every thesis you've published on PortFuel."
-          action={<WorkspaceHeaderAction href="/calls/new" label="New call" />}
+          action={<WorkspaceNewCallAction />}
           className="mb-6"
         />
 

@@ -13,6 +13,7 @@ import {
   Plus,
   Shield,
 } from "lucide-react";
+import { COPY } from "@/lib/copy";
 import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
 import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
@@ -110,11 +111,11 @@ export function WorkspaceSidebar({
 
       <div className="shrink-0 space-y-2 border-t border-[var(--pf-border)] p-3">
         <Link
-          href="/calls/new"
+          href={COPY.newCallHref}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--pf-red)] px-3 py-2.5 text-sm font-semibold text-white shadow-[var(--pf-shadow-sm)] transition-colors hover:bg-[var(--pf-red-hover)]"
         >
           <Plus className="h-4 w-4" strokeWidth={2.5} />
-          New call
+          {COPY.newCall}
         </Link>
         <div className="flex items-center justify-between gap-2 px-1">
           <WorkspaceGuide />

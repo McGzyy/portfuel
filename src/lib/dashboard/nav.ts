@@ -1,3 +1,5 @@
+import { COPY } from "@/lib/copy";
+
 export type DashboardNavIcon =
   | "layout-dashboard"
   | "rows"
@@ -95,8 +97,8 @@ export const WORKSPACE_GUIDE_SECTIONS: {
         description: "Your stats, live tape, hot symbols, and previews of the feed.",
       },
       {
-        href: "/calls/new",
-        label: "New call",
+        href: COPY.newCallHref,
+        label: COPY.newCall,
         description: "Publish a thesis with entry, target, and stop — builds your track record.",
       },
     ],

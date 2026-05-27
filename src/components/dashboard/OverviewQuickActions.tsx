@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { BarChart3, Flame, LayoutGrid, Plus, Star } from "lucide-react";
+import { COPY } from "@/lib/copy";
 
 const actions = [
   {
-    href: "/calls/new",
-    label: "Publish call",
+    href: COPY.newCallHref,
+    label: COPY.publishCall,
     description: "Publish a new thesis",
     icon: Plus,
     primary: true,

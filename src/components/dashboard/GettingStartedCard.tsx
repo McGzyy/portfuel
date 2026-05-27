@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Bookmark, Plus, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { COPY } from "@/lib/copy";
 
 const SUGGESTED = ["SPY", "NVDA", "AAPL", "BTC"] as const;
 
@@ -40,13 +41,13 @@ export function GettingStartedCard() {
         <div className="rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-4">
           <div className="flex items-center gap-2">
             <Plus className="h-4 w-4 text-[var(--pf-gray-500)]" />
-            <p className="text-sm font-semibold text-[var(--pf-black)]">Publish a call</p>
+            <p className="text-sm font-semibold text-[var(--pf-black)]">{COPY.publishCallCta}</p>
           </div>
           <p className="mt-1.5 text-xs text-[var(--pf-gray-500)]">
             Your first call unlocks your track record and makes the overview meaningful.
           </p>
-          <Link href="/calls/new" className="mt-3 inline-block">
-            <Button size="sm">New call</Button>
+          <Link href={COPY.newCallHref} className="mt-3 inline-block">
+            <Button size="sm">{COPY.newCall}</Button>
           </Link>
         </div>
 

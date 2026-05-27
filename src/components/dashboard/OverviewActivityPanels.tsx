@@ -5,6 +5,7 @@ import { WorkspacePanel } from "@/components/dashboard/WorkspacePanel";
 import { buildFeedHref } from "@/lib/dashboard/nav";
 import type { CallCardData } from "@/components/calls/CallCard";
 import { Button } from "@/components/ui/button";
+import { COPY } from "@/lib/copy";
 
 export function OverviewActivityPanels({
   openCalls,
@@ -26,8 +27,8 @@ export function OverviewActivityPanels({
           Publish a call or check the member feed for symbols the community is trading.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link href="/calls/new">
-            <Button size="sm">New call</Button>
+          <Link href={COPY.newCallHref}>
+            <Button size="sm">{COPY.newCall}</Button>
           </Link>
           <Link href={buildFeedHref({})}>
             <Button variant="secondary" size="sm">
@@ -53,8 +54,8 @@ export function OverviewActivityPanels({
             <p className="text-sm text-[var(--pf-gray-500)]">
               No active calls — targets hit or older theses roll off after 120 days.
             </p>
-            <Link href="/calls/new" className="mt-4 inline-block">
-              <Button size="sm">Publish a call</Button>
+            <Link href={COPY.newCallHref} className="mt-4 inline-block">
+              <Button size="sm">{COPY.publishCallCta}</Button>
             </Link>
           </div>
         </WorkspacePanel>

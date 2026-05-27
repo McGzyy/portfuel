@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, Circle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { COPY } from "@/lib/copy";
 import { isDemoMode } from "@/lib/demo/config";
 
 const CHECKLIST = [
@@ -25,8 +26,8 @@ const CHECKLIST = [
   {
     title: "Publish your own member call",
     body: "Your profile, return chart, and rankings row look real when you have skin in the game.",
-    href: "/calls/new",
-    cta: "New call",
+    href: COPY.newCallHref,
+    cta: COPY.newCall,
   },
   {
     title: "Invite 3–5 founding members",

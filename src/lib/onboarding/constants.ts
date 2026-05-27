@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { Compass, PenLine, Star, TrendingUp, Trophy } from "lucide-react";
+import { COPY } from "@/lib/copy";
 
 export const ONBOARDING_DEFAULT_SYMBOLS = [
   "NVDA",
@@ -47,8 +48,8 @@ export const ONBOARDING_TOUR_STEPS: OnboardingTourStep[] = [
   },
   {
     icon: PenLine,
-    title: "Publish a call",
+    title: COPY.publishCallCta,
     body: "Publish your thesis with entry, target, and stop. Your track record builds on your profile.",
-    href: "/calls/new",
+    href: COPY.newCallHref,
   },
 ];

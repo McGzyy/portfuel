@@ -10,7 +10,7 @@ import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
 import {
   WorkspacePageHeader,
-  WorkspaceHeaderAction,
+  WorkspaceNewCallAction,
 } from "@/components/dashboard/WorkspacePageHeader";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
@@ -92,7 +92,7 @@ export default async function MemberProfilePage({
               : `Every thesis @${member.username} has published on PortFuel.`
           }
           action={
-            isSelf ? <WorkspaceHeaderAction href="/calls/new" label="New call" /> : undefined
+            isSelf ? <WorkspaceNewCallAction /> : undefined
           }
           className="mb-6"
         />

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COPY } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 
 export function WorkspacePageHeader({
@@ -46,10 +47,10 @@ export function WorkspacePageHeader({
 /** Primary CTA used on feed / desk headers */
 export function WorkspaceHeaderAction({
   href,
-  label,
+  label = COPY.newCall,
 }: {
   href: string;
-  label: string;
+  label?: string;
 }) {
   return (
     <Link
@@ -59,4 +60,9 @@ export function WorkspaceHeaderAction({
       {label}
     </Link>
   );
+}
+
+/** Primary workspace CTA → publish flow */
+export function WorkspaceNewCallAction() {
+  return <WorkspaceHeaderAction href={COPY.newCallHref} />;
 }

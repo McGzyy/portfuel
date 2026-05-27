@@ -6,8 +6,9 @@ import { GettingStartedCard } from "@/components/dashboard/GettingStartedCard";
 import { OverviewActivityPanels } from "@/components/dashboard/OverviewActivityPanels";
 import {
   WorkspacePageHeader,
-  WorkspaceHeaderAction,
+  WorkspaceNewCallAction,
 } from "@/components/dashboard/WorkspacePageHeader";
+import { COPY } from "@/lib/copy";
 import { WorkspaceOverviewStats } from "@/components/dashboard/WorkspaceOverviewStats";
 import { ProUpgradeBanner } from "@/components/pro/ProUpgradeBanner";
 import { WorkspaceLiveBar } from "@/components/dashboard/WorkspaceLiveBar";
@@ -181,7 +182,7 @@ export default async function DashboardOverviewPage({
         eyebrow="Overview"
         title={displayLabel}
         description="Your track record, open book, and a quick read on what the community is trading."
-        action={<WorkspaceHeaderAction href="/calls/new" label="New call" />}
+        action={<WorkspaceNewCallAction />}
         className="mb-6 pb-6"
       />
 
@@ -274,7 +275,7 @@ export default async function DashboardOverviewPage({
                       </span>
                       <span className="text-xs tabular-nums text-[var(--pf-gray-500)]">
                         {w.has_unread_call_alert
-                          ? "New call"
+                          ? COPY.watchlistNewCall
                           : w.last_price != null
                             ? `$${formatPrice(Number(w.last_price))}`
                             : formatPct(w.return_pct)}
