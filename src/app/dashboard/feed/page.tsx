@@ -20,6 +20,8 @@ import {
 } from "@/lib/calls/filter-feed";
 import type { FeedTab } from "@/lib/dashboard/nav";
 import { FeedVisitTracker } from "@/components/dashboard/FeedVisitTracker";
+import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
+import { fetchWeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { fetchFollowingIds } from "@/lib/follows/service";
 import {
   FEED_SEEN_COOKIE,
@@ -95,6 +97,10 @@ export default async function DashboardFeedPage({
     mapped = mapped.filter((c) => isCallNewSinceSeen(c.called_at, feedSeenAt));
   }
   const feedSummary = summarizeFeed(mapped);
+  const weeklyQuota = await fetchWeeklyQuotaStatus(
+    session.userId,
+    session.membershipTier ?? null
+  );
 
   return (
     <>
@@ -104,6 +110,8 @@ export default async function DashboardFeedPage({
         description="Every community thesis in one place. Search, filter by asset class, and switch between latest and top performers."
         action={<WorkspaceHeaderAction href="/calls/new" label="New call" />}
       />
+
+      <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} className="mt-4" />
 
       <FeedToolbar
         mode={mode}

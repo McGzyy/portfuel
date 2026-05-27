@@ -6,12 +6,16 @@ export function OverviewHero({
   winRate,
   rankScore,
   callsCount,
+  quotaUsed,
+  quotaLimit,
 }: {
   displayName: string;
   username: string;
   winRate: number | null | undefined;
   rankScore: number | null | undefined;
   callsCount?: number | null;
+  quotaUsed?: number;
+  quotaLimit?: number;
 }) {
   return (
     <section className="pf-overview-hero overflow-hidden rounded-[var(--pf-radius-lg)]">
@@ -48,7 +52,18 @@ export function OverviewHero({
                 {rankScore != null ? rankScore.toFixed(1) : "—"}
               </dd>
             </div>
-            {callsCount != null ? (
+            {quotaLimit != null && quotaUsed != null ? (
+              <div>
+                <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                  This week
+                </dt>
+                <dd className="mt-1 text-2xl font-bold tabular-nums text-white">
+                  {quotaUsed}
+                  <span className="text-lg font-semibold text-slate-400">/{quotaLimit}</span>
+                </dd>
+                <dd className="mt-0.5 text-[10px] text-slate-500">calls published</dd>
+              </div>
+            ) : callsCount != null ? (
               <div className="hidden sm:block">
                 <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                   Calls

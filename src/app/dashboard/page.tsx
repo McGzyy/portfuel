@@ -184,6 +184,8 @@ export default async function DashboardOverviewPage({
         winRate={memberStats?.win_rate}
         rankScore={memberStats?.rank_score != null ? Number(memberStats.rank_score) : null}
         callsCount={memberStats?.calls_count}
+        quotaUsed={weeklyQuota.used}
+        quotaLimit={weeklyQuota.limit}
       />
 
       <WorkspaceLiveBar initial={workspacePulse} />

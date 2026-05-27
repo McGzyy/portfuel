@@ -11,7 +11,7 @@ Goal: **$79 Member** feels like a professional trading workspace; **$129 Pro Int
 | Value | Status | Notes |
 |-------|--------|--------|
 | Curated member call feed (latest + performing) | ✅ | Search, asset filters, votes, comments |
-| Submit calls (equity + vetted crypto) | ✅ | 2/week quota — **under-communicated in UI** |
+| Submit calls (equity + vetted crypto) | ✅ | 2/week quota — shown on overview hero, feed, and `/calls/new` |
 | Ticker pages: chart + call markers + community theses | ✅ | Strong differentiator vs Twitter/Discord |
 | Rankings / leaderboard | ✅ | Public + member depth |
 | Watchlist + symbol lookup | ✅ | Needs migration `20260524400000_user_watchlist.sql` |

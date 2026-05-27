@@ -93,7 +93,9 @@ export function NewCallForm({
       if (!res.ok) {
         if (data.error === "quota_exceeded") {
           setError(
-            `Weekly limit reached (${data.quota} calls). Build your track record to unlock more.`
+            showUpgrade
+              ? `Weekly limit reached (${data.quota} calls this week). Upgrade to Pro on your profile for 6 calls/week.`
+              : `Weekly limit reached (${data.quota} calls this week). Your quota resets on a rolling 7-day window.`
           );
         } else {
           setError(typeof data.error === "string" ? data.error : "Could not submit call.");
