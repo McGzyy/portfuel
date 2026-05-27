@@ -275,6 +275,10 @@ export function WatchlistPanel({
                     item.change_since_add_pct != null &&
                     Math.abs(item.change_since_add_pct) >= WATCHLIST_MOVE_ALERT_PCT ? (
                       <span className="ml-2 font-semibold text-amber-700">· Price alert</span>
+                    ) : !proUnlocked && item.asset_class === "equity" ? (
+                      <span className="ml-2 font-medium text-[var(--pf-red)]">
+                        · Pro: news & filings
+                      </span>
                     ) : null}
                   </p>
                 ) : null}

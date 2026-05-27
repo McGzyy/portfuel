@@ -536,6 +536,7 @@ export function getDemoLeaderboard(limit = 25): LeaderboardEntry[] {
         win_rate: userCalls.length ? Math.round((wins / userCalls.length) * 100) : null,
         rank_score: u.rank_score,
         trusted: Boolean(u.trusted_at),
+        founding: false,
       };
     })
     .sort((a, b) => b.rank_score - a.rank_score);

@@ -65,6 +65,11 @@ export function LeaderboardTable({
                     </span>
                   )}
                   {row.trusted ? <Badge variant="trusted">Trusted</Badge> : null}
+                  {row.founding ? (
+                    <Badge className="border border-amber-200 bg-amber-50 text-amber-800">
+                      Founding
+                    </Badge>
+                  ) : null}
                 </div>
               </td>
               <td className="hidden px-4 py-4 font-mono text-xs text-[var(--pf-gray-500)] sm:table-cell">

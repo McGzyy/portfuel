@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { CallCard } from "@/components/calls/CallCard";
 import { FueledDeskBrief } from "@/components/dashboard/FueledDeskBrief";
 import { DeskPortfolioPanel } from "@/components/desk/DeskPortfolioPanel";
@@ -6,6 +7,7 @@ import { DeskPortfolioChart } from "@/components/charts/DeskPortfolioChart";
 import { buildDeskPortfolioCurve } from "@/lib/charts/desk-portfolio-curve";
 import { DeskPortfolioWatchlistButton } from "@/components/desk/DeskPortfolioWatchlistButton";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
+import { Button } from "@/components/ui/button";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { fetchDeskBrief } from "@/lib/desk/brief";
 import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
@@ -74,8 +76,13 @@ export default async function DashboardDeskPage() {
           Latest
         </h2>
         {fueledLatest.length === 0 ? (
-          <div className="pf-workspace-panel py-12 text-center text-sm text-[var(--pf-gray-500)]">
-            No desk calls yet.
+          <div className="pf-workspace-panel px-6 py-12 text-center text-sm text-[var(--pf-gray-500)]">
+            <p>No desk calls yet.</p>
+            {session.role === "admin" ? (
+              <Link href="/admin?tab=desk" className="mt-4 inline-block">
+                <Button size="sm">Publish first Fueled call</Button>
+              </Link>
+            ) : null}
           </div>
         ) : (
           <div className="space-y-4">

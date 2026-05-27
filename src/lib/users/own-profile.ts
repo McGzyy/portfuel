@@ -16,6 +16,7 @@ function userRowToPublicMember(row: UserRow): PublicMemberProfile {
     username: row.username,
     display_name: row.display_name,
     trusted: Boolean(row.trusted_at),
+    founding: false,
     calls_count: row.calls_count ?? 0,
     win_rate: row.win_rate != null ? Number(row.win_rate) : null,
     avg_return_pct:
@@ -47,7 +48,7 @@ export async function fetchOwnProfile(session: SessionPayload): Promise<
 
     if (member) {
       return {
-        member,
+        member: { ...member, founding: false },
         calls: getDemoMemberCalls(member.id, 20),
         stripeCustomerId: null,
         subscriptionStatus: "active",
@@ -64,6 +65,7 @@ export async function fetchOwnProfile(session: SessionPayload): Promise<
         username: session.username,
         display_name: session.displayName,
         trusted: false,
+        founding: false,
         calls_count: calls.length,
         win_rate: calls.length ? Math.round((wins / calls.length) * 100) : null,
         avg_return_pct:

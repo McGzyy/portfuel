@@ -1,12 +1,14 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { getDemoMemberByUsername, getDemoMemberCalls } from "@/lib/demo/fixtures";
+import { fetchFoundingMemberIds } from "@/lib/users/founding";
 
 export type PublicMemberProfile = {
   id: string;
   username: string;
   display_name: string | null;
   trusted: boolean;
+  founding: boolean;
   calls_count: number;
   win_rate: number | null;
   avg_return_pct: number | null;
@@ -20,7 +22,11 @@ export async function fetchMemberByUsername(
   const handle = username.trim().toLowerCase();
   if (!handle) return null;
 
-  if (isDemoMode()) return getDemoMemberByUsername(handle);
+  if (isDemoMode()) {
+    const demo = getDemoMemberByUsername(handle);
+    if (!demo) return null;
+    return { ...demo, founding: false };
+  }
 
   const db = createServiceClient();
   const { data, error } = await db
@@ -34,12 +40,14 @@ export async function fetchMemberByUsername(
   if (error || !data) return null;
   const row = data as typeof data & { role?: string };
   if (row.subscription_status !== "active" && row.role !== "admin") return null;
+  const foundingIds = await fetchFoundingMemberIds();
 
   return {
     id: data.id,
     username: data.username,
     display_name: data.display_name,
     trusted: Boolean(data.trusted_at),
+    founding: foundingIds.has(data.id),
     calls_count: data.calls_count ?? 0,
     win_rate: data.win_rate != null ? Number(data.win_rate) : null,
     avg_return_pct: data.avg_return_pct != null ? Number(data.avg_return_pct) : null,

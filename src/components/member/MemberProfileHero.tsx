@@ -30,6 +30,11 @@ export function MemberProfileHero({
           <p className="mt-1 font-mono text-sm text-slate-400">@{member.username}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {member.trusted ? <Badge variant="trusted">Trusted</Badge> : null}
+            {member.founding ? (
+              <Badge className="border border-amber-200 bg-amber-50 text-amber-800">
+                Founding
+              </Badge>
+            ) : null}
             {isSelf ? (
               <Badge variant="default" className="border-slate-600 bg-slate-800 text-slate-200">
                 You
