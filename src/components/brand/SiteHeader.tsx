@@ -18,11 +18,12 @@ export function SiteHeader({
   headerMode?: "default" | "workspace";
 }) {
   const inWorkspace = headerMode === "workspace" && Boolean(user);
+  const logoHref = user ? "/dashboard" : "/";
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--pf-border)] bg-white/95 shadow-[var(--pf-shadow-sm)] backdrop-blur-md">
       <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between px-4">
-        <Logo size="md" />
+        <Logo size="md" href={logoHref} />
         <nav className="flex items-center gap-2">
           {user ? (
             <>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { BarChart3, LineChart, Lock } from "lucide-react";
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { PublicHighlightCard } from "@/components/calls/PublicHighlightCard";
@@ -21,6 +22,8 @@ import {
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import type { TeaserCallRow } from "@/lib/db/supabase";
 import { LANDING_STAT_TILES } from "@/lib/marketing/plans";
+import { memberHomePath } from "@/lib/auth/member-home";
+import { getSession } from "@/lib/auth/session";
 import { SITE_TAGLINE } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
@@ -45,6 +48,9 @@ async function loadPublicTeasers(): Promise<{
 }
 
 export default async function LandingPage() {
+  const session = await getSession();
+  if (session) redirect(memberHomePath(session));
+
   const { performing, proven } = await loadPublicTeasers();
 
   return (

@@ -117,11 +117,6 @@ body {
   flex-shrink: 0;
   border-right: 1px solid var(--pf-border);
   background: #fff;
-  position: sticky;
-  top: 3.5rem;
-  align-self: flex-start;
-  height: calc(100vh - 3.5rem);
-  max-height: calc(100vh - 3.5rem);
   overflow: hidden;
 }
 
@@ -133,6 +128,17 @@ body {
 @media (min-width: 1024px) {
   .pf-workspace-sidebar-wrap {
     display: block;
+    position: fixed;
+    top: 4.5rem;
+    left: 0;
+    z-index: 40;
+    height: calc(100vh - 4.5rem);
+    max-height: calc(100vh - 4.5rem);
+  }
+
+  .pf-workspace-main {
+    margin-left: 16.5rem;
+    min-height: calc(100vh - 4.5rem);
   }
 }
 

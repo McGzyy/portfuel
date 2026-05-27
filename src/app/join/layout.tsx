@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
-  title: "Get member access",
+  title: "Join PortFuel",
   description: `Join ${SITE_NAME} — ${SITE_TAGLINE}. Member workspace, ticker intel, and Pro analytics.`,
 };
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { COPY } from "@/lib/copy";
 import { PLAN_BY_TIER, PLAN_ORDER } from "@/lib/marketing/plans";
 
 export function PricingPlans() {
@@ -52,7 +53,7 @@ export function PricingPlans() {
         </div>
         <div className="mt-8 text-center">
           <Link href="/join">
-            <Button size="lg">Get member access</Button>
+            <Button size="lg">{COPY.ctaGetAccess}</Button>
           </Link>
         </div>
       </div>

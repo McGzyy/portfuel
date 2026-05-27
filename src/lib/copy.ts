@@ -1,6 +1,9 @@
-/** Shared marketing / member-access language (action & intel, not “squad” framing). */
+/**
+ * Shared marketing language.
+ * Primary signup CTA follows common trading/community apps (TradingView “Get started”, Stocktwits “Join”).
+ */
 export const COPY = {
-  ctaGetAccess: "Get member access",
+  ctaGetAccess: "Join PortFuel",
   ctaSignIn: "Sign in",
   membersOnly: "Members only",
   memberFeed: "Member feed",

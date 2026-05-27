@@ -203,7 +203,7 @@ export default async function TickerPage({
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader user={session ? toHeaderUser(session) : undefined} />
       <div className="pf-app-bg">
         <main className="mx-auto max-w-6xl px-4 py-8">{body}</main>
       </div>

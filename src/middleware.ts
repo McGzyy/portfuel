@@ -6,6 +6,7 @@ import {
   refreshSessionFromDatabase,
   sessionCookieOptions,
 } from "@/lib/auth/session-sync";
+import { memberHomePath } from "@/lib/auth/member-home";
 import type { SessionPayload } from "@/lib/auth/session-types";
 
 const COOKIE_NAME = "portfuel_session";
@@ -141,6 +142,16 @@ export async function middleware(request: NextRequest) {
     return withFreshCookie(NextResponse.next(), freshToken);
   }
 
+  if (pathname === "/" && token) {
+    const { session, freshToken } = await resolveSession();
+    if (session) {
+      return withFreshCookie(
+        NextResponse.redirect(new URL(memberHomePath(session), request.url)),
+        freshToken
+      );
+    }
+  }
+
   if (pathname === "/login" && token) {
     const { session, freshToken } = await resolveSession();
     if (session) {
@@ -180,6 +191,7 @@ async function verifySession(token: string) {
 
 export const config = {
   matcher: [
+    "/",
     "/dashboard/:path*",
     "/calls/:path*",
     "/onboarding",
