@@ -105,10 +105,11 @@ export default async function DashboardFeedPage({
   return (
     <>
       <WorkspacePageHeader
-        eyebrow="Community intelligence"
+        eyebrow="Community"
         title="Member feed"
-        description="Every community thesis in one place. Search, filter by asset class, and switch between latest and top performers."
+        description="Search and filter community calls — latest, top performers, or symbols you follow."
         action={<WorkspaceHeaderAction href="/calls/new" label="New call" />}
+        className="mb-6 pb-6"
       />
 
       <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} className="mt-4" />

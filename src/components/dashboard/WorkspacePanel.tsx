@@ -41,7 +41,7 @@ export function WorkspacePanel({
           </Link>
         ) : null}
       </div>
-      <div className="flex-1 p-2">{children}</div>
+      <div className="flex-1">{children}</div>
     </section>
   );
 }

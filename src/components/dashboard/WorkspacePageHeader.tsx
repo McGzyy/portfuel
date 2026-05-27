@@ -15,27 +15,29 @@ export function WorkspacePageHeader({
   className?: string;
 }) {
   return (
-    <header
-      className={cn(
-        "mb-8 border-b border-[var(--pf-border)] pb-8",
-        className
-      )}
-    >
+    <header className={cn("border-b border-[var(--pf-border)]", className)}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-2xl">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--pf-red)]">
-            {eyebrow}
-          </p>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
+          {eyebrow ? (
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
+              {eyebrow}
+            </p>
+          ) : null}
+          <h1
+            className={cn(
+              "text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]",
+              eyebrow ? "mt-1.5" : undefined
+            )}
+          >
             {title}
           </h1>
           {description ? (
-            <p className="mt-2.5 text-sm leading-relaxed text-[var(--pf-gray-500)]">
+            <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
               {description}
             </p>
           ) : null}
         </div>
-        {action ? <div className="shrink-0">{action}</div> : null}
+        {action ? <div className="shrink-0 pt-1">{action}</div> : null}
       </div>
     </header>
   );

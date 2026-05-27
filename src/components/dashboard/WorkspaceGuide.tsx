@@ -14,10 +14,10 @@ export function WorkspaceGuide() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--pf-border)] bg-white px-3 py-1.5 text-xs font-semibold text-[var(--pf-gray-600)] shadow-[var(--pf-shadow-sm)] transition-colors hover:text-[var(--pf-black)]"
+        className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-black)]"
       >
         <Map className="h-3.5 w-3.5" />
-        Where is everything?
+        Help
       </button>
 
       {open ? (

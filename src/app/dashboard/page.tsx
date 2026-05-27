@@ -2,16 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { OverviewActivityPanels } from "@/components/dashboard/OverviewActivityPanels";
-import { DashboardQuickNav } from "@/components/dashboard/DashboardQuickNav";
-import { OverviewHero } from "@/components/dashboard/OverviewHero";
-import { OverviewShortcutBar } from "@/components/dashboard/OverviewShortcutBar";
-import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
+import {
+  WorkspacePageHeader,
+  WorkspaceHeaderAction,
+} from "@/components/dashboard/WorkspacePageHeader";
+import { WorkspaceOverviewStats } from "@/components/dashboard/WorkspaceOverviewStats";
 import { ProUpgradeBanner } from "@/components/pro/ProUpgradeBanner";
 import { WorkspaceLiveBar } from "@/components/dashboard/WorkspaceLiveBar";
-import { WorkspaceWalkthroughTips } from "@/components/dashboard/WorkspaceWalkthroughTips";
-import { OverviewSection } from "@/components/dashboard/OverviewSection";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
-import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import { fetchWorkspacePulse } from "@/lib/workspace/pulse";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { getHotTickersFromCalls } from "@/lib/calls/hot-tickers";
@@ -19,7 +17,7 @@ import { fetchWeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerformanceChart";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
-import { FueledDeskHero } from "@/components/dashboard/FueledDeskHero";
+import { FueledDeskPreview } from "@/components/dashboard/FueledDeskPreview";
 import { WorkspacePanel } from "@/components/dashboard/WorkspacePanel";
 import { FeedPreviewList } from "@/components/dashboard/FeedPreviewList";
 import type { CallPreviewData } from "@/components/dashboard/CallPreviewRow";
@@ -68,9 +66,7 @@ function toOwnStripCard(
   };
 }
 
-function toPreview(
-  c: ReturnType<typeof mapCallForCard>
-): CallPreviewData {
+function toPreview(c: ReturnType<typeof mapCallForCard>): CallPreviewData {
   return {
     id: c.id,
     symbol: c.symbol,
@@ -176,52 +172,29 @@ export default async function DashboardOverviewPage({
     avgPulse == null ? undefined : avgPulse >= 0 ? ("positive" as const) : ("negative" as const);
 
   return (
-    <div className="space-y-8">
-      <OverviewHero
-        displayName={displayLabel}
+    <div className="space-y-6">
+      <WorkspacePageHeader
+        eyebrow="Overview"
+        title={displayLabel}
+        description="Your track record, open book, and a quick read on what the community is trading."
+        action={<WorkspaceHeaderAction href="/calls/new" label="New call" />}
+        className="mb-6 pb-6"
+      />
+
+      <WorkspaceOverviewStats
         username={session.username}
         winRate={memberStats?.win_rate}
         rankScore={memberStats?.rank_score != null ? Number(memberStats.rank_score) : null}
         callsCount={memberStats?.calls_count}
-        quotaUsed={weeklyQuota.used}
-        quotaLimit={weeklyQuota.limit}
+        quota={weeklyQuota}
+        communityCount={communityPulse.count > 0 ? communityPulse.count : undefined}
+        communityAvgReturn={communityPulse.count > 0 ? formatPct(avgPulse) : undefined}
+        communityAvgAccent={avgAccent}
       />
 
-      <WorkspaceLiveBar initial={workspacePulse} />
-
-      <WorkspaceWalkthroughTips enabled={!session.onboardingCompleted} />
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-3">
-          <OverviewShortcutBar />
-          <div className="lg:hidden">
-            <DashboardQuickNav />
-          </div>
-        </div>
-        <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} />
-      </div>
+      {workspacePulse ? <WorkspaceLiveBar initial={workspacePulse} compact /> : null}
 
       {proLocked ? <ProUpgradeBanner /> : null}
-
-      {communityPulse.count > 0 ? (
-        <MetricsStrip
-          eyebrow="Community · 30 days"
-          items={[
-            { label: "Active calls", value: String(communityPulse.count), hint: "Marked" },
-            {
-              label: "Avg return",
-              value: formatPct(avgPulse),
-              hint: "Community",
-              accent: avgAccent,
-            },
-            {
-              label: "Winners",
-              value: String(communityPulse.winners),
-              hint: `${communityPulse.losers} red`,
-            },
-          ]}
-        />
-      ) : null}
 
       <OverviewActivityPanels
         openCalls={openCallCards}
@@ -229,39 +202,33 @@ export default async function DashboardOverviewPage({
         hotTickers={hotTickers}
       />
 
-      <div className="grid gap-8 lg:grid-cols-12">
-        <div className="space-y-8 lg:col-span-7 xl:col-span-8">
-          <OverviewSection
+      <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
+        <div className="space-y-6 lg:col-span-7 xl:col-span-8">
+          <WorkspacePanel
             title="Fueled desk"
             subtitle="House research and model portfolio"
+            href="/dashboard/desk"
           >
-            <FueledDeskHero
+            <FueledDeskPreview
               featured={featuredDesk}
               totalDeskCalls={fueledCalls.length}
               weeklyNote={deskBrief.weeklyNote}
             />
-          </OverviewSection>
+          </WorkspacePanel>
 
-          <OverviewSection
-            title="Community"
-            subtitle="What members are trading right now"
+          <WorkspacePanel
+            title="Member feed"
+            subtitle="Latest community theses"
+            href={buildFeedHref({})}
           >
-            <div className="space-y-4">
-              <WorkspacePanel
-                title="Latest from members"
-                subtitle="Newest theses — full board on the feed"
-                href={buildFeedHref({})}
-              >
-                {latestPreviews.length === 0 ? (
-                  <p className="px-3 py-8 text-center text-sm text-[var(--pf-gray-500)]">
-                    No member calls yet.
-                  </p>
-                ) : (
-                  <FeedPreviewList previews={latestPreviews} />
-                )}
-              </WorkspacePanel>
-            </div>
-          </OverviewSection>
+            {latestPreviews.length === 0 ? (
+              <p className="px-3 py-8 text-center text-sm text-[var(--pf-gray-500)]">
+                No member calls yet.
+              </p>
+            ) : (
+              <FeedPreviewList previews={latestPreviews} />
+            )}
+          </WorkspacePanel>
         </div>
 
         <div className="space-y-6 lg:col-span-5 xl:col-span-4">
@@ -274,7 +241,7 @@ export default async function DashboardOverviewPage({
 
           <WorkspacePanel
             title="Watchlist"
-            subtitle="Tap a symbol for chart & ticker intel"
+            subtitle="Symbols you follow"
             href="/dashboard/watchlist"
           >
             {watchlistPreview.length === 0 ? (
@@ -312,7 +279,7 @@ export default async function DashboardOverviewPage({
           {portfolio.length > 0 ? (
             <WorkspacePanel
               title="Fueled portfolio"
-              subtitle="House open theses"
+              subtitle="Open house positions"
               href="/dashboard/desk"
             >
               <div className="divide-y divide-[var(--pf-border)]">
@@ -354,7 +321,10 @@ export default async function DashboardOverviewPage({
 
       {session.role === "admin" ? (
         <p className="text-center text-xs text-[var(--pf-gray-400)]">
-          <Link href="/admin?tab=analytics" className="font-semibold text-[var(--pf-red)] hover:underline">
+          <Link
+            href="/admin?tab=analytics"
+            className="font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] hover:underline"
+          >
             Admin analytics
           </Link>
         </p>

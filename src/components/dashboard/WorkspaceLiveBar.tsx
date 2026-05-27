@@ -8,7 +8,14 @@ import type { WorkspacePulse } from "@/lib/workspace/pulse";
 
 const POLL_MS = 45_000;
 
-export function WorkspaceLiveBar({ initial }: { initial?: WorkspacePulse | null }) {
+export function WorkspaceLiveBar({
+  initial,
+  compact = false,
+}: {
+  initial?: WorkspacePulse | null;
+  /** Overview: stats only — no scrolling tape. */
+  compact?: boolean;
+}) {
   const [pulse, setPulse] = useState<WorkspacePulse | null>(initial ?? null);
   const [tick, setTick] = useState(0);
 
@@ -36,21 +43,31 @@ export function WorkspaceLiveBar({ initial }: { initial?: WorkspacePulse | null 
   const tape = pulse.tape.length > 0 ? [...pulse.tape, ...pulse.tape] : [];
 
   return (
-    <div className="pf-live-bar overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-2.5">
+    <div
+      className={cn(
+        "pf-live-bar overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]",
+        compact && "pf-live-bar-compact"
+      )}
+    >
+      <div
+        className={cn(
+          "flex flex-wrap items-center justify-between gap-3 px-4 py-2.5",
+          compact ? "bg-white" : "border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)]"
+        )}
+      >
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
             <span className="pf-live-dot absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
           </span>
-          <span className="text-xs font-semibold text-[var(--pf-black)]">Workspace live</span>
+          <span className="text-xs font-semibold text-[var(--pf-black)]">Live pulse</span>
           <span className="hidden text-xs text-[var(--pf-gray-500)] sm:inline">
-            · quotes refresh every {pulse.quotesRefreshMinutes}m
+            · quotes every {pulse.quotesRefreshMinutes}m
           </span>
         </div>
         <div className="flex items-center gap-3 text-xs text-[var(--pf-gray-600)]">
           <span className="inline-flex items-center gap-1">
-            <Activity className="h-3.5 w-3.5 text-[var(--pf-red)]" />
+            <Activity className="h-3.5 w-3.5 text-[var(--pf-gray-400)]" />
             <strong className="tabular-nums text-[var(--pf-black)]">
               {pulse.callsLast24h}
             </strong>{" "}
@@ -58,14 +75,14 @@ export function WorkspaceLiveBar({ initial }: { initial?: WorkspacePulse | null 
           </span>
           <Link
             href="/dashboard/feed"
-            className="font-semibold text-[var(--pf-red)] hover:underline"
+            className="font-semibold text-[var(--pf-gray-700)] hover:text-[var(--pf-black)]"
           >
-            Open feed →
+            Feed →
           </Link>
         </div>
       </div>
 
-      {tape.length > 0 ? (
+      {!compact && tape.length > 0 ? (
         <div className="relative h-9 overflow-hidden bg-[var(--pf-black)]" aria-hidden>
           <div
             key={tick}
