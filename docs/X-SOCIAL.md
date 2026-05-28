@@ -13,6 +13,7 @@ Add to Vercel (Production) and local `.env`:
 | `X_API_BEARER_TOKEN` | OAuth 2.0 user token | `tweet.write` scope required for live posts |
 | `X_POST_FUELED` | `true` | Include latest Fueled desk call in cron batch |
 | `X_POST_LEADERBOARD` | `true` | Include top-3 rankings snippet in cron batch |
+| `X_AUTOPOST_FUELED_ON_PUBLISH` | `false` | When an admin publishes a Fueled call, auto-post it to X (still respects dry run + idempotency) |
 
 `CRON_SECRET` must match Vercel cron `Authorization: Bearer …` (same as other crons).
 
@@ -30,6 +31,7 @@ Add to Vercel (Production) and local `.env`:
 - Preview **Fueled** or **rankings** post text (280-char limit enforced).
 - **Dry-run post** — logs on the server, no X call.
 - **Post to X** — live when `X_API_ENABLED=true`, `X_API_DRY_RUN=false`, and token is set.
+- **Force repost** — bypasses idempotency for manual posts.
 
 Same tab includes **Tweet → Fueled draft** (inbound curation): paste tweet text → AI draft → continue in publish form or Desk admin.
 

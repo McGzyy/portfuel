@@ -6,6 +6,7 @@ export type XConfig = {
   bearerToken: string | null;
   fueledPosts: boolean;
   leaderboardPosts: boolean;
+  autopostFueledOnPublish: boolean;
 };
 
 function envFlag(name: string, defaultValue = false): boolean {
@@ -25,6 +26,7 @@ export function getXConfig(): XConfig {
     bearerToken,
     fueledPosts: envFlag("X_POST_FUELED", true),
     leaderboardPosts: envFlag("X_POST_LEADERBOARD", true),
+    autopostFueledOnPublish: envFlag("X_AUTOPOST_FUELED_ON_PUBLISH", false),
   };
 }
 
@@ -39,6 +41,7 @@ export function xConfigSummary(): {
   configured: boolean;
   fueledPosts: boolean;
   leaderboardPosts: boolean;
+  autopostFueledOnPublish: boolean;
 } {
   const c = getXConfig();
   return {
@@ -47,5 +50,6 @@ export function xConfigSummary(): {
     configured: isXConfigured(),
     fueledPosts: c.fueledPosts,
     leaderboardPosts: c.leaderboardPosts,
+    autopostFueledOnPublish: c.autopostFueledOnPublish,
   };
 }

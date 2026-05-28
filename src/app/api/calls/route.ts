@@ -9,6 +9,10 @@ import {
   notifyWatchlistNewCall,
 } from "@/lib/notifications/service";
 import { validateSymbol } from "@/lib/market/validate-symbol";
+import { getXConfig } from "@/lib/social/x-config";
+import { composeFueledPostByCallId } from "@/lib/social/x-compose";
+import { postToX } from "@/lib/social/x-client";
+import { hasSocialPostBeenSent, recordSocialPost } from "@/lib/social/post-log";
 
 const createSchema = z.object({
   symbol: z.string().min(1).max(12),
@@ -135,6 +139,23 @@ export async function POST(request: Request) {
       callerDisplayName: session.displayName,
       direction: body.direction,
     });
+
+    const xConfig = getXConfig();
+    if (isFueled && xConfig.enabled && xConfig.fueledPosts && xConfig.autopostFueledOnPublish) {
+      void (async () => {
+        const alreadySent = await hasSocialPostBeenSent("fueled", call.id);
+        if (alreadySent) return;
+        const composed = await composeFueledPostByCallId(call.id);
+        if (!composed.ok) return;
+        const posted = await postToX(composed.text);
+        if (!posted.ok || posted.dryRun) return;
+        await recordSocialPost({
+          postType: "fueled",
+          refId: call.id,
+          tweetId: posted.tweetId,
+        });
+      })();
+    }
 
     return NextResponse.json({ ok: true, call });
   } catch (e) {

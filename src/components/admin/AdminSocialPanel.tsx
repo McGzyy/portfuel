@@ -15,6 +15,7 @@ type XConfigSummary = {
   configured: boolean;
   fueledPosts: boolean;
   leaderboardPosts: boolean;
+  autopostFueledOnPublish: boolean;
 };
 
 export function AdminSocialPanel() {
@@ -23,6 +24,7 @@ export function AdminSocialPanel() {
   const [previewType, setPreviewType] = useState<"fueled" | "leaderboard">("fueled");
   const [xLoading, setXLoading] = useState(false);
   const [xMessage, setXMessage] = useState("");
+  const [forceRepost, setForceRepost] = useState(false);
 
   const [tweetRaw, setTweetRaw] = useState("");
   const [tweetNote, setTweetNote] = useState("");
@@ -76,12 +78,14 @@ export function AdminSocialPanel() {
       const res = await fetch("/api/admin/social/post", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: previewType, dryRun }),
+        body: JSON.stringify({ type: previewType, dryRun, force: !dryRun && forceRepost }),
       });
       const json = await res.json();
       if (!res.ok) {
         if (json.error === "already_posted") {
-          setXMessage("Already posted for this content — use force in API or wait for new content.");
+          setXMessage(
+            "Already posted for this content — toggle Force repost to send again, or wait for new content."
+          );
           return;
         }
         setXMessage(json.error ?? "Post failed.");
@@ -176,6 +180,12 @@ export function AdminSocialPanel() {
               Cron types: Fueled {config.fueledPosts ? "on" : "off"} · Leaderboard{" "}
               {config.leaderboardPosts ? "on" : "off"}
             </li>
+            <li>
+              Auto-post on publish:{" "}
+              <span className="font-semibold text-[var(--pf-black)]">
+                {config.autopostFueledOnPublish ? "on" : "off"}
+              </span>
+            </li>
           </ul>
         ) : null}
 
@@ -215,6 +225,16 @@ export function AdminSocialPanel() {
             Post to X
           </Button>
         </div>
+
+        <label className="mt-3 inline-flex cursor-pointer items-center gap-2 text-xs font-semibold text-[var(--pf-gray-600)]">
+          <input
+            type="checkbox"
+            className="accent-[var(--pf-red)]"
+            checked={forceRepost}
+            onChange={(e) => setForceRepost(e.target.checked)}
+          />
+          Force repost (ignore idempotency)
+        </label>
 
         {xMessage ? <p className="mt-3 text-xs text-[var(--pf-gray-600)]">{xMessage}</p> : null}
 

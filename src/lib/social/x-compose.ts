@@ -21,6 +21,51 @@ export async function composeXPost(type: XPostType): Promise<
   return { ok: false, error: "unsupported" };
 }
 
+export async function composeFueledPostByCallId(callId: string): Promise<
+  | { ok: true; text: string; refId: string }
+  | { ok: false; error: "no_content" }
+> {
+  if (isDemoMode()) {
+    const call = getDemoCallsFeed("latest").find((c) => c.id === callId && c.is_fueled);
+    if (!call) return { ok: false, error: "no_content" };
+    const link = appPath(`/ticker/${call.symbol}`, {
+      source: "x",
+      medium: "social",
+      campaign: "fueled",
+    });
+    const thesis =
+      call.thesis.length > 100 ? `${call.thesis.slice(0, 97)}…` : call.thesis;
+    const text = trimTweet(
+      `Fueled desk · ${call.symbol} ${call.direction}\n${thesis}\n${link}\n${DISCLAIMER}`
+    );
+    return { ok: true, text, refId: call.id };
+  }
+
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("calls")
+    .select("id, symbol, direction, thesis, called_at")
+    .eq("id", callId)
+    .eq("is_fueled", true)
+    .maybeSingle();
+
+  if (error || !data) return { ok: false, error: "no_content" };
+
+  const link = appPath(`/ticker/${data.symbol}`, {
+    source: "x",
+    medium: "social",
+    campaign: "fueled",
+  });
+  const thesis =
+    (data.thesis?.length ?? 0) > 100
+      ? `${data.thesis!.slice(0, 97)}…`
+      : (data.thesis ?? "");
+  const text = trimTweet(
+    `Fueled desk · ${data.symbol} ${data.direction}\n${thesis}\n${link}\n${DISCLAIMER}`
+  );
+  return { ok: true, text, refId: data.id };
+}
+
 async function composeFueledPost(): Promise<
   | { ok: true; text: string; refId: string }
   | { ok: false; error: "no_content" }
