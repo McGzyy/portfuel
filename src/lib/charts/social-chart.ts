@@ -103,12 +103,14 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   const footerH = 30;
   const axisW = 72;
 
-  const logoY = 28;
-  const logoH = 118;
-  const logoColW = 200;
-  const metaX = pad + logoColW + 22;
-  const metaY = logoY + 50;
-  const headerBottom = logoY + logoH + 16;
+  const logoY = 32;
+  const logoH = 108;
+  const logoRenderH = 92;
+  const logoColW = 188;
+  const logoRenderY = logoY + (logoH - logoRenderH) / 2;
+  const metaX = pad + logoColW + 24;
+  const metaY = logoY + 46;
+  const headerBottom = logoY + logoH + 14;
   const chartY = headerBottom + 14;
   const chartH = H - chartY - footerH;
 
@@ -200,9 +202,9 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   let markerSvg = "";
   if (fueledMarker && candles.length > 0) {
     const y = priceToY(fueledMarker.price);
-    markerSvg += `<line x1="${callX}" y1="${chartY}" x2="${callX}" y2="${chartY + chartH}" stroke="${T.fueled}" stroke-width="1" stroke-dasharray="3 7" opacity="0.22"/>`;
-    markerSvg += `<circle cx="${callX}" cy="${y}" r="8" fill="${T.fueled}"/>`;
-    markerSvg += `<circle cx="${callX}" cy="${y}" r="8" fill="none" stroke="#ffffff" stroke-width="1.75" opacity="0.5"/>`;
+    markerSvg += `<line x1="${callX}" y1="${chartY}" x2="${callX}" y2="${chartY + chartH}" stroke="${T.fueled}" stroke-width="1" stroke-dasharray="3 7" opacity="0.18"/>`;
+    markerSvg += `<circle cx="${callX}" cy="${y}" r="6.5" fill="${T.fueled}"/>`;
+    markerSvg += `<circle cx="${callX}" cy="${y}" r="6.5" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.45"/>`;
   }
 
   const returnStr = payload.returnPct != null ? formatPct(payload.returnPct) : "—";
@@ -210,15 +212,16 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
     payload.returnPct != null && payload.returnPct >= 0 ? T.returnPositive : T.returnNegative;
 
   const logoImg = payload.logoBase64
-    ? `<g clip-path="url(#logoClip)"><image href="data:image/png;base64,${payload.logoBase64}" x="${pad - 2}" y="${logoY - 4}" width="${logoColW - 4}" height="${logoH + 8}" preserveAspectRatio="xMinYMid slice"/></g>`
-    : text(pad, logoY + 58, "PortFuel PRO", { size: 22, weight: 700, fill: T.textBright });
+    ? `<image href="data:image/png;base64,${payload.logoBase64}" x="${pad + 2}" y="${logoRenderY}" height="${logoRenderH}" preserveAspectRatio="xMinYMid meet"/>`
+    : text(pad, logoY + 54, "PortFuel PRO", { size: 20, weight: 700, fill: T.textBright });
 
   const badgeLabel = payload.milestoneLabel?.toUpperCase() ?? "";
-  const badgeW = badgeLabel ? badgeLabel.length * 6.4 + 32 : 0;
+  const badgeW = badgeLabel ? badgeLabel.length * 6.2 + 30 : 0;
   const perfX = W - pad;
+  const perfTop = logoY + 2;
   const milestoneBadge = badgeLabel
-    ? `<rect x="${perfX - badgeW}" y="${logoY + 4}" width="${badgeW}" height="28" rx="14" fill="${T.accentSoft}" stroke="${T.accent}" stroke-width="1"/>
-       ${text(perfX - badgeW / 2, logoY + 22, badgeLabel, { size: 9, weight: 700, fill: T.textBright, anchor: "middle" })}`
+    ? `<rect x="${perfX - badgeW}" y="${perfTop}" width="${badgeW}" height="26" rx="13" fill="${T.accentSoft}" stroke="${T.accent}" stroke-width="1"/>
+       ${text(perfX - badgeW / 2, perfTop + 17, badgeLabel, { size: 8, weight: 700, fill: T.textBright, anchor: "middle" })}`
     : "";
 
   const directionLabel = payload.direction.toUpperCase();
@@ -229,8 +232,8 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
     .join("  ·  ");
 
   const titleBlock = `<text x="${metaX}" y="${metaY}" font-family="${FONT_SANS}">
-    <tspan fill="${T.textBright}" font-size="44" font-weight="700">${esc(payload.symbol)}</tspan>
-    <tspan dx="12" fill="${directionColor}" font-size="13" font-weight="700">· ${esc(directionLabel)}</tspan>
+    <tspan fill="${T.textBright}" font-size="42" font-weight="700">${esc(payload.symbol)}</tspan>
+    <tspan dx="10" fill="${directionColor}" font-size="12" font-weight="700">· ${esc(directionLabel)}</tspan>
   </text>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -239,19 +242,16 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
     <clipPath id="plotClip">
       <rect x="${chartX}" y="${chartY}" width="${chartW}" height="${chartH}"/>
     </clipPath>
-    <clipPath id="logoClip">
-      <rect x="${pad}" y="${logoY}" width="${logoColW - 4}" height="${logoH}"/>
-    </clipPath>
   </defs>
   <rect width="${W}" height="${H}" fill="${T.background}"/>
   <rect x="0" y="0" width="4" height="${H}" fill="${T.accent}"/>
-  <line x1="${pad + logoColW}" y1="${logoY + 10}" x2="${pad + logoColW}" y2="${logoY + logoH - 10}" stroke="${T.headerBorder}" stroke-width="1"/>
+  <line x1="${pad + logoColW}" y1="${logoY + 8}" x2="${pad + logoColW}" y2="${logoY + logoH - 8}" stroke="${T.headerBorder}" stroke-width="1"/>
   ${logoImg}
   ${titleBlock}
-  ${text(metaX, metaY + 28, subtitle, { size: 12, fill: T.text, weight: 400 })}
+  ${text(metaX, metaY + 26, subtitle, { size: 11, fill: T.text, weight: 400 })}
   ${milestoneBadge}
-  ${text(perfX, metaY + 34, returnStr, { size: 52, weight: 700, fill: returnColor, anchor: "end" })}
-  ${text(perfX, metaY + 56, "since desk call", { size: 10, fill: T.textMuted, anchor: "end", weight: 500 })}
+  ${text(perfX, metaY + 30, returnStr, { size: 46, weight: 700, fill: returnColor, anchor: "end" })}
+  ${text(perfX, metaY + 50, "SINCE DESK CALL", { size: 9, fill: T.textMuted, anchor: "end", weight: 500 })}
   <line x1="${pad}" y1="${headerBottom}" x2="${W - pad}" y2="${headerBottom}" stroke="${T.headerBorder}" stroke-width="1"/>
   <rect x="${pad}" y="${chartY}" width="${W - pad * 2}" height="${chartH}" fill="${T.chartBg}" rx="8"/>
   <g clip-path="url(#plotClip)">
@@ -262,6 +262,6 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   </g>
   ${levelTagsSvg}
   ${axisSvg}
-  ${text(W / 2, H - 12, "Not investment advice  ·  portfuel.pro", { size: 9, fill: T.textMuted, anchor: "middle", weight: 500 })}
+  ${text(W / 2, H - 12, "NOT INVESTMENT ADVICE  ·  PORTFUEL.PRO", { size: 8, fill: T.textMuted, anchor: "middle", weight: 500 })}
 </svg>`;
 }
