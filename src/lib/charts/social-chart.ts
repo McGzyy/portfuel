@@ -100,19 +100,17 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   const W = T.width;
   const H = T.height;
   const pad = 44;
-  const footerH = 30;
+  const footerH = 36;
   const axisW = 72;
 
-  const logoY = 32;
-  const logoH = 108;
-  const logoRenderH = 92;
-  const logoColW = 188;
-  const logoRenderY = logoY + (logoH - logoRenderH) / 2;
-  const metaX = pad + logoColW + 24;
-  const metaY = logoY + 46;
-  const headerBottom = logoY + logoH + 14;
-  const chartY = headerBottom + 14;
+  const metaX = pad + 16;
+  const metaY = 40;
+  const headerBottom = metaY + 44;
+  const chartY = headerBottom + 12;
   const chartH = H - chartY - footerH;
+
+  const logoRenderH = 58;
+  const logoRenderW = Math.round(logoRenderH * (788 / 488));
 
   const allCandles = payload.candles.length > 0 ? payload.candles : [];
   const candles = allCandles.length > 28 ? allCandles.slice(-28) : allCandles;
@@ -155,7 +153,7 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
     const price = yMax - (yRange * i) / 2;
     gridSvg += `<line x1="${chartX}" y1="${y}" x2="${chartX + chartW}" y2="${y}" stroke="${T.grid}" stroke-width="1"/>`;
     axisSvg += text(axisX + axisW - 4, y + 4, formatPrice(price), {
-      size: 11,
+      size: 12,
       fill: T.textMuted,
       weight: 500,
       anchor: "end",
@@ -211,14 +209,17 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   const returnColor =
     payload.returnPct != null && payload.returnPct >= 0 ? T.returnPositive : T.returnNegative;
 
+  const logoX = chartX + chartW - logoRenderW - 14;
+  const logoY = chartY + chartH - logoRenderH - 10;
+
   const logoImg = payload.logoBase64
-    ? `<image href="data:image/png;base64,${payload.logoBase64}" x="${pad + 2}" y="${logoRenderY}" height="${logoRenderH}" preserveAspectRatio="xMinYMid meet"/>`
-    : text(pad, logoY + 54, "PortFuel PRO", { size: 20, weight: 700, fill: T.textBright });
+    ? `<image href="data:image/png;base64,${payload.logoBase64}" x="${logoX}" y="${logoY}" width="${logoRenderW}" height="${logoRenderH}" preserveAspectRatio="xMaxYMax meet" opacity="0.92"/>`
+    : text(logoX, logoY + 40, "PortFuel PRO", { size: 14, weight: 700, fill: T.textBright, anchor: "end" });
 
   const badgeLabel = payload.milestoneLabel?.toUpperCase() ?? "";
   const badgeW = badgeLabel ? badgeLabel.length * 6.2 + 30 : 0;
   const perfX = W - pad;
-  const perfTop = logoY + 2;
+  const perfTop = metaY - 22;
   const milestoneBadge = badgeLabel
     ? `<rect x="${perfX - badgeW}" y="${perfTop}" width="${badgeW}" height="26" rx="13" fill="${T.accentSoft}" stroke="${T.accent}" stroke-width="1"/>
        ${text(perfX - badgeW / 2, perfTop + 17, badgeLabel, { size: 8, weight: 700, fill: T.textBright, anchor: "middle" })}`
@@ -232,8 +233,8 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
     .join("  ·  ");
 
   const titleBlock = `<text x="${metaX}" y="${metaY}" font-family="${FONT_SANS}">
-    <tspan fill="${T.textBright}" font-size="42" font-weight="700">${esc(payload.symbol)}</tspan>
-    <tspan dx="10" fill="${directionColor}" font-size="12" font-weight="700">· ${esc(directionLabel)}</tspan>
+    <tspan fill="${T.textBright}" font-size="44" font-weight="700">${esc(payload.symbol)}</tspan>
+    <tspan dx="10" fill="${directionColor}" font-size="13" font-weight="700">· ${esc(directionLabel)}</tspan>
   </text>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -245,13 +246,11 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   </defs>
   <rect width="${W}" height="${H}" fill="${T.background}"/>
   <rect x="0" y="0" width="4" height="${H}" fill="${T.accent}"/>
-  <line x1="${pad + logoColW}" y1="${logoY + 8}" x2="${pad + logoColW}" y2="${logoY + logoH - 8}" stroke="${T.headerBorder}" stroke-width="1"/>
-  ${logoImg}
   ${titleBlock}
-  ${text(metaX, metaY + 26, subtitle, { size: 11, fill: T.text, weight: 400 })}
+  ${text(metaX, metaY + 28, subtitle, { size: 12, fill: T.text, weight: 400 })}
   ${milestoneBadge}
-  ${text(perfX, metaY + 30, returnStr, { size: 46, weight: 700, fill: returnColor, anchor: "end" })}
-  ${text(perfX, metaY + 50, "SINCE DESK CALL", { size: 9, fill: T.textMuted, anchor: "end", weight: 500 })}
+  ${text(perfX, metaY + 32, returnStr, { size: 48, weight: 700, fill: returnColor, anchor: "end" })}
+  ${text(perfX, metaY + 52, "SINCE DESK CALL", { size: 10, fill: T.textMuted, anchor: "end", weight: 500 })}
   <line x1="${pad}" y1="${headerBottom}" x2="${W - pad}" y2="${headerBottom}" stroke="${T.headerBorder}" stroke-width="1"/>
   <rect x="${pad}" y="${chartY}" width="${W - pad * 2}" height="${chartH}" fill="${T.chartBg}" rx="8"/>
   <g clip-path="url(#plotClip)">
@@ -262,6 +261,7 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   </g>
   ${levelTagsSvg}
   ${axisSvg}
-  ${text(W / 2, H - 12, "NOT INVESTMENT ADVICE  ·  PORTFUEL.PRO", { size: 8, fill: T.textMuted, anchor: "middle", weight: 500 })}
+  ${text(pad + 8, H - 14, "NOT INVESTMENT ADVICE  ·  PORTFUEL.PRO", { size: 9, fill: T.textMuted, anchor: "start", weight: 500 })}
+  ${logoImg}
 </svg>`;
 }
