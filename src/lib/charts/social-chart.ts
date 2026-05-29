@@ -54,6 +54,19 @@ function text(
   return `<text x="${x}" y="${y}" fill="${fill}" font-size="${size}" font-weight="${weight}" font-family="${FONT_SANS}" text-anchor="${anchor}"${opacity}>${esc(content)}</text>`;
 }
 
+function levelTag(
+  x: number,
+  y: number,
+  label: string,
+  color: string,
+  anchor: "start" | "end" = "start"
+): string {
+  const w = label.length * 6.4 + 16;
+  const tagX = anchor === "start" ? x : x - w;
+  return `<rect x="${tagX}" y="${y - 10}" width="${w}" height="18" rx="4" fill="${T.tagBg}" stroke="${color}" stroke-width="1" opacity="0.96"/>
+    ${text(tagX + w / 2, y + 3, label, { size: 8, weight: 700, fill: color, anchor: "middle" })}`;
+}
+
 function nearestCandleIndex(candles: CandlePoint[], time: number): number {
   if (candles.length === 0) return 0;
   let best = 0;
@@ -86,26 +99,26 @@ function levelMeta(label: string): { kind: "entry" | "target"; short: string } {
 export function renderSocialChartSvg(payload: SocialChartPayload): string {
   const W = T.width;
   const H = T.height;
-  const pad = 40;
-  const footerH = 28;
-  const axisW = 64;
+  const pad = 44;
+  const footerH = 30;
+  const axisW = 72;
 
-  const logoY = 22;
-  const logoH = 124;
-  const logoColW = 196;
-  const metaX = pad + logoColW + 20;
-  const metaY = logoY + 52;
-  const headerBottom = logoY + logoH + 18;
-  const chartY = headerBottom + 12;
+  const logoY = 28;
+  const logoH = 118;
+  const logoColW = 200;
+  const metaX = pad + logoColW + 22;
+  const metaY = logoY + 50;
+  const headerBottom = logoY + logoH + 16;
+  const chartY = headerBottom + 14;
   const chartH = H - chartY - footerH;
 
   const allCandles = payload.candles.length > 0 ? payload.candles : [];
   const candles = allCandles.length > 28 ? allCandles.slice(-28) : allCandles;
   const priceLines = socialPriceLines(payload.priceLines);
 
-  const chartX = pad;
-  const chartW = W - pad * 2 - axisW;
-  const axisX = chartX + chartW + 10;
+  const chartX = pad + 6;
+  const chartW = W - pad * 2 - axisW - 6;
+  const axisX = chartX + chartW + 12;
 
   const prices = candles.flatMap((c) => [c.high, c.low]);
   for (const line of priceLines) prices.push(line.price);
@@ -113,7 +126,7 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
 
   const minP = prices.length ? Math.min(...prices) : 0;
   const maxP = prices.length ? Math.max(...prices) : 1;
-  const padPct = (maxP - minP) * 0.05 || maxP * 0.03 || 1;
+  const padPct = (maxP - minP) * 0.06 || maxP * 0.03 || 1;
   const yMin = minP - padPct;
   const yMax = maxP + padPct;
   const yRange = yMax - yMin;
@@ -124,13 +137,22 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   const slotW = chartW / n;
   const minBodyPx = Math.max(6, chartH * 0.012);
 
+  const fueledMarker =
+    payload.markers.find((m) => m.kind === "fueled" || m.callId === payload.featuredCallId) ??
+    payload.markers.find((m) => m.kind === "fueled");
+
+  const callX =
+    fueledMarker && candles.length > 0
+      ? chartX + nearestCandleIndex(candles, fueledMarker.time) * slotW + slotW / 2
+      : chartX + chartW * 0.35;
+
   let gridSvg = "";
   let axisSvg = "";
   for (let i = 0; i <= 2; i++) {
     const y = chartY + (chartH / 2) * i;
     const price = yMax - (yRange * i) / 2;
     gridSvg += `<line x1="${chartX}" y1="${y}" x2="${chartX + chartW}" y2="${y}" stroke="${T.grid}" stroke-width="1"/>`;
-    axisSvg += text(axisX + axisW - 2, y + 4, formatPrice(price), {
+    axisSvg += text(axisX + axisW - 4, y + 4, formatPrice(price), {
       size: 11,
       fill: T.textMuted,
       weight: 500,
@@ -162,35 +184,25 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
     candleSvg += `<rect x="${(x - cw / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${cw.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${bodyColor}"/>`;
   }
 
-  let levelSvg = "";
+  let levelLinesSvg = "";
+  let levelTagsSvg = "";
   for (const line of priceLines) {
     const y = priceToY(line.price);
     const meta = levelMeta(line.label);
     const color = meta.kind === "target" ? T.target : T.entry;
     const dash = meta.kind === "target" ? ' stroke-dasharray="8 6"' : "";
     const sw = meta.kind === "entry" ? 2 : 1.25;
-    levelSvg += `<line x1="${chartX}" y1="${y}" x2="${chartX + chartW}" y2="${y}" stroke="${color}" stroke-width="${sw}" opacity="0.9"${dash}/>`;
-    levelSvg += `<circle cx="${chartX + chartW - 3}" cy="${y}" r="3.5" fill="${color}"/>`;
-    levelSvg += text(chartX + chartW - 10, y - 7, meta.short, {
-      size: 8,
-      weight: 700,
-      fill: color,
-      anchor: "end",
-    });
+    const lineStart = meta.kind === "entry" ? callX : chartX;
+    levelLinesSvg += `<line x1="${lineStart}" y1="${y}" x2="${chartX + chartW}" y2="${y}" stroke="${color}" stroke-width="${sw}" opacity="0.92"${dash}/>`;
+    levelTagsSvg += levelTag(chartX + 8, y, meta.short, color, "start");
   }
-
-  const fueledMarker =
-    payload.markers.find((m) => m.kind === "fueled" || m.callId === payload.featuredCallId) ??
-    payload.markers.find((m) => m.kind === "fueled");
 
   let markerSvg = "";
   if (fueledMarker && candles.length > 0) {
-    const idx = nearestCandleIndex(candles, fueledMarker.time);
-    const x = chartX + idx * slotW + slotW / 2;
     const y = priceToY(fueledMarker.price);
-    markerSvg += `<line x1="${x}" y1="${y}" x2="${x}" y2="${chartY + chartH}" stroke="${T.fueled}" stroke-width="1" opacity="0.2"/>`;
-    markerSvg += `<circle cx="${x}" cy="${y}" r="7" fill="${T.fueled}"/>`;
-    markerSvg += `<circle cx="${x}" cy="${y}" r="7" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.45"/>`;
+    markerSvg += `<line x1="${callX}" y1="${chartY}" x2="${callX}" y2="${chartY + chartH}" stroke="${T.fueled}" stroke-width="1" stroke-dasharray="3 7" opacity="0.22"/>`;
+    markerSvg += `<circle cx="${callX}" cy="${y}" r="8" fill="${T.fueled}"/>`;
+    markerSvg += `<circle cx="${callX}" cy="${y}" r="8" fill="none" stroke="#ffffff" stroke-width="1.75" opacity="0.5"/>`;
   }
 
   const returnStr = payload.returnPct != null ? formatPct(payload.returnPct) : "—";
@@ -199,14 +211,14 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
 
   const logoImg = payload.logoBase64
     ? `<image href="data:image/png;base64,${payload.logoBase64}" x="${pad}" y="${logoY}" height="${logoH}" preserveAspectRatio="xMinYMid meet"/>`
-    : text(pad, logoY + 62, "PortFuel PRO", { size: 22, weight: 700, fill: T.textBright });
+    : text(pad, logoY + 58, "PortFuel PRO", { size: 22, weight: 700, fill: T.textBright });
 
   const badgeLabel = payload.milestoneLabel?.toUpperCase() ?? "";
-  const badgeW = badgeLabel ? badgeLabel.length * 6.2 + 30 : 0;
+  const badgeW = badgeLabel ? badgeLabel.length * 6.4 + 32 : 0;
   const perfX = W - pad;
   const milestoneBadge = badgeLabel
-    ? `<rect x="${perfX - badgeW}" y="${logoY + 2}" width="${badgeW}" height="26" rx="13" fill="${T.accentSoft}" stroke="${T.accent}" stroke-width="1"/>
-       ${text(perfX - badgeW / 2, logoY + 20, badgeLabel, { size: 9, weight: 700, fill: T.textBright, anchor: "middle" })}`
+    ? `<rect x="${perfX - badgeW}" y="${logoY + 4}" width="${badgeW}" height="28" rx="14" fill="${T.accentSoft}" stroke="${T.accent}" stroke-width="1"/>
+       ${text(perfX - badgeW / 2, logoY + 22, badgeLabel, { size: 9, weight: 700, fill: T.textBright, anchor: "middle" })}`
     : "";
 
   const directionLabel = payload.direction.toUpperCase();
@@ -230,22 +242,23 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   </defs>
   <rect width="${W}" height="${H}" fill="${T.background}"/>
   <rect x="0" y="0" width="4" height="${H}" fill="${T.accent}"/>
-  <line x1="${pad + logoColW}" y1="${logoY + 8}" x2="${pad + logoColW}" y2="${logoY + logoH - 8}" stroke="${T.headerBorder}" stroke-width="1"/>
+  <line x1="${pad + logoColW}" y1="${logoY + 10}" x2="${pad + logoColW}" y2="${logoY + logoH - 10}" stroke="${T.headerBorder}" stroke-width="1"/>
   ${logoImg}
   ${titleBlock}
   ${text(metaX, metaY + 28, subtitle, { size: 12, fill: T.text, weight: 400 })}
   ${milestoneBadge}
-  ${text(perfX, metaY + 2, returnStr, { size: 50, weight: 700, fill: returnColor, anchor: "end" })}
-  ${text(perfX, metaY + 28, "since desk call", { size: 10, fill: T.textMuted, anchor: "end", weight: 500 })}
+  ${text(perfX, metaY + 34, returnStr, { size: 52, weight: 700, fill: returnColor, anchor: "end" })}
+  ${text(perfX, metaY + 56, "since desk call", { size: 10, fill: T.textMuted, anchor: "end", weight: 500 })}
   <line x1="${pad}" y1="${headerBottom}" x2="${W - pad}" y2="${headerBottom}" stroke="${T.headerBorder}" stroke-width="1"/>
-  <rect x="${chartX}" y="${chartY}" width="${chartW + axisW + 6}" height="${chartH}" fill="${T.chartBg}"/>
+  <rect x="${pad}" y="${chartY}" width="${W - pad * 2}" height="${chartH}" fill="${T.chartBg}" rx="8"/>
   <g clip-path="url(#plotClip)">
     ${gridSvg}
     ${candleSvg}
-    ${levelSvg}
+    ${levelLinesSvg}
     ${markerSvg}
   </g>
+  ${levelTagsSvg}
   ${axisSvg}
-  ${text(W / 2, H - 11, "Not investment advice  ·  portfuel.pro", { size: 9, fill: T.textMuted, anchor: "middle", weight: 500 })}
+  ${text(W / 2, H - 12, "Not investment advice  ·  portfuel.pro", { size: 9, fill: T.textMuted, anchor: "middle", weight: 500 })}
 </svg>`;
 }
