@@ -12,6 +12,14 @@ function fmtPct(n: number): string {
   return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
 }
 
+/** Return multiple since desk call (e.g. +27.8% → 1.28x). */
+function fmtMultiplier(returnPct: number | null): string | null {
+  if (returnPct == null || !Number.isFinite(returnPct)) return null;
+  const m = 1 + returnPct / 100;
+  const decimals = m >= 10 ? 1 : 2;
+  return `${m.toFixed(decimals)}x`;
+}
+
 function fmtUsd(n: number): string {
   const abs = Math.abs(n);
   const digits = abs >= 100 ? 2 : abs >= 1 ? 2 : 4;
@@ -53,6 +61,7 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
     dollarChange != null && ret != null
       ? `${dollarChange >= 0 ? "+" : "-"}${fmtUsd(Math.abs(dollarChange))} (${fmtPct(ret)}) since desk call`
       : `${retStr} since desk call`;
+  const multiplier = fmtMultiplier(ret);
 
   const response = new ImageResponse(
     (
@@ -69,67 +78,101 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
             padding: "40px 48px 0",
           }}
         >
-          <div style={{ display: "flex", fontSize: 13, fontWeight: 500, color: T.text }}>
-            {payload.symbol}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              fontSize: 22,
-              fontWeight: 600,
-              color: T.textBright,
-              marginTop: 4,
-              maxWidth: 720,
-            }}
-          >
-            {payload.companyName}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              marginTop: 12,
-            }}
-          >
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", fontSize: 13, fontWeight: 500, color: T.text }}>
+              {payload.symbol}
+            </div>
             <div
               style={{
                 display: "flex",
-                fontSize: 56,
-                fontWeight: 700,
+                fontSize: 22,
+                fontWeight: 600,
                 color: T.textBright,
-                letterSpacing: -2,
+                marginTop: 4,
+                maxWidth: 720,
               }}
             >
-              {fmtUsd(lastPrice)}
+              {payload.companyName}
             </div>
-            <div style={{ display: "flex", fontSize: 20, fontWeight: 500, color: T.text, marginLeft: 10 }}>
-              USD
+            <div
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                marginTop: 12,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 56,
+                  fontWeight: 700,
+                  color: T.textBright,
+                  letterSpacing: -2,
+                }}
+              >
+                {fmtUsd(lastPrice)}
+              </div>
+              <div style={{ display: "flex", fontSize: 20, fontWeight: 500, color: T.text, marginLeft: 10 }}>
+                USD
+              </div>
             </div>
+            <div
+              style={{
+                display: "flex",
+                fontSize: 18,
+                fontWeight: 600,
+                color: trendColor,
+                marginTop: 8,
+              }}
+            >
+              {changeLine}
+            </div>
+            {mile ? (
+              <div style={{ display: "flex", fontSize: 13, color: T.textDim, marginTop: 6 }}>
+                {mile}
+                {date ? ` · Desk ${date}` : ""}
+              </div>
+            ) : (
+              <div style={{ display: "flex", fontSize: 13, color: T.textDim, marginTop: 6 }}>
+                {date ? `Desk call · ${date}` : "PortFuel Fueled desk"}
+              </div>
+            )}
           </div>
-          <div
-            style={{
-              display: "flex",
-              fontSize: 18,
-              fontWeight: 600,
-              color: trendColor,
-              marginTop: 8,
-            }}
-          >
-            {changeLine}
-          </div>
-          {mile ? (
-            <div style={{ display: "flex", fontSize: 13, color: T.textDim, marginTop: 6 }}>
-              {mile}
-              {date ? ` · Desk ${date}` : ""}
+
+          {multiplier ? (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", marginTop: 8 }}>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 64,
+                  fontWeight: 700,
+                  color: T.accent,
+                  letterSpacing: -2,
+                }}
+              >
+                {multiplier}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: T.accent,
+                  marginTop: 4,
+                  letterSpacing: 1.2,
+                  opacity: 0.85,
+                }}
+              >
+                MULTIPLIER
+              </div>
             </div>
           ) : (
-            <div style={{ display: "flex", fontSize: 13, color: T.textDim, marginTop: 6 }}>
-              {date ? `Desk call · ${date}` : "PortFuel Fueled desk"}
-            </div>
+            <div style={{ display: "flex", width: 1 }} />
           )}
         </div>
 
