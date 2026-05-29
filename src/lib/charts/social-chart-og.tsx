@@ -34,12 +34,6 @@ function resolveEntry(payload: SocialChartPayload): number | null {
   return mark?.price ?? null;
 }
 
-function logoSrc(): string | null {
-  const path = join(process.cwd(), "public", "logo-social-chrome.png");
-  if (!existsSync(path)) return null;
-  return `data:image/png;base64,${readFileSync(path).toString("base64")}`;
-}
-
 export async function renderSocialChartOgPng(payload: SocialChartPayload): Promise<Buffer> {
   const plotPng = await renderSocialChartPlotPng(payload);
   const plotSrc = `data:image/png;base64,${plotPng.toString("base64")}`;
@@ -52,7 +46,6 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
   const retStr = ret != null ? fmtPct(ret) : "—";
   const mile = payload.milestoneLabel ?? "";
   const date = fmtDate(payload.calledAt);
-  const logo = logoSrc();
   const up = (ret ?? 0) >= 0;
   const trendColor = up ? T.lineUp : T.lineDown;
 
@@ -152,17 +145,12 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
         <div
           style={{
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
             marginTop: "auto",
             padding: "16px 48px 28px",
           }}
         >
           <div style={{ display: "flex", fontSize: 11, color: T.textDim }}>
             Not investment advice · portfuel.pro
-          </div>
-          <div style={{ display: "flex", opacity: 0.92 }}>
-            {logo ? <img src={logo} height={44} alt="" /> : null}
           </div>
         </div>
       </div>

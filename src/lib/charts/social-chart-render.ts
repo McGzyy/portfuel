@@ -9,7 +9,8 @@ import { socialChartFontFiles } from "@/lib/charts/social-chart-fonts";
 /** PNG via next/og (Inter + flex layout). Falls back to Resvg SVG if OG fails. */
 export async function renderSocialChartPng(payload: SocialChartPayload): Promise<Buffer> {
   try {
-    return await renderSocialChartOgPng(payload);
+    const chartPng = await renderSocialChartOgPng(payload);
+    return compositeSocialChartLogo(chartPng);
   } catch (e) {
     console.error("[social-chart] OG render failed, using SVG fallback:", e);
     const svg = renderSocialChartSvg(payload);
