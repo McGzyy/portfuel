@@ -10,27 +10,34 @@ export const PF_CHART = {
 
 export const SOCIAL_LOGO_ASPECT = 1024 / 682;
 
-/** Social milestone card — 1200×675. */
+/** Social milestone card — 1200×675 (matches `.pf-fueled-desk` / `.pf-fueled-panel`). */
 export const PF_CHART_SOCIAL = {
   width: 1200,
   height: 675,
-  bg: "#0b0b0c",
-  panel: "#111113",
-  panelStroke: "rgba(255,255,255,0.07)",
-  rule: "rgba(255,255,255,0.08)",
-  grid: "rgba(255,255,255,0.04)",
-  text: "#9ca3af",
-  textBright: "#f9fafb",
-  textDim: "#6b7280",
-  long: "#4ade80",
-  accent: "#E31B23",
-  accentFill: "rgba(227,27,35,0.2)",
-  up: "#26a69a",
-  upWick: "#1e8e7e",
-  down: "#ef5350",
-  downWick: "#c62828",
-  entry: "#E31B23",
-  target: "#26a69a",
+  bgGradient: "linear-gradient(135deg, #0f1419 0%, #1a2332 55%, #2a1520 100%)",
+  panelGradient: ["#0a0e14", "#141c28", "#1f1218"] as const,
+  panelBorder: "rgba(227, 27, 35, 0.25)",
+  glass: "rgba(255, 255, 255, 0.05)",
+  glassBorder: "rgba(255, 255, 255, 0.1)",
+  rule: "rgba(255, 255, 255, 0.08)",
+  grid: "rgba(255, 255, 255, 0.07)",
+  text: "#94a3b8",
+  textBright: "#f8fafc",
+  textDim: "#64748b",
+  eyebrow: "#fca5a5",
+  long: "#34d399",
+  longBorder: "rgba(52, 211, 153, 0.45)",
+  accent: "#e31b23",
+  accentSoft: "#fca5a5",
+  accentFill: "rgba(227, 27, 35, 0.22)",
+  accentGlow: "rgba(227, 27, 35, 0.18)",
+  up: "#059669",
+  upWick: "#047857",
+  down: "#e31b23",
+  downWick: "#be123c",
+  entry: "#e31b23",
+  target: "#059669",
+  profitFill: "rgba(5, 150, 105, 0.12)",
 } as const;
 
 export function chartLayoutOptions() {

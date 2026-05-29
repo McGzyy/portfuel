@@ -158,9 +158,10 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0e0e10"/>
-      <stop offset="100%" stop-color="${C.bg}"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${C.panelGradient[0]}"/>
+      <stop offset="55%" stop-color="${C.panelGradient[1]}"/>
+      <stop offset="100%" stop-color="${C.panelGradient[2]}"/>
     </linearGradient>
     <clipPath id="plot"><rect x="${chartX}" y="${chartY}" width="${chartW}" height="${chartH}"/></clipPath>
   </defs>
@@ -178,7 +179,7 @@ ${txt(rx - mileW / 2, 49, mile, { size: 8, weight: 700, fill: C.textBright, anch
   }
   ${txt(rx, 88, ret, { size: 56, weight: 700, fill: C.textBright, anchor: "end" })}
   ${txt(rx, 106, "since desk call", { size: 11, fill: C.textDim, anchor: "end" })}
-  <rect x="${panelX}" y="${panelTop}" width="${panelW}" height="${panelH}" rx="12" fill="${C.panel}" stroke="${C.panelStroke}"/>
+  <rect x="${panelX}" y="${panelTop}" width="${panelW}" height="${panelH}" rx="12" fill="${C.panelGradient[1]}" stroke="${C.panelBorder}"/>
   <g clip-path="url(#plot)">${grid}${bodies}${levels}${mark}</g>
   ${axis}
   <line x1="${PAD}" y1="${footerTop}" x2="${W - PAD}" y2="${footerTop}" stroke="${C.rule}"/>

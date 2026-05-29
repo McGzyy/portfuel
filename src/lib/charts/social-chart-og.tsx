@@ -4,6 +4,7 @@ import { ImageResponse } from "next/og";
 import type { SocialChartPayload } from "@/lib/charts/social-chart-data";
 import { renderSocialChartPlotPng, SOCIAL_CHART_PLOT_SIZE } from "@/lib/charts/social-chart-plot";
 import { socialChartOgFonts } from "@/lib/charts/social-chart-og-fonts";
+import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
 
 const W = 1200;
 const H = 675;
@@ -34,7 +35,9 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
   const mile = payload.milestoneLabel?.toUpperCase() ?? "";
   const date = fmtDate(payload.calledAt);
   const logo = logoSrc();
-  const dirColor = payload.direction === "long" ? "#4ade80" : "#E31B23";
+  const isLong = payload.direction === "long";
+  const dirColor = isLong ? T.long : T.accent;
+  const retColor = payload.returnPct != null && payload.returnPct >= 0 ? T.long : "#fb7185";
 
   const response = new ImageResponse(
     (
@@ -44,17 +47,39 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
           height: H,
           display: "flex",
           flexDirection: "column",
-          background: "linear-gradient(180deg, #0c0c0e 0%, #09090b 100%)",
-          padding: "26px 48px 22px",
+          background: T.bgGradient,
+          padding: "24px 44px 20px",
           fontFamily: "Inter",
+          position: "relative",
         }}
       >
         <div
           style={{
             display: "flex",
+            position: "absolute",
+            top: 0,
+            right: 0,
+            width: 520,
+            height: 320,
+            background: "radial-gradient(circle at 100% 0%, rgba(227,27,35,0.28) 0%, transparent 68%)",
+          }}
+        />
+
+        <div style={{ display: "flex", fontSize: 10, fontWeight: 600, color: T.eyebrow, letterSpacing: 1.6 }}>
+          FUELED DESK · MILESTONE
+        </div>
+
+        <div
+          style={{
+            display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-end",
-            marginBottom: 14,
+            marginTop: 10,
+            marginBottom: 12,
+            padding: "16px 20px",
+            borderRadius: 12,
+            border: `1px solid ${T.glassBorder}`,
+            background: T.glass,
           }}
         >
           <div style={{ display: "flex", flexDirection: "column" }}>
@@ -62,10 +87,10 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
               <div
                 style={{
                   display: "flex",
-                  fontSize: 52,
+                  fontSize: 48,
                   fontWeight: 700,
-                  color: "#fafafa",
-                  letterSpacing: -2,
+                  color: T.textBright,
+                  letterSpacing: -1.5,
                 }}
               >
                 {payload.symbol}
@@ -73,37 +98,49 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
               <div
                 style={{
                   display: "flex",
-                  fontSize: 13,
+                  fontSize: 11,
                   fontWeight: 700,
                   color: dirColor,
-                  marginLeft: 14,
+                  marginLeft: 12,
                   padding: "4px 10px",
-                  border: `1px solid ${dirColor}`,
-                  borderRadius: 4,
-                  opacity: 0.9,
+                  border: `1px solid ${isLong ? T.longBorder : "rgba(227,27,35,0.45)"}`,
+                  borderRadius: 6,
+                  background: isLong ? "rgba(5,150,105,0.12)" : T.accentFill,
+                  letterSpacing: 0.8,
                 }}
               >
                 {payload.direction.toUpperCase()}
               </div>
             </div>
-            <div style={{ display: "flex", fontSize: 14, color: "#a1a1aa", marginTop: 8 }}>
-              {`${payload.companyName}${date ? ` · Desk ${date}` : ""}`}
+            <div style={{ display: "flex", fontSize: 13, color: T.text, marginTop: 6 }}>
+              {`${payload.companyName}${date ? ` · Called ${date}` : ""}`}
             </div>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              padding: "10px 16px",
+              borderRadius: 10,
+              border: `1px solid ${T.glassBorder}`,
+              background: "rgba(0,0,0,0.2)",
+              boxShadow: "0 0 0 1px rgba(227,27,35,0.12), 0 8px 32px rgba(0,0,0,0.35)",
+            }}
+          >
             <div
               style={{
                 display: mile ? "flex" : "none",
-                fontSize: 10,
+                fontSize: 9,
                 fontWeight: 700,
-                color: "#fafafa",
-                background: "rgba(227,27,35,0.22)",
-                border: "1px solid #E31B23",
-                borderRadius: 16,
-                padding: "5px 12px",
-                marginBottom: 10,
-                letterSpacing: 0.5,
+                color: T.textBright,
+                background: T.accentFill,
+                border: `1px solid ${T.accent}`,
+                borderRadius: 14,
+                padding: "4px 10px",
+                marginBottom: 8,
+                letterSpacing: 0.6,
               }}
             >
               {mile || " "}
@@ -111,15 +148,15 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             <div
               style={{
                 display: "flex",
-                fontSize: 58,
+                fontSize: 52,
                 fontWeight: 700,
-                color: "#fafafa",
+                color: retColor,
                 letterSpacing: -2,
               }}
             >
               {ret}
             </div>
-            <div style={{ display: "flex", fontSize: 12, color: "#71717a", marginTop: 6 }}>
+            <div style={{ display: "flex", fontSize: 11, color: T.textDim, marginTop: 4 }}>
               since desk call
             </div>
           </div>
@@ -128,10 +165,10 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
         <div
           style={{
             display: "flex",
-            flex: 1,
-            border: "1px solid rgba(255,255,255,0.08)",
             borderRadius: 12,
+            border: `1px solid ${T.panelBorder}`,
             overflow: "hidden",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
           }}
         >
           <img
@@ -147,14 +184,16 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginTop: 16,
+            marginTop: 14,
+            paddingTop: 12,
+            borderTop: `1px solid ${T.rule}`,
           }}
         >
-          <div style={{ display: "flex", fontSize: 11, color: "#71717a" }}>
+          <div style={{ display: "flex", fontSize: 11, color: T.textDim }}>
             Not investment advice · portfuel.pro
           </div>
           <div style={{ display: "flex" }}>
-            {logo ? <img src={logo} height={56} alt="" /> : null}
+            {logo ? <img src={logo} height={54} alt="" /> : null}
           </div>
         </div>
       </div>
