@@ -1,6 +1,7 @@
 import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
 import type { SocialChartPayload } from "@/lib/charts/social-chart-data";
 import type { CandlePoint, ChartMarker, PriceLine } from "@/lib/charts/types";
+import { FONT_SANS, socialChartFontDefs } from "@/lib/charts/social-chart-fonts";
 
 function esc(s: string): string {
   return s
@@ -21,6 +22,24 @@ function formatPct(n: number): string {
   return `${sign}${n.toFixed(1)}%`;
 }
 
+function text(
+  x: number,
+  y: number,
+  content: string,
+  opts?: {
+    fill?: string;
+    size?: number;
+    weight?: number;
+    anchor?: "start" | "middle" | "end";
+  }
+): string {
+  const fill = opts?.fill ?? T.text;
+  const size = opts?.size ?? 11;
+  const weight = opts?.weight ?? 400;
+  const anchor = opts?.anchor ?? "start";
+  return `<text x="${x}" y="${y}" fill="${fill}" font-size="${size}" font-weight="${weight}" font-family="${FONT_SANS}" text-anchor="${anchor}">${esc(content)}</text>`;
+}
+
 function nearestCandleIndex(candles: CandlePoint[], time: number): number {
   if (candles.length === 0) return 0;
   let best = 0;
@@ -35,23 +54,30 @@ function nearestCandleIndex(candles: CandlePoint[], time: number): number {
   return best;
 }
 
+function deskPriceLinesOnly(lines: PriceLine[]): PriceLine[] {
+  return lines.filter((l) => l.label.toLowerCase().startsWith("desk"));
+}
+
 export function renderSocialChartSvg(payload: SocialChartPayload): string {
   const W = T.width;
   const H = T.height;
-  const pad = { top: 88, right: 72, bottom: 52, left: 16 };
-  const chartX = pad.left;
-  const chartY = pad.top;
-  const chartW = W - pad.left - pad.right;
-  const chartH = H - pad.top - pad.bottom;
+  const headerH = 108;
+  const footerH = 56;
+  const chartX = 28;
+  const chartY = headerH + 8;
+  const chartW = W - chartX - 88;
+  const chartH = H - chartY - footerH;
 
   const candles = payload.candles.length > 0 ? payload.candles : [];
+  const priceLines = deskPriceLinesOnly(payload.priceLines);
+
   const prices = candles.flatMap((c) => [c.high, c.low]);
-  for (const line of payload.priceLines) prices.push(line.price);
+  for (const line of priceLines) prices.push(line.price);
   for (const m of payload.markers) prices.push(m.price);
 
   const minP = prices.length ? Math.min(...prices) : 0;
   const maxP = prices.length ? Math.max(...prices) : 1;
-  const padPct = (maxP - minP) * 0.08 || maxP * 0.05 || 1;
+  const padPct = (maxP - minP) * 0.1 || maxP * 0.06 || 1;
   const yMin = minP - padPct;
   const yMax = maxP + padPct;
 
@@ -61,13 +87,12 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   const n = Math.max(candles.length, 1);
   const slotW = chartW / n;
 
-  const gridLines = 5;
   let gridSvg = "";
-  for (let i = 0; i <= gridLines; i++) {
-    const y = chartY + (chartH / gridLines) * i;
-    const price = yMax - ((yMax - yMin) * i) / gridLines;
+  for (let i = 0; i <= 5; i++) {
+    const y = chartY + (chartH / 5) * i;
+    const price = yMax - ((yMax - yMin) * i) / 5;
     gridSvg += `<line x1="${chartX}" y1="${y}" x2="${chartX + chartW}" y2="${y}" stroke="${T.grid}" stroke-width="1"/>`;
-    gridSvg += `<text x="${chartX + chartW + 8}" y="${y + 4}" fill="${T.text}" font-size="11" font-family="system-ui,sans-serif">${esc(formatPrice(price))}</text>`;
+    gridSvg += text(chartX + chartW + 10, y + 4, formatPrice(price), { size: 11, fill: T.text });
   }
 
   let candleSvg = "";
@@ -81,57 +106,87 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
     const highY = priceToY(c.high);
     const lowY = priceToY(c.low);
     const bodyTop = Math.min(openY, closeY);
-    const bodyH = Math.max(1.5, Math.abs(closeY - openY));
-    const cw = Math.max(2, Math.min(7, slotW * 0.55));
-    candleSvg += `<line x1="${x}" y1="${highY}" x2="${x}" y2="${lowY}" stroke="${color}" stroke-width="1.2"/>`;
-    candleSvg += `<rect x="${x - cw / 2}" y="${bodyTop}" width="${cw}" height="${bodyH}" fill="${color}" rx="0.5"/>`;
+    const bodyH = Math.max(2, Math.abs(closeY - openY));
+    const cw = Math.max(3, Math.min(8, slotW * 0.62));
+    candleSvg += `<line x1="${x}" y1="${highY}" x2="${x}" y2="${lowY}" stroke="${color}" stroke-width="1.4"/>`;
+    candleSvg += `<rect x="${(x - cw / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${cw.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}" rx="1"/>`;
   }
 
   let levelSvg = "";
-  for (const line of payload.priceLines) {
+  for (const line of priceLines) {
     const y = priceToY(line.price);
-    const dash = line.style === "dashed" ? ' stroke-dasharray="6 4"' : "";
-    const color = line.label.startsWith("Desk") ? T.entry : T.textMuted;
-    levelSvg += `<line x1="${chartX}" y1="${y}" x2="${chartX + chartW}" y2="${y}" stroke="${color}" stroke-width="1.5" opacity="0.85"${dash}/>`;
-    levelSvg += `<text x="${chartX + 6}" y="${y - 5}" fill="${color}" font-size="10" font-weight="600" font-family="system-ui,sans-serif">${esc(line.label)}</text>`;
+    const isEntry = line.label.toLowerCase().includes("entry");
+    const dash = line.style === "dashed" ? ' stroke-dasharray="7 5"' : "";
+    const color = isEntry ? T.entry : line.label.toLowerCase().includes("target") ? T.target : T.stop;
+    levelSvg += `<line x1="${chartX}" y1="${y}" x2="${chartX + chartW}" y2="${y}" stroke="${color}" stroke-width="${isEntry ? 2 : 1.5}" opacity="0.9"${dash}/>`;
+    levelSvg += `<rect x="${chartX + 8}" y="${y - 16}" width="${line.label.length * 6 + 16}" height="18" rx="4" fill="rgba(15,20,25,0.85)"/>`;
+    levelSvg += text(chartX + 14, y - 3, line.label, { size: 10, weight: 600, fill: color });
   }
 
+  const fueledMarker =
+    payload.markers.find((m) => m.kind === "fueled" || m.callId === payload.featuredCallId) ??
+    payload.markers[0];
+  const memberMarkers = payload.markers.filter(
+    (m) => m !== fueledMarker && m.kind !== "fueled"
+  ).slice(0, 3);
+
   let markerSvg = "";
-  for (const m of payload.markers) {
+  if (fueledMarker) {
+    const idx = nearestCandleIndex(candles, fueledMarker.time);
+    const x = chartX + idx * slotW + slotW / 2;
+    const y = priceToY(fueledMarker.price);
+    markerSvg += `<line x1="${x}" y1="${chartY}" x2="${x}" y2="${chartY + chartH}" stroke="${T.accent}" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.45"/>`;
+    markerSvg += `<circle cx="${x}" cy="${y}" r="14" fill="${T.accentSoft}"/>`;
+    markerSvg += `<rect x="${x - 8}" y="${y - 8}" width="16" height="16" fill="${T.fueled}" rx="2"/>`;
+  }
+
+  for (const m of memberMarkers) {
     const idx = nearestCandleIndex(candles, m.time);
     const x = chartX + idx * slotW + slotW / 2;
     const y = priceToY(m.price);
-    const isFueled = m.kind === "fueled";
-    const color = isFueled ? T.fueled : m.kind === "long" ? T.memberLong : T.memberShort;
-
-    if (isFueled) {
-      const s = 9;
-      markerSvg += `<rect x="${x - s}" y="${y - s - 14}" width="${s * 2}" height="${s * 2}" fill="${color}" rx="1.5"/>`;
-      markerSvg += `<text x="${x}" y="${y - s - 18}" text-anchor="middle" fill="${T.textBright}" font-size="9" font-weight="700" font-family="system-ui,sans-serif">FUELED</text>`;
-    } else if (m.kind === "long") {
-      markerSvg += `<polygon points="${x},${y - 18} ${x - 6},${y - 6} ${x + 6},${y - 6}" fill="${color}"/>`;
+    const color = m.kind === "long" ? T.memberLong : T.memberShort;
+    if (m.kind === "long") {
+      markerSvg += `<polygon points="${x},${y - 14} ${x - 7},${y} ${x + 7},${y}" fill="${color}"/>`;
     } else {
-      markerSvg += `<polygon points="${x},${y + 6} ${x - 6},${y - 6} ${x + 6},${y - 6}" fill="${color}"/>`;
+      markerSvg += `<polygon points="${x},${y + 14} ${x - 7},${y} ${x + 7},${y}" fill="${color}"/>`;
     }
   }
 
-  const returnStr =
-    payload.returnPct != null ? formatPct(payload.returnPct) : "—";
+  const returnStr = payload.returnPct != null ? formatPct(payload.returnPct) : "—";
   const returnColor =
     payload.returnPct != null && payload.returnPct >= 0 ? T.up : T.down;
 
   const logoImg = payload.logoBase64
-    ? `<image href="data:image/png;base64,${payload.logoBase64}" x="24" y="20" height="36" preserveAspectRatio="xMidYMid meet"/>`
-    : `<text x="24" y="44" fill="${T.textBright}" font-size="20" font-weight="800" font-family="system-ui,sans-serif">PortFuel</text>`;
+    ? `<image href="data:image/png;base64,${payload.logoBase64}" x="32" y="22" height="32" preserveAspectRatio="xMinYMid meet"/>`
+    : text(32, 46, "PortFuel", { size: 22, weight: 700, fill: T.textBright });
 
+  const badgeW = payload.milestoneLabel ? payload.milestoneLabel.length * 8 + 40 : 0;
   const milestoneBadge = payload.milestoneLabel
-    ? `<rect x="${W - 280}" y="24" width="256" height="32" rx="16" fill="${T.accentSoft}" stroke="${T.accent}" stroke-width="1"/>
-       <text x="${W - 152}" y="45" text-anchor="middle" fill="${T.textBright}" font-size="13" font-weight="700" font-family="system-ui,sans-serif">${esc(payload.milestoneLabel)}</text>`
+    ? `<rect x="${W - badgeW - 32}" y="24" width="${badgeW}" height="34" rx="17" fill="${T.accentSoft}" stroke="${T.accent}" stroke-width="1.5"/>
+       ${text(W - badgeW / 2 - 32, 46, payload.milestoneLabel, { size: 13, weight: 700, fill: T.textBright, anchor: "middle" })}`
     : "";
+
+  const directionPillW = payload.direction.length * 9 + 24;
+  const symbolWidth = payload.symbol.length * 21 + 8;
+  const directionPill = `<rect x="${32 + symbolWidth}" y="34" width="${directionPillW}" height="26" rx="13" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)"/>
+    ${text(44 + symbolWidth, 52, payload.direction.toUpperCase(), { size: 11, weight: 600, fill: T.textBright })}`;
+
+  const legendY = H - 34;
+  const legend = `
+    <rect x="8" y="${legendY - 14}" width="10" height="10" fill="${T.fueled}" rx="1.5"/>
+    ${text(24, legendY - 4, "Desk call", { size: 10, fill: T.text })}
+    <polygon points="118,${legendY - 12} 112,${legendY - 2} 124,${legendY - 2}" fill="${T.memberLong}"/>
+    ${text(130, legendY - 4, "Member long", { size: 10, fill: T.text })}
+    <line x1="230" y1="${legendY - 7}" x2="270" y2="${legendY - 7}" stroke="${T.entry}" stroke-width="2"/>
+    ${text(278, legendY - 4, "Entry", { size: 10, fill: T.text })}
+    <line x1="340" y1="${legendY - 7}" x2="380" y2="${legendY - 7}" stroke="${T.target}" stroke-width="1.5" stroke-dasharray="6 4"/>
+    ${text(388, legendY - 4, "Target", { size: 10, fill: T.text })}
+  `;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
+    <style>${socialChartFontDefs()}</style>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="${T.background}"/>
       <stop offset="55%" stop-color="${T.backgroundMid}"/>
@@ -140,18 +195,19 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   </defs>
   <rect width="${W}" height="${H}" fill="url(#bg)"/>
   ${logoImg}
-  <text x="24" y="78" fill="${T.text}" font-size="12" font-family="system-ui,sans-serif">${esc(payload.companyName)}</text>
-  <text x="24" y="58" fill="${T.textBright}" font-size="32" font-weight="800" font-family="ui-monospace,monospace">${esc(payload.symbol)}</text>
-  <text x="${24 + Math.min(payload.symbol.length * 20, 120)}" y="58" fill="${T.text}" font-size="14" font-weight="600" font-family="system-ui,sans-serif">${esc(payload.direction.toUpperCase())}</text>
-  <text x="${W - 24}" y="58" text-anchor="end" fill="${returnColor}" font-size="32" font-weight="800" font-family="ui-monospace,monospace">${esc(returnStr)}</text>
-  <text x="${W - 24}" y="78" text-anchor="end" fill="${T.text}" font-size="11" font-family="system-ui,sans-serif">since desk call</text>
   ${milestoneBadge}
-  <rect x="${chartX}" y="${chartY}" width="${chartW}" height="${chartH}" fill="rgba(15,20,25,0.35)" rx="8" stroke="${T.gridStrong}" stroke-width="1"/>
+  ${text(32, 56, payload.symbol, { size: 34, weight: 700, fill: T.textBright })}
+  ${directionPill}
+  ${text(32, 82, payload.companyName, { size: 13, weight: 400, fill: T.text })}
+  ${text(W - 32, 52, returnStr, { size: 34, weight: 700, fill: returnColor, anchor: "end" })}
+  ${text(W - 32, 74, "since desk call", { size: 11, fill: T.text, anchor: "end" })}
+  <rect x="${chartX - 4}" y="${chartY - 4}" width="${chartW + 8}" height="${chartH + 8}" fill="rgba(8,12,18,0.55)" rx="10" stroke="${T.gridStrong}" stroke-width="1"/>
   ${gridSvg}
   ${candleSvg}
   ${levelSvg}
   ${markerSvg}
-  <text x="${W / 2}" y="${H - 18}" text-anchor="middle" fill="${T.textMuted}" font-size="10" font-family="system-ui,sans-serif">Not investment advice · portfuel.pro · Community &amp; desk calls marked on chart</text>
+  ${legend}
+  ${text(W / 2, H - 10, "Not investment advice · portfuel.pro", { size: 10, fill: T.textMuted, anchor: "middle" })}
 </svg>`;
 }
 
@@ -160,5 +216,7 @@ export async function renderSocialChartPng(
 ): Promise<Buffer> {
   const sharp = (await import("sharp")).default;
   const svg = renderSocialChartSvg(payload);
-  return sharp(Buffer.from(svg)).png({ quality: 92 }).toBuffer();
+  return sharp(Buffer.from(svg), { density: 144 })
+    .png({ quality: 95, compressionLevel: 6 })
+    .toBuffer();
 }

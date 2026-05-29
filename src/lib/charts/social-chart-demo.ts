@@ -1,8 +1,11 @@
 import { getDemoCallsBySymbol, getDemoCallsFeed } from "@/lib/demo/fixtures";
-import { loadTickerIntel } from "@/lib/market/ticker-intel";
+import { getCompanyProfile } from "@/lib/market/finnhub";
 import { buildTickerPriceLines } from "@/lib/charts/price-lines";
-import type { CandlePoint, ChartMarker } from "@/lib/charts/types";
+import type { ChartMarker } from "@/lib/charts/types";
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
+import {
+  buildSyntheticSocialCandles,
+} from "@/lib/charts/social-chart-candles";
 import {
   loadSocialChartLogoBase64,
   type SocialChartPayload,
@@ -24,42 +27,6 @@ const DEMO_RETURN: Record<CallMilestoneKey, number> = {
 
 export const DEMO_CHART_CALL_ID = "demo-call-001";
 
-function buildSyntheticCandles(opts: {
-  days: number;
-  entryPrice: number;
-  currentPrice: number;
-  callDayOffset: number;
-}): CandlePoint[] {
-  const now = Math.floor(Date.now() / 1000);
-  const candles: CandlePoint[] = [];
-  const { days, entryPrice, currentPrice, callDayOffset } = opts;
-
-  for (let i = days; i >= 0; i--) {
-    const t = now - i * 86400;
-    const dayIndex = days - i;
-    const progress =
-      dayIndex <= callDayOffset
-        ? dayIndex / Math.max(callDayOffset, 1)
-        : callDayOffset / days +
-          ((dayIndex - callDayOffset) / Math.max(days - callDayOffset, 1)) * 0.85;
-    const base = entryPrice + (currentPrice - entryPrice) * progress;
-    const noise = Math.sin(dayIndex * 0.45) * entryPrice * 0.012;
-    const open = base + noise * 0.3;
-    const close = base + noise;
-    const high = Math.max(open, close) + entryPrice * 0.008;
-    const low = Math.min(open, close) - entryPrice * 0.008;
-    candles.push({
-      time: Math.floor(t / 86400) * 86400,
-      open,
-      high,
-      low,
-      close,
-      volume: 1_000_000 + dayIndex * 12_000,
-    });
-  }
-  return candles;
-}
-
 export async function loadDemoSocialChartPayload(
   milestone: CallMilestoneKey = "return_25"
 ): Promise<SocialChartPayload> {
@@ -71,60 +38,47 @@ export async function loadDemoSocialChartPayload(
   const nvdaCalls = getDemoCallsBySymbol(symbol);
   const returnPct = DEMO_RETURN[milestone];
 
-  let candles: CandlePoint[] = [];
   let companyName = "NVIDIA Corporation";
-  let markers: ChartMarker[] = [];
-
   try {
-    const intel = await loadTickerIntel(symbol);
-    companyName = intel.companyName;
-    if (intel.candles.length > 12) {
-      const calledTs = Math.floor(new Date(fueled.called_at).getTime() / 1000);
-      candles = intel.candles.filter((c) => c.time >= calledTs - 45 * 86400);
-    }
-    markers = intel.markers.map((m) => ({
-      ...m,
-      label: m.kind === "fueled" ? "Fueled desk" : m.label,
-    }));
+    const profile = await getCompanyProfile(symbol);
+    if (profile?.name) companyName = profile.name;
   } catch {
-    /* synthetic fallback below */
+    /* keep default */
   }
 
   const entry = Number(fueled.entry_price ?? fueled.price_at_call ?? 118);
   const current = entry * (1 + returnPct / 100);
 
-  if (candles.length < 12) {
-    candles = buildSyntheticCandles({
-      days: 75,
-      entryPrice: entry,
-      currentPrice: current,
-      callDayOffset: 18,
-    });
-  }
+  const callBarIndex = 22;
+  const candles = buildSyntheticSocialCandles({
+    bars: 62,
+    entryPrice: entry,
+    currentPrice: current,
+    callBarIndex,
+  });
 
-  if (markers.length === 0) {
-    const calledTs = Math.floor(new Date(fueled.called_at).getTime() / 1000);
-    const dayStart = Math.floor(calledTs / 86400) * 86400;
-    markers.push({
-      time: dayStart,
+  const fueledBar = candles[callBarIndex] ?? candles[Math.floor(candles.length / 2)]!;
+  const markers: ChartMarker[] = [
+    {
+      time: fueledBar.time,
       price: entry,
       label: "Fueled desk",
       color: "#E31B23",
       kind: "fueled",
       callId: fueled.id,
+    },
+  ];
+
+  const member = nvdaCalls.find((c) => !c.is_fueled);
+  if (member && candles[12]) {
+    markers.push({
+      time: candles[12]!.time,
+      price: Number(member.price_at_call ?? member.entry_price ?? entry),
+      label: `${member.users.display_name ?? member.users.pin} ${member.direction}`,
+      color: member.direction === "long" ? "#34d399" : "#fb7185",
+      kind: member.direction === "long" ? "long" : "short",
+      callId: member.id,
     });
-    const member = nvdaCalls.find((c) => !c.is_fueled && c.id !== fueled.id);
-    if (member) {
-      const mTs = Math.floor(new Date(member.called_at).getTime() / 1000);
-      markers.push({
-        time: Math.floor(mTs / 86400) * 86400,
-        price: Number(member.price_at_call ?? member.entry_price ?? entry),
-        label: `${member.users.display_name ?? member.users.pin} ${member.direction}`,
-        color: member.direction === "long" ? "#34d399" : "#fb7185",
-        kind: member.direction === "long" ? "long" : "short",
-        callId: member.id,
-      });
-    }
   }
 
   const priceLines = buildTickerPriceLines({

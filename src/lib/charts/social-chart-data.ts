@@ -5,6 +5,10 @@ import { isDemoMode } from "@/lib/demo/config";
 import { getDemoCallsFeed } from "@/lib/demo/fixtures";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
 import { buildTickerPriceLines } from "@/lib/charts/price-lines";
+import {
+  buildSyntheticSocialCandles,
+  prepareSocialChartCandles,
+} from "@/lib/charts/social-chart-candles";
 import type { ChartMarker, CandlePoint, PriceLine } from "@/lib/charts/types";
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 
@@ -97,8 +101,17 @@ export async function loadSocialChartPayload(
 
   const intel = await loadTickerIntel(call.symbol);
   const calledTs = Math.floor(new Date(call.called_at).getTime() / 1000);
-  const rangeFrom = calledTs - 45 * 86400;
-  const candles = intel.candles.filter((c) => c.time >= rangeFrom);
+  let candles = prepareSocialChartCandles(intel.candles, calledTs);
+  if (candles.length < 15) {
+    const entry = Number(call.entry_price ?? call.price_at_call ?? intel.quote?.price ?? 100);
+    const ret = call.return_pct ?? 0;
+    candles = buildSyntheticSocialCandles({
+      bars: 62,
+      entryPrice: entry,
+      currentPrice: entry * (1 + ret / 100),
+      callBarIndex: 22,
+    });
+  }
 
   const markers: ChartMarker[] = intel.markers.map((m) => ({
     ...m,
