@@ -1,5 +1,3 @@
-import { readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { getDemoCallsFeed } from "@/lib/demo/fixtures";
@@ -33,15 +31,8 @@ const MILESTONE_LABELS: Record<CallMilestoneKey, string> = {
   target_reached: "Target reached",
 };
 
-export function loadSocialChartLogoBase64(): string | null {
-  for (const name of ["logo-social-premium.png", "logo-social-dark.png", "logo-light.png", "logo.png"]) {
-    const path = join(process.cwd(), "public", name);
-    if (existsSync(path)) {
-      return readFileSync(path).toString("base64");
-    }
-  }
-  return null;
-}
+import { loadSocialChartLogoBase64 } from "@/lib/charts/social-chart-logo";
+export { loadSocialChartLogoBase64 };
 
 function inferMilestone(call: {
   return_pct: number | null;

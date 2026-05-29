@@ -1,6 +1,7 @@
 import { Resvg } from "@resvg/resvg-js";
 import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
 import type { SocialChartPayload } from "@/lib/charts/social-chart-data";
+import { compositeSocialChartLogo } from "@/lib/charts/social-chart-logo";
 import { renderSocialChartSvg } from "@/lib/charts/social-chart";
 import { socialChartFontFiles } from "@/lib/charts/social-chart-fonts";
 
@@ -15,5 +16,6 @@ export async function renderSocialChartPng(payload: SocialChartPayload): Promise
       sansSerifFamily: "DejaVu Sans",
     },
   });
-  return resvg.render().asPng();
+  const chartPng = resvg.render().asPng();
+  return compositeSocialChartLogo(chartPng);
 }

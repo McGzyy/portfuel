@@ -1,59 +1,36 @@
-/** PortFuel chart theme — single source for lightweight-charts (and future series). */
+/** PortFuel chart theme — lightweight-charts (in-app). */
 export const PF_CHART = {
   height: 400,
-  layout: {
-    background: "#fafbfc",
-    text: "#475569",
-  },
-  grid: {
-    vert: "#eef2f6",
-    horz: "#eef2f6",
-  },
+  layout: { background: "#fafbfc", text: "#475569" },
+  grid: { vert: "#eef2f6", horz: "#eef2f6" },
   border: "#e2e8f0",
-  candle: {
-    up: "#059669",
-    down: "#e31b23",
-    wickUp: "#059669",
-    wickDown: "#e31b23",
-  },
-  marker: {
-    default: "#e31b23",
-    long: "#059669",
-    short: "#e31b23",
-  },
+  candle: { up: "#059669", down: "#e31b23", wickUp: "#059669", wickDown: "#e31b23" },
+  marker: { default: "#e31b23", long: "#059669", short: "#e31b23" },
 } as const;
 
-/** Social chart logo aspect (logo-social-premium.png). */
 export const SOCIAL_LOGO_ASPECT = 1024 / 682;
 
-/** Dark theme for social / share chart images (X posts) — PortFuel PRO. */
+/** Social milestone card (1200×675 PNG for X). */
 export const PF_CHART_SOCIAL = {
   width: 1200,
   height: 675,
-  background: "#030303",
-  backgroundMid: "#080808",
-  chartBg: "#070708",
-  headerBorder: "rgba(255,255,255,0.08)",
-  chartBorder: "rgba(255,255,255,0.09)",
-  chartInnerGlow: "rgba(227, 27, 35, 0.05)",
-  tagBg: "rgba(8,8,10,0.94)",
-  grid: "rgba(255,255,255,0.045)",
-  text: "#b0b0b0",
+  bg: "#0a0a0a",
+  rule: "rgba(255,255,255,0.07)",
+  grid: "rgba(255,255,255,0.05)",
+  text: "#a3a3a3",
   textBright: "#ffffff",
-  textMuted: "#6b7280",
+  textDim: "#6b6b6b",
   accent: "#E31B23",
-  accentSoft: "rgba(227, 27, 35, 0.18)",
-  accentGlow: "rgba(227, 27, 35, 0.28)",
+  accentFill: "rgba(227,27,35,0.18)",
   long: "#4ade80",
   up: "#22c55e",
   upWick: "#16a34a",
-  down: "#E31B23",
+  down: "#ef4444",
   downWick: "#b91c1c",
   entry: "#E31B23",
   target: "#22c55e",
-  fueled: "#E31B23",
-  returnPositive: "#ffffff",
-  returnNegative: "#E31B23",
+  targetFill: "rgba(34,197,94,0.18)",
+  entryFill: "rgba(227,27,35,0.2)",
 } as const;
 
 export function chartLayoutOptions() {
