@@ -11,6 +11,10 @@ import {
   type SocialChartPayload,
 } from "@/lib/charts/social-chart-data";
 import { appPath } from "@/lib/social/app-url";
+import {
+  composeMilestonePostText,
+  fetchSocialPostCopy,
+} from "@/lib/social/copy-templates";
 
 const MILESTONE_LABELS: Record<CallMilestoneKey, string> = {
   return_10: "+10% milestone",
@@ -49,9 +53,9 @@ export async function loadDemoSocialChartPayload(
   const entry = Number(fueled.entry_price ?? fueled.price_at_call ?? 118);
   const current = entry * (1 + returnPct / 100);
 
-  const callBarIndex = 22;
+  const callBarIndex = 14;
   const candles = buildSyntheticSocialCandles({
-    bars: 62,
+    bars: 40,
     entryPrice: entry,
     currentPrice: current,
     callBarIndex,
@@ -68,18 +72,6 @@ export async function loadDemoSocialChartPayload(
       callId: fueled.id,
     },
   ];
-
-  const member = nvdaCalls.find((c) => !c.is_fueled);
-  if (member && candles[12]) {
-    markers.push({
-      time: candles[12]!.time,
-      price: Number(member.price_at_call ?? member.entry_price ?? entry),
-      label: `${member.users.display_name ?? member.users.pin} ${member.direction}`,
-      color: member.direction === "long" ? "#22c55e" : "#737373",
-      kind: member.direction === "long" ? "long" : "short",
-      callId: member.id,
-    });
-  }
 
   const priceLines = buildTickerPriceLines({
     calls: nvdaCalls,
@@ -102,17 +94,26 @@ export async function loadDemoSocialChartPayload(
   };
 }
 
-export function demoMilestoneTweetCopy(milestone: CallMilestoneKey): string {
-  const headlines: Record<CallMilestoneKey, string> = {
-    return_10: "Fueled desk hit +10%",
-    return_25: "Fueled desk hit +25%",
-    target_reached: "Fueled desk — target reached",
+export async function demoMilestoneTweetParts(milestone: CallMilestoneKey = "return_25") {
+  const fueled =
+    getDemoCallsFeed("latest").find((c) => c.id === DEMO_CHART_CALL_ID && c.is_fueled) ??
+    getDemoCallsFeed("latest").find((c) => c.is_fueled)!;
+
+  return {
+    milestone,
+    symbol: fueled.symbol,
+    direction: fueled.direction,
+    returnPct: DEMO_RETURN[milestone],
+    link: appPath(`/ticker/${fueled.symbol}`, {
+      source: "x",
+      medium: "social",
+      campaign: "fueled_milestone",
+    }),
   };
-  const ret = DEMO_RETURN[milestone];
-  const link = appPath("/ticker/NVDA", {
-    source: "x",
-    medium: "social",
-    campaign: "fueled_milestone",
-  });
-  return `${headlines[milestone]} · NVDA long\n+${ret.toFixed(1)}% since desk call\n${link}\nNot investment advice.`;
+}
+
+export async function demoMilestoneTweetCopy(milestone: CallMilestoneKey): Promise<string> {
+  const copy = await fetchSocialPostCopy();
+  const parts = await demoMilestoneTweetParts(milestone);
+  return composeMilestonePostText(copy, parts).text;
 }

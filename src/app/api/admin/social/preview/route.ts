@@ -4,6 +4,22 @@ import { requireAdmin } from "@/lib/auth/session";
 import { composeXPost } from "@/lib/social/x-compose";
 import { xConfigSummary } from "@/lib/social/x-config";
 
+export async function GET() {
+  try {
+    await requireAdmin();
+    return NextResponse.json({ config: xConfigSummary() });
+  } catch (e) {
+    if (e instanceof Error && e.message === "unauthorized") {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
+    if (e instanceof Error && e.message === "forbidden") {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
+    console.error("[admin/social/preview GET]", e);
+    return NextResponse.json({ error: "server_error" }, { status: 500 });
+  }
+}
+
 const schema = z.object({
   type: z.enum(["fueled", "leaderboard", "fueled_milestone"]),
   callId: z.string().uuid().optional(),
@@ -23,6 +39,8 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({
       text: composed.text,
+      lead: composed.lead,
+      tail: composed.tail,
       refId: composed.refId,
       charCount: composed.text.length,
       withChart: composed.withChart,

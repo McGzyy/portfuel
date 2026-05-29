@@ -137,12 +137,12 @@ export function AdminLaunchPanel() {
           From X post → Analyze → Fueled call
         </p>
         <p className="mt-1 text-xs leading-relaxed text-[var(--pf-gray-500)]">
-          Paste an X URL on Admin → Social, analyze each ticker, then publish. See{" "}
+          Paste an X URL on Admin → X Ingest, analyze each ticker, then publish. See{" "}
           <code className="rounded bg-white px-1">docs/X-SOCIAL.md</code>.
         </p>
-        <Link href="/admin?tab=social" className="mt-3 inline-block">
+        <Link href="/admin?tab=x-ingest" className="mt-3 inline-block">
           <Button variant="outline" size="sm">
-            Open Social tab
+            Open X Ingest
           </Button>
         </Link>
       </section>

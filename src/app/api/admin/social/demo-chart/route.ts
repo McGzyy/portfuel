@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       milestone,
       chartUrl: `/api/admin/social/demo-chart?milestone=${milestone}&format=png`,
       chartSvgUrl: `/api/admin/social/demo-chart?milestone=${milestone}&format=svg`,
-      tweetCopy: demoMilestoneTweetCopy(milestone),
+      tweetCopy: await demoMilestoneTweetCopy(milestone),
       note: "Design preview only — uses demo NVDA data until live Fueled calls hit milestones.",
     });
   } catch (e) {

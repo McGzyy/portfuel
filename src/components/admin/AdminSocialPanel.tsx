@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AdminSocialInboundPanel } from "@/components/admin/AdminSocialInboundPanel";
 import { AdminSocialMilestonePanel } from "@/components/admin/AdminSocialMilestonePanel";
 
 type XConfigSummary = {
@@ -96,14 +95,14 @@ export function AdminSocialPanel() {
     <div className="mt-8 space-y-8">
       <section className="pf-workspace-panel p-6">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-          X (Twitter)
+          X Posts
         </p>
         <h2 className="mt-1 text-lg font-bold text-[var(--pf-black)]">
-          Outbound posts to keep the account active
+          Outbound updates & milestone posts
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
-          Start in <strong>dry run</strong> until copy and API keys are right. Setup:{" "}
-          <code className="rounded bg-[var(--pf-gray-100)] px-1 py-0.5 text-xs">docs/X-SOCIAL.md</code>
+          Preview and publish Fueled desk updates, rankings, and milestone chart posts. To curate
+          calls from incoming X posts, use <strong>Admin → X Ingest</strong>.
         </p>
 
         {config ? (
@@ -129,12 +128,6 @@ export function AdminSocialPanel() {
             <li>
               Cron types: Fueled {config.fueledPosts ? "on" : "off"} · Leaderboard{" "}
               {config.leaderboardPosts ? "on" : "off"}
-            </li>
-            <li>
-              Auto-post on publish:{" "}
-              <span className="font-semibold text-[var(--pf-black)]">
-                {config.autopostFueledOnPublish ? "on" : "off"}
-              </span>
             </li>
           </ul>
         ) : null}
@@ -194,8 +187,6 @@ export function AdminSocialPanel() {
           </pre>
         ) : null}
       </section>
-
-      <AdminSocialInboundPanel />
 
       <AdminSocialMilestonePanel />
     </div>

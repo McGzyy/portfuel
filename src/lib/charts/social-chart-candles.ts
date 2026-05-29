@@ -1,6 +1,6 @@
 import type { CandlePoint } from "@/lib/charts/types";
 
-const MAX_BARS = 62;
+const MAX_BARS = 40;
 
 /** Sort, dedupe by day, trim to a contiguous window for social charts. */
 export function prepareSocialChartCandles(
@@ -57,10 +57,10 @@ export function buildSyntheticSocialCandles(opts: {
       : 0.35 + ((i - callBarIndex) / Math.max(bars - callBarIndex - 1, 1)) * 0.65;
     const base = entryPrice + (currentPrice - entryPrice) * progress;
     const wave = Math.sin(i * 0.55) * entryPrice * 0.009 + Math.cos(i * 0.21) * entryPrice * 0.004;
-    const open = base + wave * 0.35;
+    const open = base + wave * 0.45;
     const close = base + wave;
-    const high = Math.max(open, close) + entryPrice * 0.006;
-    const low = Math.min(open, close) - entryPrice * 0.006;
+    const high = Math.max(open, close) + entryPrice * 0.011;
+    const low = Math.min(open, close) - entryPrice * 0.011;
 
     candles.push({ time: t, open, high, low, close });
   }
