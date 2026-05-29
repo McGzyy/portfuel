@@ -53,9 +53,9 @@ export async function loadDemoSocialChartPayload(
   const entry = Number(fueled.entry_price ?? fueled.price_at_call ?? 118);
   const current = entry * (1 + returnPct / 100);
 
-  const callBarIndex = 14;
+  const callBarIndex = 12;
   const candles = buildSyntheticSocialCandles({
-    bars: 40,
+    bars: 36,
     entryPrice: entry,
     currentPrice: current,
     callBarIndex,

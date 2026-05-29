@@ -1,6 +1,14 @@
 import type { CandlePoint } from "@/lib/charts/types";
 
-const MAX_BARS = 40;
+const MAX_BARS = 36;
+
+function seededRand(seed: number): () => number {
+  let s = seed >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 0x100000000;
+  };
+}
 
 /** Sort, dedupe by day, trim to a contiguous window for social charts. */
 export function prepareSocialChartCandles(
@@ -44,23 +52,42 @@ export function buildSyntheticSocialCandles(opts: {
   currentPrice: number;
   callBarIndex: number;
 }): CandlePoint[] {
+  const { bars, entryPrice, currentPrice, callBarIndex } = opts;
   const candles: CandlePoint[] = [];
   const now = Math.floor(Date.now() / 86400) * 86400;
-  const { bars, entryPrice, currentPrice, callBarIndex } = opts;
+  const rand = seededRand(Math.round(entryPrice * 100 + currentPrice * 10));
+
+  const startPrice = entryPrice * (0.94 + rand() * 0.04);
+  let close = startPrice;
 
   for (let i = 0; i < bars; i++) {
     const t = now - (bars - 1 - i) * 86400;
-    const phase = i / Math.max(bars - 1, 1);
-    const preCall = i <= callBarIndex;
-    const progress = preCall
-      ? (i / Math.max(callBarIndex, 1)) * 0.35
-      : 0.35 + ((i - callBarIndex) / Math.max(bars - callBarIndex - 1, 1)) * 0.65;
-    const base = entryPrice + (currentPrice - entryPrice) * progress;
-    const wave = Math.sin(i * 0.55) * entryPrice * 0.009 + Math.cos(i * 0.21) * entryPrice * 0.004;
-    const open = base + wave * 0.45;
-    const close = base + wave;
-    const high = Math.max(open, close) + entryPrice * 0.011;
-    const low = Math.min(open, close) - entryPrice * 0.011;
+    const postCall = i > callBarIndex;
+    const postProgress = postCall
+      ? (i - callBarIndex) / Math.max(bars - callBarIndex - 1, 1)
+      : 0;
+
+    const target =
+      i <= callBarIndex
+        ? entryPrice * (0.97 + (i / Math.max(callBarIndex, 1)) * 0.03)
+        : entryPrice + (currentPrice - entryPrice) * Math.pow(postProgress, 0.85);
+
+    const drift = (target - close) * (postCall ? 0.22 : 0.18);
+    const shock = (rand() - 0.48) * entryPrice * (postCall ? 0.018 : 0.014);
+    const open = close;
+    close = open + drift + shock;
+
+    if (i === callBarIndex) {
+      close = entryPrice;
+    }
+    if (i === bars - 1) {
+      close = currentPrice;
+    }
+
+    const body = Math.abs(close - open);
+    const wickExtra = entryPrice * (0.004 + rand() * 0.008);
+    const high = Math.max(open, close) + Math.max(wickExtra, body * 0.6);
+    const low = Math.min(open, close) - Math.max(wickExtra, body * 0.6);
 
     candles.push({ time: t, open, high, low, close });
   }
