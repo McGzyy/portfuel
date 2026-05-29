@@ -1,6 +1,6 @@
 import type { CandlePoint } from "@/lib/charts/types";
 
-const MAX_BARS = 36;
+const MAX_BARS = 28;
 
 function seededRand(seed: number): () => number {
   let s = seed >>> 0;
