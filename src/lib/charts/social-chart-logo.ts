@@ -5,9 +5,10 @@ import { PF_CHART_SOCIAL as T, SOCIAL_LOGO_ASPECT } from "@/lib/charts/theme";
 
 const LOGO_FILE = "logo-social-chrome.png";
 
-export const SOCIAL_CHART_PAD = 48;
-export const SOCIAL_CHART_FOOTER_H = 100;
-export const SOCIAL_CHART_LOGO_HEIGHT = 88;
+export const SOCIAL_CHART_PAD = 40;
+export const SOCIAL_CHART_FOOTER_H = 88;
+/** Chrome PortFuel PRO wordmark — must read clearly on X. */
+export const SOCIAL_CHART_LOGO_HEIGHT = 56;
 
 export function socialChartLogoPath(): string | null {
   const path = join(process.cwd(), "public", LOGO_FILE);
@@ -32,7 +33,12 @@ export async function compositeSocialChartLogo(chartPng: Buffer): Promise<Buffer
   const top = T.height - SOCIAL_CHART_FOOTER_H + Math.round((SOCIAL_CHART_FOOTER_H - logoH) / 2);
 
   const logoBuf = await sharp(logoPath)
-    .resize(logoW, logoH, { fit: "contain", kernel: "lanczos3", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .resize(logoW, logoH, {
+      fit: "contain",
+      kernel: "lanczos3",
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    .sharpen({ sigma: 0.6 })
     .png()
     .toBuffer();
 

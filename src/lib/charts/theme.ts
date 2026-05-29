@@ -10,27 +10,27 @@ export const PF_CHART = {
 
 export const SOCIAL_LOGO_ASPECT = 1024 / 682;
 
-/** Social milestone card (1200×675 PNG for X). */
+/** Social milestone card — 1200×675. */
 export const PF_CHART_SOCIAL = {
   width: 1200,
   height: 675,
-  bg: "#0a0a0a",
-  rule: "rgba(255,255,255,0.07)",
-  grid: "rgba(255,255,255,0.05)",
-  text: "#a3a3a3",
-  textBright: "#ffffff",
-  textDim: "#6b6b6b",
-  accent: "#E31B23",
-  accentFill: "rgba(227,27,35,0.18)",
+  bg: "#0b0b0c",
+  panel: "#111113",
+  panelStroke: "rgba(255,255,255,0.07)",
+  rule: "rgba(255,255,255,0.08)",
+  grid: "rgba(255,255,255,0.04)",
+  text: "#9ca3af",
+  textBright: "#f9fafb",
+  textDim: "#6b7280",
   long: "#4ade80",
-  up: "#22c55e",
-  upWick: "#16a34a",
-  down: "#ef4444",
-  downWick: "#b91c1c",
+  accent: "#E31B23",
+  accentFill: "rgba(227,27,35,0.2)",
+  up: "#26a69a",
+  upWick: "#1e8e7e",
+  down: "#ef5350",
+  downWick: "#c62828",
   entry: "#E31B23",
-  target: "#22c55e",
-  targetFill: "rgba(34,197,94,0.18)",
-  entryFill: "rgba(227,27,35,0.2)",
+  target: "#26a69a",
 } as const;
 
 export function chartLayoutOptions() {
