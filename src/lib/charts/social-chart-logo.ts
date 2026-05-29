@@ -6,9 +6,9 @@ import { PF_CHART_SOCIAL as T, SOCIAL_LOGO_ASPECT } from "@/lib/charts/theme";
 const LOGO_FILE = "logo-social-chrome.png";
 
 export const SOCIAL_CHART_PAD_X = 48;
-export const SOCIAL_CHART_BOTTOM_PAD = 28;
+export const SOCIAL_CHART_BOTTOM_PAD = 32;
 /** Chrome PortFuel PRO wordmark — bottom-right watermark. */
-export const SOCIAL_CHART_LOGO_HEIGHT = 54;
+export const SOCIAL_CHART_LOGO_HEIGHT = 82;
 
 export function socialChartLogoPath(): string | null {
   const path = join(process.cwd(), "public", LOGO_FILE);

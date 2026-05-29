@@ -12,14 +12,6 @@ function fmtPct(n: number): string {
   return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
 }
 
-/** Return multiple since desk call (e.g. +27.8% → 1.28x). */
-function fmtMultiplier(returnPct: number | null): string | null {
-  if (returnPct == null || !Number.isFinite(returnPct)) return null;
-  const m = 1 + returnPct / 100;
-  const decimals = m >= 10 ? 1 : 2;
-  return `${m.toFixed(decimals)}x`;
-}
-
 function fmtUsd(n: number): string {
   const abs = Math.abs(n);
   const digits = abs >= 100 ? 2 : abs >= 1 ? 2 : 4;
@@ -58,10 +50,9 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
   const trendColor = up ? T.lineUp : T.lineDown;
 
   const changeLine =
-    dollarChange != null && ret != null
-      ? `${dollarChange >= 0 ? "+" : "-"}${fmtUsd(Math.abs(dollarChange))} (${fmtPct(ret)}) since desk call`
-      : `${retStr} since desk call`;
-  const multiplier = fmtMultiplier(ret);
+    dollarChange != null
+      ? `${dollarChange >= 0 ? "+" : "-"}${fmtUsd(Math.abs(dollarChange))} since desk call`
+      : "since desk call";
 
   const response = new ImageResponse(
     (
@@ -144,31 +135,30 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             )}
           </div>
 
-          {multiplier ? (
+          {ret != null ? (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", marginTop: 8 }}>
               <div
                 style={{
                   display: "flex",
                   fontSize: 64,
                   fontWeight: 700,
-                  color: T.accent,
+                  color: trendColor,
                   letterSpacing: -2,
                 }}
               >
-                {multiplier}
+                {retStr}
               </div>
               <div
                 style={{
                   display: "flex",
                   fontSize: 10,
                   fontWeight: 600,
-                  color: T.accent,
+                  color: T.textDim,
                   marginTop: 4,
                   letterSpacing: 1.2,
-                  opacity: 0.85,
                 }}
               >
-                MULTIPLIER
+                SINCE DESK CALL
               </div>
             </div>
           ) : (
@@ -190,6 +180,7 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             display: "flex",
             marginTop: "auto",
             padding: "16px 48px 28px",
+            paddingRight: 320,
           }}
         >
           <div style={{ display: "flex", fontSize: 11, color: T.textDim }}>
