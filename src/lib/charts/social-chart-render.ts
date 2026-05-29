@@ -1,21 +1,28 @@
+import type { SocialChartPayload } from "@/lib/charts/social-chart-data";
+import { renderSocialChartOgPng } from "@/lib/charts/social-chart-og";
+import { renderSocialChartSvg } from "@/lib/charts/social-chart";
 import { Resvg } from "@resvg/resvg-js";
 import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
-import type { SocialChartPayload } from "@/lib/charts/social-chart-data";
 import { compositeSocialChartLogo } from "@/lib/charts/social-chart-logo";
-import { renderSocialChartSvg } from "@/lib/charts/social-chart";
 import { socialChartFontFiles } from "@/lib/charts/social-chart-fonts";
 
+/** PNG via next/og (Inter + flex layout). Falls back to Resvg SVG if OG fails. */
 export async function renderSocialChartPng(payload: SocialChartPayload): Promise<Buffer> {
-  const svg = renderSocialChartSvg(payload);
-  const resvg = new Resvg(svg, {
-    fitTo: { mode: "width", value: T.width },
-    font: {
-      fontFiles: socialChartFontFiles(),
-      loadSystemFonts: false,
-      defaultFontFamily: "DejaVu Sans",
-      sansSerifFamily: "DejaVu Sans",
-    },
-  });
-  const chartPng = resvg.render().asPng();
-  return compositeSocialChartLogo(chartPng);
+  try {
+    return await renderSocialChartOgPng(payload);
+  } catch (e) {
+    console.error("[social-chart] OG render failed, using SVG fallback:", e);
+    const svg = renderSocialChartSvg(payload);
+    const resvg = new Resvg(svg, {
+      fitTo: { mode: "width", value: T.width },
+      font: {
+        fontFiles: socialChartFontFiles(),
+        loadSystemFonts: false,
+        defaultFontFamily: "DejaVu Sans",
+        sansSerifFamily: "DejaVu Sans",
+      },
+    });
+    const chartPng = resvg.render().asPng();
+    return compositeSocialChartLogo(chartPng);
+  }
 }
