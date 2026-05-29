@@ -75,7 +75,7 @@ export async function loadDemoSocialChartPayload(
       time: candles[12]!.time,
       price: Number(member.price_at_call ?? member.entry_price ?? entry),
       label: `${member.users.display_name ?? member.users.pin} ${member.direction}`,
-      color: member.direction === "long" ? "#34d399" : "#fb7185",
+      color: member.direction === "long" ? "#ffffff" : "#737373",
       kind: member.direction === "long" ? "long" : "short",
       callId: member.id,
     });

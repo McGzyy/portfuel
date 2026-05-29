@@ -7,7 +7,7 @@ import { uploadXMedia } from "@/lib/social/x-media";
 import { xConfigSummary } from "@/lib/social/x-config";
 import { hasSocialPostBeenSent, recordSocialPost } from "@/lib/social/post-log";
 import { loadSocialChartPayload } from "@/lib/charts/social-chart-data";
-import { renderSocialChartPng } from "@/lib/charts/social-chart";
+import { renderSocialChartPng } from "@/lib/charts/social-chart-render";
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 
 const schema = z.object({

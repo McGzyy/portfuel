@@ -23,28 +23,34 @@ export const PF_CHART = {
   },
 } as const;
 
-/** Dark theme for social / share chart images (X posts). */
+/** Dark theme for social / share chart images (X posts) — PortFuel red / black / grey / white. */
 export const PF_CHART_SOCIAL = {
   width: 1200,
   height: 675,
-  background: "#0f1419",
-  backgroundMid: "#1a2332",
-  backgroundAccent: "#2a1520",
-  grid: "rgba(148, 163, 184, 0.14)",
-  gridStrong: "rgba(148, 163, 184, 0.22)",
-  text: "#94a3b8",
-  textBright: "#f1f5f9",
-  textMuted: "#64748b",
+  background: "#000000",
+  panel: "#0a0a0a",
+  panelBorder: "rgba(255,255,255,0.08)",
+  grid: "rgba(255,255,255,0.06)",
+  gridStrong: "rgba(255,255,255,0.12)",
+  text: "#9ca3af",
+  textBright: "#ffffff",
+  textMuted: "#6b7280",
   accent: "#E31B23",
-  accentSoft: "rgba(227, 27, 35, 0.35)",
-  up: "#34d399",
-  down: "#f87171",
+  accentSoft: "rgba(227, 27, 35, 0.22)",
+  /** Bullish / up candle body */
+  up: "#f5f5f5",
+  upWick: "#d4d4d4",
+  /** Bearish / down candle */
+  down: "#E31B23",
+  downWick: "#b91c1c",
   entry: "#E31B23",
-  target: "#34d399",
-  stop: "#fb7185",
-  memberLong: "#34d399",
-  memberShort: "#fb7185",
+  target: "#ffffff",
+  stop: "rgba(227, 27, 35, 0.65)",
+  memberLong: "#ffffff",
+  memberShort: "#737373",
   fueled: "#E31B23",
+  returnPositive: "#ffffff",
+  returnNegative: "#E31B23",
 } as const;
 
 export function chartLayoutOptions() {

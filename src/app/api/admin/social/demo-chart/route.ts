@@ -5,7 +5,8 @@ import {
   demoMilestoneTweetCopy,
   loadDemoSocialChartPayload,
 } from "@/lib/charts/social-chart-demo";
-import { renderSocialChartPng, renderSocialChartSvg } from "@/lib/charts/social-chart";
+import { renderSocialChartPng } from "@/lib/charts/social-chart-render";
+import { renderSocialChartSvg } from "@/lib/charts/social-chart";
 
 const milestoneSchema = z.enum(["return_10", "return_25", "target_reached"]);
 

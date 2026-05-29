@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 import { loadSocialChartPayload } from "@/lib/charts/social-chart-data";
-import { renderSocialChartPng, renderSocialChartSvg } from "@/lib/charts/social-chart";
+import { renderSocialChartPng } from "@/lib/charts/social-chart-render";
+import { renderSocialChartSvg } from "@/lib/charts/social-chart";
 
 const milestoneSchema = z.enum(["return_10", "return_25", "target_reached"]);
 
