@@ -70,24 +70,30 @@ export function buildSyntheticSocialCandles(opts: {
     const target =
       i <= callBarIndex
         ? entryPrice * (0.97 + (i / Math.max(callBarIndex, 1)) * 0.03)
-        : entryPrice + (currentPrice - entryPrice) * Math.pow(postProgress, 0.85);
+        : entryPrice + (currentPrice - entryPrice) * Math.pow(postProgress, 1.05);
 
-    const drift = (target - close) * (postCall ? 0.22 : 0.18);
-    const shock = (rand() - 0.48) * entryPrice * (postCall ? 0.018 : 0.014);
+    const drift = (target - close) * (postCall ? 0.28 : 0.2);
+    const shock = (rand() - 0.48) * entryPrice * (postCall ? 0.012 : 0.01);
     const open = close;
     close = open + drift + shock;
 
     if (i === callBarIndex) {
       close = entryPrice;
     }
-    if (i === bars - 1) {
-      close = currentPrice;
+    if (i >= bars - 3) {
+      const step = i - (bars - 3);
+      const blend = step === 0 ? 0.35 : step === 1 ? 0.62 : 1;
+      close = open + (currentPrice - open) * blend;
     }
 
     const body = Math.abs(close - open);
-    const wickExtra = entryPrice * (0.004 + rand() * 0.008);
-    const high = Math.max(open, close) + Math.max(wickExtra, body * 0.6);
-    const low = Math.min(open, close) - Math.max(wickExtra, body * 0.6);
+    const wickExtra = entryPrice * (0.003 + rand() * 0.005);
+    let high = Math.max(open, close) + Math.max(wickExtra, body * 0.4);
+    let low = Math.min(open, close) - Math.max(wickExtra, body * 0.4);
+    const maxBarRange = entryPrice * 0.028;
+    const mid = (open + close) / 2;
+    high = Math.min(high, mid + maxBarRange);
+    low = Math.max(low, mid - maxBarRange);
 
     candles.push({ time: t, open, high, low, close });
   }
