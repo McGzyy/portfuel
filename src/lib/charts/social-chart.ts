@@ -210,7 +210,7 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
     payload.returnPct != null && payload.returnPct >= 0 ? T.returnPositive : T.returnNegative;
 
   const logoImg = payload.logoBase64
-    ? `<image href="data:image/png;base64,${payload.logoBase64}" x="${pad}" y="${logoY}" height="${logoH}" preserveAspectRatio="xMinYMid meet"/>`
+    ? `<g clip-path="url(#logoClip)"><image href="data:image/png;base64,${payload.logoBase64}" x="${pad - 2}" y="${logoY - 4}" width="${logoColW - 4}" height="${logoH + 8}" preserveAspectRatio="xMinYMid slice"/></g>`
     : text(pad, logoY + 58, "PortFuel PRO", { size: 22, weight: 700, fill: T.textBright });
 
   const badgeLabel = payload.milestoneLabel?.toUpperCase() ?? "";
@@ -238,6 +238,9 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   <defs>
     <clipPath id="plotClip">
       <rect x="${chartX}" y="${chartY}" width="${chartW}" height="${chartH}"/>
+    </clipPath>
+    <clipPath id="logoClip">
+      <rect x="${pad}" y="${logoY}" width="${logoColW - 4}" height="${logoH}"/>
     </clipPath>
   </defs>
   <rect width="${W}" height="${H}" fill="${T.background}"/>
