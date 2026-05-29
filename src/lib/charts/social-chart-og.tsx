@@ -178,7 +178,7 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             display: "flex",
             marginTop: "auto",
             padding: "16px 48px 28px",
-            paddingRight: 320,
+            paddingRight: 400,
           }}
         >
           <div style={{ display: "flex", fontSize: 11, color: T.textDim }}>

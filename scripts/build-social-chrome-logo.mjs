@@ -46,9 +46,10 @@ async function main() {
   const chromePath = join(publicDir, "logo-social-chrome.png");
   const watermarkPath = join(publicDir, "logo-social-watermark.png");
 
-  await transparent.clone().png({ compressionLevel: 9 }).toFile(chromePath);
+  await transparent.clone().trim({ threshold: 12 }).png({ compressionLevel: 9 }).toFile(chromePath);
   await transparent
     .clone()
+    .trim({ threshold: 12 })
     .resize({ height: 128 })
     .png({ compressionLevel: 9 })
     .toFile(watermarkPath);
