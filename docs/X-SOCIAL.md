@@ -33,7 +33,7 @@ Add to Vercel (Production) and local `.env`:
 - **Post to X** — live when `X_API_ENABLED=true`, `X_API_DRY_RUN=false`, and token is set.
 - **Force repost** — bypasses idempotency for manual posts.
 
-Same tab includes **Tweet → Fueled draft** (inbound curation): paste tweet text → AI draft → continue in publish form or Desk admin.
+Same tab includes **From X post** (inbound curation): paste an X post URL (with optional text backup) → per-ticker context → **Analyze** → publish Fueled call. Requires `tweet.read` on your X app token for URL fetch; `OPENAI_API_KEY` for analysis.
 
 ## Cron
 
@@ -48,7 +48,14 @@ curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/x-so
 ## Post templates (v1)
 
 - **Fueled** — latest `is_fueled` call → link to `/ticker/{symbol}` with UTM `utm_source=x`.
+- **Fueled milestone** — desk call at +10%, +25%, or target reached → **chart PNG** attached (`/api/social/chart/{callId}?milestone=…`). Admin → Social → Milestone charts.
 - **Leaderboard** — top 3 rank scores → link to `/rankings`.
+
+### Chart images
+
+- Dark branded 1200×675 PNG: candles, Fueled square marker, member long/short arrows, desk entry/target/stop lines.
+- Logo: place **`public/logo-light.png`** (light mark on dark). Falls back to `public/logo.png`.
+- Preview: `GET /api/social/chart/{callId}?milestone=return_10&format=png` (or `format=svg`).
 
 Every template ends with: `Not investment advice.`
 

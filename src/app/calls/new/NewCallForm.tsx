@@ -32,6 +32,7 @@ function readPublishQuery(sp: URLSearchParams) {
     targetPrice: sp.get("target") ?? "",
     stopPrice: sp.get("stop") ?? "",
     timeframeTag: sp.get("timeframe") ?? "",
+    sourceTweetUrl: sp.get("sourceTweet") ?? "",
   };
 }
 
@@ -66,6 +67,7 @@ export function NewCallForm({
   const [targetPrice, setTargetPrice] = useState(queryDraft.targetPrice);
   const [stopPrice, setStopPrice] = useState(queryDraft.stopPrice);
   const [timeframeTag, setTimeframeTag] = useState(queryDraft.timeframeTag);
+  const [sourceTweetUrl] = useState(queryDraft.sourceTweetUrl);
   const [publishFueled, setPublishFueled] = useState(
     isAdmin && queryDraft.publishFueled
   );
@@ -112,6 +114,7 @@ export function NewCallForm({
           stopPrice: stopPrice ? parseFloat(stopPrice) : undefined,
           timeframeTag: timeframeTag || undefined,
           isFueled: isAdmin && publishFueled ? true : undefined,
+          sourceTweetUrl: isAdmin && sourceTweetUrl ? sourceTweetUrl : undefined,
         }),
       });
       const data = await res.json();

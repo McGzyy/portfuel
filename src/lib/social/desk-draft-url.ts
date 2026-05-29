@@ -1,9 +1,54 @@
 import type { TweetDeskDraft } from "@/lib/ai/tweet-desk-draft";
+import type { TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
 import { COPY } from "@/lib/copy";
+
+export type PublishUrlOpts = {
+  assetClass?: "equity" | "crypto";
+  fueled?: boolean;
+  sourceTweetUrl?: string;
+};
+
+function appendPublishParams(params: URLSearchParams, opts: PublishUrlOpts) {
+  if (opts.fueled) params.set("fueled", "1");
+  if (opts.sourceTweetUrl?.trim()) {
+    params.set("sourceTweet", opts.sourceTweetUrl.trim().slice(0, 500));
+  }
+}
+
+function appendLevels(
+  params: URLSearchParams,
+  levels: {
+    direction?: "long" | "short" | null;
+    thesis?: string;
+    entryPrice?: number | null;
+    targetPrice?: number | null;
+    stopPrice?: number | null;
+    timeframeNote?: string | null;
+  }
+) {
+  if (levels.direction === "long" || levels.direction === "short") {
+    params.set("direction", levels.direction);
+  }
+  if (levels.thesis?.trim()) {
+    params.set("thesis", levels.thesis.trim().slice(0, 2000));
+  }
+  if (levels.entryPrice != null && Number.isFinite(levels.entryPrice)) {
+    params.set("entry", String(levels.entryPrice));
+  }
+  if (levels.targetPrice != null && Number.isFinite(levels.targetPrice)) {
+    params.set("target", String(levels.targetPrice));
+  }
+  if (levels.stopPrice != null && Number.isFinite(levels.stopPrice)) {
+    params.set("stop", String(levels.stopPrice));
+  }
+  if (levels.timeframeNote?.trim()) {
+    params.set("timeframe", levels.timeframeNote.trim().slice(0, 32));
+  }
+}
 
 export function buildPublishUrlFromDeskDraft(
   draft: TweetDeskDraft,
-  opts?: { assetClass?: "equity" | "crypto"; fueled?: boolean }
+  opts?: PublishUrlOpts
 ): string {
   const params = new URLSearchParams();
   params.set("from", "tweet");
@@ -12,31 +57,31 @@ export function buildPublishUrlFromDeskDraft(
   const symbol = draft.suggestedSymbol ?? draft.candidates[0];
   if (symbol) params.set("symbol", symbol.toUpperCase());
 
-  if (draft.direction === "long" || draft.direction === "short") {
-    params.set("direction", draft.direction);
-  }
+  appendLevels(params, draft);
+  appendPublishParams(params, opts ?? {});
 
-  if (draft.thesis.trim()) {
-    params.set("thesis", draft.thesis.trim().slice(0, 2000));
-  }
+  return `${COPY.newCallHref}?${params.toString()}`;
+}
 
-  if (draft.entryPrice != null && Number.isFinite(draft.entryPrice)) {
-    params.set("entry", String(draft.entryPrice));
-  }
-  if (draft.targetPrice != null && Number.isFinite(draft.targetPrice)) {
-    params.set("target", String(draft.targetPrice));
-  }
-  if (draft.stopPrice != null && Number.isFinite(draft.stopPrice)) {
-    params.set("stop", String(draft.stopPrice));
-  }
+export function buildPublishUrlFromAnalysis(
+  symbol: string,
+  analysis: TickerAnalyzeResult,
+  opts?: PublishUrlOpts
+): string {
+  const params = new URLSearchParams();
+  params.set("from", "tweet");
+  params.set("asset", opts?.assetClass ?? "equity");
+  params.set("symbol", symbol.toUpperCase());
 
-  if (draft.timeframeNote?.trim()) {
-    params.set("timeframe", draft.timeframeNote.trim().slice(0, 32));
-  }
-
-  if (opts?.fueled) {
-    params.set("fueled", "1");
-  }
+  appendLevels(params, {
+    direction: analysis.direction,
+    thesis: analysis.draftThesis,
+    entryPrice: analysis.entryPrice,
+    targetPrice: analysis.targetPrice,
+    stopPrice: analysis.stopPrice,
+    timeframeNote: analysis.timeframeNote,
+  });
+  appendPublishParams(params, opts ?? {});
 
   return `${COPY.newCallHref}?${params.toString()}`;
 }

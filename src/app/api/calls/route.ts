@@ -24,6 +24,7 @@ const createSchema = z.object({
   stopPrice: z.number().positive().optional(),
   timeframeTag: z.string().max(32).optional(),
   isFueled: z.boolean().optional(),
+  sourceTweetUrl: z.string().url().max(500).optional(),
 });
 
 export async function GET(request: Request) {
@@ -92,6 +93,10 @@ export async function POST(request: Request) {
     } as never);
 
     const isFueled = body.isFueled === true && session.role === "admin";
+    const sourceTweetUrl =
+      session.role === "admin" && body.sourceTweetUrl?.trim()
+        ? body.sourceTweetUrl.trim()
+        : null;
 
     const { data: call, error } = await db
       .from("calls")
@@ -108,6 +113,7 @@ export async function POST(request: Request) {
         price_at_call: priceAtCall,
         last_price: priceAtCall,
         is_fueled: isFueled,
+        source_tweet_url: sourceTweetUrl,
       } as never)
       .select("id, symbol")
       .single();

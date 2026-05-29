@@ -13,17 +13,21 @@ export function Logo({
   className,
   href = "/",
   size = "md",
+  variant = "default",
 }: {
   className?: string;
   href?: string;
   size?: keyof typeof sizes;
+  /** Use `light` on dark backgrounds (expects /logo-light.png, falls back to /logo.png). */
+  variant?: "default" | "light";
 }) {
   const { width, height, className: sizeClass } = sizes[size];
+  const src = variant === "light" ? "/logo-light.png" : "/logo.png";
 
   return (
     <Link href={href} className={cn("inline-flex shrink-0 items-center", className)}>
       <Image
-        src="/logo.png"
+        src={src}
         alt="PortFuel.pro"
         width={width}
         height={height}

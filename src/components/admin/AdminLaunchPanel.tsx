@@ -131,15 +131,20 @@ export function AdminLaunchPanel() {
 
       <section className="rounded-[var(--pf-radius-lg)] border border-dashed border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-5">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-          Backlog (not built yet)
+          Social curation
         </p>
         <p className="mt-1 text-sm font-semibold text-[var(--pf-black)]">
-          Tweet → Fueled call (AI draft)
+          From X post → Analyze → Fueled call
         </p>
         <p className="mt-1 text-xs leading-relaxed text-[var(--pf-gray-500)]">
-          Paste a tweet, pick a ticker when several are mentioned, edit, publish as Fueled. Spec in{" "}
-          <code className="rounded bg-white px-1">docs/BACKLOG.md</code>.
+          Paste an X URL on Admin → Social, analyze each ticker, then publish. See{" "}
+          <code className="rounded bg-white px-1">docs/X-SOCIAL.md</code>.
         </p>
+        <Link href="/admin?tab=social" className="mt-3 inline-block">
+          <Button variant="outline" size="sm">
+            Open Social tab
+          </Button>
+        </Link>
       </section>
     </div>
   );

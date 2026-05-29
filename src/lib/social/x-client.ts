@@ -1,6 +1,9 @@
 import { getXConfig } from "@/lib/social/x-config";
 
-export async function postToX(text: string): Promise<
+export async function postToX(
+  text: string,
+  mediaIds?: string[]
+): Promise<
   | { ok: true; tweetId: string; dryRun: boolean }
   | { ok: false; error: string }
 > {
@@ -11,8 +14,13 @@ export async function postToX(text: string): Promise<
   }
 
   if (config.dryRun || !config.bearerToken) {
-    console.info("[x-social dry-run]", text);
+    console.info("[x-social dry-run]", text, mediaIds?.length ? `(+${mediaIds.length} media)` : "");
     return { ok: true, tweetId: "dry_run", dryRun: true };
+  }
+
+  const body: { text: string; media?: { media_ids: string[] } } = { text };
+  if (mediaIds && mediaIds.length > 0) {
+    body.media = { media_ids: mediaIds };
   }
 
   const res = await fetch("https://api.twitter.com/2/tweets", {
@@ -21,7 +29,7 @@ export async function postToX(text: string): Promise<
       Authorization: `Bearer ${config.bearerToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify(body),
   });
 
   const json = (await res.json().catch(() => ({}))) as {

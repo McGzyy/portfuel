@@ -1,13 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import type { TweetDeskDraft } from "@/lib/ai/tweet-desk-draft";
-import { COPY } from "@/lib/copy";
-import { buildPublishUrlFromDeskDraft } from "@/lib/social/desk-draft-url";
+import { AdminSocialInboundPanel } from "@/components/admin/AdminSocialInboundPanel";
+import { AdminSocialMilestonePanel } from "@/components/admin/AdminSocialMilestonePanel";
 
 type XConfigSummary = {
   enabled: boolean;
@@ -25,14 +21,6 @@ export function AdminSocialPanel() {
   const [xLoading, setXLoading] = useState(false);
   const [xMessage, setXMessage] = useState("");
   const [forceRepost, setForceRepost] = useState(false);
-
-  const [tweetRaw, setTweetRaw] = useState("");
-  const [tweetNote, setTweetNote] = useState("");
-  const [chosenSymbol, setChosenSymbol] = useState("");
-  const [draft, setDraft] = useState<TweetDeskDraft | null>(null);
-  const [regexCandidates, setRegexCandidates] = useState<string[]>([]);
-  const [tweetLoading, setTweetLoading] = useState(false);
-  const [tweetError, setTweetError] = useState("");
 
   const loadConfig = useCallback(async () => {
     const res = await fetch("/api/admin/social/preview");
@@ -103,44 +91,6 @@ export function AdminSocialPanel() {
       setXLoading(false);
     }
   }
-
-  async function draftFromTweet() {
-    setTweetLoading(true);
-    setTweetError("");
-    setDraft(null);
-    try {
-      const res = await fetch("/api/admin/desk/from-tweet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rawText: tweetRaw,
-          adminNote: tweetNote || undefined,
-          chosenSymbol: chosenSymbol || undefined,
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setTweetError(json.error === "text_too_short" ? "Paste more tweet text." : "Draft failed.");
-        return;
-      }
-      setDraft(json.draft as TweetDeskDraft);
-      setRegexCandidates(json.regexCandidates as string[]);
-      if (!chosenSymbol && json.draft?.suggestedSymbol) {
-        setChosenSymbol(json.draft.suggestedSymbol);
-      }
-    } catch {
-      setTweetError("Draft failed.");
-    } finally {
-      setTweetLoading(false);
-    }
-  }
-
-  const publishHref = draft
-    ? buildPublishUrlFromDeskDraft(
-        { ...draft, suggestedSymbol: chosenSymbol || draft.suggestedSymbol },
-        { fueled: true }
-      )
-    : null;
 
   return (
     <div className="mt-8 space-y-8">
@@ -245,111 +195,9 @@ export function AdminSocialPanel() {
         ) : null}
       </section>
 
-      <section className="pf-workspace-panel p-6">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-          Tweet → Fueled draft
-        </p>
-        <h2 className="mt-1 text-lg font-bold text-[var(--pf-black)]">
-          Paste inbound social text → desk call draft
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm text-[var(--pf-gray-600)]">
-          AI suggests tickers and thesis — you pick one symbol, edit levels, then publish as Fueled
-          from Admin → Desk or {COPY.newCall}.
-        </p>
+      <AdminSocialInboundPanel />
 
-        <div className="mt-5 space-y-4">
-          <div>
-            <Label>Tweet / thread text</Label>
-            <Textarea
-              value={tweetRaw}
-              onChange={(e) => setTweetRaw(e.target.value)}
-              rows={5}
-              placeholder="Paste tweet text or thread excerpt…"
-              className="mt-1.5"
-            />
-          </div>
-          <div>
-            <Label>Admin note (optional)</Label>
-            <Textarea
-              value={tweetNote}
-              onChange={(e) => setTweetNote(e.target.value)}
-              rows={2}
-              placeholder="Why this matters for the desk…"
-              className="mt-1.5"
-            />
-          </div>
-
-          {(regexCandidates.length > 0 || draft?.candidates.length) ? (
-            <div>
-              <Label>Primary symbol</Label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {(draft?.candidates ?? regexCandidates).map((sym) => (
-                  <button
-                    key={sym}
-                    type="button"
-                    onClick={() => setChosenSymbol(sym)}
-                    className={
-                      chosenSymbol === sym
-                        ? "rounded-full border border-[var(--pf-red)] bg-[var(--pf-red-muted)] px-3 py-1 font-mono text-xs font-bold text-[var(--pf-red)]"
-                        : "rounded-full border border-[var(--pf-border)] px-3 py-1 font-mono text-xs font-semibold text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)]"
-                    }
-                  >
-                    {sym}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          <Button type="button" disabled={tweetLoading || tweetRaw.trim().length < 12} onClick={() => void draftFromTweet()}>
-            {tweetLoading ? "Drafting…" : "Generate desk draft"}
-          </Button>
-
-          {tweetError ? <p className="text-xs text-rose-700">{tweetError}</p> : null}
-
-          {draft ? (
-            <div className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-800">
-                Draft only — review before publish
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-800)]">{draft.thesis}</p>
-              <dl className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-                <div>
-                  <dt className="text-[var(--pf-gray-500)]">Direction</dt>
-                  <dd className="font-semibold">{draft.direction ?? "—"}</dd>
-                </div>
-                <div>
-                  <dt className="text-[var(--pf-gray-500)]">Entry</dt>
-                  <dd className="font-semibold tabular-nums">{draft.entryPrice ?? "—"}</dd>
-                </div>
-                <div>
-                  <dt className="text-[var(--pf-gray-500)]">Target</dt>
-                  <dd className="font-semibold tabular-nums">{draft.targetPrice ?? "—"}</dd>
-                </div>
-                <div>
-                  <dt className="text-[var(--pf-gray-500)]">Stop</dt>
-                  <dd className="font-semibold tabular-nums">{draft.stopPrice ?? "—"}</dd>
-                </div>
-              </dl>
-              {draft.timeframeNote ? (
-                <p className="mt-2 text-xs text-[var(--pf-gray-600)]">{draft.timeframeNote}</p>
-              ) : null}
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Link href="/admin?tab=desk">
-                  <Button variant="outline" size="sm">
-                    Open desk admin
-                  </Button>
-                </Link>
-                {publishHref ? (
-                  <Link href={publishHref}>
-                    <Button size="sm">Continue in publish form →</Button>
-                  </Link>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </section>
+      <AdminSocialMilestonePanel />
     </div>
   );
 }

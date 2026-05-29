@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { FeedCallList } from "@/components/dashboard/FeedCallList";
+import { FueledDeskSection } from "@/components/dashboard/FueledDeskSection";
 import {
   WorkspacePageHeader,
   WorkspaceNewCallAction,
@@ -75,6 +76,9 @@ export default async function DashboardFeedPage({
   const searchQuery = q?.trim() ?? "";
 
   const allFeedCalls = await loadFeedCalls(mode === "progress" ? "latest" : mode);
+  const fueledFeedCards = allFeedCalls
+    .filter((c) => c.is_fueled)
+    .slice(0, 4);
   let memberCalls = allFeedCalls.filter((c) => !c.is_fueled);
 
   if (feedFilter === "following") {
@@ -90,9 +94,16 @@ export default async function DashboardFeedPage({
   if (mode === "progress") {
     calls = sortCallsByTargetProgress(calls);
   }
-  const hypeScores = await fetchHypeScoresBySymbols(calls.map((c) => c.symbol));
+  const hypeScores = await fetchHypeScoresBySymbols([
+    ...calls.map((c) => c.symbol),
+    ...fueledFeedCards.map((c) => c.symbol),
+  ]);
   const cookieStore = await cookies();
   const feedSeenAt = parseFeedSeenAt(cookieStore.get(FEED_SEEN_COOKIE)?.value);
+  const fueledMapped =
+    feedFilter === "fueled"
+      ? []
+      : fueledFeedCards.map((c) => mapCallForCard(c, hypeScores));
   let mapped = calls.map((c) => mapCallForCard(c, hypeScores));
   const newCount = mapped.filter((c) => isCallNewSinceSeen(c.called_at, feedSeenAt)).length;
   if (showNewOnly) {
@@ -131,6 +142,12 @@ export default async function DashboardFeedPage({
         showNewOnly={showNewOnly}
       />
       <FeedVisitTracker />
+
+      {fueledMapped.length > 0 && feedFilter !== "fueled" ? (
+        <div className="mt-6">
+          <FueledDeskSection calls={fueledMapped} />
+        </div>
+      ) : null}
 
       {feedSummary.count > 0 ? (
         <div className="mt-6">

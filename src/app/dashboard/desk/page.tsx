@@ -12,6 +12,8 @@ import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { fetchDeskBrief } from "@/lib/desk/brief";
 import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
 import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
+import { fetchFueledTrackRecord } from "@/lib/fueled/track-record";
+import { FueledTrackRecordPanel } from "@/components/dashboard/FueledTrackRecordPanel";
 import {
   isProIntelligenceLocked,
   sessionToProContext,
@@ -38,6 +40,7 @@ export default async function DashboardDeskPage() {
   const fueledPerforming = performing
     .filter((c) => c.is_fueled)
     .map((c) => mapCallForCard(c, hypeScores));
+  const fueledTrackRecord = await fetchFueledTrackRecord();
 
   return (
     <>
@@ -47,7 +50,9 @@ export default async function DashboardDeskPage() {
         description="Official PortFuel research — curated desk theses, clearly separated from the member feed."
       />
 
-      <FueledDeskBrief brief={deskBrief} />
+      <FueledDeskBrief brief={deskBrief}       />
+
+      <FueledTrackRecordPanel record={fueledTrackRecord} />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <DeskPortfolioChart points={portfolioCurve} />

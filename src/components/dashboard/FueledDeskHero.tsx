@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Flame, ArrowRight } from "lucide-react";
+import { Logo } from "@/components/brand/Logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { CallPreviewData } from "@/components/dashboard/CallPreviewRow";
@@ -23,6 +24,7 @@ export function FueledDeskHero({
     <section className="pf-fueled-desk overflow-hidden p-6 sm:p-8" aria-label="Fueled desk">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
+          <Logo href="/dashboard/desk" size="sm" variant="light" className="opacity-95" />
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--pf-red)] text-white">
             <Flame className="h-5 w-5" strokeWidth={2.25} />
           </span>

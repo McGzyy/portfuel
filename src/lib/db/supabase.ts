@@ -59,6 +59,7 @@ export type Database = {
           comment_count: number;
           is_fueled: boolean;
           source: string;
+          source_tweet_url: string | null;
           created_at: string;
           updated_at: string;
         };

@@ -21,6 +21,9 @@ import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerform
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { FueledDeskPreview } from "@/components/dashboard/FueledDeskPreview";
+import { FueledDeskHero } from "@/components/dashboard/FueledDeskHero";
+import { FueledTrackRecordPanel } from "@/components/dashboard/FueledTrackRecordPanel";
+import { fetchFueledTrackRecord } from "@/lib/fueled/track-record";
 import { WorkspacePanel } from "@/components/dashboard/WorkspacePanel";
 import { FeedPreviewList } from "@/components/dashboard/FeedPreviewList";
 import type { CallPreviewData } from "@/components/dashboard/CallPreviewRow";
@@ -150,6 +153,7 @@ export default async function DashboardOverviewPage({
 
   const deskBrief = await fetchDeskBrief();
   const portfolio = await fetchDeskPortfolio();
+  const fueledTrackRecord = await fetchFueledTrackRecord();
 
   let workspacePulse = null;
   try {
@@ -206,6 +210,14 @@ export default async function DashboardOverviewPage({
       ) : null}
 
       {proLocked ? <ProUpgradeBanner /> : null}
+
+      <FueledDeskHero
+        featured={featuredDesk}
+        totalDeskCalls={fueledCalls.length}
+        weeklyNote={deskBrief.weeklyNote}
+      />
+
+      <FueledTrackRecordPanel record={fueledTrackRecord} />
 
       <OverviewActivityPanels
         openCalls={openCallCards}

@@ -1,4 +1,4 @@
-export type XPostType = "fueled" | "leaderboard";
+export type XPostType = "fueled" | "leaderboard" | "fueled_milestone";
 
 export type XConfig = {
   enabled: boolean;

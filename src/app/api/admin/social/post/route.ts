@@ -3,28 +3,38 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
 import { composeXPost } from "@/lib/social/x-compose";
 import { postToX } from "@/lib/social/x-client";
+import { uploadXMedia } from "@/lib/social/x-media";
 import { xConfigSummary } from "@/lib/social/x-config";
 import { hasSocialPostBeenSent, recordSocialPost } from "@/lib/social/post-log";
+import { loadSocialChartPayload } from "@/lib/charts/social-chart-data";
+import { renderSocialChartPng } from "@/lib/charts/social-chart";
+import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 
 const schema = z.object({
-  type: z.enum(["fueled", "leaderboard"]),
+  type: z.enum(["fueled", "leaderboard", "fueled_milestone"]),
   dryRun: z.boolean().optional(),
   force: z.boolean().optional(),
+  callId: z.string().uuid().optional(),
+  milestone: z.enum(["return_10", "return_25", "target_reached"]).optional(),
 });
 
 export async function POST(request: Request) {
   try {
     await requireAdmin();
     const body = schema.parse(await request.json());
-    const composed = await composeXPost(body.type);
+    const composed = await composeXPost(body.type, {
+      callId: body.callId,
+      milestone: body.milestone,
+    });
     if (!composed.ok) {
       return NextResponse.json({ error: composed.error }, { status: 404 });
     }
 
     const config = xConfigSummary();
+    const postType = body.type === "fueled_milestone" ? "fueled" : body.type;
 
     if (!body.dryRun && !body.force) {
-      const alreadySent = await hasSocialPostBeenSent(body.type, composed.refId);
+      const alreadySent = await hasSocialPostBeenSent(postType, composed.refId);
       if (alreadySent) {
         return NextResponse.json({
           ok: false,
@@ -43,18 +53,36 @@ export async function POST(request: Request) {
         dryRun: true,
         text: composed.text,
         refId: composed.refId,
+        withChart: composed.withChart,
         config,
       });
     }
 
-    const posted = await postToX(composed.text);
+    let mediaIds: string[] | undefined;
+    if (composed.withChart && composed.callId && composed.milestone) {
+      const payload = await loadSocialChartPayload(
+        composed.callId,
+        composed.milestone as CallMilestoneKey
+      );
+      if ("error" in payload) {
+        return NextResponse.json({ error: "chart_failed" }, { status: 502 });
+      }
+      const png = await renderSocialChartPng(payload);
+      const uploaded = await uploadXMedia(png);
+      if (!uploaded.ok) {
+        return NextResponse.json({ error: uploaded.error, text: composed.text }, { status: 502 });
+      }
+      mediaIds = [uploaded.mediaId];
+    }
+
+    const posted = await postToX(composed.text, mediaIds);
     if (!posted.ok) {
       return NextResponse.json({ error: posted.error, text: composed.text }, { status: 502 });
     }
 
     if (!posted.dryRun) {
       await recordSocialPost({
-        postType: body.type,
+        postType,
         refId: composed.refId,
         tweetId: posted.tweetId,
       });
@@ -66,6 +94,7 @@ export async function POST(request: Request) {
       tweetId: posted.tweetId,
       text: composed.text,
       refId: composed.refId,
+      withChart: composed.withChart,
       config,
     });
   } catch (e) {

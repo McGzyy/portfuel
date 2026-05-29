@@ -447,6 +447,7 @@ function toCallWithUser(raw: RawCall): CallWithUser {
     comment_count: raw.comment_count,
     is_fueled: raw.is_fueled,
     source: raw.source,
+    source_tweet_url: null,
     created_at: ts,
     updated_at: ts,
     users: {
