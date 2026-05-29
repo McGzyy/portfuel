@@ -34,7 +34,7 @@ const MILESTONE_LABELS: Record<CallMilestoneKey, string> = {
 };
 
 export function loadSocialChartLogoBase64(): string | null {
-  for (const name of ["logo-social-dark.png", "logo-light.png", "logo.png"]) {
+  for (const name of ["logo-social-premium.png", "logo-social-dark.png", "logo-light.png", "logo.png"]) {
     const path = join(process.cwd(), "public", name);
     if (existsSync(path)) {
       return readFileSync(path).toString("base64");
