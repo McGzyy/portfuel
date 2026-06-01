@@ -21,6 +21,7 @@ import { ProfileBillingSection } from "@/components/billing/ProfileBillingSectio
 import { ProfileAiCoachStrip } from "@/components/profile/ProfileAiCoachStrip";
 import { ProfileEmailSection } from "@/components/profile/ProfileEmailSection";
 import { ProfileReferralSection } from "@/components/profile/ProfileReferralSection";
+import { ProfileDiscordSection } from "@/components/profile/ProfileDiscordSection";
 import { fetchAiCoachUsage } from "@/lib/ai/usage";
 import { isAiCoachConfigured } from "@/lib/ai/config";
 import { ProfileBillingSync } from "@/app/profile/BillingSync";
@@ -96,6 +97,10 @@ export default async function ProfilePage() {
 
       <div className="mt-6">
         <ProfileReferralSection />
+      </div>
+
+      <div className="mt-6">
+        <ProfileDiscordSection />
       </div>
 
       <div className="mt-6">

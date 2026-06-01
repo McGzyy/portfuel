@@ -107,6 +107,63 @@ export type Database = {
           updated_at: string;
         };
       };
+      discord_accounts: {
+        Row: {
+          id: string;
+          user_id: string;
+          guild_id: string;
+          discord_user_id: string;
+          linked_at: string;
+          last_synced_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["discord_accounts"]["Row"]> & {
+          user_id: string;
+          guild_id: string;
+          discord_user_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["discord_accounts"]["Row"]>;
+      };
+      discord_link_tokens: {
+        Row: {
+          token: string;
+          guild_id: string;
+          discord_user_id: string;
+          created_at: string;
+          expires_at: string;
+          consumed_at: string | null;
+          consumed_by_user_id: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["discord_link_tokens"]["Row"]> & {
+          guild_id: string;
+          discord_user_id: string;
+          expires_at: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["discord_link_tokens"]["Row"]>;
+      };
+      discord_outbox: {
+        Row: {
+          id: string;
+          guild_id: string;
+          channel_id: string;
+          event_type: string;
+          payload: Record<string, unknown>;
+          status: "pending" | "sent" | "failed";
+          locked_at: string | null;
+          locked_by: string | null;
+          processed_at: string | null;
+          error: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["discord_outbox"]["Row"]> & {
+          guild_id: string;
+          channel_id: string;
+          event_type: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["discord_outbox"]["Row"]>;
+      };
     };
     Views: {
       teaser_latest_calls: { Row: TeaserCallRow };
