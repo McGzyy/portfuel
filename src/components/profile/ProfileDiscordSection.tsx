@@ -56,7 +56,7 @@ export function ProfileDiscordSection() {
       {status.loading ? (
         <p className="mt-4 text-sm text-[var(--pf-gray-500)]">Checking link status…</p>
       ) : status.linked ? (
-        <div className="mt-4 space-y-2 text-sm">
+        <div className="mt-4 space-y-3 text-sm">
           <p className="font-medium text-emerald-700">Discord linked</p>
           <p className="text-[var(--pf-gray-600)]">
             Tier:{" "}
@@ -65,6 +65,30 @@ export function ProfileDiscordSection() {
           <p className="text-xs text-[var(--pf-gray-500)]">
             Roles sync automatically when your subscription changes.
           </p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <button
+              type="button"
+              className="rounded-md border border-[var(--pf-gray-200)] px-3 py-2 text-xs font-semibold hover:bg-[var(--pf-gray-50)]"
+              onClick={async () => {
+                await fetch("/api/discord/link/refresh", { method: "POST" });
+                window.alert("Discord role sync queued. Give it up to a minute.");
+              }}
+            >
+              Refresh Discord roles
+            </button>
+            <button
+              type="button"
+              className="rounded-md border border-[var(--pf-gray-200)] px-3 py-2 text-xs font-semibold text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-50)]"
+              onClick={async () => {
+                if (!window.confirm("Unlink Discord from PortFuel? Member roles will be removed on next sync.")) return;
+                const res = await fetch("/api/discord/link/unlink", { method: "POST" });
+                if (res.ok) void load();
+                else window.alert("Could not unlink. Try again.");
+              }}
+            >
+              Unlink Discord
+            </button>
+          </div>
         </div>
       ) : (
         <div className="mt-4 space-y-3 text-sm text-[var(--pf-gray-600)]">

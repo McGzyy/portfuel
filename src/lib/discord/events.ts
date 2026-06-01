@@ -87,3 +87,24 @@ export async function notifyDiscordCallMilestone(input: {
     },
   });
 }
+
+export async function notifyDiscordAccountLinked(input: {
+  displayName: string | null;
+  username: string;
+  isActive: boolean;
+  isPro: boolean;
+}): Promise<void> {
+  if (!input.isActive) return;
+
+  const { channels } = getDiscordConfig();
+  const label = input.displayName?.trim() || input.username;
+  const tier = input.isPro ? "Pro Member" : "PortFuel Member";
+
+  await enqueueDiscordOutbox({
+    channelId: channels.announcements,
+    eventType: "member.linked",
+    payload: {
+      text: `✅ **${label}** linked PortFuel — **${tier}** roles will apply within a minute.`,
+    },
+  });
+}

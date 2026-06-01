@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/db/supabase";
 import { requireSession } from "@/lib/auth/session";
+import { notifyDiscordAccountLinked } from "@/lib/discord/events";
+import { canAccessProIntelligence, sessionToProContext } from "@/lib/features/pro-intelligence";
 
 const schema = z.object({
   token: z.string().uuid(),
@@ -64,6 +66,17 @@ export async function POST(request: Request) {
     if (consumeError) {
       return NextResponse.json({ error: "consume_failed" }, { status: 500 });
     }
+
+    const proCtx = sessionToProContext(session);
+    const isActive = session.role === "admin" || session.subscriptionStatus === "active";
+    const isPro = canAccessProIntelligence(proCtx);
+
+    void notifyDiscordAccountLinked({
+      displayName: session.displayName,
+      username: session.username,
+      isActive,
+      isPro,
+    }).catch((e) => console.error("[discord/link-welcome]", e));
 
     return NextResponse.json({ ok: true, guildId, discordUserId });
   } catch (e) {
