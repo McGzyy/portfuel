@@ -102,6 +102,60 @@ async function iconFromGauge(gaugeSquare, size, scale) {
     .toBuffer();
 }
 
+/** Polished Add to Home Screen icon — larger gauge on a soft gradient tile. */
+async function buildHomeScreenIcon(gaugeSquare, size) {
+  const scale = 0.9;
+  const inner = Math.round(size * scale);
+  const gaugeImg = await sharp(gaugeSquare)
+    .resize(inner, inner, {
+      fit: "contain",
+      background: TRANSPARENT,
+      kernel: sharp.kernel.lanczos3,
+    })
+    .toBuffer();
+  const g = await sharp(gaugeImg).metadata();
+  const ring = Math.round(size * 0.44);
+  const bgSvg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="72%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#f7f8fa"/>
+      <stop offset="100%" stop-color="#eceef2"/>
+    </radialGradient>
+  </defs>
+  <rect width="${size}" height="${size}" fill="url(#bg)"/>
+  <circle cx="${size / 2}" cy="${size / 2}" r="${ring}" fill="none" stroke="#e31b23" stroke-opacity="0.14" stroke-width="${Math.max(2, size * 0.012)}"/>
+</svg>`);
+  const bg = await sharp(bgSvg).png().toBuffer();
+  const left = Math.floor((size - g.width) / 2);
+  const top = Math.floor((size - g.height) / 2) - Math.round(size * 0.015);
+  return sharp(bg)
+    .composite([{ input: gaugeImg, left, top }])
+    .png()
+    .toBuffer();
+}
+
+async function buildMaskableIcon(gaugeSquare, size) {
+  const bg = await sharp({
+    create: {
+      width: size,
+      height: size,
+      channels: 3,
+      background: { r: 255, g: 255, b: 255 },
+    },
+  })
+    .png()
+    .toBuffer();
+  const inner = Math.round(size * 0.62);
+  const gaugeImg = await sharp(gaugeSquare)
+    .resize(inner, inner, { fit: "contain", background: TRANSPARENT })
+    .toBuffer();
+  const g = await sharp(gaugeImg).metadata();
+  const left = Math.floor((size - g.width) / 2);
+  const top = Math.floor((size - g.height) / 2);
+  return sharp(bg).composite([{ input: gaugeImg, left, top }]).png().toBuffer();
+}
+
 const logoMeta = await upscaleLogoIfNeeded();
 
 const MASTER = 1024;
@@ -112,28 +166,27 @@ await mkdir(iconsDir, { recursive: true });
 
 const TAB_ICON_SIZE = 48;
 const TAB_ICON_SCALE = 0.92;
-/** Slightly larger fill than 0.82 — still transparent like the original icon. */
-const APPLE_ICON_SCALE = 0.86;
-
-const masterApple = await iconFromGauge(gauge, MASTER, APPLE_ICON_SCALE);
 const tabIcon = await iconFromGauge(gauge, TAB_ICON_SIZE, TAB_ICON_SCALE);
-const appleIcon = await sharp(masterApple)
+const masterHome = await buildHomeScreenIcon(gauge, MASTER);
+const appleIcon = await sharp(masterHome)
   .resize(180, 180, { kernel: sharp.kernel.lanczos3 })
   .toBuffer();
-const icon192 = await sharp(masterApple)
+const icon192 = await sharp(masterHome)
   .resize(192, 192, { kernel: sharp.kernel.lanczos3 })
   .toBuffer();
-const icon512 = await sharp(masterApple)
+const icon512 = await sharp(masterHome)
   .resize(512, 512, { kernel: sharp.kernel.lanczos3 })
   .toBuffer();
+const maskable512 = await buildMaskableIcon(gauge, 512);
 
 await sharp(tabIcon).toFile(join(root, "src/app/icon.png"));
 await sharp(appleIcon).toFile(join(root, "src/app/apple-icon.png"));
 await sharp(appleIcon).toFile(join(iconsDir, "apple-touch-icon.png"));
 await sharp(icon192).toFile(join(iconsDir, "icon-192.png"));
 await sharp(icon512).toFile(join(iconsDir, "icon-512.png"));
+await sharp(maskable512).toFile(join(iconsDir, "icon-512-maskable.png"));
 
 console.log("Brand assets ready:");
 console.log(`  public/logo.png (${logoMeta.width ?? "?"}×${logoMeta.height ?? "?"})`);
 console.log("  src/app/icon.png, src/app/apple-icon.png");
-console.log("  public/icons/icon-192.png, icon-512.png");
+console.log("  public/icons/icon-192.png, icon-512.png, icon-512-maskable.png");
