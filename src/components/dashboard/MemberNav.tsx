@@ -18,11 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { COPY } from "@/lib/copy";
-import {
-  DASHBOARD_NAV,
-  WORKSPACE_NAV_GROUPS,
-  type DashboardNavIcon,
-} from "@/lib/dashboard/nav";
+import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
 import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { cn } from "@/lib/utils";
@@ -59,10 +55,6 @@ export function MemberNav({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  const current =
-    DASHBOARD_NAV.find((item) => isNavActive(pathname, item.href, item.exact)) ??
-    DASHBOARD_NAV[0];
-
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
@@ -83,7 +75,7 @@ export function MemberNav({
 
   return (
     <>
-      <div className="flex items-center gap-2 border-b border-[var(--pf-border)] bg-white px-3 py-2 lg:hidden">
+      <div className="flex items-center justify-between gap-2 border-b border-[var(--pf-border)] bg-white px-3 py-2 lg:hidden">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -94,9 +86,6 @@ export function MemberNav({
         >
           <Menu className="h-5 w-5" strokeWidth={2.25} />
         </button>
-        <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--pf-black)]">
-          {current.label}
-        </p>
         <Link
           href="/dashboard/messages"
           className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
