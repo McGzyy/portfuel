@@ -6,6 +6,10 @@ import {
   EmbedBuilder,
   GatewayIntentBits,
   Partials,
+  PermissionFlagsBits,
+  REST,
+  Routes,
+  SlashCommandBuilder,
 } from "discord.js";
 import dotenv from "dotenv";
 import fs from "node:fs";
@@ -46,8 +50,13 @@ const VERIFICATION_CHANNEL_ID =
 const CALLS_CHANNEL_ID = process.env.DISCORD_CHANNEL_CALLS_ID ?? "1510841810430197991";
 const TARGETS_CHANNEL_ID = process.env.DISCORD_CHANNEL_TARGETS_ID ?? "1510842222143340707";
 
+const BOT_LOG_CHANNEL_ID = process.env.DISCORD_CHANNEL_BOT_LOG_ID ?? "";
+
 const VERIFY_BUTTON_ID = "pf:verify";
 const LINK_BUTTON_ID = "pf:link";
+
+const verifyCooldownMs = 30_000;
+const verifyCooldown = new Map();
 
 async function api(path, { method = "GET", body } = {}) {
   const res = await fetch(`${APP_URL}${path}`, {
@@ -81,6 +90,35 @@ async function postToChannel(client, channelId, content) {
   const channel = await client.channels.fetch(channelId).catch(() => null);
   if (!channel || !("send" in channel)) throw new Error("channel_unavailable");
   await channel.send({ content });
+}
+
+async function botLog(client, message) {
+  if (!isRoleId(BOT_LOG_CHANNEL_ID)) return;
+  await postToChannel(client, BOT_LOG_CHANNEL_ID, message).catch(() => null);
+}
+
+async function applyEntitlementsToMember(member, entitlements) {
+  const isActive = Boolean(entitlements?.linked && entitlements?.isActive);
+  const isPro = Boolean(entitlements?.isPro);
+  await ensureRole(member, ROLE_MEMBER, isActive);
+  await ensureRole(member, ROLE_PRO, isPro);
+}
+
+async function registerSlashCommands(client) {
+  const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
+  await rest.put(Routes.applicationGuildCommands(client.user.id, GUILD_ID), {
+    body: [
+      new SlashCommandBuilder()
+        .setName("sync")
+        .setDescription("Re-sync PortFuel Member/Pro roles for a user")
+        .addUserOption((o) =>
+          o.setName("member").setDescription("Discord member").setRequired(true)
+        )
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
+        .toJSON(),
+    ],
+  });
+  console.log("[discord-bot] registered /sync command");
 }
 
 function verificationEmbed() {
@@ -150,6 +188,9 @@ const client = new Client({
 client.once("ready", async () => {
   console.log(`[discord-bot] ready as ${client.user?.tag}`);
   await ensureVerificationMessage(client);
+  await registerSlashCommands(client).catch((e) =>
+    console.error("[discord-bot] slash register failed", e)
+  );
 });
 
 client.on("guildMemberAdd", async (member) => {
@@ -172,14 +213,60 @@ client.on("guildMemberAdd", async (member) => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isButton()) return;
   if (String(interaction.guildId) !== String(GUILD_ID)) return;
+
+  if (interaction.isChatInputCommand() && interaction.commandName === "sync") {
+    try {
+      const target = interaction.options.getUser("member", true);
+      const guild = await client.guilds.fetch(GUILD_ID);
+      const member = await guild.members.fetch(target.id);
+      const ent = await api(
+        `/api/discord/entitlements?guildId=${encodeURIComponent(GUILD_ID)}&discordUserId=${encodeURIComponent(target.id)}`
+      );
+      if (!ent.linked) {
+        await interaction.reply({
+          content: "That user has not linked PortFuel yet.",
+          ephemeral: true,
+        });
+        return;
+      }
+      await applyEntitlementsToMember(member, ent);
+      await api("/api/discord/sync/mark", {
+        method: "POST",
+        body: { guildId: String(GUILD_ID), discordUserId: target.id },
+      });
+      await botLog(
+        client,
+        `Manual /sync by ${interaction.user.tag}: ${target.tag} → active=${ent.isActive} pro=${ent.isPro}`
+      );
+      await interaction.reply({
+        content: `Synced roles for **${target.username}** (active=${ent.isActive}, pro=${ent.isPro}).`,
+        ephemeral: true,
+      });
+    } catch (e) {
+      console.error("[discord-bot] /sync error", e);
+      await interaction.reply({ content: "Sync failed.", ephemeral: true }).catch(() => null);
+    }
+    return;
+  }
+
+  if (!interaction.isButton()) return;
 
   const member = interaction.member;
   if (!member || typeof member.roles === "undefined") return;
 
   try {
     if (interaction.customId === VERIFY_BUTTON_ID) {
+      const last = verifyCooldown.get(interaction.user.id) ?? 0;
+      if (Date.now() - last < verifyCooldownMs) {
+        await interaction.reply({
+          content: "Please wait a moment before verifying again.",
+          ephemeral: true,
+        });
+        return;
+      }
+      verifyCooldown.set(interaction.user.id, Date.now());
+
       if (isRoleId(ROLE_VERIFIED) && member.roles.cache.has(ROLE_VERIFIED)) {
         await interaction.reply({
           content: "You're already verified.",
@@ -197,6 +284,7 @@ client.on("interactionCreate", async (interaction) => {
           "PortFuel subscriber? Click **Link PortFuel** above to unlock member channels.",
         ephemeral: true,
       });
+      await botLog(client, `Verified: ${interaction.user.tag} (${interaction.user.id})`);
       console.log(`[discord-bot] verified ${interaction.user.id}`);
       return;
     }
@@ -254,9 +342,11 @@ async function runRoleSyncTick() {
     const member = await guild.members.fetch(discordUserId).catch(() => null);
     if (!member) continue;
 
-    // Paid access only — human Verified role is managed separately.
-    await ensureRole(member, ROLE_MEMBER, isActive);
-    await ensureRole(member, ROLE_PRO, isPro);
+    await applyEntitlementsToMember(member, {
+      linked: true,
+      isActive,
+      isPro,
+    });
 
     await api("/api/discord/sync/mark", {
       method: "POST",
