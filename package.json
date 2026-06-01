@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "icons": "node scripts/build-header-logo.mjs && node scripts/generate-favicons.mjs"
+    "lint": "eslint"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.65",
