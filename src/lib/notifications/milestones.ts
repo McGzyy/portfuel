@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import { notifyDiscordCallMilestone } from "@/lib/discord/events";
 import { createNotification } from "@/lib/notifications/service";
 
 export type CallMilestoneKey = "return_10" | "return_25" | "target_reached";
@@ -96,6 +97,14 @@ export async function processCallMilestones(calls: CallRow[]): Promise<{ notifie
         href: `/ticker/${call.symbol}`,
         refCallId: call.id,
       });
+
+      void notifyDiscordCallMilestone({
+        callId: call.id,
+        symbol: call.symbol,
+        key,
+        returnPct: call.return_pct,
+      }).catch((e) => console.error("[discord/milestone]", e));
+
       notified++;
     }
   }

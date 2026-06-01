@@ -282,8 +282,9 @@ function formatOutboxEvent(eventType, payload) {
   if (eventType === "call.target_hit") {
     const sym = payload?.symbol ?? "—";
     const pct = payload?.returnPct != null ? ` (${payload.returnPct}%)` : "";
+    const by = payload?.by ? ` — ${payload.by}` : "";
     const url = payload?.url ? `\n${payload.url}` : "";
-    return `🎯 Target hit: **${sym}**${pct}${url}`;
+    return `🎯 Target hit: **${sym}**${pct}${by}${url}`;
   }
   return `Event: ${eventType}\n` + "```json\n" + JSON.stringify(payload ?? {}, null, 2) + "\n```";
 }

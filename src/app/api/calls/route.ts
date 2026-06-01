@@ -13,6 +13,7 @@ import { getXConfig } from "@/lib/social/x-config";
 import { composeFueledPostByCallId } from "@/lib/social/x-compose";
 import { postToX } from "@/lib/social/x-client";
 import { hasSocialPostBeenSent, recordSocialPost } from "@/lib/social/post-log";
+import { notifyDiscordNewCall } from "@/lib/discord/events";
 
 const createSchema = z.object({
   symbol: z.string().min(1).max(12),
@@ -145,6 +146,15 @@ export async function POST(request: Request) {
       callerDisplayName: session.displayName,
       direction: body.direction,
     });
+
+    void notifyDiscordNewCall({
+      callId: call.id,
+      symbol: call.symbol,
+      direction: body.direction,
+      isFueled,
+      displayName: session.displayName,
+      username: session.username,
+    }).catch((e) => console.error("[discord/new-call]", e));
 
     const xConfig = getXConfig();
     if (isFueled && xConfig.enabled && xConfig.fueledPosts && xConfig.autopostFueledOnPublish) {
