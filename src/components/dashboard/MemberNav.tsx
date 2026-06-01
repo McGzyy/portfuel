@@ -102,7 +102,7 @@ export function MemberNav({
       {open ? (
         <button
           type="button"
-          className="fixed inset-0 z-[60] bg-black/40 lg:hidden"
+          className="fixed inset-x-0 bottom-0 top-[var(--pf-safe-top)] z-[60] bg-black/40 lg:hidden"
           aria-label="Close workspace menu"
           onClick={() => setOpen(false)}
         />
@@ -111,7 +111,7 @@ export function MemberNav({
       <aside
         id="workspace-mobile-nav"
         className={cn(
-          "fixed inset-y-0 left-0 z-[70] flex w-[min(18.5rem,88vw)] flex-col border-r border-[var(--pf-border)] bg-white shadow-xl transition-transform duration-200 ease-out lg:hidden",
+          "fixed bottom-0 left-0 top-[var(--pf-safe-top)] z-[70] flex w-[min(18.5rem,88vw)] flex-col border-r border-[var(--pf-border)] bg-white shadow-xl transition-transform duration-200 ease-out lg:hidden",
           open ? "translate-x-0" : "-translate-x-full pointer-events-none"
         )}
         aria-hidden={!open}

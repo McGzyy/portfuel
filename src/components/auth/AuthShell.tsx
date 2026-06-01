@@ -13,7 +13,7 @@ export function AuthShell({
   className?: string;
 }) {
   return (
-    <div className="pf-auth-bg flex min-h-[100dvh] flex-col items-center px-4 pb-8 pt-3 sm:pt-5">
+    <div className="pf-auth-bg flex min-h-full flex-1 flex-col items-center px-4 pb-8 pt-3 sm:pt-5">
       <Logo className="mb-4 shrink-0 sm:mb-5" size="auth" unoptimized />
       <div className={cn("pf-card-elevated w-full max-w-md overflow-hidden", className)}>
         <div className="h-1 bg-gradient-to-r from-[var(--pf-red)] via-[var(--pf-red-hover)] to-[var(--pf-black)]" />

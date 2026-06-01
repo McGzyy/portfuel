@@ -28,11 +28,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-white font-sans text-[var(--pf-black)]">
-        <DemoModeBanner />
-        <InstallPrompt />
-        <MobileViewportFix />
-        {children}
+      <body className="min-h-full bg-white font-sans text-[var(--pf-black)]">
+        <div className="pf-app-shell flex min-h-full flex-col">
+          <DemoModeBanner />
+          <InstallPrompt />
+          <MobileViewportFix />
+          {children}
+        </div>
       </body>
     </html>
   );
