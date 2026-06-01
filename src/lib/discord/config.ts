@@ -19,6 +19,8 @@ export function getDiscordConfig() {
       fireCalls: process.env.DISCORD_CHANNEL_FIRE_CALLS_ID ?? "1510860334628602027",
       calls: process.env.DISCORD_CHANNEL_CALLS_ID ?? "1510841810430197991",
       targets: process.env.DISCORD_CHANNEL_TARGETS_ID ?? "1510842222143340707",
+      memberChat: process.env.DISCORD_CHANNEL_MEMBER_CHAT_ID ?? "1510799917415923763",
+      proMemberChat: process.env.DISCORD_CHANNEL_PRO_MEMBER_CHAT_ID ?? "1510799989213757460",
       botLog: process.env.DISCORD_CHANNEL_BOT_LOG_ID ?? "",
     },
   };

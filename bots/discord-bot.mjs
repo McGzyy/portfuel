@@ -1,5 +1,6 @@
 import {
   ActionRowBuilder,
+  AttachmentBuilder,
   ButtonBuilder,
   ButtonStyle,
   Client,
@@ -49,6 +50,10 @@ const VERIFICATION_CHANNEL_ID =
   process.env.DISCORD_CHANNEL_VERIFICATION_ID ?? "1510828920487022652";
 const CALLS_CHANNEL_ID = process.env.DISCORD_CHANNEL_CALLS_ID ?? "1510841810430197991";
 const TARGETS_CHANNEL_ID = process.env.DISCORD_CHANNEL_TARGETS_ID ?? "1510842222143340707";
+const MEMBER_CHAT_CHANNEL_ID =
+  process.env.DISCORD_CHANNEL_MEMBER_CHAT_ID ?? "1510799917415923763";
+const PRO_MEMBER_CHAT_CHANNEL_ID =
+  process.env.DISCORD_CHANNEL_PRO_MEMBER_CHAT_ID ?? "1510799989213757460";
 
 const BOT_LOG_CHANNEL_ID = process.env.DISCORD_CHANNEL_BOT_LOG_ID ?? "";
 
@@ -89,9 +94,34 @@ async function ensureRole(member, roleId, enabled) {
   if (!enabled && has) await member.roles.remove(roleId);
 }
 
-async function postToChannel(client, channelId, content) {
+async function fetchChartAttachment(callId, milestone, symbol) {
+  if (!callId || !milestone) return null;
+  const chartUrl = `${APP_URL}/api/social/chart/${callId}?milestone=${encodeURIComponent(milestone)}`;
+  const res = await fetch(chartUrl);
+  if (!res.ok) return null;
+  const buf = Buffer.from(await res.arrayBuffer());
+  const safeSym = String(symbol ?? "chart")
+    .replace(/[^a-z0-9_-]/gi, "")
+    .slice(0, 12);
+  return new AttachmentBuilder(buf, { name: `${safeSym || "chart"}-${milestone}.png` });
+}
+
+async function postToChannel(client, channelId, content, chartOpts) {
   const channel = await client.channels.fetch(channelId).catch(() => null);
   if (!channel || !("send" in channel)) throw new Error("channel_unavailable");
+
+  if (chartOpts?.attachChart && chartOpts.callId && chartOpts.milestone) {
+    const file = await fetchChartAttachment(
+      chartOpts.callId,
+      chartOpts.milestone,
+      chartOpts.symbol
+    );
+    if (file) {
+      await channel.send({ content, files: [file] });
+      return;
+    }
+  }
+
   await channel.send({ content });
 }
 
@@ -519,10 +549,19 @@ async function runOutboxTick() {
           ? CALLS_CHANNEL_ID
           : channelId === "targets"
             ? TARGETS_CHANNEL_ID
-            : channelId;
+            : channelId === "member"
+              ? MEMBER_CHAT_CHANNEL_ID
+              : channelId === "pro"
+                ? PRO_MEMBER_CHAT_CHANNEL_ID
+                : channelId;
 
       const content = formatOutboxEvent(eventType, payload);
-      await postToChannel(client, resolvedChannel, content);
+      await postToChannel(client, resolvedChannel, content, {
+        attachChart: Boolean(payload.attachChart),
+        callId: payload.callId ? String(payload.callId) : undefined,
+        milestone: payload.milestone ? String(payload.milestone) : undefined,
+        symbol: payload.symbol ? String(payload.symbol) : undefined,
+      });
       await api("/api/discord/outbox/ack", { method: "POST", body: { id, status: "sent" } });
       console.log(`[discord-bot] sent outbox ${id} -> ${resolvedChannel}`);
     } catch (e) {

@@ -1,5 +1,6 @@
 import { getAppUrl } from "@/lib/stripe/config";
 import { getDiscordConfig } from "@/lib/discord/config";
+import { resolveTierChatChannelId } from "@/lib/discord/milestone-channel";
 import { enqueueDiscordOutbox } from "@/lib/discord/outbox";
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 
@@ -50,40 +51,44 @@ export async function notifyDiscordNewCall(input: {
 
 export async function notifyDiscordCallMilestone(input: {
   callId: string;
+  userId: string;
   symbol: string;
   key: CallMilestoneKey;
   returnPct: number | null;
   displayName?: string | null;
   username?: string;
 }): Promise<void> {
-  const { channels } = getDiscordConfig();
   const url = `${getAppUrl()}/ticker/${encodeURIComponent(input.symbol)}`;
   const who = input.displayName?.trim() || input.username || "A member";
+  const channelId = await resolveTierChatChannelId(input.userId);
 
-  if (input.key === "target_reached") {
-    await enqueueDiscordOutbox({
-      channelId: channels.targets,
-      eventType: "call.target_hit",
-      payload: {
-        symbol: input.symbol,
-        returnPct: input.returnPct,
-        url,
-        callId: input.callId,
-        by: who,
-      },
-    });
-    return;
-  }
-
-  const label = input.key === "return_10" ? "+10%" : "+25%";
+  const milestoneLabel =
+    input.key === "target_reached"
+      ? "Target hit"
+      : input.key === "return_10"
+        ? "+10%"
+        : "+25%";
   const pct =
-    input.returnPct != null ? ` (${input.returnPct >= 0 ? "+" : ""}${input.returnPct.toFixed(1)}%)` : "";
+    input.returnPct != null
+      ? ` (${input.returnPct >= 0 ? "+" : ""}${input.returnPct.toFixed(1)}%)`
+      : "";
+
+  const eventType =
+    input.key === "target_reached" ? "call.target_hit" : "call.milestone";
 
   await enqueueDiscordOutbox({
-    channelId: channels.announcements,
-    eventType: "call.milestone",
+    channelId,
+    eventType,
     payload: {
-      text: `📈 **${input.symbol}** hit ${label}${pct} — ${who}\n${url}`,
+      symbol: input.symbol,
+      returnPct: input.returnPct,
+      url,
+      callId: input.callId,
+      milestone: input.key,
+      attachChart: true,
+      by: who,
+      milestoneLabel,
+      text: `📈 **${input.symbol}** — ${milestoneLabel}${pct} — ${who}\n${url}`,
     },
   });
 }
@@ -99,12 +104,13 @@ export async function notifyDiscordAccountLinked(input: {
   const { channels } = getDiscordConfig();
   const label = input.displayName?.trim() || input.username;
   const tier = input.isPro ? "Pro Member" : "PortFuel Member";
+  const channelId = input.isPro ? channels.proMemberChat : channels.memberChat;
 
   await enqueueDiscordOutbox({
-    channelId: channels.announcements,
+    channelId,
     eventType: "member.linked",
     payload: {
-      text: `✅ **${label}** linked PortFuel — **${tier}** roles will apply within a minute.`,
+      text: `✅ **${label}** (@${input.username}) linked PortFuel — **${tier}**. Roles sync within a minute.`,
     },
   });
 }

@@ -101,6 +101,7 @@ export async function processCallMilestones(calls: CallRow[]): Promise<{ notifie
 
       void notifyDiscordCallMilestone({
         callId: call.id,
+        userId: call.user_id,
         symbol: call.symbol,
         key,
         returnPct: call.return_pct,
