@@ -1,7 +1,7 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { hashIp } from "@/lib/auth/crypto";
 
-const MAX_ATTEMPTS = 5;
+const MAX_ATTEMPTS = 8;
 const WINDOW_MS = 15 * 60 * 1000;
 
 export async function checkRateLimit(username: string, ip: string): Promise<boolean> {

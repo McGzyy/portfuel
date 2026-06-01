@@ -20,22 +20,22 @@ export default function LoginPage() {
 
   const normalizedUsername = username.trim().toLowerCase();
   const isAdminLogin = normalizedUsername === "admin";
-  const showAuthenticator = needsTotp || isAdminLogin;
+  const totpRequired = needsTotp || isAdminLogin;
 
   const subtitle = useMemo(() => {
     if (isAdminLogin) {
-      return "Admin sign-in uses your password plus a 6-digit code from your authenticator app (not your .env file).";
+      return "Admin: password plus the 6-digit code from your authenticator app (not values from .env).";
     }
-    if (showAuthenticator) {
+    if (totpRequired) {
       return "Enter your password and the 6-digit code from your authenticator app.";
     }
-    return "Use your username and password. Members with 2FA enabled also need an authenticator code.";
-  }, [isAdminLogin, showAuthenticator]);
+    return "Username and password. Add your authenticator code too if you use 2FA.";
+  }, [isAdminLogin, totpRequired]);
 
   const canSubmit =
     normalizedUsername.length >= 3 &&
     password.trim().length >= 8 &&
-    (!showAuthenticator || token.length === 6);
+    (!totpRequired || token.length === 6);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -68,7 +68,17 @@ export default function LoginPage() {
         }
         if (data.error === "invalid_totp") {
           setNeedsTotp(true);
-          setError("Authenticator code is incorrect or expired. Try the latest code.");
+          setError(
+            isAdminLogin
+              ? "Wrong authenticator code. Use the PortFuel admin entry in your app — if needed, reset with scripts/reset-admin-totp.mjs using production .env."
+              : "Authenticator code is incorrect or expired. Try the latest code."
+          );
+          return;
+        }
+        if (data.error === "totp_setup_error") {
+          setError(
+            "Server could not read your authenticator setup. Ensure TOTP_ENCRYPTION_KEY on Vercel matches when admin 2FA was set, or run reset-admin-totp.mjs against production."
+          );
           return;
         }
         if (data.error === "invalid_password") {
@@ -132,25 +142,25 @@ export default function LoginPage() {
           />
         </div>
 
-        {showAuthenticator ? (
-          <div>
-            <label className="mb-3 block text-center text-sm font-medium text-[var(--pf-gray-700)]">
-              Authenticator code
-            </label>
+        <div>
+          <label className="mb-3 block text-center text-sm font-medium text-[var(--pf-gray-700)]">
+            Authenticator code{totpRequired ? "" : " (if enabled)"}
+          </label>
+          <div className="hidden sm:block">
             <OtpInput value={token} onChange={setToken} disabled={loading} />
-            <Input
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              placeholder="6-digit code"
-              value={token}
-              onChange={(e) => setToken(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              className="mt-3 text-center tracking-[0.35em] sm:hidden"
-              disabled={loading}
-              aria-label="Authenticator code (single field)"
-            />
           </div>
-        ) : null}
+          <Input
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            placeholder="6-digit code"
+            value={token}
+            onChange={(e) => setToken(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            className="text-center tracking-[0.35em] sm:hidden"
+            disabled={loading}
+            aria-label="Authenticator code"
+          />
+        </div>
 
         {error ? (
           <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-center text-sm text-[var(--pf-red)]">
@@ -159,7 +169,7 @@ export default function LoginPage() {
         ) : null}
 
         <Button type="submit" className="w-full" size="lg" disabled={loading || !canSubmit}>
-          {loading ? "Signing in…" : showAuthenticator ? "Verify & sign in" : "Sign in"}
+          {loading ? "Signing in…" : totpRequired ? "Verify & sign in" : "Sign in"}
         </Button>
       </form>
 

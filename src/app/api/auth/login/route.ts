@@ -25,6 +25,13 @@ const schema = z.object({
     }),
 });
 
+async function passwordMatches(input: string, hash: string): Promise<boolean> {
+  const trimmed = input.trim();
+  if (await verifyPassword(trimmed, hash)) return true;
+  if (trimmed !== input && (await verifyPassword(input, hash))) return true;
+  return false;
+}
+
 export async function POST(request: Request) {
   try {
     const body = schema.parse(await request.json());
@@ -50,7 +57,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "invalid_credentials" }, { status: 401 });
     }
 
-    if (!(await verifyPassword(body.password.trim(), user.password_hash))) {
+    if (!(await passwordMatches(body.password, user.password_hash))) {
       await recordAuthAttempt(username, ip, false);
       return NextResponse.json({ error: "invalid_password" }, { status: 401 });
     }
@@ -63,12 +70,16 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "totp_required", requiresTotp: true }, { status: 401 });
       }
       if (!user.totp_secret_enc) {
-        await recordAuthAttempt(username, ip, false);
-        return NextResponse.json({ error: "invalid_credentials" }, { status: 401 });
+        return NextResponse.json({ error: "totp_setup_error" }, { status: 503 });
       }
-      const secret = decryptSecret(user.totp_secret_enc);
+      let secret: string;
+      try {
+        secret = decryptSecret(user.totp_secret_enc);
+      } catch (e) {
+        console.error("[auth/login] TOTP decrypt failed for", username, e);
+        return NextResponse.json({ error: "totp_setup_error" }, { status: 503 });
+      }
       if (!(await verifyTotpToken(secret, body.token))) {
-        await recordAuthAttempt(username, ip, false);
         return NextResponse.json({ error: "invalid_totp" }, { status: 401 });
       }
     }

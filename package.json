@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "brand-assets": "node scripts/optimize-brand-assets.mjs"
+    "brand-assets": "node scripts/optimize-brand-assets.mjs",
+    "clear-auth-attempts": "node --env-file=.env.local scripts/clear-auth-attempts.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.65",
