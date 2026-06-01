@@ -160,7 +160,7 @@ export default function LoginPage() {
             placeholder="6-digit code"
             value={token}
             onChange={(e) => setToken(e.target.value.replace(/\D/g, "").slice(0, 6))}
-            className="text-center tracking-[0.35em] sm:hidden"
+            className="text-center text-base tracking-[0.35em] sm:hidden"
             disabled={loading}
             aria-label="Authenticator code"
           />

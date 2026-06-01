@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { MobileViewportFix } from "@/components/pwa/MobileViewportFix";
 import { rootMetadata } from "@/lib/seo/site";
 
 const inter = Inter({
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-white font-sans text-[var(--pf-black)]">
         <DemoModeBanner />
         <InstallPrompt />
+        <MobileViewportFix />
         {children}
       </body>
     </html>
