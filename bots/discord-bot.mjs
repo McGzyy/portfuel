@@ -284,6 +284,14 @@ client.on("interactionCreate", async (interaction) => {
           "PortFuel subscriber? Click **Link PortFuel** above to unlock member channels.",
         ephemeral: true,
       });
+      await api("/api/discord/verify/record", {
+        method: "POST",
+        body: {
+          guildId: String(GUILD_ID),
+          discordUserId: String(interaction.user.id),
+        },
+      }).catch((e) => console.error("[discord-bot] verify record", e));
+
       await botLog(client, `Verified: ${interaction.user.tag} (${interaction.user.id})`);
       console.log(`[discord-bot] verified ${interaction.user.id}`);
       return;
@@ -379,6 +387,33 @@ function formatOutboxEvent(eventType, payload) {
   return `Event: ${eventType}\n` + "```json\n" + JSON.stringify(payload ?? {}, null, 2) + "\n```";
 }
 
+async function runLinkReminderTick() {
+  const due = await api(
+    `/api/discord/link/reminders-due?guildId=${encodeURIComponent(GUILD_ID)}&hours=24&limit=20`
+  );
+  const items = Array.isArray(due.items) ? due.items : [];
+  if (items.length === 0) return;
+
+  for (const item of items) {
+    const discordUserId = String(item.discordUserId);
+    try {
+      const user = await client.users.fetch(discordUserId);
+      const msg =
+        `Hey — you verified in PortFuel Discord but haven't linked your PortFuel account yet.\n\n` +
+        `Go to <#${VERIFICATION_CHANNEL_ID}> and click **Link PortFuel** (while logged in at portfuel.pro) to unlock member channels.`;
+
+      await user.send({ content: msg }).catch(() => null);
+      await api("/api/discord/link/mark-reminded", {
+        method: "POST",
+        body: { guildId: String(GUILD_ID), discordUserId },
+      });
+      console.log(`[discord-bot] link reminder sent to ${discordUserId}`);
+    } catch (e) {
+      console.error(`[discord-bot] link reminder failed ${discordUserId}`, e);
+    }
+  }
+}
+
 async function runOutboxTick() {
   const pulled = await api("/api/discord/outbox/pull", {
     method: "POST",
@@ -426,6 +461,12 @@ async function main() {
   setInterval(() => {
     runOutboxTick().catch((e) => console.error("[discord-bot] outbox tick", e));
   }, 5_000);
+
+  setInterval(() => {
+    runLinkReminderTick().catch((e) => console.error("[discord-bot] link reminder tick", e));
+  }, 60 * 60 * 1000);
+
+  void runLinkReminderTick().catch(() => null);
 }
 
 main().catch((e) => {

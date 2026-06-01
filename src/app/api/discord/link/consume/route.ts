@@ -67,6 +67,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "consume_failed" }, { status: 500 });
     }
 
+    await db
+      .from("discord_human_verified")
+      .delete()
+      .eq("guild_id", guildId)
+      .eq("discord_user_id", discordUserId);
+
     const proCtx = sessionToProContext(session);
     const isActive = session.role === "admin" || session.subscriptionStatus === "active";
     const isPro = canAccessProIntelligence(proCtx);

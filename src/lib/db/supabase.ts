@@ -164,6 +164,19 @@ export type Database = {
         };
         Update: Partial<Database["public"]["Tables"]["discord_outbox"]["Row"]>;
       };
+      discord_human_verified: {
+        Row: {
+          guild_id: string;
+          discord_user_id: string;
+          verified_at: string;
+          link_reminder_sent_at: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["discord_human_verified"]["Row"]> & {
+          guild_id: string;
+          discord_user_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["discord_human_verified"]["Row"]>;
+      };
     };
     Views: {
       teaser_latest_calls: { Row: TeaserCallRow };
