@@ -12,6 +12,26 @@ function isIos(): boolean {
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
 
+/** Safari-style share glyph (square + arrow up) for the iOS install hint. */
+function IosShareGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M8 2.5v6" />
+      <path d="M5.5 4.25 8 1.75 10.5 4.25" />
+      <rect x="3.25" y="7" width="9.5" height="6.75" rx="1.25" />
+    </svg>
+  );
+}
+
 function isStandalone(): boolean {
   if (typeof window === "undefined") return false;
   return (
@@ -51,8 +71,14 @@ export function InstallPrompt() {
 
   if (showIosHint && !deferred) {
     return (
-      <div className="border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-2.5 text-center text-xs text-[var(--pf-gray-600)]">
-        Install: tap <strong>Share</strong> → <strong>Add to Home Screen</strong>
+      <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-2.5 text-center text-xs text-[var(--pf-gray-600)]">
+        <span>Install: tap</span>
+        <span className="inline-flex items-center gap-0.5 rounded border border-[var(--pf-gray-300)] bg-white px-1.5 py-0.5 font-semibold text-[var(--pf-black)] shadow-sm">
+          <IosShareGlyph className="h-3.5 w-3.5 shrink-0" />
+          Share
+        </span>
+        <span aria-hidden>→</span>
+        <strong className="text-[var(--pf-gray-700)]">Add to Home Screen</strong>
         <button
           type="button"
           className="ml-2 font-semibold text-[var(--pf-red)]"
