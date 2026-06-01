@@ -9,10 +9,6 @@ import {
   notifyWatchlistNewCall,
 } from "@/lib/notifications/service";
 import { validateSymbol } from "@/lib/market/validate-symbol";
-import { getXConfig } from "@/lib/social/x-config";
-import { composeFueledPostByCallId } from "@/lib/social/x-compose";
-import { postToX } from "@/lib/social/x-client";
-import { hasSocialPostBeenSent, recordSocialPost } from "@/lib/social/post-log";
 import { notifyDiscordNewCall } from "@/lib/discord/events";
 
 const createSchema = z.object({
@@ -155,23 +151,6 @@ export async function POST(request: Request) {
       displayName: session.displayName,
       username: session.username,
     }).catch((e) => console.error("[discord/new-call]", e));
-
-    const xConfig = getXConfig();
-    if (isFueled && xConfig.enabled && xConfig.fueledPosts && xConfig.autopostFueledOnPublish) {
-      void (async () => {
-        const alreadySent = await hasSocialPostBeenSent("fueled", call.id);
-        if (alreadySent) return;
-        const composed = await composeFueledPostByCallId(call.id);
-        if (!composed.ok) return;
-        const posted = await postToX(composed.text);
-        if (!posted.ok || posted.dryRun) return;
-        await recordSocialPost({
-          postType: "fueled",
-          refId: call.id,
-          tweetId: posted.tweetId,
-        });
-      })();
-    }
 
     return NextResponse.json({ ok: true, call });
   } catch (e) {

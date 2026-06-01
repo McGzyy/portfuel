@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import type { UserRow } from "@/lib/db/types";
+import { notifyDiscordSubscriptionChange } from "@/lib/discord/dm";
 import { markDiscordRoleSyncPending } from "@/lib/discord/sync";
 import { markReferralConverted } from "@/lib/referrals/service";
 import {
@@ -18,6 +19,13 @@ export type SubscriptionSyncInput = {
 
 export async function applySubscriptionToUser(input: SubscriptionSyncInput) {
   const db = createServiceClient();
+
+  const { data: beforeRow } = await db
+    .from("users")
+    .select("subscription_status")
+    .eq("id", input.userId)
+    .maybeSingle();
+
   const updates: Record<string, unknown> = {
     stripe_customer_id: input.stripeCustomerId,
     stripe_subscription_id: input.stripeSubscriptionId,
@@ -42,6 +50,13 @@ export async function applySubscriptionToUser(input: SubscriptionSyncInput) {
   }
 
   void markDiscordRoleSyncPending(input.userId);
+
+  void notifyDiscordSubscriptionChange({
+    userId: input.userId,
+    beforeStatus: beforeRow?.subscription_status,
+    afterStatus: input.status,
+    tier: input.tier,
+  }).catch((e) => console.error("[discord/billing-dm]", e));
 }
 
 export async function findUserByStripeCustomerId(customerId: string) {

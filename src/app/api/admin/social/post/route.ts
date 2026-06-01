@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     }
 
     const config = xConfigSummary();
-    const postType = body.type === "fueled_milestone" ? "fueled" : body.type;
+    const postType = body.type;
 
     if (!body.dryRun && !body.force) {
       const alreadySent = await hasSocialPostBeenSent(postType, composed.refId);

@@ -502,6 +502,18 @@ async function runOutboxTick() {
     const channelId = String(item.channelId);
 
     try {
+      if (channelId === "dm" || eventType === "member.dm") {
+        const discordUserId = String(payload.discordUserId ?? "");
+        const text = String(payload.text ?? "");
+        if (!discordUserId || !text) throw new Error("invalid_dm_payload");
+        const user = await client.users.fetch(discordUserId).catch(() => null);
+        if (!user) throw new Error("user_not_found");
+        await user.send({ content: text });
+        await api("/api/discord/outbox/ack", { method: "POST", body: { id, status: "sent" } });
+        console.log(`[discord-bot] sent DM to ${discordUserId}`);
+        continue;
+      }
+
       const resolvedChannel =
         channelId === "calls"
           ? CALLS_CHANNEL_ID
