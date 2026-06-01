@@ -23,7 +23,13 @@ export function AppShell({
     <div className={cn("flex min-h-screen flex-col", className)}>
       <SiteHeader user={user} headerMode={headerMode} />
       <div className={cn("flex-1", headerMode === "workspace" ? "pf-workspace-shell" : "pf-app-bg")}>
-        <main className={cn("mx-auto w-full px-4 py-8", maxW, mainClassName)}>
+        <main
+          className={cn(
+            "mx-auto w-full px-4 py-6 pb-[calc(1.5rem+var(--pf-safe-bottom))] sm:py-8",
+            maxW,
+            mainClassName
+          )}
+        >
           {children}
         </main>
       </div>

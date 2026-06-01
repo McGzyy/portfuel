@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+  --pf-safe-top: env(safe-area-inset-top, 0px);
+  --pf-safe-bottom: env(safe-area-inset-bottom, 0px);
   --pf-red: #e31b23;
   --pf-red-hover: #c41820;
   --pf-red-muted: #fef2f2;
@@ -53,6 +55,8 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 ::selection {
