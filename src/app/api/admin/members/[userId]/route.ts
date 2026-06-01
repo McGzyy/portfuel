@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/db/supabase";
 import { requireAdmin } from "@/lib/auth/session";
+import { markReferralConverted } from "@/lib/referrals/service";
 
 const schema = z.object({
   subscriptionStatus: z.enum(["pending", "active", "cancelled"]).optional(),
@@ -46,6 +47,10 @@ export async function PATCH(
     if (error) {
       console.error("[admin/members/patch]", error);
       return NextResponse.json({ error: "update_failed" }, { status: 500 });
+    }
+
+    if (body.subscriptionStatus === "active") {
+      await markReferralConverted(userId);
     }
 
     return NextResponse.json({ ok: true });

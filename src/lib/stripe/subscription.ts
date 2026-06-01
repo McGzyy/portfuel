@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import type { UserRow } from "@/lib/db/types";
+import { markReferralConverted } from "@/lib/referrals/service";
 import {
   quotaForTier,
   tierFromPriceId,
@@ -33,6 +34,10 @@ export async function applySubscriptionToUser(input: SubscriptionSyncInput) {
   if (error) {
     console.error("[stripe/subscription] update failed", error);
     throw error;
+  }
+
+  if (input.status === "active") {
+    await markReferralConverted(input.userId);
   }
 }
 

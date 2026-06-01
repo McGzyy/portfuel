@@ -3,6 +3,7 @@ import type { SocialChartPayload } from "@/lib/charts/social-chart-data";
 import { renderSocialChartPlotPng, SOCIAL_CHART_PLOT_SIZE } from "@/lib/charts/social-chart-plot";
 import { socialChartOgFonts } from "@/lib/charts/social-chart-og-fonts";
 import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
+
 const W = 1200;
 const H = 675;
 
@@ -10,47 +11,28 @@ function fmtPct(n: number): string {
   return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
 }
 
-function fmtUsd(n: number): string {
-  const abs = Math.abs(n);
-  const digits = abs >= 100 ? 2 : abs >= 1 ? 2 : 4;
-  return `$${n.toFixed(digits)}`;
-}
-
 function fmtDate(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    return new Date(iso).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
   } catch {
     return "";
   }
-}
-
-function resolveEntry(payload: SocialChartPayload): number | null {
-  const desk = payload.priceLines.find((l) => /desk.*entry/i.test(l.label));
-  const entry = desk ?? payload.priceLines.find((l) => /entry/i.test(l.label));
-  if (entry) return entry.price;
-  const mark = payload.markers.find((m) => m.kind === "fueled");
-  return mark?.price ?? null;
 }
 
 export async function renderSocialChartOgPng(payload: SocialChartPayload): Promise<Buffer> {
   const plotPng = await renderSocialChartPlotPng(payload);
   const plotSrc = `data:image/png;base64,${plotPng.toString("base64")}`;
 
-  const candles = payload.candles;
-  const lastPrice = candles[candles.length - 1]?.close ?? 0;
-  const entry = resolveEntry(payload);
-  const dollarChange = entry != null ? lastPrice - entry : null;
   const ret = payload.returnPct;
-  const retStr = ret != null ? fmtPct(ret) : "—";
+  const retStr = ret != null ? fmtPct(ret) : null;
   const mile = payload.milestoneLabel ?? "";
   const date = fmtDate(payload.calledAt);
   const up = (ret ?? 0) >= 0;
   const trendColor = up ? T.lineUp : T.lineDown;
-
-  const changeLine =
-    dollarChange != null
-      ? `${dollarChange >= 0 ? "+" : "-"}${fmtUsd(Math.abs(dollarChange))} since desk call`
-      : "since desk call";
 
   const response = new ImageResponse(
     (
@@ -72,76 +54,77 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             padding: "40px 48px 0",
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", fontSize: 13, fontWeight: 500, color: T.text }}>
+          <div style={{ display: "flex", flexDirection: "column", maxWidth: 720 }}>
+            {mile ? (
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: T.accent,
+                  background: T.accentFill,
+                  border: `1px solid ${T.accentBorder}`,
+                  borderRadius: 999,
+                  padding: "4px 12px",
+                  letterSpacing: 0.6,
+                  marginBottom: 16,
+                }}
+              >
+                {mile.toUpperCase()}
+              </div>
+            ) : null}
+
+            <div
+              style={{
+                display: "flex",
+                fontSize: 64,
+                fontWeight: 700,
+                color: T.textBright,
+                letterSpacing: -3,
+                lineHeight: 1,
+              }}
+            >
               {payload.symbol}
             </div>
+
             <div
               style={{
                 display: "flex",
                 fontSize: 22,
-                fontWeight: 600,
-                color: T.textBright,
-                marginTop: 4,
-                maxWidth: 720,
+                fontWeight: 500,
+                color: T.text,
+                marginTop: 10,
+                letterSpacing: -0.3,
               }}
             >
               {payload.companyName}
             </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                marginTop: 12,
-              }}
-            >
+
+            {date ? (
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: T.textDim,
+                  marginTop: 8,
+                }}
+              >
+                {`Desk call · ${date}`}
+              </div>
+            ) : null}
+          </div>
+
+          {retStr ? (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
               <div
                 style={{
                   display: "flex",
                   fontSize: 56,
                   fontWeight: 700,
-                  color: T.textBright,
-                  letterSpacing: -2,
-                }}
-              >
-                {fmtUsd(lastPrice)}
-              </div>
-              <div style={{ display: "flex", fontSize: 20, fontWeight: 500, color: T.text, marginLeft: 10 }}>
-                USD
-              </div>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: 18,
-                fontWeight: 600,
-                color: trendColor,
-                marginTop: 8,
-              }}
-            >
-              {changeLine}
-            </div>
-            {mile ? (
-              <div style={{ display: "flex", fontSize: 13, color: T.textDim, marginTop: 6 }}>
-                {mile}
-                {date ? ` · Desk ${date}` : ""}
-              </div>
-            ) : (
-              <div style={{ display: "flex", fontSize: 13, color: T.textDim, marginTop: 6 }}>
-                {date ? `Desk call · ${date}` : "PortFuel Fueled desk"}
-              </div>
-            )}
-          </div>
-
-          {ret != null ? (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", marginTop: 8 }}>
-              <div
-                style={{
-                  display: "flex",
-                  fontSize: 64,
-                  fontWeight: 700,
                   color: trendColor,
-                  letterSpacing: -2,
+                  letterSpacing: -2.5,
+                  lineHeight: 1,
                 }}
               >
                 {retStr}
@@ -149,11 +132,11 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
               <div
                 style={{
                   display: "flex",
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: 600,
                   color: T.textDim,
-                  marginTop: 4,
-                  letterSpacing: 1.2,
+                  marginTop: 8,
+                  letterSpacing: 1.4,
                 }}
               >
                 SINCE DESK CALL
@@ -164,7 +147,16 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
           )}
         </div>
 
-        <div style={{ display: "flex", marginTop: 8 }}>
+        <div
+          style={{
+            display: "flex",
+            height: 1,
+            background: T.rule,
+            margin: "28px 48px 0",
+          }}
+        />
+
+        <div style={{ display: "flex", marginTop: 4 }}>
           <img
             src={plotSrc}
             width={SOCIAL_CHART_PLOT_SIZE.width}
@@ -176,14 +168,16 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
         <div
           style={{
             display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
             marginTop: "auto",
             padding: "16px 48px 28px",
-            paddingRight: 400,
           }}
         >
-          <div style={{ display: "flex", fontSize: 11, color: T.textDim }}>
+          <div style={{ display: "flex", fontSize: 11, fontWeight: 500, color: T.textDim }}>
             Not investment advice · portfuel.pro
           </div>
+          <div style={{ display: "flex", width: 200, height: 1 }} />
         </div>
       </div>
     ),

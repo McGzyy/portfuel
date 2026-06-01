@@ -20,6 +20,7 @@ import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { ProfileBillingSection } from "@/components/billing/ProfileBillingSection";
 import { ProfileAiCoachStrip } from "@/components/profile/ProfileAiCoachStrip";
 import { ProfileEmailSection } from "@/components/profile/ProfileEmailSection";
+import { ProfileReferralSection } from "@/components/profile/ProfileReferralSection";
 import { fetchAiCoachUsage } from "@/lib/ai/usage";
 import { isAiCoachConfigured } from "@/lib/ai/config";
 import { ProfileBillingSync } from "@/app/profile/BillingSync";
@@ -91,6 +92,10 @@ export default async function ProfilePage() {
 
       <div className="mt-6">
         <ProfileEmailSection />
+      </div>
+
+      <div className="mt-6">
+        <ProfileReferralSection />
       </div>
 
       <div className="mt-6">

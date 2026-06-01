@@ -22,11 +22,14 @@ import { cn } from "@/lib/utils";
 
 type Step = "plan" | "account" | "done";
 
+const REF_STORAGE_KEY = "portfuel_ref";
+
 export default function JoinPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pending = searchParams.get("pending") === "1";
   const cancelled = searchParams.get("cancelled") === "1";
+  const refFromUrl = searchParams.get("ref")?.trim().toLowerCase() ?? "";
 
   const [stripeEnabled, setStripeEnabled] = useState<boolean | null>(null);
   const [step, setStep] = useState<Step>("plan");
@@ -37,6 +40,8 @@ export default function JoinPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
+  const [referrerName, setReferrerName] = useState<string | null>(null);
 
   const selectedPlan = PLAN_BY_TIER[selectedTier];
 
@@ -46,6 +51,27 @@ export default function JoinPage() {
       .then((d) => setStripeEnabled(Boolean(d.configured)))
       .catch(() => setStripeEnabled(false));
   }, []);
+
+  useEffect(() => {
+    const code =
+      refFromUrl ||
+      (typeof window !== "undefined" ? sessionStorage.getItem(REF_STORAGE_KEY) ?? "" : "");
+    if (!code) return;
+
+    setReferralCode(code);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(REF_STORAGE_KEY, code);
+    }
+
+    fetch(`/api/referrals/validate?code=${encodeURIComponent(code)}`)
+      .then((r) => r.json())
+      .then((d: { valid?: boolean; displayName?: string }) => {
+        if (d.valid && d.displayName) {
+          setReferrerName(d.displayName);
+        }
+      })
+      .catch(() => undefined);
+  }, [refFromUrl]);
 
   async function handleRegister() {
     setError("");
@@ -59,6 +85,7 @@ export default function JoinPage() {
           password,
           displayName,
           acceptedTerms: true,
+          ...(referralCode ? { referralCode } : {}),
         }),
       });
       const data = await res.json();
@@ -127,6 +154,13 @@ export default function JoinPage() {
           <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-amber-200/80 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             Checkout was cancelled. Your plan selection is saved — pick a tier below and continue
             when you&apos;re ready.
+          </div>
+        ) : null}
+
+        {referrerName ? (
+          <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-4 py-3 text-sm text-[var(--pf-gray-700)]">
+            Invited by{" "}
+            <span className="font-semibold text-[var(--pf-black)]">{referrerName}</span>
           </div>
         ) : null}
 

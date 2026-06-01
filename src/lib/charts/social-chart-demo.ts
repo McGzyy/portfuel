@@ -1,6 +1,6 @@
-import { getDemoCallsBySymbol, getDemoCallsFeed } from "@/lib/demo/fixtures";
+import { getDemoCallsFeed } from "@/lib/demo/fixtures";
 import { getCompanyProfile } from "@/lib/market/finnhub";
-import { buildTickerPriceLines } from "@/lib/charts/price-lines";
+import { buildFeaturedCallPriceLines } from "@/lib/charts/price-lines";
 import type { ChartMarker } from "@/lib/charts/types";
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 import {
@@ -39,7 +39,6 @@ export async function loadDemoSocialChartPayload(
     getDemoCallsFeed("latest").find((c) => c.is_fueled)!;
 
   const symbol = fueled.symbol;
-  const nvdaCalls = getDemoCallsBySymbol(symbol);
   const returnPct = DEMO_RETURN[milestone];
 
   let companyName = "NVIDIA Corporation";
@@ -73,10 +72,7 @@ export async function loadDemoSocialChartPayload(
     },
   ];
 
-  const priceLines = buildTickerPriceLines({
-    calls: nvdaCalls,
-    viewerUserId: fueled.user_id,
-  });
+  const priceLines = buildFeaturedCallPriceLines(fueled);
 
   return {
     symbol,

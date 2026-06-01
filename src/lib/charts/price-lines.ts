@@ -50,6 +50,19 @@ function newestCall(calls: CallWithUser[]): CallWithUser | undefined {
 }
 
 /**
+ * Entry / target for a single featured call (social milestone charts).
+ */
+export function buildFeaturedCallPriceLines(call: {
+  entry_price: number | null;
+  target_price: number | null;
+  stop_price?: number | null;
+}): PriceLine[] {
+  const lines: PriceLine[] = [];
+  pushCallLevels(lines, call as CallWithUser, "Desk");
+  return lines;
+}
+
+/**
  * Horizontal entry / target / stop levels for the ticker chart (Phase G1).
  */
 export function buildTickerPriceLines(opts: {

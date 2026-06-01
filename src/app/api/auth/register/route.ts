@@ -4,12 +4,14 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { generateUniquePin } from "@/lib/auth/pin";
 import { hashPassword, validatePassword } from "@/lib/auth/password";
 import { normalizeUsername, usernamePattern, validateUsername } from "@/lib/auth/username";
+import { attributeReferral, findReferrerByCode } from "@/lib/referrals/service";
 
 const schema = z.object({
   username: z.string().min(3).max(32).regex(usernamePattern),
   password: z.string().min(8).max(128),
   displayName: z.string().min(2).max(32),
   acceptedTerms: z.boolean().refine((v) => v === true, { message: "terms_required" }),
+  referralCode: z.string().min(2).max(32).optional(),
 });
 
 export async function POST(request: Request) {
@@ -46,6 +48,7 @@ export async function POST(request: Request) {
         username,
         password_hash: passwordHash,
         display_name: body.displayName.trim(),
+        referral_code: username,
         totp_verified: false,
         subscription_status: "pending",
         submission_quota_week: 2,
@@ -56,6 +59,17 @@ export async function POST(request: Request) {
     if (error) {
       console.error("[auth/register]", error);
       return NextResponse.json({ error: "register_failed" }, { status: 500 });
+    }
+
+    if (body.referralCode) {
+      const referrer = await findReferrerByCode(body.referralCode);
+      if (referrer && referrer.id !== user.id) {
+        await attributeReferral({
+          referrerId: referrer.id,
+          referredUserId: user.id,
+          referralCode: body.referralCode,
+        });
+      }
     }
 
     return NextResponse.json({ ok: true, userId: user.id, username: user.username });

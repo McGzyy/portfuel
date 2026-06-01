@@ -29,6 +29,8 @@ export type Database = {
           email_digest_enabled: boolean;
           email_digest_last_sent_at: string | null;
           onboarding_completed_at: string | null;
+          referral_code: string | null;
+          referred_by_user_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -70,6 +72,23 @@ export type Database = {
           thesis: string;
         };
         Update: Partial<Database["public"]["Tables"]["calls"]["Row"]>;
+      };
+      user_referrals: {
+        Row: {
+          id: string;
+          referrer_id: string;
+          referred_user_id: string;
+          referral_code: string;
+          status: "signed_up" | "converted";
+          converted_at: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["user_referrals"]["Row"]> & {
+          referrer_id: string;
+          referred_user_id: string;
+          referral_code: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["user_referrals"]["Row"]>;
       };
       ticker_snapshots: {
         Row: {

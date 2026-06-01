@@ -2,7 +2,7 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { getDemoCallsFeed } from "@/lib/demo/fixtures";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
-import { buildTickerPriceLines } from "@/lib/charts/price-lines";
+import { buildFeaturedCallPriceLines } from "@/lib/charts/price-lines";
 import {
   buildSyntheticSocialCandles,
   prepareSocialChartCandles,
@@ -109,10 +109,7 @@ export async function loadSocialChartPayload(
     label: m.kind === "fueled" ? "Fueled desk" : m.label,
   }));
 
-  const priceLines = buildTickerPriceLines({
-    calls: intel.calls,
-    viewerUserId: call.user_id,
-  });
+  const priceLines = buildFeaturedCallPriceLines(call);
 
   const resolvedMilestone = milestone ?? inferMilestone(call);
 

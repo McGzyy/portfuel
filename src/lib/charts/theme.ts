@@ -10,31 +10,35 @@ export const PF_CHART = {
 
 export const SOCIAL_LOGO_ASPECT = 1024 / 682;
 
-/** Social milestone card — sleek black + line chart (Robinhood-style). */
+/** Social milestone card — white, on-brand PortFuel (X / OG image). */
 export const PF_CHART_SOCIAL = {
   width: 1200,
   height: 675,
-  bg: "#000000",
-  text: "#9ca3af",
-  textBright: "#ffffff",
-  textDim: "#6b7280",
-  lineUp: "#00c805",
-  lineDown: "#ff5000",
-  areaUp: "rgba(0, 200, 5, 0.28)",
-  areaDown: "rgba(255, 80, 0, 0.22)",
-  baseline: "rgba(255, 255, 255, 0.22)",
-  rule: "rgba(255, 255, 255, 0.08)",
-  /** Legacy keys used by SVG fallback */
-  panelGradient: ["#000000", "#000000", "#000000"] as const,
-  panelBorder: "rgba(255, 255, 255, 0.06)",
+  bg: "#ffffff",
+  surface: "#f8fafc",
+  text: "#475569",
+  textBright: "#0f1419",
+  textDim: "#94a3b8",
+  lineUp: "#059669",
+  lineDown: "#e11d48",
+  areaUp: "rgba(5, 150, 105, 0.10)",
+  areaDown: "rgba(225, 29, 72, 0.08)",
+  baseline: "#cbd5e1",
+  targetLine: "#059669",
+  callDot: "#e31b23",
+  rule: "#e2e8f0",
   accent: "#e31b23",
-  accentFill: "rgba(227, 27, 35, 0.2)",
-  long: "#00c805",
-  up: "#00c805",
-  down: "#ff5000",
-  entry: "rgba(255, 255, 255, 0.22)",
-  target: "rgba(255, 255, 255, 0.22)",
-  grid: "rgba(255, 255, 255, 0.04)",
+  accentFill: "#fef2f2",
+  accentBorder: "rgba(227, 27, 35, 0.35)",
+  long: "#059669",
+  up: "#059669",
+  down: "#e11d48",
+  entry: "#94a3b8",
+  target: "#059669",
+  grid: "#e2e8f0",
+  /** Legacy keys — SVG fallback only */
+  panelGradient: ["#ffffff", "#ffffff", "#ffffff"] as const,
+  panelBorder: "#e2e8f0",
 } as const;
 
 export function chartLayoutOptions() {
