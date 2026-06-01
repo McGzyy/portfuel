@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import type { UserRow } from "@/lib/db/types";
+import { markDiscordRoleSyncPending } from "@/lib/discord/sync";
 import { markReferralConverted } from "@/lib/referrals/service";
 import {
   quotaForTier,
@@ -39,6 +40,8 @@ export async function applySubscriptionToUser(input: SubscriptionSyncInput) {
   if (input.status === "active") {
     await markReferralConverted(input.userId);
   }
+
+  void markDiscordRoleSyncPending(input.userId);
 }
 
 export async function findUserByStripeCustomerId(customerId: string) {
