@@ -2,7 +2,8 @@ import { ImageResponse } from "next/og";
 import type { SocialChartPayload } from "@/lib/charts/social-chart-data";
 import { renderSocialChartPlotPng, SOCIAL_CHART_PLOT_SIZE } from "@/lib/charts/social-chart-plot";
 import { socialChartOgFonts } from "@/lib/charts/social-chart-og-fonts";
-import { SOCIAL_CHART_LOGO_HEIGHT } from "@/lib/charts/social-chart-logo";
+import { directionMeta, fmtSocialAsOf } from "@/lib/charts/social-chart-format";
+import { SOCIAL_CHART_FOOTER_H } from "@/lib/charts/social-chart-logo";
 import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
 
 const W = 1200;
@@ -34,6 +35,8 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
   const date = fmtDate(payload.calledAt);
   const up = (ret ?? 0) >= 0;
   const trendColor = up ? T.lineUp : T.lineDown;
+  const dir = directionMeta(payload.direction);
+  const asOf = fmtSocialAsOf();
 
   const response = new ImageResponse(
     (
@@ -52,17 +55,12 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-start",
-            padding: "44px 56px 0",
+            padding: "40px 56px 0",
+            height: 208,
           }}
         >
           <div style={{ display: "flex", flexDirection: "column", maxWidth: 680 }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginBottom: 14,
-              }}
-            >
+            <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
               {mile ? (
                 <div
                   style={{
@@ -97,7 +95,7 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             <div
               style={{
                 display: "flex",
-                fontSize: 60,
+                fontSize: 58,
                 fontWeight: 700,
                 color: T.textBright,
                 letterSpacing: -2.5,
@@ -110,24 +108,38 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             <div
               style={{
                 display: "flex",
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: 500,
                 color: T.text,
-                marginTop: 8,
-                letterSpacing: -0.4,
+                marginTop: 6,
+                letterSpacing: -0.3,
               }}
             >
               {payload.companyName}
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                fontSize: 13,
+                fontWeight: 600,
+                color: T.text,
+                marginTop: 8,
+              }}
+            >
+              <span style={{ display: "flex", color: dir.color }}>{dir.label}</span>
+              <span style={{ display: "flex", color: T.textDim, marginLeft: 8 }}>·</span>
+              <span style={{ display: "flex", color: T.textDim, marginLeft: 8 }}>Fueled desk call</span>
             </div>
 
             {date ? (
               <div
                 style={{
                   display: "flex",
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: 500,
                   color: T.textDim,
-                  marginTop: 10,
+                  marginTop: 6,
                 }}
               >
                 {`Called ${date}`}
@@ -141,13 +153,13 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "flex-end",
-                paddingTop: 8,
+                paddingTop: 4,
               }}
             >
               <div
                 style={{
                   display: "flex",
-                  fontSize: 58,
+                  fontSize: 56,
                   fontWeight: 700,
                   color: trendColor,
                   letterSpacing: -2.5,
@@ -162,7 +174,7 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
                   fontSize: 11,
                   fontWeight: 600,
                   color: T.textDim,
-                  marginTop: 10,
+                  marginTop: 8,
                   letterSpacing: 1.3,
                 }}
               >
@@ -174,7 +186,7 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
           )}
         </div>
 
-        <div style={{ display: "flex", marginTop: 24 }}>
+        <div style={{ display: "flex", height: SOCIAL_CHART_PLOT_SIZE.height, flexShrink: 0 }}>
           <img
             src={plotSrc}
             width={SOCIAL_CHART_PLOT_SIZE.width}
@@ -188,15 +200,32 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginTop: "auto",
-            padding: "20px 56px 36px",
+            height: SOCIAL_CHART_FOOTER_H,
+            flexShrink: 0,
+            padding: "0 56px",
             borderTop: `1px solid ${T.rule}`,
+            background: T.surface,
           }}
         >
-          <div style={{ display: "flex", fontSize: 11, fontWeight: 500, color: T.textDim }}>
-            Not investment advice · portfuel.pro
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div style={{ display: "flex", fontSize: 11, fontWeight: 500, color: T.textDim }}>
+              Not investment advice · portfuel.pro
+            </div>
+            <div style={{ display: "flex", fontSize: 10, fontWeight: 500, color: T.textDim }}>
+              {`As of ${asOf}`}
+            </div>
           </div>
-          <div style={{ display: "flex", width: 200, height: SOCIAL_CHART_LOGO_HEIGHT }} />
+          <div style={{ display: "flex", alignItems: "baseline", gap: 0 }}>
+            <span style={{ display: "flex", fontSize: 22, fontWeight: 700, color: T.textBright, letterSpacing: -0.6 }}>
+              Port
+            </span>
+            <span style={{ display: "flex", fontSize: 22, fontWeight: 700, color: T.accent, letterSpacing: -0.6 }}>
+              Fuel
+            </span>
+            <span style={{ display: "flex", fontSize: 10, fontWeight: 700, color: T.textDim, letterSpacing: 1.2, marginLeft: 8 }}>
+              PRO
+            </span>
+          </div>
         </div>
       </div>
     ),

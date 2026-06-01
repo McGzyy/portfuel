@@ -97,10 +97,10 @@ export async function loadSocialChartPayload(
     const entry = Number(call.entry_price ?? call.price_at_call ?? intel.quote?.price ?? 100);
     const ret = call.return_pct ?? 0;
     candles = buildSyntheticSocialCandles({
-      bars: 62,
+      bars: 52,
       entryPrice: entry,
       currentPrice: entry * (1 + ret / 100),
-      callBarIndex: 22,
+      callBarIndex: 18,
     });
   }
 
