@@ -1,37 +1,25 @@
 /**
- * Brand assets:
- * - 2× logo.png for header (optional upscale)
- * - Home-screen icons from vector SVG (sharp at any size)
- * - Tab favicon from logo gauge crop
+ * Brand assets from the real logo gauge (public/logo.png) — never a redrawn icon.
  *
  *   npm run brand-assets
  */
-import { readFileSync } from "node:fs";
 import { mkdir, rename } from "node:fs/promises";
 import { createRequire } from "module";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { Resvg } from "@resvg/resvg-js";
 
 const require = createRequire(import.meta.url);
 const sharp = require("sharp");
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const logoPath = join(root, "public/logo.png");
-const appIconSvgPath = join(root, "public/brand/portfuel-app-icon.svg");
+const gaugeMarkPath = join(root, "public/brand/gauge-mark.png");
 const iconsDir = join(root, "public/icons");
 
+/** Gauge-only crop — same proportion as original 185px on 737px wordmark. */
 const GAUGE_WIDTH_RATIO = 185 / 737;
 const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
-
-function renderAppIconPng(size) {
-  const svg = readFileSync(appIconSvgPath, "utf8");
-  const resvg = new Resvg(svg, {
-    fitTo: { mode: "width", value: size },
-    font: { loadSystemFonts: false },
-  });
-  return Buffer.from(resvg.render().asPng());
-}
+const WHITE = { r: 255, g: 255, b: 255 };
 
 async function upscaleLogoIfNeeded() {
   const meta = await sharp(logoPath).metadata();
@@ -47,33 +35,75 @@ async function upscaleLogoIfNeeded() {
     .png({ compressionLevel: 9 })
     .toFile(tmp);
   await rename(tmp, logoPath);
-  console.log(`logo.png upscaled → ${targetWidth}×${targetHeight}`);
   return sharp(logoPath).metadata();
 }
 
-async function buildGaugeCropForFavicon() {
+/** Exact gauge from the site wordmark (trimmed, transparent). */
+async function extractLogoGauge() {
   const meta = await sharp(logoPath).metadata();
   const cropWidth = Math.min(
     meta.width,
     Math.max(1, Math.round(meta.width * GAUGE_WIDTH_RATIO))
   );
-  const raw = await sharp(logoPath)
+  return sharp(logoPath)
     .extract({ left: 0, top: 0, width: cropWidth, height: meta.height })
+    .trim({ threshold: 10 })
+    .png()
     .toBuffer();
-  const trimmed = await sharp(raw).trim({ threshold: 12 }).toBuffer();
-  const m = await sharp(trimmed).metadata();
-  const side = Math.max(m.width, m.height);
-  const padL = Math.floor((side - m.width) / 2);
-  const padT = Math.floor((side - m.height) / 2);
-  return sharp(trimmed)
-    .extend({
-      top: padT,
-      bottom: side - m.height - padT,
-      left: padL,
-      right: side - m.width - padL,
+}
+
+/** One master gauge PNG — only downscale from here for home-screen icons. */
+async function ensureGaugeMaster(gaugeFromLogo) {
+  await mkdir(join(root, "public/brand"), { recursive: true });
+  const meta = await sharp(gaugeFromLogo).metadata();
+  const maxDim = Math.max(meta.width, meta.height);
+  const masterSide = Math.max(maxDim, 512);
+
+  if (maxDim < masterSide) {
+    await sharp(gaugeFromLogo)
+      .resize(masterSide, masterSide, {
+        fit: "contain",
+        background: TRANSPARENT,
+        kernel: sharp.kernel.lanczos3,
+      })
+      .png({ compressionLevel: 9, effort: 10 })
+      .toFile(gaugeMarkPath);
+  } else {
+    await sharp(gaugeFromLogo).png({ compressionLevel: 9 }).toFile(gaugeMarkPath);
+  }
+  return sharp(gaugeMarkPath).png().toBuffer();
+}
+
+/** White tile + real logo gauge, downscale-only when possible. */
+async function buildHomeScreenIcon(gaugeMaster, size) {
+  const gm = await sharp(gaugeMaster).metadata();
+  const maxNative = Math.max(gm.width, gm.height);
+  const targetMax = Math.round(size * 0.88);
+  const fitMax = Math.min(targetMax, maxNative);
+
+  const gauge = await sharp(gaugeMaster)
+    .resize(fitMax, fitMax, {
+      fit: "inside",
       background: TRANSPARENT,
+      kernel: sharp.kernel.lanczos3,
+      withoutEnlargement: true,
     })
     .png()
+    .toBuffer();
+
+  const g = await sharp(gauge).metadata();
+  const bg = await sharp({
+    create: { width: size, height: size, channels: 3, background: WHITE },
+  })
+    .png()
+    .toBuffer();
+
+  const left = Math.floor((size - g.width) / 2);
+  const top = Math.floor((size - g.height) / 2) - Math.round(size * 0.015);
+
+  return sharp(bg)
+    .composite([{ input: gauge, left, top }])
+    .png({ compressionLevel: 9, effort: 10 })
     .toBuffer();
 }
 
@@ -97,19 +127,18 @@ async function faviconFromGauge(gaugeBuffer, size, scale) {
     .toBuffer();
 }
 
-async function buildMaskableFromMaster(masterPng, size) {
-  const inner = Math.round(size * 0.58);
-  const gauge = await sharp(masterPng)
-    .resize(inner, inner, { fit: "contain", background: TRANSPARENT })
+async function buildMaskableIcon(gaugeMaster, size) {
+  const inner = Math.round(size * 0.56);
+  const gauge = await sharp(gaugeMaster)
+    .resize(inner, inner, {
+      fit: "inside",
+      background: TRANSPARENT,
+      withoutEnlargement: true,
+    })
     .toBuffer();
   const g = await sharp(gauge).metadata();
   const bg = await sharp({
-    create: {
-      width: size,
-      height: size,
-      channels: 3,
-      background: { r: 255, g: 255, b: 255 },
-    },
+    create: { width: size, height: size, channels: 3, background: WHITE },
   })
     .png()
     .toBuffer();
@@ -123,29 +152,23 @@ async function buildMaskableFromMaster(masterPng, size) {
 }
 
 const logoMeta = await upscaleLogoIfNeeded();
-
-const MASTER = 1024;
-const masterHome = renderAppIconPng(MASTER);
-await sharp(masterHome).toFile(join(root, "public/gauge-source.png"));
+const gaugeFromLogo = await extractLogoGauge();
+const gaugeMaster = await ensureGaugeMaster(gaugeFromLogo);
+await sharp(gaugeMaster).toFile(join(root, "public/gauge-source.png"));
 
 await mkdir(iconsDir, { recursive: true });
 
-const gaugeCrop = await buildGaugeCropForFavicon();
-const tabIcon = await faviconFromGauge(gaugeCrop, 48, 0.92);
-
-const appleIcon = await sharp(masterHome)
-  .resize(180, 180, { kernel: sharp.kernel.lanczos3 })
-  .png({ compressionLevel: 9, effort: 10 })
-  .toBuffer();
-const icon192 = await sharp(masterHome)
+const tabIcon = await faviconFromGauge(gaugeFromLogo, 48, 0.92);
+const icon512 = await buildHomeScreenIcon(gaugeMaster, 512);
+const icon192 = await sharp(icon512)
   .resize(192, 192, { kernel: sharp.kernel.lanczos3 })
-  .png({ compressionLevel: 9, effort: 10 })
+  .png({ compressionLevel: 9 })
   .toBuffer();
-const icon512 = await sharp(masterHome)
-  .resize(512, 512, { kernel: sharp.kernel.lanczos3 })
-  .png({ compressionLevel: 9, effort: 10 })
+const appleIcon = await sharp(icon512)
+  .resize(180, 180, { kernel: sharp.kernel.lanczos3 })
+  .png({ compressionLevel: 9 })
   .toBuffer();
-const maskable512 = await (await buildMaskableFromMaster(masterHome, 512))
+const maskable512 = await (await buildMaskableIcon(gaugeMaster, 512))
   .png({ compressionLevel: 9 })
   .toBuffer();
 
@@ -156,7 +179,8 @@ await sharp(icon192).toFile(join(iconsDir, "icon-192.png"));
 await sharp(icon512).toFile(join(iconsDir, "icon-512.png"));
 await sharp(maskable512).toFile(join(iconsDir, "icon-512-maskable.png"));
 
-console.log("Brand assets ready (vector home-screen icon):");
+const gm = await sharp(gaugeMaster).metadata();
+console.log("Brand assets ready (logo gauge, not redrawn):");
 console.log(`  public/logo.png (${logoMeta.width ?? "?"}×${logoMeta.height ?? "?"})`);
-console.log("  public/brand/portfuel-app-icon.svg → apple-icon, icon-192/512");
-console.log("  src/app/icon.png (tab favicon from logo crop)");
+console.log(`  public/brand/gauge-mark.png (${gm.width}×${gm.height})`);
+console.log("  Home-screen icons downscale from gauge-mark only");
