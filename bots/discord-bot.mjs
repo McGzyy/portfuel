@@ -58,6 +58,9 @@ const LINK_BUTTON_ID = "pf:link";
 const verifyCooldownMs = 30_000;
 const verifyCooldown = new Map();
 
+/** 0 = disabled. Default 1 day. */
+const MIN_ACCOUNT_AGE_DAYS = Number(process.env.DISCORD_MIN_ACCOUNT_AGE_DAYS ?? "1");
+
 async function api(path, { method = "GET", body } = {}) {
   const res = await fetch(`${APP_URL}${path}`, {
     method,
@@ -104,6 +107,33 @@ async function applyEntitlementsToMember(member, entitlements) {
   await ensureRole(member, ROLE_PRO, isPro);
 }
 
+function formatStatsMessage(stats) {
+  if (!stats.linked) {
+    return (
+      "This Discord account is not linked to PortFuel yet.\n" +
+      `Use <#${VERIFICATION_CHANNEL_ID}> → **Link PortFuel** while logged in on portfuel.pro.`
+    );
+  }
+  const name = stats.displayName || stats.username;
+  const tier = stats.membershipTier ? String(stats.membershipTier).toUpperCase() : "—";
+  const win =
+    stats.winRate != null ? `${Number(stats.winRate).toFixed(1)}%` : "—";
+  const lines = (stats.recentCalls ?? []).map((c) => {
+    const ret =
+      c.returnPct != null
+        ? ` ${c.returnPct >= 0 ? "+" : ""}${Number(c.returnPct).toFixed(1)}%`
+        : "";
+    const fueled = c.isFueled ? " 🔥" : "";
+    return `• **${c.symbol}** ${String(c.direction).toUpperCase()}${ret}${fueled}`;
+  });
+  return (
+    `**${name}** (@${stats.username})\n` +
+    `Tier: ${tier} · Calls: ${stats.callsCount ?? 0} · Win rate: ${win} · Rank: ${stats.rankScore ?? 0}\n` +
+    `${stats.profileUrl}\n\n` +
+    (lines.length ? `**Recent calls**\n${lines.join("\n")}` : "_No published calls yet._")
+  );
+}
+
 async function registerSlashCommands(client) {
   const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
   await rest.put(Routes.applicationGuildCommands(client.user.id, GUILD_ID), {
@@ -116,9 +146,16 @@ async function registerSlashCommands(client) {
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
         .toJSON(),
+      new SlashCommandBuilder()
+        .setName("stats")
+        .setDescription("PortFuel track record for a linked member")
+        .addUserOption((o) =>
+          o.setName("member").setDescription("Discord member (defaults to you)")
+        )
+        .toJSON(),
     ],
   });
-  console.log("[discord-bot] registered /sync command");
+  console.log("[discord-bot] registered /sync and /stats commands");
 }
 
 function verificationEmbed() {
@@ -196,6 +233,25 @@ client.once("ready", async () => {
 client.on("guildMemberAdd", async (member) => {
   if (String(member.guild.id) !== String(GUILD_ID)) return;
   try {
+    if (MIN_ACCOUNT_AGE_DAYS > 0) {
+      const ageMs = Date.now() - member.user.createdTimestamp;
+      const minMs = MIN_ACCOUNT_AGE_DAYS * 86400000;
+      if (ageMs < minMs) {
+        const daysOld = Math.floor(ageMs / 86400000);
+        await member
+          .send(
+            `Your Discord account must be at least **${MIN_ACCOUNT_AGE_DAYS}** day(s) old to join PortFuel (yours is ~${daysOld} day(s)). Try again later.`
+          )
+          .catch(() => null);
+        await member.kick(`Account younger than ${MIN_ACCOUNT_AGE_DAYS} day(s)`).catch(() => null);
+        await botLog(
+          client,
+          `Anti-raid kick: ${member.user.tag} (account ~${daysOld}d old, min ${MIN_ACCOUNT_AGE_DAYS}d)`
+        );
+        return;
+      }
+    }
+
     if (isRoleId(ROLE_UNVERIFIED)) {
       await member.roles.add(ROLE_UNVERIFIED).catch(() => null);
     }
@@ -214,6 +270,23 @@ client.on("guildMemberAdd", async (member) => {
 
 client.on("interactionCreate", async (interaction) => {
   if (String(interaction.guildId) !== String(GUILD_ID)) return;
+
+  if (interaction.isChatInputCommand() && interaction.commandName === "stats") {
+    try {
+      const target = interaction.options.getUser("member") ?? interaction.user;
+      const stats = await api(
+        `/api/discord/member-stats?guildId=${encodeURIComponent(GUILD_ID)}&discordUserId=${encodeURIComponent(target.id)}`
+      );
+      await interaction.reply({
+        content: formatStatsMessage(stats),
+        ephemeral: true,
+      });
+    } catch (e) {
+      console.error("[discord-bot] /stats error", e);
+      await interaction.reply({ content: "Could not load stats.", ephemeral: true }).catch(() => null);
+    }
+    return;
+  }
 
   if (interaction.isChatInputCommand() && interaction.commandName === "sync") {
     try {
