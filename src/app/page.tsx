@@ -179,10 +179,15 @@ function TeaserSection({
         />
         <div className="mt-10">
           {calls.length === 0 ? (
-            <div className="pf-empty">
-              <p className="font-medium text-[var(--pf-gray-700)]">{emptyMessage}</p>
+            <div className="rounded-[var(--pf-radius-lg)] border border-dashed border-[var(--pf-gray-200)] bg-[var(--pf-gray-50)] px-4 py-8 text-center sm:py-10">
+              <p className="text-sm font-medium text-[var(--pf-gray-700)]">{emptyMessage}</p>
+              <p className="mt-2 text-xs text-[var(--pf-gray-500)]">
+                Nothing to show yet — winners appear after price refresh and threshold rules.
+              </p>
               <Link href="/join" className="mt-4 inline-block">
-                <Button variant="outline">{COPY.ctaGetAccess}</Button>
+                <Button variant="outline" size="sm">
+                  {COPY.ctaGetAccess}
+                </Button>
               </Link>
             </div>
           ) : (

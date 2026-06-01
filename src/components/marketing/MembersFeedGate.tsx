@@ -36,18 +36,18 @@ export function MembersFeedGate() {
               </Link>
             </div>
           </div>
-          <div className="pf-card rounded-[var(--pf-radius-lg)] border-white/10 bg-white/5 p-6 text-white">
-            <div className="flex items-center gap-2 text-sm font-semibold">
+          <div className="rounded-[var(--pf-radius-lg)] border border-white/15 bg-white/10 p-4 text-white backdrop-blur-sm sm:p-6">
+            <div className="flex items-center gap-2 text-sm font-semibold text-white">
               <Radio className="h-4 w-4 text-[var(--pf-red)]" />
               Member workspace (locked)
             </div>
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-3 grid gap-2 sm:mt-4 sm:space-y-0">
               {MEMBER_WALL_FEATURES.map((item) => (
                 <li
                   key={item}
-                  className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white/80"
+                  className="flex items-center gap-2 rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm text-white/90"
                 >
-                  <Lock className="h-3.5 w-3.5 shrink-0 text-white/40" />
+                  <Lock className="h-3.5 w-3.5 shrink-0 text-white/50" />
                   {item}
                 </li>
               ))}

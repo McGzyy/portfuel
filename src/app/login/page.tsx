@@ -89,7 +89,11 @@ export default function LoginPage() {
           setError("Check your username, password, and 6-digit code.");
           return;
         }
-        setError("Invalid username or password.");
+        setError(
+          isAdminLogin
+            ? "No matching admin account or password in the database. .env ADMIN_PASSWORD is only for setup — run: npm run admin:sync (see package.json)."
+            : "Invalid username or password."
+        );
         return;
       }
       if (data.needsTwoFactorSetup) {

@@ -18,9 +18,17 @@ export function TierComparison() {
         <div className="mt-10">
           <TierComparisonTable rows={TIER_COMPARISON_ROWS} />
         </div>
-        <div className="mt-8 text-center">
-          <Link href="/join">
-            <Button size="lg">Start with Member {formatTierPrice("member")} — upgrade anytime</Button>
+        <div className="mt-8 flex justify-center px-1">
+          <Link href="/join" className="w-full max-w-md">
+            <Button
+              size="lg"
+              className="h-auto min-h-11 w-full whitespace-normal px-4 py-3 text-center text-sm leading-snug sm:text-base"
+            >
+              <span className="block sm:inline">Start with Member {formatTierPrice("member")}</span>
+              <span className="mt-0.5 block text-white/90 sm:mt-0 sm:inline sm:before:content-['_—_']">
+                upgrade anytime
+              </span>
+            </Button>
           </Link>
         </div>
       </div>
