@@ -21,7 +21,7 @@ export const PF_CHART_SOCIAL = {
   textDim: "#94a3b8",
   lineUp: "#059669",
   lineDown: "#e11d48",
-  areaUp: "rgba(5, 150, 105, 0.10)",
+  areaUp: "rgba(5, 150, 105, 0.14)",
   areaDown: "rgba(225, 29, 72, 0.08)",
   baseline: "#cbd5e1",
   targetLine: "#059669",

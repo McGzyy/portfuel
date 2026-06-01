@@ -19,7 +19,7 @@ function renderSvgToPng(svg: string): Buffer {
   return resvg.render().asPng();
 }
 
-/** PNG via next/og (Inter + line plot). Falls back to white SVG line chart if OG fails. */
+/** PNG via next/og (Inter + line plot). Logo composited via Sharp after render. */
 export async function renderSocialChartPng(payload: SocialChartPayload): Promise<Buffer> {
   try {
     const chartPng = await renderSocialChartOgPng(payload);

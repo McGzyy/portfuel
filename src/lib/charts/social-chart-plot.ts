@@ -5,8 +5,9 @@ import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
 import type { CandlePoint } from "@/lib/charts/types";
 
 const PLOT_W = 1200;
-const PLOT_H = 470;
-const RIGHT_RAIL = 108;
+const PLOT_H = 400;
+const PAD_X = 56;
+const PAD_Y = 8;
 
 function linePrice(
   lines: SocialChartPayload["priceLines"],
@@ -54,28 +55,31 @@ function levelGuide(
   y: number,
   chartX: number,
   chartW: number,
+  labelX: number,
   label: string,
   price: number,
   lineColor: string,
-  dashed: boolean
+  dashed: boolean,
+  labelAbove: boolean
 ): string {
   const x1 = chartX;
   const x2 = chartX + chartW;
-  const dash = dashed ? ' stroke-dasharray="5 4"' : "";
-  return `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${lineColor}" stroke-width="1"${dash} opacity="0.55"/>
-    <text x="${x2 + 12}" y="${y + 3}" fill="${T.text}" font-size="8" font-weight="700" font-family="${FONT_SANS}" letter-spacing="0.8">${label.toUpperCase()}</text>
-    <text x="${x2 + 12}" y="${y + 13}" fill="${T.textDim}" font-size="9" font-family="${FONT_SANS}">$${fmtPrice(price)}</text>`;
+  const dash = dashed ? ' stroke-dasharray="6 4"' : "";
+  const labelY = labelAbove ? y - 8 : y + 14;
+  return `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${lineColor}" stroke-width="1.25"${dash} opacity="0.5"/>
+    <text x="${labelX}" y="${labelY}" fill="${T.text}" font-size="9" font-weight="700" font-family="${FONT_SANS}" letter-spacing="0.6">${label.toUpperCase()}</text>
+    <text x="${labelX}" y="${labelY + 11}" fill="${T.textDim}" font-size="9" font-family="${FONT_SANS}">$${fmtPrice(price)}</text>`;
 }
 
 export function renderSocialChartPlotSvg(payload: SocialChartPayload): string {
-  const padL = 48;
-  const padR = RIGHT_RAIL;
-  const padT = 12;
-  const padB = 28;
-  const chartX = padL;
-  const chartY = padT;
-  const chartW = PLOT_W - padL - padR;
-  const chartH = PLOT_H - padT - padB;
+  const panelX = PAD_X;
+  const panelY = PAD_Y;
+  const panelW = PLOT_W - PAD_X * 2;
+  const panelH = PLOT_H - PAD_Y * 2;
+  const chartX = panelX + 20;
+  const chartY = panelY + 20;
+  const chartW = panelW - 40;
+  const chartH = panelH - 40;
 
   const raw = (payload.candles.length > 48 ? payload.candles.slice(-48) : payload.candles) as CandlePoint[];
   if (raw.length < 2) return emptyPlot();
@@ -94,8 +98,8 @@ export function renderSocialChartPlotSvg(payload: SocialChartPayload): string {
   const lo = Math.min(...pts);
   const hi = Math.max(...pts);
   const span = hi - lo || hi * 0.05 || 1;
-  const yMin = lo - span * 0.12;
-  const yMax = hi + span * 0.06;
+  const yMin = lo - span * 0.1;
+  const yMax = hi + span * 0.08;
   const yRange = yMax - yMin || 1;
   const yAt = (p: number) => chartY + chartH - ((p - yMin) / yRange) * chartH;
 
@@ -121,17 +125,40 @@ export function renderSocialChartPlotSvg(payload: SocialChartPayload): string {
   ].join(" ");
 
   let grid = "";
-  for (let i = 0; i <= 3; i++) {
+  for (let i = 1; i <= 2; i++) {
     const y = chartY + (chartH / 3) * i;
-    grid += `<line x1="${chartX}" y1="${y}" x2="${chartX + chartW}" y2="${y}" stroke="${T.grid}" stroke-width="1" opacity="0.65"/>`;
+    grid += `<line x1="${chartX}" y1="${y}" x2="${chartX + chartW}" y2="${y}" stroke="${T.grid}" stroke-width="1"/>`;
   }
 
   let guides = "";
   if (entry != null) {
-    guides += levelGuide(yAt(entry), chartX, chartW, "Entry", entry, T.entry, false);
+    const entryY = yAt(entry);
+    const entryLabelAbove = entryY > chartY + chartH * 0.55;
+    guides += levelGuide(
+      entryY,
+      chartX,
+      chartW,
+      chartX + 4,
+      "Entry",
+      entry,
+      T.entry,
+      false,
+      entryLabelAbove
+    );
   }
   if (target != null && (entry == null || Math.abs(target - entry) > 0.01)) {
-    guides += levelGuide(yAt(target), chartX, chartW, "Target", target, T.target, true);
+    const targetY = yAt(target);
+    guides += levelGuide(
+      targetY,
+      chartX,
+      chartW,
+      chartX + chartW - 72,
+      "Target",
+      target,
+      T.target,
+      true,
+      true
+    );
   }
 
   const callDot = marker
@@ -147,13 +174,14 @@ export function renderSocialChartPlotSvg(payload: SocialChartPayload): string {
     </linearGradient>
   </defs>
   <rect width="${PLOT_W}" height="${PLOT_H}" fill="${T.bg}"/>
+  <rect x="${panelX}" y="${panelY}" width="${panelW}" height="${panelH}" rx="14" fill="${T.surface}" stroke="${T.rule}" stroke-width="1"/>
   <clipPath id="plot"><rect x="${chartX}" y="${chartY}" width="${chartW}" height="${chartH}"/></clipPath>
   <g clip-path="url(#plot)">
     ${grid}
     <polygon points="${areaPts}" fill="url(#areaFill)"/>
-    <polyline points="${linePts}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="${linePts}" fill="none" stroke="${lineColor}" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/>
     ${callDot}
-    <circle cx="${lastX}" cy="${endY}" r="4" fill="${lineColor}"/>
+    <circle cx="${lastX}" cy="${endY}" r="4.5" fill="#ffffff" stroke="${lineColor}" stroke-width="2"/>
   </g>
   ${guides}
 </svg>`;

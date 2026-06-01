@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import type { SocialChartPayload } from "@/lib/charts/social-chart-data";
 import { renderSocialChartPlotPng, SOCIAL_CHART_PLOT_SIZE } from "@/lib/charts/social-chart-plot";
 import { socialChartOgFonts } from "@/lib/charts/social-chart-og-fonts";
+import { SOCIAL_CHART_LOGO_HEIGHT } from "@/lib/charts/social-chart-logo";
 import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
 
 const W = 1200;
@@ -51,36 +52,55 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-start",
-            padding: "40px 48px 0",
+            padding: "44px 56px 0",
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", maxWidth: 720 }}>
-            {mile ? (
+          <div style={{ display: "flex", flexDirection: "column", maxWidth: 680 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: 14,
+              }}
+            >
+              {mile ? (
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: T.accent,
+                    background: T.accentFill,
+                    border: `1px solid ${T.accentBorder}`,
+                    borderRadius: 999,
+                    padding: "5px 12px",
+                    letterSpacing: 0.5,
+                    marginRight: 12,
+                  }}
+                >
+                  {mile.toUpperCase()}
+                </div>
+              ) : null}
               <div
                 style={{
                   display: "flex",
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: T.accent,
-                  background: T.accentFill,
-                  border: `1px solid ${T.accentBorder}`,
-                  borderRadius: 999,
-                  padding: "4px 12px",
-                  letterSpacing: 0.6,
-                  marginBottom: 16,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: T.textDim,
+                  letterSpacing: 1.2,
                 }}
               >
-                {mile.toUpperCase()}
+                FUELED DESK
               </div>
-            ) : null}
+            </div>
 
             <div
               style={{
                 display: "flex",
-                fontSize: 64,
+                fontSize: 60,
                 fontWeight: 700,
                 color: T.textBright,
-                letterSpacing: -3,
+                letterSpacing: -2.5,
                 lineHeight: 1,
               }}
             >
@@ -90,11 +110,11 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             <div
               style={{
                 display: "flex",
-                fontSize: 22,
+                fontSize: 24,
                 fontWeight: 500,
                 color: T.text,
-                marginTop: 10,
-                letterSpacing: -0.3,
+                marginTop: 8,
+                letterSpacing: -0.4,
               }}
             >
               {payload.companyName}
@@ -107,20 +127,27 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
                   fontSize: 14,
                   fontWeight: 500,
                   color: T.textDim,
-                  marginTop: 8,
+                  marginTop: 10,
                 }}
               >
-                {`Desk call · ${date}`}
+                {`Called ${date}`}
               </div>
             ) : null}
           </div>
 
           {retStr ? (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                paddingTop: 8,
+              }}
+            >
               <div
                 style={{
                   display: "flex",
-                  fontSize: 56,
+                  fontSize: 58,
                   fontWeight: 700,
                   color: trendColor,
                   letterSpacing: -2.5,
@@ -135,8 +162,8 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
                   fontSize: 11,
                   fontWeight: 600,
                   color: T.textDim,
-                  marginTop: 8,
-                  letterSpacing: 1.4,
+                  marginTop: 10,
+                  letterSpacing: 1.3,
                 }}
               >
                 SINCE DESK CALL
@@ -147,16 +174,7 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
           )}
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            height: 1,
-            background: T.rule,
-            margin: "28px 48px 0",
-          }}
-        />
-
-        <div style={{ display: "flex", marginTop: 4 }}>
+        <div style={{ display: "flex", marginTop: 24 }}>
           <img
             src={plotSrc}
             width={SOCIAL_CHART_PLOT_SIZE.width}
@@ -171,13 +189,14 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             justifyContent: "space-between",
             alignItems: "center",
             marginTop: "auto",
-            padding: "16px 48px 28px",
+            padding: "20px 56px 36px",
+            borderTop: `1px solid ${T.rule}`,
           }}
         >
           <div style={{ display: "flex", fontSize: 11, fontWeight: 500, color: T.textDim }}>
             Not investment advice · portfuel.pro
           </div>
-          <div style={{ display: "flex", width: 200, height: 1 }} />
+          <div style={{ display: "flex", width: 200, height: SOCIAL_CHART_LOGO_HEIGHT }} />
         </div>
       </div>
     ),

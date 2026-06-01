@@ -3,16 +3,19 @@ import { join } from "node:path";
 import sharp from "sharp";
 import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
 
-const LOGO_FILE = "logo-social-chrome.png";
+/** PortFuel PRO wordmark — transparent, for light chart backgrounds. */
+const LOGO_FILE = "logo-social-light.png";
 
-export const SOCIAL_CHART_PAD_X = 48;
-export const SOCIAL_CHART_BOTTOM_PAD = 32;
-/** Chrome wordmark watermark — bottom-right. */
-export const SOCIAL_CHART_LOGO_HEIGHT = 52;
+export const SOCIAL_CHART_PAD_X = 56;
+export const SOCIAL_CHART_BOTTOM_PAD = 36;
+/** Full PRO lockup in footer. */
+export const SOCIAL_CHART_LOGO_HEIGHT = 44;
 
 export function socialChartLogoPath(): string | null {
   const path = join(process.cwd(), "public", LOGO_FILE);
-  return existsSync(path) ? path : null;
+  if (existsSync(path)) return path;
+  const fallback = join(process.cwd(), "public", "logo-social-chrome.png");
+  return existsSync(fallback) ? fallback : null;
 }
 
 export function loadSocialChartLogoBase64(): string | null {
@@ -26,12 +29,34 @@ async function loadTrimmedLogo(): Promise<{ buffer: Buffer; width: number; heigh
   if (!logoPath) return null;
 
   const trimmed = await sharp(logoPath)
-    .trim({ threshold: 12 })
+    .trim({ threshold: 14 })
     .png()
     .toBuffer();
   const meta = await sharp(trimmed).metadata();
   if (!meta.width || !meta.height) return null;
   return { buffer: trimmed, width: meta.width, height: meta.height };
+}
+
+export async function loadSocialChartLogoDataUrl(): Promise<{
+  src: string;
+  width: number;
+  height: number;
+} | null> {
+  const logo = await loadTrimmedLogo();
+  if (!logo) return null;
+
+  const aspect = logo.width / logo.height;
+  const logoH = SOCIAL_CHART_LOGO_HEIGHT;
+  const logoW = Math.round(logoH * aspect);
+  const buf = await sharp(logo.buffer)
+    .resize(logoW, logoH, { fit: "fill", kernel: "lanczos3" })
+    .png()
+    .toBuffer();
+  return {
+    src: `data:image/png;base64,${buf.toString("base64")}`,
+    width: logoW,
+    height: logoH,
+  };
 }
 
 export async function compositeSocialChartLogo(chartPng: Buffer): Promise<Buffer> {

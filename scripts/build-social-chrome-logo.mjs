@@ -54,9 +54,13 @@ async function main() {
     .png({ compressionLevel: 9 })
     .toFile(watermarkPath);
 
+  const lightPath = join(publicDir, "logo-social-light.png");
+  await transparent.clone().trim({ threshold: 12 }).png({ compressionLevel: 9 }).toFile(lightPath);
+
   const meta = await sharp(chromePath).metadata();
   console.log(`wrote ${chromePath} (${meta.width}x${meta.height}, alpha=${meta.hasAlpha})`);
   console.log(`wrote ${watermarkPath}`);
+  console.log(`wrote ${lightPath}`);
 }
 
 main().catch((e) => {
