@@ -2,11 +2,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-/** Trimmed brand mark — aspect ~4.67:1 (737×158 source). */
+/** Source file intrinsic size (public/logo.png) — keep in sync with scripts/build-header-logo.mjs */
+const SRC_WIDTH = 1200;
+const SRC_HEIGHT = 299;
+
 const sizes = {
-  sm: { width: 180, height: 39, className: "h-[39px] w-auto" },
-  md: { width: 220, height: 47, className: "h-[47px] w-auto" },
-  lg: { width: 280, height: 60, className: "h-[60px] w-auto" },
+  sm: {
+    displayWidth: 156,
+    className: "h-[34px] w-[156px] sm:h-[38px] sm:w-[175px]",
+  },
+  md: {
+    displayWidth: 175,
+    className: "h-[38px] w-[175px] sm:h-[43px] sm:w-[200px]",
+  },
+  lg: {
+    displayWidth: 220,
+    className: "h-[43px] w-[200px] sm:h-[52px] sm:w-[240px]",
+  },
 } as const;
 
 export function Logo({
@@ -21,7 +33,7 @@ export function Logo({
   /** Use `light` on dark backgrounds (expects /logo-light.png, falls back to /logo.png). */
   variant?: "default" | "light";
 }) {
-  const { width, height, className: sizeClass } = sizes[size];
+  const { displayWidth, className: sizeClass } = sizes[size];
   const src = variant === "light" ? "/logo-light.png" : "/logo.png";
 
   return (
@@ -29,10 +41,12 @@ export function Logo({
       <Image
         src={src}
         alt="PortFuel.pro"
-        width={width}
-        height={height}
-        className={sizeClass}
+        width={SRC_WIDTH}
+        height={SRC_HEIGHT}
+        sizes={`${displayWidth}px`}
+        quality={100}
         priority
+        className={cn(sizeClass, "object-contain object-left")}
       />
     </Link>
   );

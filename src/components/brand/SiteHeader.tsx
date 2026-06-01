@@ -21,9 +21,10 @@ export function SiteHeader({
   const logoHref = user ? "/dashboard" : "/";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--pf-border)] bg-white/95 shadow-[var(--pf-shadow-sm)] backdrop-blur-md">
-      <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between px-4">
-        <Logo size="md" href={logoHref} />
+    <header className="sticky top-0 z-50 isolate border-b border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)] supports-[backdrop-filter]:bg-white/98 supports-[backdrop-filter]:backdrop-blur-sm">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
+        <Logo size="sm" href={logoHref} className="min-w-0 sm:hidden" />
+        <Logo size="md" href={logoHref} className="hidden min-w-0 sm:inline-flex" />
         <nav className="flex items-center gap-2">
           {user ? (
             <>
