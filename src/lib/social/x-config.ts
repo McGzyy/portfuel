@@ -7,6 +7,7 @@ export type XConfig = {
   fueledPosts: boolean;
   leaderboardPosts: boolean;
   autopostFueledOnPublish: boolean;
+  autopostMilestones: boolean;
 };
 
 function envFlag(name: string, defaultValue = false): boolean {
@@ -27,6 +28,9 @@ export function getXConfig(): XConfig {
     fueledPosts: envFlag("X_POST_FUELED", true),
     leaderboardPosts: envFlag("X_POST_LEADERBOARD", true),
     autopostFueledOnPublish: envFlag("X_AUTOPOST_FUELED_ON_PUBLISH", false),
+    autopostMilestones: !["0", "false", "no"].includes(
+      (process.env.X_AUTOPOST_MILESTONES ?? "true").trim().toLowerCase()
+    ),
   };
 }
 

@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { notifyDiscordCallMilestone } from "@/lib/discord/events";
+import { tryAutopostFueledMilestone } from "@/lib/social/x-milestone-autopost";
 import { createNotification } from "@/lib/notifications/service";
 
 export type CallMilestoneKey = "return_10" | "return_25" | "target_reached";
@@ -104,6 +105,10 @@ export async function processCallMilestones(calls: CallRow[]): Promise<{ notifie
         key,
         returnPct: call.return_pct,
       }).catch((e) => console.error("[discord/milestone]", e));
+
+      void tryAutopostFueledMilestone(call.id, key).catch((e) =>
+        console.error("[x/milestone-autopost]", e)
+      );
 
       notified++;
     }
