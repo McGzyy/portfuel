@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuthShell } from "@/components/auth/AuthShell";
@@ -18,22 +18,41 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const normalizedUsername = username.trim().toLowerCase();
+  const isAdminLogin = normalizedUsername === "admin";
+  const showAuthenticator = needsTotp || isAdminLogin;
+
+  const subtitle = useMemo(() => {
+    if (isAdminLogin) {
+      return "Admin sign-in uses your password plus a 6-digit code from your authenticator app (not your .env file).";
+    }
+    if (showAuthenticator) {
+      return "Enter your password and the 6-digit code from your authenticator app.";
+    }
+    return "Use your username and password. Members with 2FA enabled also need an authenticator code.";
+  }, [isAdminLogin, showAuthenticator]);
+
   const canSubmit =
-    username.trim().length >= 3 && password.length >= 8 && (!needsTotp || token.length === 6);
+    normalizedUsername.length >= 3 &&
+    password.trim().length >= 8 &&
+    (!showAuthenticator || token.length === 6);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
     setError("");
     setLoading(true);
+    const trimmedPassword = password.trim();
+    const totpToken = token.replace(/\s/g, "");
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({
-          username: username.trim().toLowerCase(),
-          password,
-          token: needsTotp ? token : undefined,
+          username: normalizedUsername,
+          password: trimmedPassword,
+          token: totpToken.length >= 6 ? totpToken : undefined,
         }),
       });
       const data = await res.json();
@@ -43,11 +62,24 @@ export default function LoginPage() {
           setError("Enter the 6-digit code from your authenticator app.");
           return;
         }
-        setError(
-          data.error === "rate_limited"
-            ? "Too many attempts. Try again in 15 minutes."
-            : "Invalid username, password, or authenticator code."
-        );
+        if (data.error === "rate_limited") {
+          setError("Too many attempts. Try again in 15 minutes.");
+          return;
+        }
+        if (data.error === "invalid_totp") {
+          setNeedsTotp(true);
+          setError("Authenticator code is incorrect or expired. Try the latest code.");
+          return;
+        }
+        if (data.error === "invalid_password") {
+          setError("Incorrect password.");
+          return;
+        }
+        if (data.error === "invalid_input") {
+          setError("Check your username, password, and 6-digit code.");
+          return;
+        }
+        setError("Invalid username or password.");
         return;
       }
       if (data.needsTwoFactorSetup) {
@@ -68,10 +100,7 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthShell
-      title="Sign in"
-      subtitle="Use your username and password. Active members also need an authenticator code."
-    >
+    <AuthShell title="Sign in" subtitle={subtitle}>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
@@ -82,6 +111,9 @@ export default function LoginPage() {
             onChange={(e) => setUsername(e.target.value.toLowerCase())}
             placeholder="your_username"
             autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             disabled={loading}
           />
           <p className="mt-1 text-xs text-[var(--pf-gray-400)]">Set at signup — cannot be changed.</p>
@@ -100,12 +132,23 @@ export default function LoginPage() {
           />
         </div>
 
-        {needsTotp ? (
+        {showAuthenticator ? (
           <div>
-            <p className="mb-4 text-center text-sm font-medium text-[var(--pf-gray-700)]">
+            <label className="mb-3 block text-center text-sm font-medium text-[var(--pf-gray-700)]">
               Authenticator code
-            </p>
+            </label>
             <OtpInput value={token} onChange={setToken} disabled={loading} />
+            <Input
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="6-digit code"
+              value={token}
+              onChange={(e) => setToken(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              className="mt-3 text-center tracking-[0.35em] sm:hidden"
+              disabled={loading}
+              aria-label="Authenticator code (single field)"
+            />
           </div>
         ) : null}
 
@@ -116,7 +159,7 @@ export default function LoginPage() {
         ) : null}
 
         <Button type="submit" className="w-full" size="lg" disabled={loading || !canSubmit}>
-          {loading ? "Signing in…" : needsTotp ? "Verify & sign in" : "Sign in"}
+          {loading ? "Signing in…" : showAuthenticator ? "Verify & sign in" : "Sign in"}
         </Button>
       </form>
 

@@ -22,9 +22,10 @@ export function SiteHeader({
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--pf-border)] bg-white/95 shadow-[var(--pf-shadow-sm)] backdrop-blur-md">
-      <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between px-4">
-        <Logo size="md" href={logoHref} />
-        <nav className="flex items-center gap-2">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-3 sm:h-[4.5rem] sm:gap-3 sm:px-4">
+        <Logo size="xs" href={logoHref} className="min-w-0 sm:hidden" unoptimized />
+        <Logo size="md" href={logoHref} className="hidden min-w-0 sm:inline-flex" unoptimized />
+        <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
           {user ? (
             <>
               {user.role === "admin" ? (
@@ -100,13 +101,16 @@ export function SiteHeader({
               >
                 Rankings
               </Link>
-              <Link href="/login">
-                <Button variant="ghost" size="sm">
+              <Link href="/login" className="shrink-0">
+                <Button variant="ghost" size="sm" className="h-8 px-2.5 sm:h-9 sm:px-3">
                   Sign in
                 </Button>
               </Link>
-              <Link href="/join">
-                <Button size="sm">{COPY.ctaGetAccess}</Button>
+              <Link href="/join" className="shrink-0">
+                <Button size="sm" className="h-8 px-2.5 text-xs sm:h-9 sm:px-3 sm:text-sm">
+                  <span className="sm:hidden">Join</span>
+                  <span className="hidden sm:inline">{COPY.ctaGetAccess}</span>
+                </Button>
               </Link>
             </>
           ) : null}

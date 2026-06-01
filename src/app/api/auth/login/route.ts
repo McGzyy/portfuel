@@ -13,7 +13,16 @@ import { needsOnboarding } from "@/lib/onboarding/service";
 const schema = z.object({
   username: z.string().min(3).max(32),
   password: z.string().min(1).max(128),
-  token: z.string().min(6).max(8).optional(),
+  token: z
+    .string()
+    .optional()
+    .transform((v) => {
+      const clean = v?.replace(/\s/g, "") ?? "";
+      return clean.length > 0 ? clean : undefined;
+    })
+    .refine((v) => v === undefined || /^\d{6,8}$/.test(v), {
+      message: "invalid_token",
+    }),
 });
 
 export async function POST(request: Request) {
@@ -41,9 +50,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "invalid_credentials" }, { status: 401 });
     }
 
-    if (!(await verifyPassword(body.password, user.password_hash))) {
+    if (!(await verifyPassword(body.password.trim(), user.password_hash))) {
       await recordAuthAttempt(username, ip, false);
-      return NextResponse.json({ error: "invalid_credentials" }, { status: 401 });
+      return NextResponse.json({ error: "invalid_password" }, { status: 401 });
     }
 
     const isActive =
@@ -60,7 +69,7 @@ export async function POST(request: Request) {
       const secret = decryptSecret(user.totp_secret_enc);
       if (!(await verifyTotpToken(secret, body.token))) {
         await recordAuthAttempt(username, ip, false);
-        return NextResponse.json({ error: "invalid_credentials" }, { status: 401 });
+        return NextResponse.json({ error: "invalid_totp" }, { status: 401 });
       }
     }
 

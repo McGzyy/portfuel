@@ -8,7 +8,8 @@ export function generateTotpSecret(): string {
 export async function verifyTotpToken(secret: string, token: string): Promise<boolean> {
   const clean = token.replace(/\s/g, "");
   if (!/^\d{6}$/.test(clean)) return false;
-  const result = await verify({ secret, token: clean, epochTolerance: 1 });
+  /** ±2 steps (30s each) for phone clock drift */
+  const result = await verify({ secret, token: clean, epochTolerance: 2 });
   return result.valid;
 }
 
