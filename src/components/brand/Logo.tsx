@@ -2,7 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-/** Trimmed brand mark — aspect ~4.67:1 (737×158 source). */
+/** Intrinsic size of public/logo.png — update after `npm run brand-assets`. */
+const LOGO_SRC_WIDTH = 1474;
+const LOGO_SRC_HEIGHT = 316;
+
 const sizes = {
   sm: { width: 180, height: 39, className: "h-[39px] w-auto" },
   md: { width: 220, height: 47, className: "h-[47px] w-auto" },
@@ -29,8 +32,10 @@ export function Logo({
       <Image
         src={src}
         alt="PortFuel.pro"
-        width={width}
-        height={height}
+        width={LOGO_SRC_WIDTH}
+        height={LOGO_SRC_HEIGHT}
+        sizes={`(max-width: 640px) ${sizes.sm.width}px, ${width}px`}
+        quality={100}
         className={sizeClass}
         priority
       />

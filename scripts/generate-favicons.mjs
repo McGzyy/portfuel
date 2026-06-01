@@ -1,4 +1,5 @@
 /**
+ * @deprecated Use `npm run brand-assets` (optimize-brand-assets.mjs).
  * Regenerate gauge favicons (centered, padded) from public/logo.png.
  *   node scripts/generate-favicons.mjs
  */
