@@ -41,9 +41,15 @@ export default async function DashboardLayout({
           />
         </div>
         <div className="pf-workspace-main">
-          <div className="border-b border-[var(--pf-border)] bg-white lg:hidden">
-            <MemberNav dmUnread={dmUnread} />
-          </div>
+          <MemberNav
+            dmUnread={dmUnread}
+            username={session.username}
+            displayName={
+              session.displayName ??
+              (session.role === "admin" ? "Administrator" : session.username)
+            }
+            isAdmin={session.role === "admin"}
+          />
           <WorkspaceContent>{children}</WorkspaceContent>
         </div>
       </div>

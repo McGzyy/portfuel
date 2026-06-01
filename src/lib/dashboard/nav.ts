@@ -78,7 +78,7 @@ export const WORKSPACE_NAV_GROUPS: { title: string; items: DashboardNavItem[] }[
   {
     title: "Community",
     items: DASHBOARD_NAV.filter((i) =>
-      ["/dashboard/feed", "/dashboard/messages"].includes(i.href)
+      ["/dashboard/feed", "/dashboard/messages", "/dashboard/rankings"].includes(i.href)
     ),
   },
   {
