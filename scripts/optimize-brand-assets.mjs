@@ -173,6 +173,7 @@ const maskable512 = await (await buildMaskableIcon(gaugeMaster, 512))
   .toBuffer();
 
 await sharp(tabIcon).toFile(join(root, "src/app/icon.png"));
+await sharp(tabIcon).toFile(join(root, "public/icons/favicon.png"));
 await sharp(appleIcon).toFile(join(root, "src/app/apple-icon.png"));
 await sharp(appleIcon).toFile(join(iconsDir, "apple-touch-icon.png"));
 await sharp(icon192).toFile(join(iconsDir, "icon-192.png"));

@@ -21,7 +21,8 @@ export const rootMetadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   icons: {
-    icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    // Transparent gauge for browser tabs — not the white-tile PWA home-screen icons.
+    icon: [{ url: "/icons/favicon.png", sizes: "48x48", type: "image/png" }],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   appleWebApp: {
