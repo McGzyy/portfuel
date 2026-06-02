@@ -18,7 +18,10 @@ export default async function AdminMemberDetailPage({
 
   return (
     <AppShell user={toHeaderUser(session)}>
-      <PageHeader title="Member 360" description="Email, moderation, and audit history." />
+      <PageHeader
+        title="Member 360"
+        description="Billing, email, moderation, and audit history for one member."
+      />
       <AdminMemberDetailPanel userId={userId} />
     </AppShell>
   );

@@ -2,28 +2,44 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type Member = {
   id: string;
   username: string;
   display_name: string | null;
+  email: string | null;
+  email_verified_at: string | null;
   role: string;
   subscription_status: "pending" | "active" | "cancelled";
   membership_tier: "member" | "pro" | null;
+  pro_granted_until: string | null;
   totp_verified: boolean;
   calls_count: number;
-  rank_score: number;
-  submission_quota_week: number;
   created_at: string;
 };
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function effectiveTier(m: Member): "member" | "pro" | null {
+  if (m.subscription_status !== "active") return null;
+  if (m.membership_tier === "pro") return "pro";
+  if (m.pro_granted_until && new Date(m.pro_granted_until).getTime() > Date.now()) {
+    return "pro";
+  }
+  return m.membership_tier;
+}
 
 export function AdminMembersPanel() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [savingId, setSavingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -47,34 +63,6 @@ export function AdminMembersPanel() {
     load();
   }, [load]);
 
-  async function patchMember(
-    userId: string,
-    body: {
-      subscriptionStatus?: Member["subscription_status"];
-      membershipTier?: Member["membership_tier"];
-      submissionQuotaWeek?: number;
-      trusted?: boolean;
-    }
-  ) {
-    setSavingId(userId);
-    try {
-      const res = await fetch(`/api/admin/members/${userId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        setError("Update failed.");
-        return;
-      }
-      await load();
-    } catch {
-      setError("Update failed.");
-    } finally {
-      setSavingId(null);
-    }
-  }
-
   if (loading) {
     return (
       <div className="mt-8 flex justify-center py-16">
@@ -86,7 +74,9 @@ export function AdminMembersPanel() {
   return (
     <div className="mt-8 space-y-4">
       {error ? (
-        <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-sm text-[var(--pf-red)]">{error}</p>
+        <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-sm text-[var(--pf-red)]">
+          {error}
+        </p>
       ) : null}
 
       <div className="overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]">
@@ -94,143 +84,78 @@ export function AdminMembersPanel() {
           <thead className="border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)] text-xs font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
             <tr>
               <th className="px-4 py-3">Member</th>
-              <th className="hidden px-4 py-3 sm:table-cell">Status</th>
+              <th className="hidden px-4 py-3 md:table-cell">Email</th>
               <th className="hidden px-4 py-3 sm:table-cell">Plan</th>
-              <th className="hidden px-4 py-3 md:table-cell">2FA</th>
-              <th className="hidden px-4 py-3 lg:table-cell">Calls</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="hidden px-4 py-3 lg:table-cell">Status</th>
+              <th className="hidden px-4 py-3 xl:table-cell">Member since</th>
+              <th className="px-4 py-3 text-right"> </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--pf-border)]">
             {members.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-[var(--pf-gray-500)]">
+                <td colSpan={6} className="px-4 py-10 text-center text-[var(--pf-gray-500)]">
                   No members yet.
                 </td>
               </tr>
             ) : (
-              members.map((m) => (
-                <tr key={m.id} className="hover:bg-[var(--pf-gray-50)]/80">
-                  <td className="px-4 py-3">
-                    <p className="font-semibold text-[var(--pf-black)]">@{m.username}</p>
-                    <p className="text-xs text-[var(--pf-gray-500)]">{m.display_name ?? "—"}</p>
-                  </td>
-                  <td className="hidden px-4 py-3 sm:table-cell">
-                    <StatusBadge status={m.subscription_status} />
-                  </td>
-                  <td className="hidden px-4 py-3 sm:table-cell">
-                    <TierBadge tier={m.membership_tier} active={m.subscription_status === "active"} />
-                  </td>
-                  <td className="hidden px-4 py-3 md:table-cell">
-                    {m.totp_verified ? (
-                      <span className="text-emerald-600">Enabled</span>
-                    ) : (
-                      <span className="text-amber-600">Pending</span>
-                    )}
-                  </td>
-                  <td className="hidden px-4 py-3 tabular-nums lg:table-cell">{m.calls_count}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap justify-end gap-2">
+              members.map((m) => {
+                const tier = effectiveTier(m);
+                return (
+                  <tr key={m.id} className="hover:bg-[var(--pf-gray-50)]/80">
+                    <td className="px-4 py-3">
+                      <p className="font-semibold text-[var(--pf-black)]">@{m.username}</p>
+                      <p className="text-xs text-[var(--pf-gray-500)]">{m.display_name ?? "—"}</p>
+                      <p className="mt-0.5 text-xs text-[var(--pf-gray-400)] md:hidden">
+                        {m.email ?? "No email"}
+                      </p>
+                    </td>
+                    <td className="hidden px-4 py-3 md:table-cell">
+                      <p className="max-w-[200px] truncate text-[var(--pf-gray-700)]">
+                        {m.email ?? "—"}
+                      </p>
+                      {m.email ? (
+                        <p className="text-xs text-[var(--pf-gray-400)]">
+                          {m.email_verified_at ? "Verified" : "Unverified"}
+                        </p>
+                      ) : null}
+                    </td>
+                    <td className="hidden px-4 py-3 sm:table-cell">
+                      <TierBadge tier={tier} />
+                    </td>
+                    <td className="hidden px-4 py-3 lg:table-cell">
+                      <StatusBadge status={m.subscription_status} />
+                    </td>
+                    <td className="hidden px-4 py-3 tabular-nums text-[var(--pf-gray-600)] xl:table-cell">
+                      {formatDate(m.created_at)}
+                    </td>
+                    <td className="px-4 py-3 text-right">
                       <Link
                         href={`/admin/members/${m.id}`}
-                        className="inline-flex h-8 items-center rounded-md border border-[var(--pf-border)] px-3 text-xs font-medium hover:bg-[var(--pf-gray-50)]"
+                        className="inline-flex h-8 items-center rounded-md bg-[var(--pf-navy)] px-3 text-xs font-semibold text-white hover:bg-[var(--pf-navy)]/90"
                       >
-                        360
+                        Member 360
                       </Link>
-                      {m.subscription_status !== "active" ? (
-                        <Button
-                          size="sm"
-                          disabled={savingId === m.id}
-                          onClick={() =>
-                            patchMember(m.id, { subscriptionStatus: "active" })
-                          }
-                        >
-                          Activate
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          disabled={savingId === m.id}
-                          onClick={() =>
-                            patchMember(m.id, { subscriptionStatus: "pending" })
-                          }
-                        >
-                          Deactivate
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={savingId === m.id}
-                        onClick={() =>
-                          patchMember(m.id, {
-                            subscriptionStatus: "active",
-                            membershipTier: "pro",
-                          })
-                        }
-                      >
-                        Comp Pro
-                      </Button>
-                      {m.subscription_status === "active" && m.membership_tier !== "pro" ? (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          disabled={savingId === m.id}
-                          onClick={() => patchMember(m.id, { membershipTier: "pro" })}
-                        >
-                          Set Pro
-                        </Button>
-                      ) : null}
-                      {m.subscription_status === "active" && m.membership_tier === "pro" ? (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          disabled={savingId === m.id}
-                          onClick={() => patchMember(m.id, { membershipTier: "member" })}
-                        >
-                          Set Member
-                        </Button>
-                      ) : null}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        disabled={savingId === m.id}
-                        onClick={() =>
-                          patchMember(m.id, {
-                            submissionQuotaWeek: m.submission_quota_week >= 5 ? 2 : 5,
-                          })
-                        }
-                      >
-                        Quota {m.submission_quota_week}/wk
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
 
       <p className="text-xs text-[var(--pf-gray-400)]">
-        <strong>Comp Pro</strong> = active subscription + Pro tier (no Stripe, does not expire).
-        Friend demos: send{" "}
-        <span className="font-mono">/join?invite=1</span> (skips Stripe), then Comp Pro here. They
-        still need 2FA at <span className="font-mono">/security/2fa</span> before the workspace.
+        Open <strong>Member 360</strong> to manage billing, comp access, moderation, and quotas.
+        Friend demos: send <span className="font-mono">/join?invite=1</span>, then use Comp Pro on
+        their 360 page.
       </p>
     </div>
   );
 }
 
-function TierBadge({
-  tier,
-  active,
-}: {
-  tier: Member["membership_tier"];
-  active: boolean;
-}) {
-  if (!active || !tier) {
+function TierBadge({ tier }: { tier: "member" | "pro" | null }) {
+  if (!tier) {
     return <span className="text-xs text-[var(--pf-gray-400)]">—</span>;
   }
   return (

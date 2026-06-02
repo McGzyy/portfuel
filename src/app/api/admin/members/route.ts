@@ -10,7 +10,7 @@ export async function GET() {
     const { data, error } = await db
       .from("users")
       .select(
-        "id, username, display_name, role, subscription_status, membership_tier, totp_verified, calls_count, rank_score, submission_quota_week, created_at"
+        "id, username, display_name, email, email_verified_at, role, subscription_status, membership_tier, pro_granted_until, totp_verified, calls_count, created_at"
       )
       .order("created_at", { ascending: false })
       .limit(200);
