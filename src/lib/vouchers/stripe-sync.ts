@@ -15,8 +15,11 @@ export async function syncVoucherToStripe(voucher: VoucherRow): Promise<{
 
   const stripe = getStripe();
 
+  const isFullDiscount =
+    voucher.discount_type === "percent_off" && voucher.discount_percent === 100;
+
   const couponParams: Parameters<typeof stripe.coupons.create>[0] = {
-    duration: "once",
+    duration: isFullDiscount ? "forever" : "once",
     name: voucher.label || voucher.code,
     metadata: { voucherId: voucher.id },
   };

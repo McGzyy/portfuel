@@ -44,11 +44,8 @@ export function ProfileBillingSection({
         : "—";
 
   const cadenceLabel =
-    billingInterval === "annual"
-      ? "Annual"
-      : billingInterval === "monthly"
-        ? "Monthly"
-        : null;
+    billingInterval === "annual" ? "Annual" : billingInterval === "monthly" ? "Monthly" : null;
+  const showCadence = cadenceLabel && billingInterval === "annual";
 
   return (
     <section className="pf-workspace-panel p-5">
@@ -67,7 +64,7 @@ export function ProfileBillingSection({
             <span className="text-sm text-[var(--pf-gray-600)]">
               Plan: <span className="font-semibold text-[var(--pf-black)]">{tierLabel}</span>
             </span>
-            {cadenceLabel ? (
+            {showCadence ? (
               <span className="text-sm text-[var(--pf-gray-600)]">
                 Billing:{" "}
                 <span className="font-semibold text-[var(--pf-black)]">{cadenceLabel}</span>

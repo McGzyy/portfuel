@@ -258,7 +258,6 @@ export function AdminVouchersPanel() {
             >
               <option value="any">Any</option>
               <option value="monthly">Monthly</option>
-              <option value="annual">Annual</option>
             </select>
           </label>
           {form.kind === "checkout_discount" ? (

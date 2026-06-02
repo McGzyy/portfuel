@@ -50,6 +50,7 @@ export function AdminMembersPanel() {
     userId: string,
     body: {
       subscriptionStatus?: Member["subscription_status"];
+      membershipTier?: Member["membership_tier"];
       submissionQuotaWeek?: number;
       trusted?: boolean;
     }
@@ -153,6 +154,39 @@ export function AdminMembersPanel() {
                       )}
                       <Button
                         size="sm"
+                        variant="secondary"
+                        disabled={savingId === m.id}
+                        onClick={() =>
+                          patchMember(m.id, {
+                            subscriptionStatus: "active",
+                            membershipTier: "pro",
+                          })
+                        }
+                      >
+                        Comp Pro
+                      </Button>
+                      {m.subscription_status === "active" && m.membership_tier !== "pro" ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={savingId === m.id}
+                          onClick={() => patchMember(m.id, { membershipTier: "pro" })}
+                        >
+                          Set Pro
+                        </Button>
+                      ) : null}
+                      {m.subscription_status === "active" && m.membership_tier === "pro" ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={savingId === m.id}
+                          onClick={() => patchMember(m.id, { membershipTier: "member" })}
+                        >
+                          Set Member
+                        </Button>
+                      ) : null}
+                      <Button
+                        size="sm"
                         variant="ghost"
                         disabled={savingId === m.id}
                         onClick={() =>
@@ -173,8 +207,10 @@ export function AdminMembersPanel() {
       </div>
 
       <p className="text-xs text-[var(--pf-gray-400)]">
-        Stripe handles paid activation; use Activate only for comped or manual access. Members need
-        2FA at <span className="font-mono">/security/2fa</span> before the workspace.
+        <strong>Comp Pro</strong> = active subscription + Pro tier (no Stripe, does not expire).
+        Friend demos: have them register at <span className="font-mono">/join</span>, then Comp Pro
+        here. They still need 2FA at <span className="font-mono">/security/2fa</span> before the
+        workspace.
       </p>
     </div>
   );

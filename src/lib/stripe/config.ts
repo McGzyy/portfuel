@@ -12,6 +12,11 @@ export function isStripeConfigured(): boolean {
   );
 }
 
+/** UI toggle — annual checkout hidden until you opt in. */
+export function isAnnualBillingUiEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_ANNUAL_BILLING_ENABLED === "true";
+}
+
 /** Both annual Member and Pro price IDs set in env. */
 export function isAnnualBillingConfigured(): boolean {
   return Boolean(

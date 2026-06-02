@@ -3,9 +3,12 @@ import { z } from "zod";
 import { createServiceClient } from "@/lib/db/supabase";
 import { requireAdmin } from "@/lib/auth/session";
 import { markReferralConverted } from "@/lib/referrals/service";
+import { markDiscordRoleSyncPending } from "@/lib/discord/sync";
+import { quotaForTier } from "@/lib/stripe/config";
 
 const schema = z.object({
   subscriptionStatus: z.enum(["pending", "active", "cancelled"]).optional(),
+  membershipTier: z.enum(["member", "pro"]).optional(),
   submissionQuotaWeek: z.number().int().min(0).max(99).optional(),
   trusted: z.boolean().optional(),
 });
@@ -22,6 +25,10 @@ export async function PATCH(
     const updates: Record<string, unknown> = {};
     if (body.subscriptionStatus !== undefined) {
       updates.subscription_status = body.subscriptionStatus;
+    }
+    if (body.membershipTier !== undefined) {
+      updates.membership_tier = body.membershipTier;
+      updates.submission_quota_week = quotaForTier(body.membershipTier);
     }
     if (body.submissionQuotaWeek !== undefined) {
       updates.submission_quota_week = body.submissionQuotaWeek;
@@ -51,6 +58,10 @@ export async function PATCH(
 
     if (body.subscriptionStatus === "active") {
       await markReferralConverted(userId);
+    }
+
+    if (body.subscriptionStatus !== undefined || body.membershipTier !== undefined) {
+      void markDiscordRoleSyncPending(userId);
     }
 
     return NextResponse.json({ ok: true });

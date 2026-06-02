@@ -62,4 +62,10 @@ Expired Pro grants are cleared on session refresh (member quota restored).
 
 ## Billing interval
 
-Vouchers can target `monthly`, `annual`, or `any`. Checkout passes the interval selected on `/join` or profile. Requires annual Stripe price env vars (see `docs/STRIPE.md`).
+Vouchers can target `monthly` or `any` in the admin UI (annual is wired in the API but hidden until `NEXT_PUBLIC_ANNUAL_BILLING_ENABLED=true`).
+
+## Comping a friend (no charge)
+
+**Easiest:** Admin → **Members** → after they register, click **Comp Pro** (active + Pro, no Stripe, no expiry).
+
+**Alternative:** 100% off public voucher at checkout — still sends them through Stripe (may ask for a card). Use Admin → Vouchers: checkout discount, 100% off, no expiry, unlimited uses.

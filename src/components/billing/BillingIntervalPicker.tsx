@@ -1,6 +1,6 @@
 "use client";
 
-import type { BillingInterval } from "@/lib/stripe/config";
+import { isAnnualBillingUiEnabled, type BillingInterval } from "@/lib/stripe/config";
 import { cn } from "@/lib/utils";
 
 export function BillingIntervalPicker({
@@ -14,7 +14,7 @@ export function BillingIntervalPicker({
   annualAvailable: boolean;
   className?: string;
 }) {
-  if (!annualAvailable) return null;
+  if (!isAnnualBillingUiEnabled() || !annualAvailable) return null;
 
   return (
     <div
