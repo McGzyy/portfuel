@@ -36,14 +36,9 @@ export async function POST(request: Request) {
     }
 
     await createSession({
-      userId: session.userId,
-      username: session.username,
-      displayName: session.displayName,
-      role: session.role,
+      ...session,
       subscriptionStatus: "active",
       membershipTier: tier,
-      totpVerified: session.totpVerified,
-      onboardingCompleted: session.onboardingCompleted,
     });
 
     return NextResponse.json({ ok: true, tier });

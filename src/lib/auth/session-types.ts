@@ -8,6 +8,12 @@ export type SessionPayload = {
   subscriptionStatus: "pending" | "active" | "cancelled";
   membershipTier?: MembershipTier | null;
   proGrantedUntil?: string | null;
+  emailVerified: boolean;
+  banned: boolean;
+  canAccessWorkspace: boolean;
+  canPublishCalls: boolean;
+  canDm: boolean;
+  canComment: boolean;
   totpVerified: boolean;
   onboardingCompleted: boolean;
 };

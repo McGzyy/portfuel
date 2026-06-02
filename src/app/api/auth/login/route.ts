@@ -5,6 +5,8 @@ import type { UserRow } from "@/lib/db/types";
 import { decryptSecret } from "@/lib/auth/crypto";
 import { verifyPassword } from "@/lib/auth/password";
 import { checkRateLimit, recordAuthAttempt } from "@/lib/auth/rate-limit";
+import { buildSessionPayloadForUser } from "@/lib/auth/session-lifecycle";
+import { isEmailVerificationRequired } from "@/lib/member-lifecycle/config";
 import { createSession } from "@/lib/auth/session";
 import { normalizeUsername } from "@/lib/auth/username";
 import { verifyTotpToken } from "@/lib/auth/totp";
@@ -62,6 +64,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "invalid_password" }, { status: 401 });
     }
 
+    if ((user as UserRow & { banned_at?: string | null }).banned_at) {
+      await recordAuthAttempt(username, ip, false);
+      return NextResponse.json({ error: "account_banned" }, { status: 403 });
+    }
+
     const isActive =
       user.subscription_status === "active" || user.role === "admin";
 
@@ -86,25 +93,28 @@ export async function POST(request: Request) {
 
     await recordAuthAttempt(username, ip, true);
 
-    await createSession({
-      userId: user.id,
-      username: user.username,
-      displayName: user.display_name,
-      role: user.role,
-      subscriptionStatus: user.subscription_status,
-      membershipTier: user.membership_tier ?? null,
-      totpVerified: user.totp_verified,
-      onboardingCompleted: !needsOnboarding(user),
-    });
+    await createSession(
+      await buildSessionPayloadForUser(user, {
+        onboardingCompleted: !needsOnboarding(user),
+      })
+    );
 
     const needsOnboardingWizard =
       isActive && user.totp_verified && needsOnboarding(user);
+
+    const extended = user as UserRow & { email_verified_at?: string | null };
+    const needsEmailVerification =
+      isActive &&
+      isEmailVerificationRequired() &&
+      !extended.email_verified_at &&
+      user.role !== "admin";
 
     return NextResponse.json({
       ok: true,
       needsDisplayName: !user.display_name,
       needsOnboarding: needsOnboardingWizard,
       needsTwoFactorSetup: isActive && !user.totp_verified,
+      needsEmailVerification,
       role: user.role,
       subscriptionStatus: user.subscription_status,
       membershipTier: user.membership_tier ?? null,

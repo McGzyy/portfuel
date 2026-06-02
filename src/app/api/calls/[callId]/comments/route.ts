@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { assertCanComment, moderationErrorResponse } from "@/lib/auth/moderation-guards";
 import { requireActiveMember } from "@/lib/auth/session";
 import { createCallComment, listCallComments } from "@/lib/calls/comments";
 import { createServiceClient } from "@/lib/db/supabase";
@@ -45,6 +46,7 @@ export async function POST(
 ) {
   try {
     const session = await requireActiveMember();
+    assertCanComment(session);
     const { callId } = await params;
     const body = commentSchema.parse(await request.json());
     if (isDemoMode() && isDemoCallId(callId)) {
@@ -95,6 +97,8 @@ export async function POST(
       commentCount: call?.comment_count ?? 0,
     });
   } catch (e) {
+    const mod = moderationErrorResponse(e);
+    if (mod) return NextResponse.json({ error: mod.error }, { status: mod.status });
     if (e instanceof z.ZodError) {
       return NextResponse.json({ error: "invalid_input" }, { status: 400 });
     }

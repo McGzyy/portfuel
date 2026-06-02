@@ -1,6 +1,7 @@
 import { SignJWT } from "jose";
 import { createServiceClient } from "@/lib/db/supabase";
 import { effectiveMembershipTier } from "@/lib/billing/effective-access";
+import { fetchLifecycleSessionFields } from "@/lib/auth/session-lifecycle";
 import { expireProGrantIfNeeded } from "@/lib/billing/pro-grant";
 import type { MembershipTier } from "@/lib/stripe/config";
 import type { SessionPayload } from "@/lib/auth/session-types";
@@ -54,7 +55,10 @@ function sessionChanged(before: SessionPayload, after: SessionPayload): boolean 
     before.totpVerified !== after.totpVerified ||
     before.role !== after.role ||
     before.displayName !== after.displayName ||
-    before.onboardingCompleted !== after.onboardingCompleted
+    before.onboardingCompleted !== after.onboardingCompleted ||
+    before.emailVerified !== after.emailVerified ||
+    before.banned !== after.banned ||
+    before.canAccessWorkspace !== after.canAccessWorkspace
   );
 }
 
@@ -87,6 +91,12 @@ export function jwtPayloadToSession(payload: Record<string, unknown>): SessionPa
     subscriptionStatus: payload.subscriptionStatus as SessionPayload["subscriptionStatus"],
     membershipTier,
     proGrantedUntil: payload.proGrantedUntil ? String(payload.proGrantedUntil) : null,
+    emailVerified: Boolean(payload.emailVerified),
+    banned: Boolean(payload.banned),
+    canAccessWorkspace: payload.canAccessWorkspace !== false,
+    canPublishCalls: payload.canPublishCalls !== false,
+    canDm: payload.canDm !== false,
+    canComment: payload.canComment !== false,
     totpVerified: Boolean(payload.totpVerified),
     onboardingCompleted: Boolean(payload.onboardingCompleted),
   };
@@ -105,11 +115,14 @@ export async function refreshSessionFromDatabase(
       row.pro_granted_until
     );
 
+    const lifecycle = await fetchLifecycleSessionFields(session.userId);
+
     const merged: SessionPayload = {
       ...session,
       subscriptionStatus: row.subscription_status,
       membershipTier: effectiveTier,
       proGrantedUntil: row.pro_granted_until,
+      ...lifecycle,
       totpVerified: row.totp_verified,
       displayName: row.display_name ?? session.displayName,
       role: row.role,

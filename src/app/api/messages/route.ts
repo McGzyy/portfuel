@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { assertCanDm, moderationErrorResponse } from "@/lib/auth/moderation-guards";
 import { requireActiveMember } from "@/lib/auth/session";
 import { listThreads, openThreadWithUsername } from "@/lib/messages/service";
 
@@ -31,6 +32,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await requireActiveMember();
+    assertCanDm(session);
     const body = openSchema.parse(await request.json());
     const result = await openThreadWithUsername(
       session.userId,
@@ -47,6 +49,8 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ threadId: result.threadId });
   } catch (e) {
+    const mod = moderationErrorResponse(e);
+    if (mod) return NextResponse.json({ error: mod.error }, { status: mod.status });
     if (e instanceof z.ZodError) {
       return NextResponse.json({ error: "invalid_input" }, { status: 400 });
     }

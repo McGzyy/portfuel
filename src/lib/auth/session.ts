@@ -91,6 +91,12 @@ export async function getSession(): Promise<SessionPayload | null> {
       subscriptionStatus: payload.subscriptionStatus as SessionPayload["subscriptionStatus"],
       membershipTier,
       proGrantedUntil: payload.proGrantedUntil ? String(payload.proGrantedUntil) : null,
+      emailVerified: payload.emailVerified !== false,
+      banned: Boolean(payload.banned),
+      canAccessWorkspace: payload.canAccessWorkspace !== false,
+      canPublishCalls: payload.canPublishCalls !== false,
+      canDm: payload.canDm !== false,
+      canComment: payload.canComment !== false,
       totpVerified: Boolean(payload.totpVerified),
       onboardingCompleted: Boolean(payload.onboardingCompleted),
     };

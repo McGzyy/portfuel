@@ -81,6 +81,10 @@ export default function LoginPage() {
           );
           return;
         }
+        if (data.error === "account_banned") {
+          setError("This account has been suspended.");
+          return;
+        }
         if (data.error === "invalid_password") {
           setError("Incorrect password.");
           return;
@@ -96,7 +100,9 @@ export default function LoginPage() {
         );
         return;
       }
-      if (data.needsTwoFactorSetup) {
+      if (data.needsEmailVerification) {
+        router.push("/verify-email");
+      } else if (data.needsTwoFactorSetup) {
         router.push("/security/2fa");
       } else if (data.needsOnboarding) {
         router.push("/onboarding");
@@ -144,6 +150,11 @@ export default function LoginPage() {
             autoComplete="current-password"
             disabled={loading}
           />
+          <p className="mt-2 text-right text-xs">
+            <Link href="/forgot-password" className="text-[var(--pf-red)] hover:underline">
+              Forgot password?
+            </Link>
+          </p>
         </div>
 
         <div>

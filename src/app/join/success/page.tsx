@@ -14,6 +14,7 @@ export default function JoinSuccessPage() {
 
   const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
   const [needs2fa, setNeeds2fa] = useState(false);
+  const [needsEmail, setNeedsEmail] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function JoinSuccessPage() {
         }
 
         setNeeds2fa(Boolean(data.needsTwoFactorSetup));
+        setNeedsEmail(Boolean(data.needsEmailVerification));
         setStatus("ok");
       } catch {
         if (!cancelled) {
@@ -83,22 +85,25 @@ export default function JoinSuccessPage() {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
               <Check className="h-7 w-7" strokeWidth={2.5} />
             </div>
-            <h1 className="mt-6 text-2xl font-bold">You&apos;re in</h1>
+            <h1 className="mt-6 text-2xl font-bold">Payment received</h1>
             <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
-              Membership is active — feed, watchlist, Fueled desk, DMs, and your track record are
-              ready.{" "}
-              {needs2fa
-                ? "Set up two-factor authentication to enter the workspace."
-                : "Complete onboarding (watchlist + tour), then explore the feed or follow trusted callers on rankings."}
+              Your membership is active. One quick step left: confirm your email, then set up 2FA
+              to open the workspace.
             </p>
             <Button
               className="mt-8"
               size="lg"
-              onClick={() =>
-                router.push(needs2fa ? "/security/2fa" : "/dashboard")
-              }
+              onClick={() => {
+                if (needsEmail) router.push("/verify-email");
+                else if (needs2fa) router.push("/security/2fa");
+                else router.push("/dashboard");
+              }}
             >
-              {needs2fa ? "Set up 2FA" : "Open workspace"}
+              {needsEmail
+                ? "Confirm email"
+                : needs2fa
+                  ? "Set up 2FA"
+                  : "Continue"}
             </Button>
           </>
         ) : null}

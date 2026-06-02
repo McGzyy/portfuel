@@ -31,9 +31,11 @@ export default function JoinPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pending = searchParams.get("pending") === "1";
+  const invitedPending = searchParams.get("invited") === "1";
   const cancelled = searchParams.get("cancelled") === "1";
   const refFromUrl = searchParams.get("ref")?.trim().toLowerCase() ?? "";
   const promoFromUrl = searchParams.get("promo")?.trim().toUpperCase() ?? "";
+  const inviteMode = searchParams.get("invite") === "1";
 
   const [stripeEnabled, setStripeEnabled] = useState<boolean | null>(null);
   const [annualAvailable, setAnnualAvailable] = useState(false);
@@ -150,6 +152,25 @@ export default function JoinPage() {
         return;
       }
 
+      if (inviteMode) {
+        const loginRes = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            username: username.trim().toLowerCase(),
+            password,
+          }),
+        });
+        if (!loginRes.ok) {
+          setError("Account created. Sign in at /login with your username and password.");
+          setStep("done");
+          return;
+        }
+        window.location.href = "/join?pending=1&invited=1";
+        return;
+      }
+
       if (stripeEnabled) {
         const checkoutRes = await fetch("/api/stripe/checkout", {
           method: "POST",
@@ -198,9 +219,11 @@ export default function JoinPage() {
         <p className="pf-eyebrow">Member intelligence</p>
         <h1 className="pf-display mt-3 text-2xl sm:text-3xl">Join PortFuel</h1>
         <p className="pf-lead mx-auto mt-3 max-w-xl text-sm">
-          {stripeEnabled
-            ? `Choose Member (${formatTierPrice("member")}) or Pro Intelligence (${formatTierPrice("pro")}), create your account, and checkout with Stripe. Member includes the full workspace — desk, feed, charts, and DMs. Upgrade anytime from profile; 2FA required after activation.`
-            : "Create your account — billing activates manually until Stripe is configured on this environment."}
+          {inviteMode
+            ? "Create your account below — no payment step. After you register, we activate your access and you set up 2FA before the workspace."
+            : stripeEnabled
+              ? `Choose Member (${formatTierPrice("member")}) or Pro Intelligence (${formatTierPrice("pro")}), create your account, and checkout with Stripe. Member includes the full workspace — desk, feed, charts, and DMs. Upgrade anytime from profile; 2FA required after activation.`
+              : "Create your account — billing activates manually until Stripe is configured on this environment."}
         </p>
         {stripeEnabled ? (
           <p className="mx-auto mt-2 max-w-lg text-center text-xs text-[var(--pf-gray-500)]">
@@ -209,10 +232,20 @@ export default function JoinPage() {
         ) : null}
       </div>
       <div className="mx-auto max-w-4xl px-4 py-10">
+        {inviteMode && !pending ? (
+          <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-emerald-200/80 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            Invited access — you will not be charged. Pick a plan for your profile label, create
+            your account, and skip Stripe.
+          </div>
+        ) : null}
+
         {cancelled ? (
           <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-amber-200/80 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            Checkout was cancelled. Your plan selection is saved — pick a tier below and continue
-            when you&apos;re ready.
+            Checkout was cancelled. Your account may already exist —{" "}
+            <Link href="/login" className="font-semibold underline">
+              sign in here
+            </Link>
+            . If you were invited, you do not need to pay; ask for access activation, then sign in.
           </div>
         ) : null}
 
@@ -228,15 +261,29 @@ export default function JoinPage() {
             <CardContent className="space-y-5 py-8">
               <div className="text-center">
                 <p className="text-sm font-semibold text-[var(--pf-black)]">
-                  Complete membership checkout
+                  {invitedPending ? "Account created" : "Complete membership checkout"}
                 </p>
                 <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
-                  Your account exists but isn&apos;t active yet. Member ({formatTierPrice("member")})
-                  is the full workspace — feed, desk, charts, and DMs. Pro (
-                  {formatTierPrice("pro")}) adds news, screeners, intraday charts, and 6 calls/week.
+                  {invitedPending ? (
+                    <>
+                      You&apos;re signed in. Invited members do not pay through Stripe — wait for
+                      access activation, then set up 2FA at{" "}
+                      <Link href="/security/2fa" className="font-semibold text-[var(--pf-red)] hover:underline">
+                        /security/2fa
+                      </Link>
+                      . Refresh this page after activation.
+                    </>
+                  ) : (
+                    <>
+                      Your account exists but isn&apos;t active yet. Member (
+                      {formatTierPrice("member")}) is the full workspace — feed, desk, charts, and
+                      DMs. Pro ({formatTierPrice("pro")}) adds news, screeners, intraday charts, and 6
+                      calls/week.
+                    </>
+                  )}
                 </p>
               </div>
-              {stripeEnabled ? (
+              {stripeEnabled && !invitedPending ? (
                 <>
                   <BillingIntervalPicker
                     value={billingInterval}

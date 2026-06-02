@@ -10,6 +10,7 @@ import {
   mapStripeSubscriptionStatus,
   tierFromStripeSubscription,
 } from "@/lib/stripe/subscription";
+import { setStripeCheckoutEmail } from "@/lib/member-lifecycle/email-verify";
 import { finalizeCheckoutRedemption } from "@/lib/vouchers/service";
 
 export async function handleStripeWebhookEvent(event: Stripe.Event) {
@@ -77,6 +78,25 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session) {
     billingInterval,
     status: "active",
   });
+
+  const checkoutEmail =
+    session.customer_details?.email ??
+    session.customer_email ??
+    null;
+  if (checkoutEmail) {
+    await setStripeCheckoutEmail(userId, checkoutEmail).catch((e) =>
+      console.error("[stripe/checkout-email]", e)
+    );
+  } else {
+    try {
+      const customer = await stripe.customers.retrieve(customerId);
+      if (!customer.deleted && customer.email) {
+        await setStripeCheckoutEmail(userId, customer.email);
+      }
+    } catch (e) {
+      console.error("[stripe/customer-email]", e);
+    }
+  }
 
   if (session.id) {
     await finalizeCheckoutRedemption(session.id).catch((e) =>
@@ -193,11 +213,18 @@ export async function confirmCheckoutSession(sessionId: string) {
     status: "active",
   });
 
+  const checkoutEmail =
+    session.customer_details?.email ?? session.customer_email ?? null;
+  if (checkoutEmail) {
+    await setStripeCheckoutEmail(userId, checkoutEmail);
+  }
+
   if (sessionId) {
     await finalizeCheckoutRedemption(sessionId).catch((e) =>
       console.error("[vouchers/finalize]", e)
     );
   }
 
-  return { user, tier };
+  const refreshed = await findUserById(userId);
+  return { user: refreshed ?? user, tier };
 }

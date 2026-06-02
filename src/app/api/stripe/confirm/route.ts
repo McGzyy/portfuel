@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { buildSessionPayloadForUser } from "@/lib/auth/session-lifecycle";
+import { isEmailVerificationRequired } from "@/lib/member-lifecycle/config";
 import { createSession } from "@/lib/auth/session";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { confirmCheckoutSession } from "@/lib/stripe/webhooks";
-import type { MembershipTier } from "@/lib/stripe/config";
 import { needsOnboarding } from "@/lib/onboarding/service";
 
 const schema = z.object({
@@ -19,21 +20,20 @@ export async function POST(request: Request) {
     const { sessionId } = schema.parse(await request.json());
     const { user, tier } = await confirmCheckoutSession(sessionId);
 
-    await createSession({
-      userId: user.id,
-      username: user.username,
-      displayName: user.display_name,
-      role: user.role,
-      subscriptionStatus: "active",
-      membershipTier: tier as MembershipTier,
-      totpVerified: user.totp_verified,
-      onboardingCompleted: !needsOnboarding(user),
-    });
+    await createSession(
+      await buildSessionPayloadForUser(user, {
+        onboardingCompleted: !needsOnboarding(user),
+      })
+    );
+
+    const verifiedAt = (user as { email_verified_at?: string | null }).email_verified_at;
+    const needsEmailVerification = isEmailVerificationRequired() && !verifiedAt;
 
     return NextResponse.json({
       ok: true,
       username: user.username,
       needsTwoFactorSetup: !user.totp_verified,
+      needsEmailVerification,
       tier,
     });
   } catch (e) {

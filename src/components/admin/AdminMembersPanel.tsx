@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -130,6 +131,12 @@ export function AdminMembersPanel() {
                   <td className="hidden px-4 py-3 tabular-nums lg:table-cell">{m.calls_count}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap justify-end gap-2">
+                      <Link
+                        href={`/admin/members/${m.id}`}
+                        className="inline-flex h-8 items-center rounded-md border border-[var(--pf-border)] px-3 text-xs font-medium hover:bg-[var(--pf-gray-50)]"
+                      >
+                        360
+                      </Link>
                       {m.subscription_status !== "active" ? (
                         <Button
                           size="sm"
@@ -208,9 +215,9 @@ export function AdminMembersPanel() {
 
       <p className="text-xs text-[var(--pf-gray-400)]">
         <strong>Comp Pro</strong> = active subscription + Pro tier (no Stripe, does not expire).
-        Friend demos: have them register at <span className="font-mono">/join</span>, then Comp Pro
-        here. They still need 2FA at <span className="font-mono">/security/2fa</span> before the
-        workspace.
+        Friend demos: send{" "}
+        <span className="font-mono">/join?invite=1</span> (skips Stripe), then Comp Pro here. They
+        still need 2FA at <span className="font-mono">/security/2fa</span> before the workspace.
       </p>
     </div>
   );
