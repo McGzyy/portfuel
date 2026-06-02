@@ -66,8 +66,10 @@ Vouchers can target `monthly` or `any` in the admin UI (annual is wired in the A
 
 ## Comping a friend (no charge)
 
-**Easiest:** Send **`/join?invite=1`** → they create an account (no Stripe) → Admin → **Members** → **Comp Pro** → they set up 2FA.
+**Easiest:** **Admin → Launch** → copy **Invite signup** link (`/join?invite=1`) → friend creates account → **Members** → Member 360 → **Comp Pro** → 2FA.
 
 Without `?invite=1`, signup still auto-opens Stripe after the account step — they can cancel Stripe and sign in at `/login`, but the invite link is clearer.
+
+**Existing active members:** Launch tab → **Create founding voucher** (`FOUNDING30`, 30-day Pro trial). Redeem on Profile → Promotions.
 
 **Alternative:** 100% off public voucher at checkout — still sends them through Stripe (may ask for a card). Use Admin → Vouchers: checkout discount, 100% off, no expiry, unlimited uses.

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, Circle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LaunchAccessCard } from "@/components/admin/LaunchAccessCard";
 import { COPY } from "@/lib/copy";
 import { isDemoMode } from "@/lib/demo/config";
 
@@ -31,9 +32,9 @@ const CHECKLIST = [
   },
   {
     title: "Invite 3–5 founding members",
-    body: "Personal outreach beats a cold launch. Activate in Admin → Members after they join.",
-    href: "/admin",
-    cta: "Members",
+    body: "Use the invite link on Launch (skips Stripe), then Comp Pro on their Member 360 page.",
+    href: "/admin?tab=launch",
+    cta: "Copy invite link",
   },
 ] as const;
 
@@ -56,6 +57,8 @@ export function AdminLaunchPanel() {
           .
         </p>
       </section>
+
+      <LaunchAccessCard />
 
       <section className="pf-workspace-panel overflow-hidden">
         <div className="border-b border-[var(--pf-border)] px-5 py-4">
