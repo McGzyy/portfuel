@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AdminDailyChart } from "@/components/admin/AdminDailyChart";
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import type { AdminAnalytics } from "@/lib/admin/analytics";
-import { formatPct } from "@/lib/utils";
+import { cn, formatPct } from "@/lib/utils";
 
 export function AdminAnalyticsPanel() {
   const [data, setData] = useState<AdminAnalytics | null>(null);
@@ -49,8 +49,76 @@ export function AdminAnalyticsPanel() {
   const avgAccent =
     avg == null ? undefined : avg >= 0 ? ("positive" as const) : ("negative" as const);
 
+  function fmtUsd(n: number): string {
+    return n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${Math.round(n)}`;
+  }
+
+  function fmtRate(n: number | null): string {
+    if (n == null) return "—";
+    return `${Math.round(n * 100)}%`;
+  }
+
+  function KpiCard({
+    title,
+    value,
+    sub,
+    accent,
+  }: {
+    title: string;
+    value: string;
+    sub?: string;
+    accent?: "positive" | "negative" | "neutral";
+  }) {
+    return (
+      <div className="pf-workspace-panel p-5">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+          {title}
+        </p>
+        <p
+          className={cn(
+            "mt-2 text-3xl font-bold tracking-tight tabular-nums",
+            accent === "positive" && "text-emerald-600",
+            accent === "negative" && "text-rose-600",
+            accent == null && "text-[var(--pf-black)]"
+          )}
+        >
+          {value}
+        </p>
+        {sub ? <p className="mt-2 text-xs text-[var(--pf-gray-500)]">{sub}</p> : null}
+      </div>
+    );
+  }
+
   return (
     <div className="mt-8 space-y-4">
+      <div className="grid gap-4 lg:grid-cols-4">
+        <KpiCard
+          title="Active members"
+          value={String(data.members.active)}
+          sub={`${data.members.total} total · ${data.members.pending} pending`}
+        />
+        <KpiCard
+          title="MRR (est.)"
+          value={fmtUsd(data.revenue.mrrUsd)}
+          sub={`${fmtUsd(data.revenue.arrUsd)} ARR`}
+        />
+        <KpiCard
+          title="Activation (30d)"
+          value={fmtRate(data.members.activationRate30d)}
+          sub={`${data.members.signups30d} signups · ${data.members.churned30d} churned`}
+          accent={data.members.activationRate30d != null && data.members.activationRate30d >= 0.6 ? "positive" : "neutral"}
+        />
+        <KpiCard
+          title="Calls per active (7d)"
+          value={
+            data.calls.callsPerActiveMember7d == null
+              ? "—"
+              : data.calls.callsPerActiveMember7d.toFixed(2)
+          }
+          sub={`${data.calls.last7d} calls last 7d`}
+        />
+      </div>
+
       <MetricsStrip
         eyebrow="Platform · members"
         items={[
@@ -58,6 +126,7 @@ export function AdminAnalyticsPanel() {
           { label: "Active", value: String(data.members.active) },
           { label: "Pending", value: String(data.members.pending) },
           { label: "Cancelled", value: String(data.members.cancelled) },
+          { label: "Signups (7d)", value: String(data.members.signups7d) },
         ]}
       />
       <MetricsStrip
@@ -86,6 +155,18 @@ export function AdminAnalyticsPanel() {
         items={[
           { label: "Comments", value: String(data.engagement.totalComments) },
           { label: "Votes cast", value: String(data.engagement.totalVotes) },
+          {
+            label: "Comments/call",
+            value:
+              data.engagement.commentsPerCall == null
+                ? "—"
+                : data.engagement.commentsPerCall.toFixed(2),
+          },
+          {
+            label: "Votes/call",
+            value:
+              data.engagement.votesPerCall == null ? "—" : data.engagement.votesPerCall.toFixed(2),
+          },
         ]}
       />
 
@@ -105,6 +186,9 @@ export function AdminAnalyticsPanel() {
       <div className="pf-workspace-panel p-5">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
           Most called symbols
+        </p>
+        <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
+          Frequency across all calls.
         </p>
         {data.topSymbols.length === 0 ? (
           <p className="mt-3 text-sm text-[var(--pf-gray-500)]">No calls yet.</p>

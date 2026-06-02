@@ -34,8 +34,11 @@ export async function GET(request: Request) {
     }
 
     const lines = (calls ?? []).map((c, i) => {
-      const u = c.users as unknown as { display_name: string | null; username: string };
-      const who = u.display_name?.trim() || u.username;
+      const uRaw = (c as unknown as { users: unknown }).users;
+      const u = (Array.isArray(uRaw) ? uRaw[0] : uRaw) as
+        | { display_name: string | null; username: string }
+        | undefined;
+      const who = u?.display_name?.trim() || u?.username || "Member";
       const ret = c.return_pct != null ? `${c.return_pct >= 0 ? "+" : ""}${Number(c.return_pct).toFixed(1)}%` : "—";
       const fueled = c.is_fueled ? " 🔥" : "";
       return `${i + 1}. **${c.symbol}** ${String(c.direction).toUpperCase()} ${ret}${fueled} — ${who}`;
