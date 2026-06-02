@@ -183,6 +183,8 @@ export function AdminMembersPanel() {
               { value: "none", label: "No plan" },
             ]}
           />
+          <MarketingExportButton list="member" label="Export member list" />
+          <MarketingExportButton list="pro" label="Export Pro list" />
         </div>
       </div>
 
@@ -363,6 +365,17 @@ function StatCard({
         {value}
       </p>
     </div>
+  );
+}
+
+function MarketingExportButton({ list, label }: { list: "member" | "pro"; label: string }) {
+  return (
+    <a
+      href={`/api/admin/marketing-export?list=${list}`}
+      className="inline-flex h-9 items-center rounded-md border border-[var(--pf-border)] bg-white px-3 text-sm font-medium text-[var(--pf-gray-700)] shadow-[var(--pf-shadow-sm)] hover:bg-[var(--pf-gray-50)]"
+    >
+      {label}
+    </a>
   );
 }
 

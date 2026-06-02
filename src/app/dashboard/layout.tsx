@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { MemberNav } from "@/components/dashboard/MemberNav";
+import { ModerationBanner } from "@/components/member/ModerationBanner";
 import { WorkspaceSidebar } from "@/components/dashboard/WorkspaceSidebar";
 import { WorkspaceContent } from "@/components/dashboard/WorkspaceContent";
 import { requireDashboardSession } from "@/lib/dashboard/data";
@@ -49,6 +50,12 @@ export default async function DashboardLayout({
               (session.role === "admin" ? "Administrator" : session.username)
             }
             isAdmin={session.role === "admin"}
+          />
+          <ModerationBanner
+            role={session.role}
+            canPublishCalls={session.canPublishCalls}
+            canDm={session.canDm}
+            canComment={session.canComment}
           />
           <WorkspaceContent>{children}</WorkspaceContent>
         </div>

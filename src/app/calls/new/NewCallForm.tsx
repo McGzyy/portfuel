@@ -15,6 +15,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TradeSetupPreview } from "@/components/calls/TradeSetupPreview";
 import { ThesisCoachPanel } from "@/components/ai/ThesisCoachPanel";
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
+import { ModerationBanner } from "@/components/member/ModerationBanner";
+import type { SessionPayload } from "@/lib/auth/session-types";
 import type { HeaderUser } from "@/lib/auth/session-user";
 import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { COPY } from "@/lib/copy";
@@ -42,13 +44,22 @@ export function NewCallForm({
   showUpgrade,
   isPro,
   isAdmin = false,
+  role,
+  canPublishCalls,
+  canDm,
+  canComment,
 }: {
   user: HeaderUser;
   weeklyQuota: WeeklyQuotaStatus;
   showUpgrade?: boolean;
   isPro: boolean;
   isAdmin?: boolean;
+  role: SessionPayload["role"];
+  canPublishCalls: boolean;
+  canDm: boolean;
+  canComment: boolean;
 }) {
+  const publishBlocked = role !== "admin" && !canPublishCalls;
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryDraft = readPublishQuery(searchParams);
@@ -119,7 +130,9 @@ export function NewCallForm({
       });
       const data = await res.json();
       if (!res.ok) {
-        if (data.error === "quota_exceeded") {
+        if (data.error === "publish_restricted") {
+          setError("Your account cannot publish new calls right now.");
+        } else if (data.error === "quota_exceeded") {
           setError(
             showUpgrade
               ? `Weekly limit reached (${data.quota} calls this week). Upgrade to Pro on your profile for 6 calls/week.`
@@ -153,6 +166,14 @@ export function NewCallForm({
         title={COPY.publishCallCta}
         description="Share your thesis with members. Stocks get news and filings on the ticker page; crypto must be on major exchanges."
         className="border-none pb-4"
+      />
+
+      <ModerationBanner
+        role={role}
+        canPublishCalls={canPublishCalls}
+        canDm={canDm}
+        canComment={canComment}
+        className="mb-4 rounded-lg border border-amber-200/80"
       />
 
       <MemberQuotaStrip quota={weeklyQuota} showUpgrade={showUpgrade} className="mb-6" />
@@ -352,7 +373,7 @@ export function NewCallForm({
               type="submit"
               className="w-full"
               size="lg"
-              disabled={loading || symbolValid === false}
+              disabled={loading || symbolValid === false || publishBlocked}
             >
               {loading ? COPY.publishingCall : COPY.publishCall}
             </Button>

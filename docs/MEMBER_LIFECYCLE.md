@@ -56,6 +56,17 @@ API enforcement: publish calls, comments, DMs check session flags (admins exempt
 
 Separate booleans on `users`: `marketing_member_opt_in`, `marketing_pro_opt_in`. Members manage these on **Profile → Email & notifications**; admins can toggle on Member 360.
 
+**CSV export (admin):** `GET /api/admin/marketing-export?list=member|pro|both` — verified emails only. Buttons on **Admin → Members** toolbar.
+
+## Moderation UX
+
+- Restricted members see an amber banner in the workspace and on profile (which actions are blocked).
+- **Ban** clears the session on the next API request; login returns `account_banned`.
+
+## Email without Resend
+
+If `RESEND_API_KEY` is not set, `isEmailVerificationRequired()` is false — members skip the verify-email gate until Resend is configured.
+
 ## Migration
 
 Apply migrations on Supabase (in order if not yet applied):

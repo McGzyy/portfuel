@@ -25,6 +25,7 @@ import { ProfileVouchersSection } from "@/components/profile/ProfileVouchersSect
 import { ProfileDiscordSection } from "@/components/profile/ProfileDiscordSection";
 import { fetchAiCoachUsage } from "@/lib/ai/usage";
 import { isAiCoachConfigured } from "@/lib/ai/config";
+import { ModerationBanner } from "@/components/member/ModerationBanner";
 import { ProfileBillingSync } from "@/app/profile/BillingSync";
 import { isDemoMode } from "@/lib/demo/config";
 import { MemberReturnDistribution } from "@/components/pro/MemberReturnDistribution";
@@ -70,6 +71,13 @@ export default async function ProfilePage() {
   return (
     <AppShell user={toHeaderUser(session)}>
       <ProfileBillingSync />
+      <ModerationBanner
+        role={session.role}
+        canPublishCalls={session.canPublishCalls}
+        canDm={session.canDm}
+        canComment={session.canComment}
+        className="-mx-4 mb-4 sm:-mx-0 sm:rounded-lg sm:border sm:border-amber-200/80"
+      />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <WorkspaceBackLink />
         <Link

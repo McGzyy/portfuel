@@ -22,6 +22,10 @@ export default async function NewCallPage() {
       showUpgrade={proLocked}
       isPro={!proLocked}
       isAdmin={session.role === "admin"}
+      canPublishCalls={session.canPublishCalls}
+      role={session.role}
+      canDm={session.canDm}
+      canComment={session.canComment}
     />
   );
 }

@@ -115,6 +115,10 @@ export async function getSession(): Promise<SessionPayload | null> {
 export async function requireSession(): Promise<SessionPayload> {
   const session = await getSession();
   if (!session) throw new Error("unauthorized");
+  if (session.banned) {
+    await destroySession();
+    throw new Error("account_banned");
+  }
   return session;
 }
 
