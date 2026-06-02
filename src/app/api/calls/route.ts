@@ -11,6 +11,7 @@ import {
 } from "@/lib/notifications/service";
 import { validateSymbol } from "@/lib/market/validate-symbol";
 import { notifyDiscordNewCall } from "@/lib/discord/events";
+import { attachSocialResearchSnapshotToCall } from "@/lib/calls/research-snapshot";
 
 const createSchema = z.object({
   symbol: z.string().min(1).max(12),
@@ -23,6 +24,7 @@ const createSchema = z.object({
   timeframeTag: z.string().max(32).optional(),
   isFueled: z.boolean().optional(),
   sourceTweetUrl: z.string().url().max(500).optional(),
+  socialAnalysisMode: z.enum(["default", "deep"]).optional(),
 });
 
 export async function GET(request: Request) {
@@ -120,6 +122,15 @@ export async function POST(request: Request) {
     if (error) {
       console.error("[calls POST]", error);
       return NextResponse.json({ error: "create_failed" }, { status: 500 });
+    }
+
+    if (isFueled && sourceTweetUrl) {
+      void attachSocialResearchSnapshotToCall({
+        callId: call.id,
+        symbol: resolvedSymbol,
+        mode: body.socialAnalysisMode ?? "default",
+        tweetUrl: sourceTweetUrl,
+      });
     }
 
     await db

@@ -12,6 +12,8 @@ const MAX_HEADLINES = 5;
 const MAX_EARNINGS = 6;
 const MAX_FILINGS = 5;
 const MAX_POST_CHARS = 2800;
+const MAX_WEB_SOURCES = 3;
+const MAX_WEB_CHARS = 1200;
 
 export type ResearchPackEarningsRow = {
   date: string;
@@ -27,10 +29,17 @@ export type ResearchPackFilingRow = {
   reportUrl: string | null;
 };
 
+export type ResearchPackWebSource = {
+  url: string;
+  title?: string | null;
+  text: string;
+};
+
 export type ResearchPack = {
   headlines: TickerAnalyzeHeadline[];
   earnings: ResearchPackEarningsRow[];
   filings: ResearchPackFilingRow[];
+  webSources?: ResearchPackWebSource[];
   /** Serialized block injected into the AI prompt */
   promptBlock: string;
 };
@@ -79,6 +88,7 @@ function buildPromptBlock(input: {
   headlines: TickerAnalyzeHeadline[];
   earnings: ResearchPackEarningsRow[];
   filings: ResearchPackFilingRow[];
+  webSources?: ResearchPackWebSource[];
 }): string {
   const headlineLines =
     input.headlines.length > 0
@@ -104,6 +114,13 @@ function buildPromptBlock(input: {
         ? "SEC filings N/A for crypto."
         : "No recent filings returned.";
 
+  const webLines =
+    input.webSources && input.webSources.length > 0
+      ? input.webSources
+          .map((w, i) => `Source ${i + 1}: ${w.url}\n${truncate(w.text, MAX_WEB_CHARS)}`)
+          .join("\n\n")
+      : "No web article text fetched.";
+
   return `Symbol: ${input.symbol} (${input.name ?? input.symbol})
 Asset class: ${input.assetClass}
 Last price: ${input.lastPrice != null ? `$${input.lastPrice}` : "unknown"}
@@ -123,7 +140,41 @@ ${earningsLines}
 SEC filings (max ${MAX_FILINGS}):
 ${filingLines}
 
+Web sources (max ${MAX_WEB_SOURCES}, truncated):
+${webLines}
+
 Admin note: ${input.adminNote?.trim() || "—"}`;
+}
+
+async function fetchReadableText(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      // best-effort: cache for a while to reduce repeated hits
+      next: { revalidate: 3600 },
+      headers: {
+        "User-Agent": "PortFuelBot/1.0",
+        Accept: "text/html,application/xhtml+xml",
+      },
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    // very simple HTML -> text; we only need a short snippet
+    const noScript = html
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ");
+    const text = noScript
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!text) return null;
+    return text.slice(0, MAX_WEB_CHARS);
+  } catch {
+    return null;
+  }
 }
 
 export async function buildTickerResearchPack(input: {
@@ -134,12 +185,14 @@ export async function buildTickerResearchPack(input: {
   inPostSnippet: string;
   rawText: string;
   adminNote?: string;
+  includeWeb?: boolean;
 }): Promise<ResearchPack> {
   const symbol = input.symbol.toUpperCase();
 
   let headlines: TickerAnalyzeHeadline[] = [];
   let earnings: ResearchPackEarningsRow[] = [];
   let filings: ResearchPackFilingRow[] = [];
+  let webSources: ResearchPackWebSource[] = [];
 
   if (input.assetClass === "equity") {
     const to = new Date().toISOString().slice(0, 10);
@@ -152,6 +205,17 @@ export async function buildTickerResearchPack(input: {
     headlines = newsRaw.slice(0, MAX_HEADLINES).map(mapHeadline);
     earnings = earningsRaw.slice(0, MAX_EARNINGS).map(formatEarningsRow);
     filings = filingsRaw.slice(0, MAX_FILINGS).map(formatFilingRow);
+
+    if (input.includeWeb) {
+      const urls = headlines
+        .map((h) => h.url)
+        .filter((u) => typeof u === "string" && u.startsWith("http"))
+        .slice(0, MAX_WEB_SOURCES);
+      const texts = await Promise.all(urls.map((u) => fetchReadableText(u)));
+      webSources = urls
+        .map((u, i) => ({ url: u, text: texts[i] ?? "" }))
+        .filter((w) => w.text.trim().length > 0);
+    }
   }
 
   const promptBlock = buildPromptBlock({
@@ -160,7 +224,8 @@ export async function buildTickerResearchPack(input: {
     headlines,
     earnings,
     filings,
+    webSources: input.includeWeb ? webSources : [],
   });
 
-  return { headlines, earnings, filings, promptBlock };
+  return { headlines, earnings, filings, webSources: input.includeWeb ? webSources : [], promptBlock };
 }

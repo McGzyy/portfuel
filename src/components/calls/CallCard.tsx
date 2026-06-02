@@ -4,6 +4,7 @@ import { CallEngagement } from "@/components/calls/CallEngagement";
 import { CallPriceMetrics } from "@/components/calls/CallPriceMetrics";
 import { ThesisCoachInline } from "@/components/ai/ThesisCoachInline";
 import { ThesisSummaryExpand } from "@/components/ai/ThesisSummaryExpand";
+import { CallResearchExpand } from "@/components/calls/CallResearchExpand";
 import { Card, CardContent } from "@/components/ui/card";
 import { SymbolSparkline } from "@/components/charts/SymbolSparkline";
 import { cn, formatPct, timeAgo } from "@/lib/utils";
@@ -166,6 +167,7 @@ export function CallCard({
             showUpgrade={showUpgrade}
           />
         ) : null}
+        {call.is_fueled && interactive ? <CallResearchExpand callId={call.id} /> : null}
         {hasMetrics ? (
           <CallPriceMetrics
             entry_price={call.entry_price}

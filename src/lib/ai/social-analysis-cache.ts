@@ -18,6 +18,13 @@ export function deriveTweetKey(tweetUrl: string | null, tweetText: string): stri
   return `text:${hash.slice(0, 32)}`;
 }
 
+export function tweetKeyFromUrl(tweetUrl: string): string | null {
+  const idMatch = tweetUrl.match(/status\/(\d+)/i);
+  if (idMatch?.[1]) return `tweet:${idMatch[1]}`;
+  if (tweetUrl.trim().startsWith("http")) return `url:${tweetUrl.trim().slice(0, 120)}`;
+  return null;
+}
+
 export type CachedAnalysisRow = {
   analysis: TickerAnalyzeResult;
   headlines: ResearchPack["headlines"];

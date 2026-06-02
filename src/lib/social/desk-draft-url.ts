@@ -6,6 +6,7 @@ export type PublishUrlOpts = {
   assetClass?: "equity" | "crypto";
   fueled?: boolean;
   sourceTweetUrl?: string;
+  socialMode?: "default" | "deep";
 };
 
 function appendPublishParams(params: URLSearchParams, opts: PublishUrlOpts) {
@@ -13,6 +14,7 @@ function appendPublishParams(params: URLSearchParams, opts: PublishUrlOpts) {
   if (opts.sourceTweetUrl?.trim()) {
     params.set("sourceTweet", opts.sourceTweetUrl.trim().slice(0, 500));
   }
+  if (opts.socialMode === "deep") params.set("socialMode", "deep");
 }
 
 function appendLevels(

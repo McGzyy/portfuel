@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ThesisCoachInline } from "@/components/ai/ThesisCoachInline";
 import { ThesisSummaryExpand } from "@/components/ai/ThesisSummaryExpand";
+import { CallResearchExpand } from "@/components/calls/CallResearchExpand";
 import { CallEngagement } from "@/components/calls/CallEngagement";
 import { CallPriceMetrics } from "@/components/calls/CallPriceMetrics";
 import { formatPct, timeAgo } from "@/lib/utils";
@@ -100,6 +101,7 @@ export function CallThesisBlock({
           showUpgrade={showUpgrade}
         />
       ) : null}
+      {interactive && call.is_fueled ? <CallResearchExpand callId={call.id} /> : null}
       <CallPriceMetrics
         entry_price={call.entry_price}
         target_price={call.target_price}

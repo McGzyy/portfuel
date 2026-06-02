@@ -3,7 +3,7 @@ import { generateObject } from "ai";
 import { z } from "zod";
 import { isDemoMode } from "@/lib/demo/config";
 import { getAiDeepModelId, getAiModelId, isAiCoachConfigured } from "@/lib/ai/config";
-import { buildCostMetrics } from "@/lib/ai/cost-estimate";
+import { buildCostMetrics, sumCostMetrics } from "@/lib/ai/cost-estimate";
 import { buildTickerResearchPack, type ResearchPack } from "@/lib/ai/research-pack";
 import {
   countDeepAnalysesToday,
@@ -34,6 +34,20 @@ export type TickerAnalyzeHeadline = {
   url: string;
   datetime: number;
 };
+
+const fueledVoice = `Voice: PortFuel Fueled desk.\n- Sounds like one consistent caller.\n- Professional, concise, specific, and trader-literate.\n- Avoid hype and generic phrases.\n- No buy/sell/hold commands. No guaranteed returns.\n- If levels are not explicit in the post, keep them null.\n- Use only provided sources; never invent news.`;
+
+const intelBulletsSchema = z.object({
+  setup: z.array(z.string().min(3).max(180)).min(2).max(8),
+  catalysts: z.array(z.string().min(3).max(180)).min(1).max(6),
+  risks: z.array(z.string().min(3).max(180)).min(1).max(6),
+  keyFacts: z.array(z.string().min(3).max(180)).max(10).optional(),
+  direction: z.enum(["long", "short"]).nullable(),
+  entryPrice: z.number().positive().nullable(),
+  targetPrice: z.number().positive().nullable(),
+  stopPrice: z.number().positive().nullable(),
+  timeframeNote: z.string().max(200).nullable(),
+});
 
 export async function analyzeTickerFromPost(input: {
   rawText: string;
@@ -138,28 +152,57 @@ export async function analyzeTickerFromPost(input: {
     inPostSnippet: snippet,
     rawText: input.rawText,
     adminNote: input.adminNote,
+    includeWeb: mode === "deep",
   });
 
   const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const modelId = mode === "deep" ? getAiDeepModelId() : getAiModelId();
 
-  const { object } = await generateObject({
-    model: openai(modelId),
-    schema: tickerAnalyzeSchema,
-    system: `You help a PortFuel admin research a ticker mentioned in an X post before publishing a Fueled desk call.
-Rules:
-- Output JSON matching the schema only.
-- summary: 2-4 sentences on what's going on with the stock and how the tweet thesis fits.
-- risks: 1-3 sentences on what could go wrong or needs verification.
-- draftThesis: 2-5 sentences for PortFuel — professional, no buy/sell/hold commands, no guaranteed returns.
-- direction: long or short if implied by tweet or setup, else null.
-- entryPrice, targetPrice, stopPrice: only if explicit in tweet or clearly implied; else null.
-- timeframeNote: horizon if mentioned.
-- Use only the provided headlines/earnings/filings; do not invent specific news not in the inputs.`,
-    prompt: `${researchPack.promptBlock}\n\nProduce the analysis.`,
-  });
+  const systemBase = `You help a PortFuel admin research a ticker mentioned in an X post before publishing a Fueled desk call.\n${fueledVoice}\nRules:\n- Output JSON matching the schema only.\n- summary: 2-4 sentences on what's going on with the asset and how the post thesis fits.\n- risks: 1-3 sentences on what could go wrong or needs verification.\n- draftThesis: 2-5 sentences for PortFuel.\n- direction: long or short if implied by post, else null.\n- entry/target/stop: only if explicit in post, else null.\n- timeframeNote: horizon if mentioned.\n- Use only provided sources; do not invent specific news.`;
 
-  const cost = buildCostMetrics(modelId, researchPack.promptBlock.length, JSON.stringify(object).length);
+  let object: TickerAnalyzeResult;
+  let costPieces = [buildCostMetrics(modelId, researchPack.promptBlock.length, 0)];
+
+  if (mode !== "deep") {
+    const res = await generateObject({
+      model: openai(modelId),
+      schema: tickerAnalyzeSchema,
+      system: systemBase,
+      prompt: `${researchPack.promptBlock}\n\nProduce the analysis.`,
+    });
+    object = res.object;
+    costPieces = [
+      buildCostMetrics(modelId, researchPack.promptBlock.length, JSON.stringify(res.object).length),
+    ];
+  } else {
+    // Deepen+ = 2-step: compress intel (mini) then rewrite in Fueled voice (4o)
+    const miniId = getAiModelId();
+    const step1 = await generateObject({
+      model: openai(miniId),
+      schema: intelBulletsSchema,
+      system: `Extract actionable intel bullets from the inputs.\n${fueledVoice}\nRules:\n- Output JSON only.\n- Use only the provided sources.\n- Keep bullets specific and short.\n- Levels only if explicit in the post.`,
+      prompt: `${researchPack.promptBlock}\n\nReturn intel bullets JSON.`,
+    });
+
+    const intel = step1.object;
+    const step2Prompt = `${researchPack.promptBlock}\n\nIntel bullets (from step 1):\n${JSON.stringify(intel)}\n\nWrite the Fueled desk analysis JSON.`;
+
+    const deepId = getAiDeepModelId();
+    const step2 = await generateObject({
+      model: openai(deepId),
+      schema: tickerAnalyzeSchema,
+      system: systemBase,
+      prompt: step2Prompt,
+    });
+
+    object = step2.object;
+    costPieces = [
+      buildCostMetrics(miniId, researchPack.promptBlock.length, JSON.stringify(step1.object).length),
+      buildCostMetrics(deepId, step2Prompt.length, JSON.stringify(step2.object).length),
+    ];
+  }
+
+  const cost = sumCostMetrics(costPieces);
   void saveCachedAnalysis({
     tweetKey,
     symbol: validated.symbol,

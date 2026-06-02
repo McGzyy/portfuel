@@ -27,6 +27,7 @@ function readPublishQuery(sp: URLSearchParams) {
   return {
     fromTweet: sp.get("from") === "tweet",
     publishFueled: sp.get("fueled") === "1",
+    socialMode: sp.get("socialMode") ?? "",
     direction:
       directionParam === "short" ? ("short" as const) : ("long" as const),
     thesis: sp.get("thesis") ?? "",
@@ -126,6 +127,10 @@ export function NewCallForm({
           timeframeTag: timeframeTag || undefined,
           isFueled: isAdmin && publishFueled ? true : undefined,
           sourceTweetUrl: isAdmin && sourceTweetUrl ? sourceTweetUrl : undefined,
+          socialAnalysisMode:
+            isAdmin && publishFueled && sourceTweetUrl && queryDraft.socialMode === "deep"
+              ? "deep"
+              : undefined,
         }),
       });
       const data = await res.json();

@@ -44,3 +44,17 @@ export function buildCostMetrics(
     estimatedCostUsd: estimateCostUsd(modelId, promptChars, outputChars),
   };
 }
+
+export function sumCostMetrics(metrics: AnalysisCostMetrics[]): AnalysisCostMetrics {
+  if (metrics.length === 0) {
+    return buildCostMetrics("gpt-4o-mini", 0, 0);
+  }
+  return {
+    modelId: metrics.map((m) => m.modelId).join(" + "),
+    promptChars: metrics.reduce((a, m) => a + m.promptChars, 0),
+    outputChars: metrics.reduce((a, m) => a + m.outputChars, 0),
+    promptTokensEstimate: metrics.reduce((a, m) => a + m.promptTokensEstimate, 0),
+    outputTokensEstimate: metrics.reduce((a, m) => a + m.outputTokensEstimate, 0),
+    estimatedCostUsd: Math.round(metrics.reduce((a, m) => a + m.estimatedCostUsd, 0) * 10000) / 10000,
+  };
+}

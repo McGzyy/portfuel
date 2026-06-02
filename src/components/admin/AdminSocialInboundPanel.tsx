@@ -85,6 +85,7 @@ function TickerCard({
           assetClass: ticker.assetClass ?? "equity",
           fueled: true,
           sourceTweetUrl: tweetUrl ?? undefined,
+          socialMode: mode,
         });
         window.location.href = href;
       }
@@ -104,6 +105,7 @@ function TickerCard({
           assetClass: ticker.assetClass ?? "equity",
           fueled: true,
           sourceTweetUrl: tweetUrl ?? undefined,
+          socialMode: "default",
         })
       : null;
 
@@ -123,6 +125,7 @@ function TickerCard({
       assetClass: ticker.assetClass ?? "equity",
       fueled: true,
       sourceTweetUrl: tweetUrl ?? undefined,
+      socialMode: "default",
     }
   );
 
@@ -171,7 +174,7 @@ function TickerCard({
             onClick={() => void analyze("deep")}
             title="Higher quality, costs more"
           >
-            Deepen
+            Deepen+
           </Button>
           {ticker.valid ? (
             <Link href={quickPublishHref}>
