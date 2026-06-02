@@ -5,13 +5,17 @@ export type EmailPrefs = {
   notifyEmail: string | null;
   emailInstantEnabled: boolean;
   emailDigestEnabled: boolean;
+  marketingMemberOptIn: boolean;
+  marketingProOptIn: boolean;
 };
 
 export async function fetchEmailPrefs(userId: string): Promise<EmailPrefs | null> {
   const db = createServiceClient();
   const { data, error } = await db
     .from("users")
-    .select("notify_email, email_instant_enabled, email_digest_enabled")
+    .select(
+      "notify_email, email_instant_enabled, email_digest_enabled, marketing_member_opt_in, marketing_pro_opt_in"
+    )
     .eq("id", userId)
     .maybeSingle();
 
@@ -21,12 +25,16 @@ export async function fetchEmailPrefs(userId: string): Promise<EmailPrefs | null
     notify_email: string | null;
     email_instant_enabled: boolean;
     email_digest_enabled: boolean;
+    marketing_member_opt_in?: boolean;
+    marketing_pro_opt_in?: boolean;
   };
 
   return {
     notifyEmail: row.notify_email,
     emailInstantEnabled: row.email_instant_enabled,
     emailDigestEnabled: row.email_digest_enabled,
+    marketingMemberOptIn: Boolean(row.marketing_member_opt_in),
+    marketingProOptIn: Boolean(row.marketing_pro_opt_in),
   };
 }
 

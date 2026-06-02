@@ -1,31 +1,51 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 type Prefs = {
   notifyEmail: string | null;
   emailInstantEnabled: boolean;
   emailDigestEnabled: boolean;
+  marketingMemberOptIn: boolean;
+  marketingProOptIn: boolean;
   emailConfigured: boolean;
+};
+
+type VerifyStatus = {
+  email: string | null;
+  emailVerified: boolean;
 };
 
 export function ProfileEmailSection() {
   const [prefs, setPrefs] = useState<Prefs | null>(null);
+  const [verify, setVerify] = useState<VerifyStatus | null>(null);
   const [email, setEmail] = useState("");
   const [instant, setInstant] = useState(true);
   const [digest, setDigest] = useState(true);
+  const [marketingMember, setMarketingMember] = useState(false);
+  const [marketingPro, setMarketingPro] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/auth/email-preferences");
-    if (!res.ok) return;
-    const data = (await res.json()) as Prefs;
-    setPrefs(data);
-    setEmail(data.notifyEmail ?? "");
-    setInstant(data.emailInstantEnabled);
-    setDigest(data.emailDigestEnabled);
+    const [prefsRes, verifyRes] = await Promise.all([
+      fetch("/api/auth/email-preferences"),
+      fetch("/api/auth/verify-email"),
+    ]);
+    if (prefsRes.ok) {
+      const data = (await prefsRes.json()) as Prefs;
+      setPrefs(data);
+      setEmail(data.notifyEmail ?? "");
+      setInstant(data.emailInstantEnabled);
+      setDigest(data.emailDigestEnabled);
+      setMarketingMember(data.marketingMemberOptIn);
+      setMarketingPro(data.marketingProOptIn);
+    }
+    if (verifyRes.ok) {
+      setVerify((await verifyRes.json()) as VerifyStatus);
+    }
   }, []);
 
   useEffect(() => {
@@ -43,6 +63,8 @@ export function ProfileEmailSection() {
         notifyEmail: email.trim(),
         emailInstantEnabled: instant,
         emailDigestEnabled: digest,
+        marketingMemberOptIn: marketingMember,
+        marketingProOptIn: marketingPro,
       }),
     });
     setSaving(false);
@@ -60,12 +82,42 @@ export function ProfileEmailSection() {
   return (
     <section className="pf-workspace-panel p-5">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-        Email alerts
+        Email & notifications
       </p>
-      <p className="mt-2 text-sm text-[var(--pf-gray-500)]">
-        Weekly digest: Fueled model portfolio marks, your published calls, community top movers,
-        and new feed activity. Instant emails for comments, watchlist calls, desk updates, and
-        followed members.
+
+      {verify ? (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2.5 text-sm">
+          <div>
+            <span className="text-[var(--pf-gray-500)]">Account email: </span>
+            <span className="font-medium">{verify.email ?? "Not set"}</span>
+            {verify.emailVerified ? (
+              <span className="ml-2 text-emerald-600">Verified</span>
+            ) : (
+              <span className="ml-2 text-amber-600">Not verified</span>
+            )}
+          </div>
+          {!verify.emailVerified ? (
+            <Link
+              href="/verify-email"
+              className="font-semibold text-[var(--pf-red)] hover:underline"
+            >
+              Verify email →
+            </Link>
+          ) : (
+            <Link
+              href="/verify-email"
+              className="text-[var(--pf-gray-600)] hover:text-[var(--pf-red)] hover:underline"
+            >
+              Change email
+            </Link>
+          )}
+        </div>
+      ) : null}
+
+      <p className="mt-3 text-sm text-[var(--pf-gray-500)]">
+        Alert address can match your account email or a separate inbox. Weekly digest covers
+        Fueled portfolio marks, your calls, and community movers. Instant alerts cover comments,
+        watchlist, desk updates, and DMs.
       </p>
 
       {!prefs.emailConfigured ? (
@@ -75,7 +127,7 @@ export function ProfileEmailSection() {
       ) : null}
 
       <label className="mt-4 block text-sm font-medium text-[var(--pf-gray-700)]">
-        Email address
+        Alert email address
         <input
           type="email"
           autoComplete="email"
@@ -103,6 +155,31 @@ export function ProfileEmailSection() {
           />
           Weekly digest (Mondays)
         </label>
+      </div>
+
+      <div className="mt-6 border-t border-[var(--pf-border)] pt-4">
+        <p className="text-sm font-medium text-[var(--pf-gray-700)]">Product updates (optional)</p>
+        <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
+          Separate lists — you can opt into member news, Pro desk updates, or both.
+        </p>
+        <div className="mt-3 flex flex-col gap-2 text-sm">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={marketingMember}
+              onChange={(e) => setMarketingMember(e.target.checked)}
+            />
+            Member community & platform updates
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={marketingPro}
+              onChange={(e) => setMarketingPro(e.target.checked)}
+            />
+            Pro intelligence & desk announcements
+          </label>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">

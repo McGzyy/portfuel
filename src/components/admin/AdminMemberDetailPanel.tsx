@@ -133,6 +133,30 @@ export function AdminMemberDetailPanel({ userId }: { userId: string }) {
       </div>
 
       <div className="rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-6 shadow-[var(--pf-shadow-sm)]">
+        <h3 className="font-semibold">Marketing lists</h3>
+        <div className="mt-3 flex flex-wrap gap-4 text-sm">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={user.marketing_member_opt_in}
+              disabled={saving}
+              onChange={(e) => patch({ marketingMemberOptIn: e.target.checked })}
+            />
+            Member updates
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={user.marketing_pro_opt_in}
+              disabled={saving}
+              onChange={(e) => patch({ marketingProOptIn: e.target.checked })}
+            />
+            Pro / desk updates
+          </label>
+        </div>
+      </div>
+
+      <div className="rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-6 shadow-[var(--pf-shadow-sm)]">
         <h3 className="font-semibold">Moderation</h3>
         <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
           Workspace: {user.can_access_workspace ? "open" : "locked"} · Calls:{" "}

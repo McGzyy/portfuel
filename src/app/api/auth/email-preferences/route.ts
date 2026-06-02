@@ -9,6 +9,8 @@ const patchSchema = z.object({
   notifyEmail: z.union([z.string().email().max(254), z.literal("")]).optional(),
   emailInstantEnabled: z.boolean().optional(),
   emailDigestEnabled: z.boolean().optional(),
+  marketingMemberOptIn: z.boolean().optional(),
+  marketingProOptIn: z.boolean().optional(),
 });
 
 export async function GET() {
@@ -45,6 +47,12 @@ export async function PATCH(request: Request) {
     }
     if (body.emailDigestEnabled !== undefined) {
       update.email_digest_enabled = body.emailDigestEnabled;
+    }
+    if (body.marketingMemberOptIn !== undefined) {
+      update.marketing_member_opt_in = body.marketingMemberOptIn;
+    }
+    if (body.marketingProOptIn !== undefined) {
+      update.marketing_pro_opt_in = body.marketingProOptIn;
     }
 
     if (Object.keys(update).length === 0) {

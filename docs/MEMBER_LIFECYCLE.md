@@ -52,6 +52,20 @@ API enforcement: publish calls, comments, DMs check session flags (admins exempt
 
 `admin_audit_log` records ban/unban, moderation presets, and member field updates from Member 360.
 
+## Marketing opt-in
+
+Separate booleans on `users`: `marketing_member_opt_in`, `marketing_pro_opt_in`. Members manage these on **Profile → Email & notifications**; admins can toggle on Member 360.
+
 ## Migration
 
-Apply `supabase/migrations/20260602150000_member_lifecycle.sql` (with vouchers migrations if not yet applied).
+Apply migrations on Supabase (in order if not yet applied):
+
+1. `20260603100000_vouchers.sql`
+2. `20260603110000_billing_interval.sql`
+3. `20260602150000_member_lifecycle.sql`
+
+```bash
+npx supabase db push
+```
+
+Or run SQL in the Supabase dashboard SQL editor.
