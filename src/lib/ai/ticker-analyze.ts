@@ -2,8 +2,16 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { isDemoMode } from "@/lib/demo/config";
-import { getAiModelId, isAiCoachConfigured } from "@/lib/ai/config";
-import { getCompanyNews, type CompanyNewsItem } from "@/lib/market/finnhub";
+import { getAiDeepModelId, getAiModelId, isAiCoachConfigured } from "@/lib/ai/config";
+import { buildCostMetrics } from "@/lib/ai/cost-estimate";
+import { buildTickerResearchPack, type ResearchPack } from "@/lib/ai/research-pack";
+import {
+  countDeepAnalysesToday,
+  deriveTweetKey,
+  getCachedAnalysis,
+  saveCachedAnalysis,
+  type AnalysisMode,
+} from "@/lib/ai/social-analysis-cache";
 import { validateSymbol } from "@/lib/market/validate-symbol";
 
 export const tickerAnalyzeSchema = z.object({
@@ -27,34 +35,28 @@ export type TickerAnalyzeHeadline = {
   datetime: number;
 };
 
-function mapHeadline(n: CompanyNewsItem): TickerAnalyzeHeadline {
-  return {
-    headline: n.headline,
-    summary: n.summary?.slice(0, 280) ?? "",
-    source: n.source,
-    url: n.url,
-    datetime: n.datetime,
-  };
-}
-
-async function fetchHeadlines(symbol: string, assetClass: "equity" | "crypto") {
-  if (assetClass !== "equity") return [];
-  const to = new Date().toISOString().slice(0, 10);
-  const from = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
-  const raw = await getCompanyNews(symbol, from, to);
-  return raw.slice(0, 5).map(mapHeadline);
-}
-
 export async function analyzeTickerFromPost(input: {
   rawText: string;
   symbol: string;
   inPostSnippet?: string;
   adminNote?: string;
   assetClass?: "equity" | "crypto";
+  tweetUrl?: string | null;
+  mode?: AnalysisMode;
 }): Promise<
   | {
       analysis: TickerAnalyzeResult;
       headlines: TickerAnalyzeHeadline[];
+      researchPack?: ResearchPack;
+      cost?: {
+        modelId: string;
+        promptChars: number;
+        outputChars: number;
+        promptTokensEstimate: number;
+        outputTokensEstimate: number;
+        estimatedCostUsd: number;
+      };
+      cache: { hit: boolean; tweetKey: string; mode: AnalysisMode };
       symbol: string;
       assetClass: "equity" | "crypto";
       name?: string;
@@ -71,16 +73,35 @@ export async function analyzeTickerFromPost(input: {
   }
   if (!validated.ok) return { error: "invalid_symbol" };
 
-  const headlines = await fetchHeadlines(validated.symbol, validated.assetClass);
-  const headlineBlock =
-    headlines.length > 0
-      ? headlines.map((h) => `- ${h.headline} (${h.source})`).join("\n")
-      : validated.assetClass === "crypto"
-        ? "No Finnhub equity headlines for crypto — use tweet context and general market knowledge."
-        : "No recent headlines found.";
+  const mode: AnalysisMode = input.mode ?? "default";
+  const tweetKey = deriveTweetKey(input.tweetUrl ?? null, input.rawText);
+
+  const cached = await getCachedAnalysis(tweetKey, validated.symbol, mode);
+  if (cached) {
+    return {
+      analysis: cached.analysis,
+      headlines: cached.headlines,
+      researchPack: cached.researchPack,
+      cost: cached.cost,
+      cache: { hit: true, tweetKey, mode },
+      symbol: validated.symbol,
+      assetClass: validated.assetClass,
+      name: validated.name,
+      lastPrice: validated.lastPrice,
+    };
+  }
 
   if (isDemoMode() || !isAiCoachConfigured()) {
     const snippet = input.inPostSnippet?.trim() || `Social context on ${validated.symbol}.`;
+    const researchPack = await buildTickerResearchPack({
+      symbol: validated.symbol,
+      assetClass: validated.assetClass,
+      name: validated.name,
+      lastPrice: validated.lastPrice ?? undefined,
+      inPostSnippet: snippet,
+      rawText: input.rawText,
+      adminNote: input.adminNote,
+    });
     return {
       analysis: {
         summary: `${validated.name ?? validated.symbol} at ~$${validated.lastPrice?.toFixed(2) ?? "—"}. ${snippet.slice(0, 200)}`,
@@ -92,7 +113,9 @@ export async function analyzeTickerFromPost(input: {
         stopPrice: null,
         timeframeNote: "Review timeframe before publishing.",
       },
-      headlines,
+      headlines: researchPack.headlines,
+      researchPack,
+      cache: { hit: false, tweetKey, mode },
       symbol: validated.symbol,
       assetClass: validated.assetClass,
       name: validated.name,
@@ -100,10 +123,28 @@ export async function analyzeTickerFromPost(input: {
     };
   }
 
+  if (mode === "deep") {
+    const deepCount = await countDeepAnalysesToday();
+    // Safety valve: prevent accidental runaway spend.
+    if (deepCount >= 25) return { error: "deep_limit_reached" };
+  }
+
+  const snippet = input.inPostSnippet?.trim() || `Social context on ${validated.symbol}.`;
+  const researchPack = await buildTickerResearchPack({
+    symbol: validated.symbol,
+    assetClass: validated.assetClass,
+    name: validated.name,
+    lastPrice: validated.lastPrice ?? undefined,
+    inPostSnippet: snippet,
+    rawText: input.rawText,
+    adminNote: input.adminNote,
+  });
+
   const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const modelId = mode === "deep" ? getAiDeepModelId() : getAiModelId();
 
   const { object } = await generateObject({
-    model: openai(getAiModelId()),
+    model: openai(modelId),
     schema: tickerAnalyzeSchema,
     system: `You help a PortFuel admin research a ticker mentioned in an X post before publishing a Fueled desk call.
 Rules:
@@ -114,28 +155,26 @@ Rules:
 - direction: long or short if implied by tweet or setup, else null.
 - entryPrice, targetPrice, stopPrice: only if explicit in tweet or clearly implied; else null.
 - timeframeNote: horizon if mentioned.
-- Use headlines when relevant; do not invent specific news not in the inputs.`,
-    prompt: `Symbol: ${validated.symbol} (${validated.name ?? validated.symbol})
-Asset class: ${validated.assetClass}
-Last price: ${validated.lastPrice != null ? `$${validated.lastPrice}` : "unknown"}
+- Use only the provided headlines/earnings/filings; do not invent specific news not in the inputs.`,
+    prompt: `${researchPack.promptBlock}\n\nProduce the analysis.`,
+  });
 
-What the post said about this ticker:
-${input.inPostSnippet?.trim() || "—"}
-
-Full post context:
-${input.rawText.trim().slice(0, 4000)}
-
-Recent headlines:
-${headlineBlock}
-
-Admin note: ${input.adminNote?.trim() || "—"}
-
-Produce the analysis.`,
+  const cost = buildCostMetrics(modelId, researchPack.promptBlock.length, JSON.stringify(object).length);
+  void saveCachedAnalysis({
+    tweetKey,
+    symbol: validated.symbol,
+    mode,
+    analysis: object,
+    researchPack,
+    cost,
   });
 
   return {
     analysis: object,
-    headlines,
+    headlines: researchPack.headlines,
+    researchPack,
+    cost,
+    cache: { hit: false, tweetKey, mode },
     symbol: validated.symbol,
     assetClass: validated.assetClass,
     name: validated.name,

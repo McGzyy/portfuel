@@ -17,6 +17,13 @@ type TickerAnalysisState = {
   error: string;
   analysis: TickerAnalyzeResult | null;
   headlines: { headline: string; source: string; url: string }[];
+  cost?: {
+    modelId: string;
+    promptTokensEstimate: number;
+    outputTokensEstimate: number;
+    estimatedCostUsd: number;
+  };
+  cacheHit?: boolean;
 };
 
 function TickerCard({
@@ -36,8 +43,9 @@ function TickerCard({
     analysis: null,
     headlines: [],
   });
+  const [autoPublish, setAutoPublish] = useState(false);
 
-  async function analyze() {
+  async function analyze(mode: "default" | "deep" = "default") {
     setState({ loading: true, error: "", analysis: null, headlines: [] });
     try {
       const res = await fetch("/api/admin/social/analyze-ticker", {
@@ -45,10 +53,12 @@ function TickerCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           rawText: tweetText,
+          tweetUrl,
           symbol: ticker.symbol,
           inPostSnippet: ticker.inPostSnippet,
           adminNote: adminNote || undefined,
           assetClass: ticker.assetClass ?? undefined,
+          mode,
         }),
       });
       const json = await res.json();
@@ -66,7 +76,18 @@ function TickerCard({
         error: "",
         analysis: json.analysis as TickerAnalyzeResult,
         headlines: (json.headlines as { headline: string; source: string; url: string }[]) ?? [],
+        cost: json.cost,
+        cacheHit: Boolean(json.cache?.hit),
       });
+
+      if (autoPublish && ticker.valid) {
+        const href = buildPublishUrlFromAnalysis(ticker.symbol, json.analysis as TickerAnalyzeResult, {
+          assetClass: ticker.assetClass ?? "equity",
+          fueled: true,
+          sourceTweetUrl: tweetUrl ?? undefined,
+        });
+        window.location.href = href;
+      }
     } catch {
       setState({
         loading: false,
@@ -128,8 +149,29 @@ function TickerCard({
           <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-700)]">{ticker.inPostSnippet}</p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <Button type="button" variant="outline" size="sm" disabled={state.loading} onClick={() => void analyze()}>
+          <Button type="button" variant="outline" size="sm" disabled={state.loading} onClick={() => void analyze("default")}>
             {state.loading ? "Analyzing…" : state.analysis ? "Re-analyze" : "Analyze"}
+          </Button>
+          {ticker.valid ? (
+            <label className="inline-flex items-center gap-2 rounded-md border border-[var(--pf-border)] bg-white px-2.5 py-1.5 text-xs text-[var(--pf-gray-700)]">
+              <input
+                type="checkbox"
+                checked={autoPublish}
+                onChange={(e) => setAutoPublish(e.target.checked)}
+                disabled={state.loading}
+              />
+              Auto-open publish
+            </label>
+          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={state.loading}
+            onClick={() => void analyze("deep")}
+            title="Higher quality, costs more"
+          >
+            Deepen
           </Button>
           {ticker.valid ? (
             <Link href={quickPublishHref}>
@@ -204,6 +246,13 @@ function TickerCard({
                     ))}
                   </ul>
                 </div>
+              ) : null}
+              {state.cost ? (
+                <p className="text-[10px] text-[var(--pf-gray-400)]">
+                  {state.cacheHit ? "Cached · " : ""}
+                  {state.cost.modelId} · ~{state.cost.promptTokensEstimate} in / ~
+                  {state.cost.outputTokensEstimate} out · est ${state.cost.estimatedCostUsd}
+                </p>
               ) : null}
               {publishHref ? (
                 <Link href={publishHref}>

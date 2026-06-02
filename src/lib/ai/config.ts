@@ -29,6 +29,11 @@ export function getAiModelId(): string {
   return process.env.AI_COACH_MODEL?.trim() || "gpt-4o-mini";
 }
 
+/** Higher-quality model for admin-only deep research (opt-in). */
+export function getAiDeepModelId(): string {
+  return process.env.AI_COACH_DEEP_MODEL?.trim() || "gpt-4o";
+}
+
 export function limitForRole(
   tier: MembershipTier | null,
   role: "member" | "admin"

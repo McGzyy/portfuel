@@ -5,10 +5,12 @@ import { analyzeTickerFromPost } from "@/lib/ai/ticker-analyze";
 
 const schema = z.object({
   rawText: z.string().min(12).max(8000),
+  tweetUrl: z.string().url().max(500).nullable().optional(),
   symbol: z.string().min(1).max(12),
   inPostSnippet: z.string().max(500).optional(),
   adminNote: z.string().max(500).optional(),
   assetClass: z.enum(["equity", "crypto"]).optional(),
+  mode: z.enum(["default", "deep"]).optional(),
 });
 
 export async function POST(request: Request) {
@@ -17,10 +19,12 @@ export async function POST(request: Request) {
     const body = schema.parse(await request.json());
     const result = await analyzeTickerFromPost({
       rawText: body.rawText,
+      tweetUrl: body.tweetUrl ?? null,
       symbol: body.symbol,
       inPostSnippet: body.inPostSnippet,
       adminNote: body.adminNote,
       assetClass: body.assetClass,
+      mode: body.mode ?? "default",
     });
 
     if ("error" in result) {
