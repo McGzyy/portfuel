@@ -14,6 +14,7 @@ export type PublicMemberProfile = {
   avg_return_pct: number | null;
   rank_score: number;
   created_at: string;
+  last_active_at: string | null;
 };
 
 export async function fetchMemberByUsername(
@@ -25,14 +26,18 @@ export async function fetchMemberByUsername(
   if (isDemoMode()) {
     const demo = getDemoMemberByUsername(handle);
     if (!demo) return null;
-    return { ...demo, founding: false };
+    return {
+      ...demo,
+      founding: false,
+      last_active_at: new Date().toISOString(),
+    };
   }
 
   const db = createServiceClient();
   const { data, error } = await db
     .from("users")
     .select(
-      "id, username, display_name, trusted_at, calls_count, win_rate, avg_return_pct, rank_score, created_at, subscription_status, role"
+      "id, username, display_name, trusted_at, calls_count, win_rate, avg_return_pct, rank_score, created_at, last_active_at, subscription_status, role"
     )
     .ilike("username", handle)
     .maybeSingle();
@@ -53,6 +58,7 @@ export async function fetchMemberByUsername(
     avg_return_pct: data.avg_return_pct != null ? Number(data.avg_return_pct) : null,
     rank_score: Number(data.rank_score ?? 0),
     created_at: data.created_at,
+    last_active_at: (data as { last_active_at?: string | null }).last_active_at ?? null,
   };
 }
 

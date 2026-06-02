@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn, timeAgo } from "@/lib/utils";
 
 type Member = {
   id: string;
@@ -21,6 +21,7 @@ type Member = {
   trusted_at: string | null;
   banned_at: string | null;
   created_at: string;
+  last_active_at: string | null;
 };
 
 type StatusFilter = "all" | Member["subscription_status"];
@@ -200,6 +201,7 @@ export function AdminMembersPanel() {
                 <th className="px-4 py-3.5">Status</th>
                 <th className="px-4 py-3.5">Security</th>
                 <th className="px-4 py-3.5">Activity</th>
+                <th className="px-4 py-3.5">Last active</th>
                 <th className="px-4 py-3.5">Joined</th>
                 <th className="w-10 px-2 py-3.5" aria-hidden />
               </tr>
@@ -207,7 +209,7 @@ export function AdminMembersPanel() {
             <tbody className="divide-y divide-[var(--pf-border)]">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-14 text-center">
+                  <td colSpan={9} className="px-4 py-14 text-center">
                     <p className="text-sm font-medium text-[var(--pf-gray-600)]">
                       {members.length === 0 ? "No members yet." : "No members match your filters."}
                     </p>
@@ -309,6 +311,9 @@ export function AdminMembersPanel() {
                       <td className="px-4 py-3.5 tabular-nums text-[var(--pf-gray-700)]">
                         <span className="font-medium">{m.calls_count}</span>
                         <span className="text-[var(--pf-gray-400)]"> calls</span>
+                      </td>
+                      <td className="px-4 py-3.5 text-xs text-[var(--pf-gray-600)]">
+                        {m.last_active_at ? timeAgo(m.last_active_at) : "—"}
                       </td>
                       <td className="px-4 py-3.5 tabular-nums text-[var(--pf-gray-600)]">
                         {formatDate(m.created_at)}

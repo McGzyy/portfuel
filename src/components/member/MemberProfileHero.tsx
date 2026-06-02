@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { FollowMemberButton } from "@/components/member/FollowMemberButton";
 import { MessageMemberButton } from "@/components/member/MessageMemberButton";
-import { formatPct } from "@/lib/utils";
+import { formatPct, timeAgo } from "@/lib/utils";
 import type { PublicMemberProfile } from "@/lib/users/public-profile";
 
 export function MemberProfileHero({
@@ -18,6 +18,7 @@ export function MemberProfileHero({
     month: "short",
     year: "numeric",
   });
+  const lastActive = member.last_active_at ? timeAgo(member.last_active_at) : null;
 
   return (
     <header className="pf-workspace-panel overflow-hidden p-6 sm:p-8">
@@ -58,7 +59,12 @@ export function MemberProfileHero({
             <p className="text-3xl font-bold tabular-nums tracking-tight text-[var(--pf-black)]">
               {member.rank_score.toFixed(1)}
             </p>
-            <p className="mt-1 text-xs text-[var(--pf-gray-500)]">Member since {since}</p>
+            <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
+              Member since {since}
+              {lastActive ? (
+                <span className="text-[var(--pf-gray-400)]"> · Last active {lastActive}</span>
+              ) : null}
+            </p>
           </div>
         </div>
       </div>

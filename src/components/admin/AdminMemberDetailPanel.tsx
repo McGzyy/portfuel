@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { MODERATION_PRESETS } from "@/lib/member-lifecycle/moderation";
 import type { ModerationPreset, UserLifecycleRow } from "@/lib/member-lifecycle/types";
-import { cn } from "@/lib/utils";
+import { cn, timeAgo } from "@/lib/utils";
 
 type AuditRow = {
   id: string;
@@ -127,6 +127,7 @@ export function AdminMemberDetailPanel({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [moderationExpiresAt, setModerationExpiresAt] = useState("");
 
   const load = useCallback(async () => {
@@ -177,6 +178,29 @@ export function AdminMemberDetailPanel({ userId }: { userId: string }) {
       setError("Update failed.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function deleteMember() {
+    if (!user) return;
+    const ok = window.confirm(
+      `Delete @${user.username}? This permanently removes the member and all related data.`
+    );
+    if (!ok) return;
+    setDeleting(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/members/${userId}`, { method: "DELETE" });
+      if (!res.ok) {
+        setError("Delete failed.");
+        return;
+      }
+      router.push("/admin?tab=members");
+      router.refresh();
+    } catch {
+      setError("Delete failed.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -233,7 +257,11 @@ export function AdminMemberDetailPanel({ userId }: { userId: string }) {
               <p className="mt-1 text-sm text-[var(--pf-gray-600)]">{user.display_name}</p>
             ) : null}
             <p className="mt-2 text-xs text-[var(--pf-gray-400)]">
-              Joined {formatDate(user.created_at)} · {activity?.callsCount ?? user.calls_count} calls
+              Joined {formatDate(user.created_at)} ·{" "}
+              {(user as { last_active_at?: string | null }).last_active_at
+                ? `Last active ${timeAgo((user as { last_active_at?: string | null }).last_active_at!)} · `
+                : ""}
+              {activity?.callsCount ?? user.calls_count} calls
               · {activity?.referralsCount ?? 0} referrals
             </p>
           </div>
@@ -246,6 +274,18 @@ export function AdminMemberDetailPanel({ userId }: { userId: string }) {
             </Link>
           </div>
         </div>
+      </div>
+
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="border-[var(--pf-red)] text-[var(--pf-red)] hover:bg-[var(--pf-red-muted)]"
+          disabled={saving || deleting}
+          onClick={deleteMember}
+        >
+          {deleting ? "Deleting…" : "Delete member"}
+        </Button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

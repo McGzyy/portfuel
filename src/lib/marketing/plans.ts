@@ -23,8 +23,9 @@ export const TIER_COMPARISON_ROWS: TierComparisonRow[] = [
   { feature: "Watchlist move & earnings alerts", member: false, pro: true },
   { feature: "Return distribution on profile", member: false, pro: true },
   { feature: "Pro feed & rankings analytics strips", member: false, pro: true },
-  { feature: "AI thesis coach (educational)", member: "2/mo", pro: "30/mo" },
-  { feature: "One-line thesis summaries on calls", member: "Read cache", pro: "Generate" },
+  { feature: "AI thesis coach (educational — feedback on your draft)", member: "2/mo", pro: "30/mo" },
+  { feature: "AI call summaries (one line for skimming)", member: "Read cached", pro: "Generate 60/mo" },
+  { feature: "AI Assist (generate a draft call from ticker + notes)", member: false, pro: "10/day + 3 Deepen+/day" },
 ];
 
 export type PlanCardContent = {
@@ -49,7 +50,8 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
       "Member feed, DMs, watchlist & rankings",
       "2 published calls per week",
       "Ticker charts with entry / target / stop lines",
-      "2 AI thesis coach reviews · read cached quick summaries",
+      "AI thesis coach (educational): 2 reviews/mo",
+      "AI call summaries: read cached quick reads",
     ],
   },
   pro: {
@@ -64,8 +66,9 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
       "6 calls/week · news, earnings & SEC",
       "Intraday chart, SMA / VWAP & ticker compare",
       "Screener, CSV export & Pro analytics strips",
-      "30 AI thesis coach reviews + track-record context",
-      "Generate one-line thesis summaries (60/mo)",
+      "AI thesis coach (educational): 30 reviews/mo + track-record context",
+      "AI call summaries: generate 60/mo",
+      "AI Assist: generate draft calls from ticker + notes (10/day + 3 Deepen+/day)",
     ],
   },
 };
@@ -185,6 +188,7 @@ export const LANDING_PRODUCT_PILLARS = [
 export const PRO_VALUE_BULLETS = [
   "AI thesis coach — 30 reviews/mo with your track record in context",
   "One-line thesis summaries on any call (generate 60/mo; Members read cached)",
+  "AI Assist — generate Fueled-style call drafts from just a ticker (10/day + 3 Deepen+/day)",
   "News, earnings & SEC filings on every equity ticker",
   "Intraday chart (1H / 15m) with SMA and VWAP overlays",
   "Pro feed & rankings analytics (target progress, win-rate depth)",

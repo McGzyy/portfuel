@@ -24,6 +24,7 @@ function userRowToPublicMember(row: UserRow): PublicMemberProfile {
       row.avg_return_pct != null ? Number(row.avg_return_pct) : null,
     rank_score: Number(row.rank_score ?? 0),
     created_at: row.created_at,
+    last_active_at: row.last_active_at ?? null,
   };
 }
 
@@ -59,7 +60,11 @@ export async function fetchOwnProfile(session: SessionPayload): Promise<
 
     if (member) {
       return {
-        member: { ...member, founding: false },
+        member: {
+          ...member,
+          founding: false,
+          last_active_at: new Date().toISOString(),
+        },
         calls: getDemoMemberCalls(member.id, 20),
         stripeCustomerId: null,
         subscriptionStatus: "active",
@@ -87,6 +92,7 @@ export async function fetchOwnProfile(session: SessionPayload): Promise<
             : null,
         rank_score: 0,
         created_at: new Date().toISOString(),
+        last_active_at: new Date().toISOString(),
       },
       calls,
       stripeCustomerId: null,

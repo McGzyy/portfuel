@@ -21,6 +21,7 @@ export type UserLifecycleRow = {
   billing_interval: "monthly" | "annual" | null;
   pro_granted_until: string | null;
   banned_at: string | null;
+  last_active_at: string | null;
   moderation_expires_at: string | null;
   can_access_workspace: boolean;
   can_publish_calls: boolean;

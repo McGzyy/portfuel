@@ -173,3 +173,49 @@ export async function PATCH(
     return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ userId: string }> }
+) {
+  try {
+    const admin = await requireAdmin();
+    const { userId } = await params;
+
+    const db = createServiceClient();
+    const { data: target } = await db
+      .from("users")
+      .select("id, role, username")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (!target) return NextResponse.json({ error: "not_found" }, { status: 404 });
+    if (target.role === "admin") {
+      return NextResponse.json({ error: "cannot_delete_admin" }, { status: 403 });
+    }
+
+    const { error } = await db.from("users").delete().eq("id", userId);
+    if (error) {
+      console.error("[admin/members/delete]", error);
+      return NextResponse.json({ error: "delete_failed" }, { status: 500 });
+    }
+
+    await logAdminAction({
+      adminUserId: admin.userId,
+      targetUserId: userId,
+      action: "member_delete",
+      details: { username: target.username },
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    if (e instanceof Error && e.message === "unauthorized") {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
+    if (e instanceof Error && e.message === "forbidden") {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
+    console.error("[admin/members/delete]", e);
+    return NextResponse.json({ error: "server_error" }, { status: 500 });
+  }
+}

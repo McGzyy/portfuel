@@ -83,10 +83,105 @@ export function NewCallForm({
   const [publishFueled, setPublishFueled] = useState(
     isAdmin && queryDraft.publishFueled
   );
+  const [aiMode, setAiMode] = useState<"default" | "deep">(
+    queryDraft.socialMode === "deep" ? "deep" : "default"
+  );
+  const [aiNotes, setAiNotes] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiCost, setAiCost] = useState<number | null>(null);
+  const [aiCacheHit, setAiCacheHit] = useState<boolean | null>(null);
+  const [aiRemaining, setAiRemaining] = useState<{ default: number; deep: number } | null>(
+    null
+  );
+  const [aiDraftRawText, setAiDraftRawText] = useState<string>("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  async function refreshAiAssistUsage() {
+    if (!isAdmin && !isPro) return;
+    try {
+      const res = await fetch("/api/social/analyze-ticker/usage");
+      if (!res.ok) return;
+      const data = await res.json();
+      setAiRemaining({
+        default: Number(data?.default?.remaining ?? 0),
+        deep: Number(data?.deep?.remaining ?? 0),
+      });
+    } catch {
+      // ignore
+    }
+  }
+
+  async function generateAiDraft() {
+    if (!isAdmin && !isPro) return;
+    if (!symbol || symbol.trim().length < 1) return;
+    setError("");
+    setAiLoading(true);
+    setAiCost(null);
+    setAiCacheHit(null);
+    try {
+      await refreshAiAssistUsage();
+      const rawText = `Ticker: ${symbol.toUpperCase().trim()}\nNotes: ${aiNotes.trim() || "None"}`;
+      const endpoint = isAdmin ? "/api/admin/social/analyze-ticker" : "/api/social/analyze-ticker";
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rawText,
+          symbol: symbol.toUpperCase().trim(),
+          inPostSnippet: aiNotes.trim().slice(0, 500) || undefined,
+          adminNote: aiNotes.trim().slice(0, 500) || undefined,
+          assetClass,
+          mode: aiMode,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const code = typeof data.error === "string" ? data.error : "AI draft failed.";
+        if (code === "pro_required") {
+          setError("Pro required to use AI assist.");
+        } else if (code === "ai_limit_reached") {
+          setError("AI assist limit reached for today.");
+        } else if (code === "ai_deep_limit_reached") {
+          setError("Deepen+ limit reached for today.");
+        } else {
+          setError(code);
+        }
+        return;
+      }
+
+      const analysis = data.analysis as {
+        draftThesis: string;
+        direction: "long" | "short" | null;
+        entryPrice: number | null;
+        targetPrice: number | null;
+        stopPrice: number | null;
+        timeframeNote: string | null;
+      };
+
+      if (isAdmin) setPublishFueled(true);
+      setThesis(analysis.draftThesis ?? "");
+      if (analysis.direction) setDirection(analysis.direction);
+      if (analysis.entryPrice != null) setEntryPrice(String(analysis.entryPrice));
+      if (analysis.targetPrice != null) setTargetPrice(String(analysis.targetPrice));
+      if (analysis.stopPrice != null) setStopPrice(String(analysis.stopPrice));
+      if (analysis.timeframeNote) setTimeframeTag(analysis.timeframeNote);
+
+      setAiDraftRawText(rawText);
+      setAiCost(
+        typeof data.cost?.estimatedCostUsd === "number" ? data.cost.estimatedCostUsd : null
+      );
+      setAiCacheHit(typeof data.cache?.hit === "boolean" ? data.cache.hit : null);
+      await refreshAiAssistUsage();
+    } catch {
+      setError("AI draft failed.");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   useEffect(() => {
+    void refreshAiAssistUsage();
     if (!symbol || symbol.length < 2) {
       setSymbolHint("");
       setSymbolValid(null);
@@ -113,6 +208,14 @@ export function NewCallForm({
     setError("");
     setLoading(true);
     try {
+      const fueled = isAdmin && publishFueled;
+      const modeToSend: "default" | "deep" | undefined = fueled
+        ? sourceTweetUrl
+          ? queryDraft.socialMode === "deep"
+            ? "deep"
+            : "default"
+          : aiMode
+        : undefined;
       const res = await fetch("/api/calls", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -125,12 +228,11 @@ export function NewCallForm({
           targetPrice: targetPrice ? parseFloat(targetPrice) : undefined,
           stopPrice: stopPrice ? parseFloat(stopPrice) : undefined,
           timeframeTag: timeframeTag || undefined,
-          isFueled: isAdmin && publishFueled ? true : undefined,
+          isFueled: fueled ? true : undefined,
           sourceTweetUrl: isAdmin && sourceTweetUrl ? sourceTweetUrl : undefined,
-          socialAnalysisMode:
-            isAdmin && publishFueled && sourceTweetUrl && queryDraft.socialMode === "deep"
-              ? "deep"
-              : undefined,
+          socialAnalysisMode: modeToSend,
+          socialAnalysisRawText:
+            fueled && !sourceTweetUrl && aiDraftRawText ? aiDraftRawText : undefined,
         }),
       });
       const data = await res.json();
@@ -192,6 +294,72 @@ export function NewCallForm({
       <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-8">
+            {isAdmin || isPro ? (
+              <section className="space-y-3 rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="pf-eyebrow">AI assist</p>
+                    <p className="mt-1 text-sm text-[var(--pf-gray-600)]">
+                      Generate a Fueled-style draft from just a ticker + notes.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <SegmentedControl
+                      value={aiMode}
+                      onChange={(v) => setAiMode(v as "default" | "deep")}
+                      options={[
+                        { value: "default", label: "Default" },
+                        { value: "deep", label: "Deepen+" },
+                      ]}
+                    />
+                    <span className="hidden text-xs text-[var(--pf-gray-500)] sm:inline">
+                      Deepen+ pulls more context (news + web sources) for higher-quality drafts.
+                    </span>
+                    <Button
+                      type="button"
+                      onClick={generateAiDraft}
+                      disabled={aiLoading || !symbol || publishBlocked}
+                    >
+                      {aiLoading ? "Generating…" : "Generate draft"}
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="ai-notes">Notes (optional)</Label>
+                  <Textarea
+                    id="ai-notes"
+                    value={aiNotes}
+                    onChange={(e) => setAiNotes(e.target.value)}
+                    placeholder="What’s the setup? Any catalysts, levels mentioned elsewhere, angle you want the desk voice to hit…"
+                    minLength={0}
+                  />
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-[var(--pf-gray-500)]">
+                    {aiCost != null ? (
+                      <span>
+                        Est. cost: <span className="font-mono">${aiCost.toFixed(4)}</span>
+                      </span>
+                    ) : null}
+                    {aiCacheHit != null ? (
+                      <span>
+                        Cache: <span className="font-mono">{aiCacheHit ? "hit" : "miss"}</span>
+                      </span>
+                    ) : null}
+                    {aiRemaining ? (
+                      <span>
+                        Remaining today:{" "}
+                        <span className="font-mono">
+                          {aiRemaining.default} default · {aiRemaining.deep} deep
+                        </span>
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-2 text-xs text-[var(--pf-gray-500)]">
+                    How to use: enter a symbol, add notes, click Generate draft, then review and publish. Levels are only filled if explicit.
+                  </p>
+                </div>
+              </section>
+            ) : null}
+
             <section className="space-y-4">
               <p className="pf-eyebrow">Setup</p>
               <div>

@@ -11,7 +11,10 @@ import {
 } from "@/lib/notifications/service";
 import { validateSymbol } from "@/lib/market/validate-symbol";
 import { notifyDiscordNewCall } from "@/lib/discord/events";
-import { attachSocialResearchSnapshotToCall } from "@/lib/calls/research-snapshot";
+import {
+  attachCachedResearchSnapshotToCall,
+  attachSocialResearchSnapshotToCall,
+} from "@/lib/calls/research-snapshot";
 
 const createSchema = z.object({
   symbol: z.string().min(1).max(12),
@@ -25,6 +28,7 @@ const createSchema = z.object({
   isFueled: z.boolean().optional(),
   sourceTweetUrl: z.string().url().max(500).optional(),
   socialAnalysisMode: z.enum(["default", "deep"]).optional(),
+  socialAnalysisRawText: z.string().min(12).max(8000).optional(),
 });
 
 export async function GET(request: Request) {
@@ -98,6 +102,10 @@ export async function POST(request: Request) {
       session.role === "admin" && body.sourceTweetUrl?.trim()
         ? body.sourceTweetUrl.trim()
         : null;
+    const socialRawText =
+      session.role === "admin" && body.socialAnalysisRawText?.trim()
+        ? body.socialAnalysisRawText.trim()
+        : null;
 
     const { data: call, error } = await db
       .from("calls")
@@ -130,6 +138,14 @@ export async function POST(request: Request) {
         symbol: resolvedSymbol,
         mode: body.socialAnalysisMode ?? "default",
         tweetUrl: sourceTweetUrl,
+      });
+    } else if (isFueled && socialRawText) {
+      void attachCachedResearchSnapshotToCall({
+        callId: call.id,
+        symbol: resolvedSymbol,
+        mode: body.socialAnalysisMode ?? "default",
+        source: "ticker_ai",
+        rawText: socialRawText,
       });
     }
 

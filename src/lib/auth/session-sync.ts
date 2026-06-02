@@ -47,6 +47,20 @@ async function fetchBillingRow(userId: string): Promise<DbBillingRow | null> {
   return data as DbBillingRow | null;
 }
 
+async function touchLastActive(userId: string): Promise<void> {
+  try {
+    const db = createServiceClient();
+    const cutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    await db
+      .from("users")
+      .update({ last_active_at: new Date().toISOString() } as never)
+      .eq("id", userId)
+      .or(`last_active_at.is.null,last_active_at.lt.${cutoff}`);
+  } catch {
+    /* best effort */
+  }
+}
+
 function sessionChanged(before: SessionPayload, after: SessionPayload): boolean {
   return (
     before.subscriptionStatus !== after.subscriptionStatus ||
@@ -109,6 +123,8 @@ export async function refreshSessionFromDatabase(
     await expireProGrantIfNeeded(session.userId);
     const row = await fetchBillingRow(session.userId);
     if (!row) return { session };
+
+    void touchLastActive(session.userId);
 
     const effectiveTier = effectiveMembershipTier(
       row.membership_tier,
