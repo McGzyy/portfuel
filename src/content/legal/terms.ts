@@ -23,7 +23,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
   {
     title: "3. Subscriptions and billing",
     paragraphs: [
-      "Paid access is offered on recurring monthly plans (Member and Pro Intelligence) processed by Stripe. Prices shown at checkout are authoritative; promotional codes may apply when offered.",
+      "Paid access is offered on recurring monthly or annual plans (Member and Pro Intelligence) processed by Stripe. Prices shown at checkout are authoritative; promotional codes may apply when offered.",
       "Subscriptions renew automatically until cancelled through the billing portal or Stripe. You may cancel at any time; access typically continues through the end of the paid period unless otherwise stated by Stripe or applicable law.",
       "Refunds are handled according to our refund policy at checkout and Stripe’s rules. Chargebacks without contacting support first may result in account suspension.",
     ],

@@ -90,6 +90,7 @@ export async function getSession(): Promise<SessionPayload | null> {
       role: payload.role as SessionPayload["role"],
       subscriptionStatus: payload.subscriptionStatus as SessionPayload["subscriptionStatus"],
       membershipTier,
+      proGrantedUntil: payload.proGrantedUntil ? String(payload.proGrantedUntil) : null,
       totpVerified: Boolean(payload.totpVerified),
       onboardingCompleted: Boolean(payload.onboardingCompleted),
     };

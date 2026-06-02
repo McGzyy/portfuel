@@ -1,5 +1,7 @@
 import { SignJWT } from "jose";
 import { createServiceClient } from "@/lib/db/supabase";
+import { effectiveMembershipTier } from "@/lib/billing/effective-access";
+import { expireProGrantIfNeeded } from "@/lib/billing/pro-grant";
 import type { MembershipTier } from "@/lib/stripe/config";
 import type { SessionPayload } from "@/lib/auth/session-types";
 
@@ -25,6 +27,7 @@ export async function signSessionToken(payload: SessionPayload): Promise<string>
 type DbBillingRow = {
   subscription_status: SessionPayload["subscriptionStatus"];
   membership_tier: MembershipTier | null;
+  pro_granted_until: string | null;
   totp_verified: boolean;
   display_name: string | null;
   role: SessionPayload["role"];
@@ -36,7 +39,7 @@ async function fetchBillingRow(userId: string): Promise<DbBillingRow | null> {
   const { data } = await db
     .from("users")
     .select(
-      "subscription_status, membership_tier, totp_verified, display_name, role, onboarding_completed_at"
+      "subscription_status, membership_tier, pro_granted_until, totp_verified, display_name, role, onboarding_completed_at"
     )
     .eq("id", userId)
     .maybeSingle();
@@ -47,6 +50,7 @@ function sessionChanged(before: SessionPayload, after: SessionPayload): boolean 
   return (
     before.subscriptionStatus !== after.subscriptionStatus ||
     before.membershipTier !== after.membershipTier ||
+    before.proGrantedUntil !== after.proGrantedUntil ||
     before.totpVerified !== after.totpVerified ||
     before.role !== after.role ||
     before.displayName !== after.displayName ||
@@ -82,6 +86,7 @@ export function jwtPayloadToSession(payload: Record<string, unknown>): SessionPa
     role: payload.role as SessionPayload["role"],
     subscriptionStatus: payload.subscriptionStatus as SessionPayload["subscriptionStatus"],
     membershipTier,
+    proGrantedUntil: payload.proGrantedUntil ? String(payload.proGrantedUntil) : null,
     totpVerified: Boolean(payload.totpVerified),
     onboardingCompleted: Boolean(payload.onboardingCompleted),
   };
@@ -91,13 +96,20 @@ export async function refreshSessionFromDatabase(
   session: SessionPayload
 ): Promise<{ session: SessionPayload; token?: string }> {
   try {
+    await expireProGrantIfNeeded(session.userId);
     const row = await fetchBillingRow(session.userId);
     if (!row) return { session };
+
+    const effectiveTier = effectiveMembershipTier(
+      row.membership_tier,
+      row.pro_granted_until
+    );
 
     const merged: SessionPayload = {
       ...session,
       subscriptionStatus: row.subscription_status,
-      membershipTier: row.membership_tier ?? null,
+      membershipTier: effectiveTier,
+      proGrantedUntil: row.pro_granted_until,
       totpVerified: row.totp_verified,
       displayName: row.display_name ?? session.displayName,
       role: row.role,

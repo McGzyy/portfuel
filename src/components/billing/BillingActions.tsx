@@ -2,16 +2,30 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { MembershipTier } from "@/lib/stripe/config";
+import type { BillingInterval, MembershipTier } from "@/lib/stripe/config";
+
+const CHECKOUT_VOUCHER_ERRORS: Record<string, string> = {
+  not_found: "Promo code not found.",
+  expired: "That promo code has expired.",
+  max_uses: "That promo code has reached its limit.",
+  user_max_uses: "You have already used that code.",
+  wrong_tier: "That code does not apply to this plan.",
+  voucher_not_synced: "Promo is not ready yet — contact support.",
+  annual_not_configured: "Annual billing is not available yet.",
+};
 
 export function CompleteCheckoutButton({
   tier,
   label,
   className,
+  voucherCode,
+  billingInterval = "monthly",
 }: {
   tier: MembershipTier;
   label?: string;
   className?: string;
+  voucherCode?: string;
+  billingInterval?: BillingInterval;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,7 +37,11 @@ export function CompleteCheckoutButton({
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier }),
+        body: JSON.stringify({
+          tier,
+          billingInterval,
+          ...(voucherCode?.trim() ? { voucherCode: voucherCode.trim() } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.url) {
@@ -32,7 +50,9 @@ export function CompleteCheckoutButton({
             ? "Billing is not configured yet."
             : data.error === "already_subscribed"
               ? "You already have an active plan. Upgrade to Pro from your profile."
-              : "Could not start checkout. Try again."
+              : CHECKOUT_VOUCHER_ERRORS[data.error]
+                ? CHECKOUT_VOUCHER_ERRORS[data.error]
+                : "Could not start checkout. Try again."
         );
         return;
       }

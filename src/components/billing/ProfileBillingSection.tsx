@@ -1,20 +1,39 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import {
   CompleteCheckoutButton,
   ManageBillingButton,
 } from "@/components/billing/BillingActions";
+import { BillingIntervalPicker } from "@/components/billing/BillingIntervalPicker";
 import { UpgradeToProButton } from "@/components/billing/UpgradeToProButton";
+import { Input } from "@/components/ui/input";
 import { formatTierPriceLong } from "@/lib/marketing/plans";
+import type { BillingInterval } from "@/lib/stripe/config";
 import { isStripeConfigured } from "@/lib/stripe/config";
 
 export function ProfileBillingSection({
   subscriptionStatus,
   membershipTier,
+  billingInterval,
   stripeCustomerId,
 }: {
   subscriptionStatus: "pending" | "active" | "cancelled";
   membershipTier: "member" | "pro" | null;
+  billingInterval?: BillingInterval | null;
   stripeCustomerId: string | null;
 }) {
+  const [checkoutPromo, setCheckoutPromo] = useState("");
+  const [checkoutInterval, setCheckoutInterval] = useState<BillingInterval>("monthly");
+  const [annualAvailable, setAnnualAvailable] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/stripe/status")
+      .then((r) => r.json())
+      .then((d: { annualConfigured?: boolean }) => setAnnualAvailable(Boolean(d.annualConfigured)))
+      .catch(() => setAnnualAvailable(false));
+  }, []);
+
   if (!isStripeConfigured()) return null;
 
   const tierLabel =
@@ -23,6 +42,13 @@ export function ProfileBillingSection({
       : membershipTier === "member"
         ? "Member"
         : "—";
+
+  const cadenceLabel =
+    billingInterval === "annual"
+      ? "Annual"
+      : billingInterval === "monthly"
+        ? "Monthly"
+        : null;
 
   return (
     <section className="pf-workspace-panel p-5">
@@ -37,9 +63,17 @@ export function ProfileBillingSection({
           </span>
         </span>
         {subscriptionStatus === "active" ? (
-          <span className="text-sm text-[var(--pf-gray-600)]">
-            Plan: <span className="font-semibold text-[var(--pf-black)]">{tierLabel}</span>
-          </span>
+          <>
+            <span className="text-sm text-[var(--pf-gray-600)]">
+              Plan: <span className="font-semibold text-[var(--pf-black)]">{tierLabel}</span>
+            </span>
+            {cadenceLabel ? (
+              <span className="text-sm text-[var(--pf-gray-600)]">
+                Billing:{" "}
+                <span className="font-semibold text-[var(--pf-black)]">{cadenceLabel}</span>
+              </span>
+            ) : null}
+          </>
         ) : null}
       </div>
 
@@ -54,11 +88,45 @@ export function ProfileBillingSection({
         <UpgradeToProButton className="mt-4 max-w-md" />
       ) : null}
 
+      {subscriptionStatus === "pending" || subscriptionStatus === "cancelled" ? (
+        <>
+          <div className="mt-4">
+            <BillingIntervalPicker
+              value={checkoutInterval}
+              onChange={setCheckoutInterval}
+              annualAvailable={annualAvailable}
+            />
+          </div>
+          <div className="mt-4 max-w-sm">
+            <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
+              Promo code <span className="font-normal text-[var(--pf-gray-400)]">(optional)</span>
+            </label>
+            <Input
+              value={checkoutPromo}
+              onChange={(e) => setCheckoutPromo(e.target.value.toUpperCase())}
+              placeholder="LAUNCH20"
+              className="font-mono"
+              autoComplete="off"
+            />
+          </div>
+        </>
+      ) : null}
+
       <div className="mt-4 flex flex-wrap gap-3">
         {subscriptionStatus === "pending" || subscriptionStatus === "cancelled" ? (
           <>
-            <CompleteCheckoutButton tier="member" label={`Subscribe — ${formatTierPriceLong("member")}`} />
-            <CompleteCheckoutButton tier="pro" label={`Subscribe — ${formatTierPriceLong("pro")}`} />
+            <CompleteCheckoutButton
+              tier="member"
+              label={`Subscribe — ${formatTierPriceLong("member", checkoutInterval)}`}
+              voucherCode={checkoutPromo}
+              billingInterval={checkoutInterval}
+            />
+            <CompleteCheckoutButton
+              tier="pro"
+              label={`Subscribe — ${formatTierPriceLong("pro", checkoutInterval)}`}
+              voucherCode={checkoutPromo}
+              billingInterval={checkoutInterval}
+            />
           </>
         ) : null}
         {stripeCustomerId &&

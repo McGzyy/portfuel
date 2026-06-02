@@ -3,8 +3,8 @@
 ## 1. Stripe Dashboard
 
 1. Create products in [Stripe Dashboard → Products](https://dashboard.stripe.com/products):
-   - **Member** — recurring monthly (display $79/mo)
-   - **Pro Intelligence** — recurring monthly (display $129/mo)
+   - **Member** — recurring monthly (display $79/mo) and optional **yearly** price (e.g. $790/yr)
+   - **Pro Intelligence** — recurring monthly (display $129/mo) and optional **yearly** (e.g. $1,290/yr)
 2. Copy each **Price ID** (`price_...`).
 
 ## 2. Environment variables
@@ -16,8 +16,13 @@ STRIPE_SECRET_KEY=sk_live_...          # or sk_test_... for testing
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRICE_MEMBER=price_...
 STRIPE_PRICE_PRO=price_...
+# Optional — enables Monthly / Annual toggle on /join and profile checkout
+STRIPE_PRICE_MEMBER_ANNUAL=price_...
+STRIPE_PRICE_PRO_ANNUAL=price_...
 NEXT_PUBLIC_APP_URL=https://www.portfuel.pro
 ```
+
+Annual display copy on `/join` lives in `src/lib/marketing/plans.ts` (`ANNUAL_PLAN_BY_TIER`) — keep amounts aligned with your Stripe yearly prices.
 
 Optional (not required for Checkout redirect flow):
 
@@ -69,10 +74,12 @@ Active subscribers: profile → **Manage billing** (Stripe Customer Portal).
 
 ## 6. Tiers & Pro gates
 
-| Tier | Price ID env | Pro intelligence |
-|------|----------------|------------------|
-| Member | `STRIPE_PRICE_MEMBER` | Locked |
-| Pro | `STRIPE_PRICE_PRO` | Unlocked |
+| Tier | Monthly price ID | Annual price ID (optional) | Pro intelligence |
+|------|------------------|----------------------------|------------------|
+| Member | `STRIPE_PRICE_MEMBER` | `STRIPE_PRICE_MEMBER_ANNUAL` | Locked |
+| Pro | `STRIPE_PRICE_PRO` | `STRIPE_PRICE_PRO_ANNUAL` | Unlocked |
+
+`users.billing_interval` stores `monthly` or `annual` after checkout. Member → Pro upgrades use the **same interval** (annual Member upgrades to annual Pro).
 
 Admins and `NEXT_PUBLIC_DEMO_MODE=true` bypass billing gates as before.
 

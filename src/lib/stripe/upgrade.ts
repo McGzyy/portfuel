@@ -1,5 +1,9 @@
 import { getStripe } from "@/lib/stripe/client";
-import { getPriceIdForTier } from "@/lib/stripe/config";
+import {
+  billingIntervalFromPriceId,
+  getPriceIdForTier,
+  type BillingInterval,
+} from "@/lib/stripe/config";
 import {
   applySubscriptionToUser,
   findUserById,
@@ -25,13 +29,17 @@ export async function upgradeMemberToPro(
     throw new Error("no_stripe_subscription");
   }
 
-  const proPriceId = getPriceIdForTier("pro");
-  if (!proPriceId) throw new Error("price_not_configured");
-
   const stripe = getStripe();
   const sub = await stripe.subscriptions.retrieve(user.stripe_subscription_id);
   const item = sub.items.data[0];
   if (!item?.id) throw new Error("subscription_item_missing");
+
+  const interval =
+    ((user as { billing_interval?: BillingInterval }).billing_interval as BillingInterval) ??
+    billingIntervalFromPriceId(item.price.id);
+
+  const proPriceId = getPriceIdForTier("pro", interval);
+  if (!proPriceId) throw new Error("price_not_configured");
 
   const updated = await stripe.subscriptions.update(user.stripe_subscription_id, {
     items: [{ id: item.id, price: proPriceId }],
@@ -51,6 +59,7 @@ export async function upgradeMemberToPro(
     stripeCustomerId: user.stripe_customer_id,
     stripeSubscriptionId: updated.id,
     tier,
+    billingInterval: interval,
     status: "active",
   });
 

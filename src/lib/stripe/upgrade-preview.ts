@@ -1,5 +1,9 @@
 import { getStripe } from "@/lib/stripe/client";
-import { getPriceIdForTier } from "@/lib/stripe/config";
+import {
+  billingIntervalFromPriceId,
+  getPriceIdForTier,
+  type BillingInterval,
+} from "@/lib/stripe/config";
 import { findUserById } from "@/lib/stripe/subscription";
 import { isDemoMode } from "@/lib/demo/config";
 import { PLAN_BY_TIER } from "@/lib/marketing/plans";
@@ -30,9 +34,6 @@ export async function getMemberToProUpgradePreview(
   if (!user) throw new Error("user_not_found");
   assertUpgradeEligible(user);
 
-  const proPriceId = getPriceIdForTier("pro");
-  if (!proPriceId) throw new Error("price_not_configured");
-
   if (isDemoMode()) {
     const prorationCents = 4750;
     return {
@@ -49,6 +50,13 @@ export async function getMemberToProUpgradePreview(
   const sub = await stripe.subscriptions.retrieve(user.stripe_subscription_id!);
   const item = sub.items.data[0];
   if (!item?.id) throw new Error("subscription_item_missing");
+
+  const interval =
+    ((user as { billing_interval?: BillingInterval }).billing_interval as BillingInterval) ??
+    billingIntervalFromPriceId(item.price.id);
+
+  const proPriceId = getPriceIdForTier("pro", interval);
+  if (!proPriceId) throw new Error("price_not_configured");
 
   const prorationDate = Math.floor(Date.now() / 1000);
 

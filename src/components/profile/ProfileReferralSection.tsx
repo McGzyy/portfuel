@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { ProfileAffiliateVouchers } from "@/components/profile/ProfileAffiliateVouchers";
 
 type ReferralStats = {
   referralCode: string;
@@ -98,6 +99,8 @@ export function ProfileReferralSection() {
       ) : !error ? (
         <p className="mt-4 text-sm text-[var(--pf-gray-500)]">Loading referral link…</p>
       ) : null}
+
+      <ProfileAffiliateVouchers />
     </section>
   );
 }

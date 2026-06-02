@@ -21,6 +21,7 @@ import { ProfileBillingSection } from "@/components/billing/ProfileBillingSectio
 import { ProfileAiCoachStrip } from "@/components/profile/ProfileAiCoachStrip";
 import { ProfileEmailSection } from "@/components/profile/ProfileEmailSection";
 import { ProfileReferralSection } from "@/components/profile/ProfileReferralSection";
+import { ProfileVouchersSection } from "@/components/profile/ProfileVouchersSection";
 import { ProfileDiscordSection } from "@/components/profile/ProfileDiscordSection";
 import { fetchAiCoachUsage } from "@/lib/ai/usage";
 import { isAiCoachConfigured } from "@/lib/ai/config";
@@ -87,7 +88,16 @@ export default async function ProfilePage() {
         <ProfileBillingSection
           subscriptionStatus={profile.subscriptionStatus}
           membershipTier={profile.membershipTier}
+          billingInterval={profile.billingInterval}
           stripeCustomerId={profile.stripeCustomerId}
+        />
+      </div>
+
+      <div className="mt-6">
+        <ProfileVouchersSection
+          subscriptionStatus={profile.subscriptionStatus}
+          storedMembershipTier={profile.membershipTier}
+          proGrantedUntil={profile.proGrantedUntil ?? session.proGrantedUntil ?? null}
         />
       </div>
 

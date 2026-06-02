@@ -9,12 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TierComparisonTable } from "@/components/marketing/TierComparisonTable";
+import { BillingIntervalPicker } from "@/components/billing/BillingIntervalPicker";
 import { CompleteCheckoutButton } from "@/components/billing/BillingActions";
-import type { MembershipTier } from "@/lib/stripe/config";
+import type { BillingInterval, MembershipTier } from "@/lib/stripe/config";
 import {
+  ANNUAL_PLAN_BY_TIER,
   formatTierPrice,
+  formatTierPriceForInterval,
   MARKETING_PRICE_SUMMARY,
-  PLAN_BY_TIER,
+  planPricingForInterval,
   PLAN_ORDER,
   TIER_COMPARISON_ROWS,
 } from "@/lib/marketing/plans";
@@ -23,6 +26,7 @@ import { cn } from "@/lib/utils";
 type Step = "plan" | "account" | "done";
 
 const REF_STORAGE_KEY = "portfuel_ref";
+const PROMO_STORAGE_KEY = "portfuel_promo";
 
 export default function JoinPage() {
   const router = useRouter();
@@ -30,8 +34,11 @@ export default function JoinPage() {
   const pending = searchParams.get("pending") === "1";
   const cancelled = searchParams.get("cancelled") === "1";
   const refFromUrl = searchParams.get("ref")?.trim().toLowerCase() ?? "";
+  const promoFromUrl = searchParams.get("promo")?.trim().toUpperCase() ?? "";
 
   const [stripeEnabled, setStripeEnabled] = useState<boolean | null>(null);
+  const [annualAvailable, setAnnualAvailable] = useState(false);
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>("monthly");
   const [step, setStep] = useState<Step>("plan");
   const [selectedTier, setSelectedTier] = useState<MembershipTier>("member");
   const [username, setUsername] = useState("");
@@ -42,14 +49,22 @@ export default function JoinPage() {
   const [loading, setLoading] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [referrerName, setReferrerName] = useState<string | null>(null);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherHint, setVoucherHint] = useState<string | null>(null);
 
-  const selectedPlan = PLAN_BY_TIER[selectedTier];
+  const selectedPlan = planPricingForInterval(selectedTier, billingInterval);
 
   useEffect(() => {
     fetch("/api/stripe/status")
       .then((r) => r.json())
-      .then((d) => setStripeEnabled(Boolean(d.configured)))
-      .catch(() => setStripeEnabled(false));
+      .then((d: { configured?: boolean; annualConfigured?: boolean }) => {
+        setStripeEnabled(Boolean(d.configured));
+        setAnnualAvailable(Boolean(d.annualConfigured));
+      })
+      .catch(() => {
+        setStripeEnabled(false);
+        setAnnualAvailable(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -72,6 +87,42 @@ export default function JoinPage() {
       })
       .catch(() => undefined);
   }, [refFromUrl]);
+
+  useEffect(() => {
+    const promo =
+      promoFromUrl ||
+      (typeof window !== "undefined" ? sessionStorage.getItem(PROMO_STORAGE_KEY) ?? "" : "");
+    if (!promo) return;
+    setVoucherCode(promo);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(PROMO_STORAGE_KEY, promo);
+    }
+  }, [promoFromUrl]);
+
+  useEffect(() => {
+    const code = voucherCode.trim();
+    if (code.length < 3) {
+      setVoucherHint(null);
+      return;
+    }
+    const q = new URLSearchParams({
+      code,
+      tier: selectedTier,
+      interval: billingInterval,
+      kind: "checkout_discount",
+    });
+    if (referralCode) q.set("ref", referralCode);
+    const t = window.setTimeout(() => {
+      fetch(`/api/vouchers/validate?${q}`)
+        .then((r) => r.json())
+        .then((d: { valid?: boolean; label?: string; error?: string }) => {
+          if (d.valid && d.label) setVoucherHint(d.label);
+          else if (!d.valid) setVoucherHint(null);
+        })
+        .catch(() => setVoucherHint(null));
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [voucherCode, selectedTier, referralCode, billingInterval]);
 
   async function handleRegister() {
     setError("");
@@ -104,14 +155,23 @@ export default function JoinPage() {
         const checkoutRes = await fetch("/api/stripe/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tier: selectedTier, userId: data.userId }),
+          body: JSON.stringify({
+            tier: selectedTier,
+            billingInterval,
+            userId: data.userId,
+            ...(voucherCode.trim() ? { voucherCode: voucherCode.trim() } : {}),
+          }),
         });
         const checkoutData = await checkoutRes.json();
         if (!checkoutRes.ok || !checkoutData.url) {
           setError(
             checkoutData.error === "stripe_not_configured"
               ? "Billing is not configured. Your account was created — sign in after an admin activates you."
-              : "Account created but checkout failed. Sign in from the pending page to pay."
+              : checkoutData.error === "expired" ||
+                  checkoutData.error === "not_found" ||
+                  checkoutData.error === "max_uses"
+                ? "That promo code is not valid. Account created — sign in to retry checkout."
+                : "Account created but checkout failed. Sign in from the pending page to pay."
           );
           setStep("done");
           return;
@@ -178,16 +238,26 @@ export default function JoinPage() {
                 </p>
               </div>
               {stripeEnabled ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <CompleteCheckoutButton
-                    tier="member"
-                    label={`Member — ${PLAN_BY_TIER.member.price}${PLAN_BY_TIER.member.period}`}
+                <>
+                  <BillingIntervalPicker
+                    value={billingInterval}
+                    onChange={setBillingInterval}
+                    annualAvailable={annualAvailable}
+                    className="mx-auto"
                   />
-                  <CompleteCheckoutButton
-                    tier="pro"
-                    label={`Pro — ${PLAN_BY_TIER.pro.price}${PLAN_BY_TIER.pro.period}`}
-                  />
-                </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <CompleteCheckoutButton
+                      tier="member"
+                      billingInterval={billingInterval}
+                      label={`Member — ${formatTierPriceForInterval("member", billingInterval)}`}
+                    />
+                    <CompleteCheckoutButton
+                      tier="pro"
+                      billingInterval={billingInterval}
+                      label={`Pro — ${formatTierPriceForInterval("pro", billingInterval)}`}
+                    />
+                  </div>
+                </>
               ) : null}
               <p className="text-center text-sm">
                 <Link href="/login" className="font-semibold text-[var(--pf-red)] hover:underline">
@@ -209,9 +279,22 @@ export default function JoinPage() {
                 </p>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div className="flex justify-center">
+                  <BillingIntervalPicker
+                    value={billingInterval}
+                    onChange={setBillingInterval}
+                    annualAvailable={annualAvailable}
+                  />
+                </div>
+                {billingInterval === "annual" && annualAvailable ? (
+                  <p className="text-center text-xs text-[var(--pf-gray-500)]">
+                    {ANNUAL_PLAN_BY_TIER.member.savingsNote} ·{" "}
+                    {ANNUAL_PLAN_BY_TIER.pro.savingsNote}
+                  </p>
+                ) : null}
                 <div className="grid gap-4 sm:grid-cols-2">
                   {PLAN_ORDER.map((tier) => {
-                    const plan = PLAN_BY_TIER[tier];
+                    const plan = planPricingForInterval(tier, billingInterval);
                     return (
                       <PlanCard
                         key={tier}
@@ -327,6 +410,20 @@ export default function JoinPage() {
                   onChange={(e) => setDisplayName(e.target.value.slice(0, 32))}
                   placeholder="How you appear on calls"
                 />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
+                  Promo code <span className="font-normal text-[var(--pf-gray-400)]">(optional)</span>
+                </label>
+                <Input
+                  value={voucherCode}
+                  onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                  placeholder="LAUNCH20"
+                  autoComplete="off"
+                />
+                {voucherHint ? (
+                  <p className="mt-1 text-xs text-emerald-700">{voucherHint} applied at checkout.</p>
+                ) : null}
               </div>
               <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-3">
                 <input

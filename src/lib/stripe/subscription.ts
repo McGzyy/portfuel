@@ -4,8 +4,10 @@ import { notifyDiscordSubscriptionChange } from "@/lib/discord/dm";
 import { markDiscordRoleSyncPending } from "@/lib/discord/sync";
 import { markReferralConverted } from "@/lib/referrals/service";
 import {
+  billingIntervalFromPriceId,
   quotaForTier,
   tierFromPriceId,
+  type BillingInterval,
   type MembershipTier,
 } from "@/lib/stripe/config";
 
@@ -14,6 +16,7 @@ export type SubscriptionSyncInput = {
   stripeCustomerId: string;
   stripeSubscriptionId: string;
   tier: MembershipTier;
+  billingInterval?: BillingInterval;
   status: "active" | "cancelled";
 };
 
@@ -33,6 +36,10 @@ export async function applySubscriptionToUser(input: SubscriptionSyncInput) {
     subscription_status: input.status,
     updated_at: new Date().toISOString(),
   };
+
+  if (input.billingInterval) {
+    updates.billing_interval = input.billingInterval;
+  }
 
   if (input.status === "active") {
     updates.submission_quota_week = quotaForTier(input.tier);
@@ -90,6 +97,13 @@ export function tierFromStripeSubscription(sub: {
 }): MembershipTier | null {
   const priceId = sub.items?.data?.[0]?.price?.id;
   return tierFromPriceId(priceId);
+}
+
+export function billingIntervalFromStripeSubscription(sub: {
+  items: { data: Array<{ price: { id: string } }> };
+}): BillingInterval {
+  const priceId = sub.items?.data?.[0]?.price?.id;
+  return billingIntervalFromPriceId(priceId);
 }
 
 export function mapStripeSubscriptionStatus(

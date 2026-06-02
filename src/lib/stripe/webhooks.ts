@@ -1,14 +1,16 @@
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe/client";
-import { tierFromPriceId, type MembershipTier } from "@/lib/stripe/config";
+import { tierFromPriceId, type BillingInterval, type MembershipTier } from "@/lib/stripe/config";
 import {
   applySubscriptionToUser,
   findUserById,
   findUserByStripeCustomerId,
   findUserByStripeSubscriptionId,
+  billingIntervalFromStripeSubscription,
   mapStripeSubscriptionStatus,
   tierFromStripeSubscription,
 } from "@/lib/stripe/subscription";
+import { finalizeCheckoutRedemption } from "@/lib/vouchers/service";
 
 export async function handleStripeWebhookEvent(event: Stripe.Event) {
   switch (event.type) {
@@ -62,13 +64,25 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
+  const billingInterval = resolveBillingInterval(
+    session.metadata?.billingInterval,
+    sub
+  );
+
   await applySubscriptionToUser({
     userId,
     stripeCustomerId: customerId,
     stripeSubscriptionId: subscriptionId,
     tier,
+    billingInterval,
     status: "active",
   });
+
+  if (session.id) {
+    await finalizeCheckoutRedemption(session.id).catch((e) =>
+      console.error("[vouchers/finalize]", e)
+    );
+  }
 }
 
 async function onSubscriptionUpdated(sub: Stripe.Subscription) {
@@ -90,6 +104,7 @@ async function onSubscriptionUpdated(sub: Stripe.Subscription) {
       typeof sub.customer === "string" ? sub.customer : (sub.customer?.id ?? user.stripe_customer_id!),
     stripeSubscriptionId: sub.id,
     tier: tier as MembershipTier,
+    billingInterval: billingIntervalFromStripeSubscription(sub),
     status: mapped === "active" ? "active" : "cancelled",
   });
 }
@@ -105,8 +120,19 @@ async function onSubscriptionDeleted(sub: Stripe.Subscription) {
       typeof sub.customer === "string" ? sub.customer : (sub.customer?.id ?? user.stripe_customer_id!),
     stripeSubscriptionId: sub.id,
     tier,
+    billingInterval: billingIntervalFromStripeSubscription(sub),
     status: "cancelled",
   });
+}
+
+function resolveBillingInterval(
+  metadataInterval: string | undefined,
+  sub: { items: { data: Array<{ price: { id: string } }> } }
+): BillingInterval {
+  if (metadataInterval === "annual" || metadataInterval === "monthly") {
+    return metadataInterval;
+  }
+  return billingIntervalFromStripeSubscription(sub);
 }
 
 /** Idempotent activation after redirect (webhook may lag). */
@@ -153,13 +179,25 @@ export async function confirmCheckoutSession(sessionId: string) {
 
   if (!tier) throw new Error("unknown_tier");
 
+  const billingInterval = resolveBillingInterval(
+    session.metadata?.billingInterval,
+    sub as { items: { data: Array<{ price: { id: string } }> } }
+  );
+
   await applySubscriptionToUser({
     userId,
     stripeCustomerId: customerId,
     stripeSubscriptionId: subscriptionId,
     tier,
+    billingInterval,
     status: "active",
   });
+
+  if (sessionId) {
+    await finalizeCheckoutRedemption(sessionId).catch((e) =>
+      console.error("[vouchers/finalize]", e)
+    );
+  }
 
   return { user, tier };
 }

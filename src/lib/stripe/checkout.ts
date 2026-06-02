@@ -2,6 +2,7 @@ import { getStripe } from "@/lib/stripe/client";
 import {
   getAppUrl,
   getPriceIdForTier,
+  type BillingInterval,
   type MembershipTier,
 } from "@/lib/stripe/config";
 import { findUserById } from "@/lib/stripe/subscription";
@@ -9,7 +10,10 @@ import { findUserById } from "@/lib/stripe/subscription";
 export async function createCheckoutSession(opts: {
   userId: string;
   tier: MembershipTier;
+  billingInterval?: BillingInterval;
   customerEmail?: string | null;
+  promotionCodeId?: string;
+  voucherId?: string;
 }) {
   const user = await findUserById(opts.userId);
   if (!user) throw new Error("user_not_found");
@@ -18,7 +22,8 @@ export async function createCheckoutSession(opts: {
     throw new Error("already_subscribed");
   }
 
-  const priceId = getPriceIdForTier(opts.tier);
+  const billingInterval = opts.billingInterval ?? "monthly";
+  const priceId = getPriceIdForTier(opts.tier, billingInterval);
   if (!priceId) throw new Error("price_not_configured");
 
   const stripe = getStripe();
@@ -35,15 +40,20 @@ export async function createCheckoutSession(opts: {
     metadata: {
       userId: opts.userId,
       tier: opts.tier,
+      billingInterval,
       username: user.username,
+      ...(opts.voucherId ? { voucherId: opts.voucherId } : {}),
     },
     subscription_data: {
       metadata: {
         userId: opts.userId,
         tier: opts.tier,
+        billingInterval,
       },
     },
-    allow_promotion_codes: true,
+    ...(opts.promotionCodeId
+      ? { discounts: [{ promotion_code: opts.promotionCodeId }] }
+      : { allow_promotion_codes: true }),
   });
 
   if (!session.url) throw new Error("checkout_url_missing");

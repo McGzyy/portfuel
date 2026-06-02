@@ -7,6 +7,7 @@ import {
   getDemoMemberCalls,
   getDemoProfileCalls,
 } from "@/lib/demo/fixtures";
+import type { BillingInterval } from "@/lib/stripe/config";
 import { fetchUserProfile, fetchUserRecentCalls } from "@/lib/users/profile";
 import type { PublicMemberProfile } from "@/lib/users/public-profile";
 
@@ -35,10 +36,20 @@ export type OwnProfileResult = {
   stripeCustomerId: string | null;
   subscriptionStatus: "pending" | "active" | "cancelled";
   membershipTier: "member" | "pro" | null;
+  billingInterval: BillingInterval | null;
+  proGrantedUntil: string | null;
 };
 
 export async function fetchOwnProfile(session: SessionPayload): Promise<
-  | { member: null; calls: []; stripeCustomerId: null; subscriptionStatus: "pending"; membershipTier: null }
+  | {
+      member: null;
+      calls: [];
+      stripeCustomerId: null;
+      subscriptionStatus: "pending";
+      membershipTier: null;
+      proGrantedUntil: null;
+      billingInterval: null;
+    }
   | OwnProfileResult
 > {
   if (isDemoMode()) {
@@ -53,6 +64,8 @@ export async function fetchOwnProfile(session: SessionPayload): Promise<
         stripeCustomerId: null,
         subscriptionStatus: "active",
         membershipTier: "pro",
+        proGrantedUntil: null,
+        billingInterval: "monthly",
       };
     }
 
@@ -79,6 +92,8 @@ export async function fetchOwnProfile(session: SessionPayload): Promise<
       stripeCustomerId: null,
       subscriptionStatus: "active",
       membershipTier: "pro",
+      proGrantedUntil: null,
+      billingInterval: "monthly",
     };
   }
 
@@ -90,15 +105,24 @@ export async function fetchOwnProfile(session: SessionPayload): Promise<
       stripeCustomerId: null,
       subscriptionStatus: "pending",
       membershipTier: null,
+      proGrantedUntil: null,
+      billingInterval: null,
     };
   }
 
   const calls = await fetchUserRecentCalls(session.userId, 20);
+  const extended = row as {
+    pro_granted_until?: string | null;
+    billing_interval?: BillingInterval | null;
+  };
+
   return {
     member: userRowToPublicMember(row),
     calls,
     stripeCustomerId: row.stripe_customer_id,
     subscriptionStatus: row.subscription_status,
     membershipTier: row.membership_tier,
+    billingInterval: extended.billing_interval ?? "monthly",
+    proGrantedUntil: extended.pro_granted_until ?? null,
   };
 }

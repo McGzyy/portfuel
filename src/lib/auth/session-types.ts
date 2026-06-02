@@ -7,6 +7,7 @@ export type SessionPayload = {
   role: "member" | "admin";
   subscriptionStatus: "pending" | "active" | "cancelled";
   membershipTier?: MembershipTier | null;
+  proGrantedUntil?: string | null;
   totpVerified: boolean;
   onboardingCompleted: boolean;
 };

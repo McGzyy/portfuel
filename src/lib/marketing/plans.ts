@@ -1,4 +1,4 @@
-import type { MembershipTier } from "@/lib/stripe/config";
+import type { BillingInterval, MembershipTier } from "@/lib/stripe/config";
 
 export type TierComparisonRow = {
   feature: string;
@@ -72,6 +72,47 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
 
 export const PLAN_ORDER: MembershipTier[] = ["member", "pro"];
 
+/** Display-only annual pricing (must match Stripe annual Price amounts). */
+export const ANNUAL_PLAN_BY_TIER: Record<
+  MembershipTier,
+  { price: string; period: string; priceAmount: number; savingsNote: string }
+> = {
+  member: {
+    price: "$790",
+    period: "/yr",
+    priceAmount: 790,
+    savingsNote: "Save ~$158 vs paying monthly",
+  },
+  pro: {
+    price: "$1,290",
+    period: "/yr",
+    priceAmount: 1290,
+    savingsNote: "Save ~$258 vs paying monthly",
+  },
+};
+
+export function planPricingForInterval(tier: MembershipTier, interval: BillingInterval) {
+  const base = PLAN_BY_TIER[tier];
+  if (interval === "annual") {
+    const annual = ANNUAL_PLAN_BY_TIER[tier];
+    return {
+      ...base,
+      price: annual.price,
+      period: annual.period,
+      priceAmount: annual.priceAmount,
+    };
+  }
+  return base;
+}
+
+export function formatTierPriceForInterval(
+  tier: MembershipTier,
+  interval: BillingInterval
+): string {
+  const plan = planPricingForInterval(tier, interval);
+  return `${plan.price}${plan.period}`;
+}
+
 export function formatTierColumnHeader(tier: MembershipTier): string {
   const plan = PLAN_BY_TIER[tier];
   const label = tier === "member" ? "Member" : "Pro";
@@ -83,8 +124,11 @@ export function formatTierPrice(tier: MembershipTier): string {
   return `${plan.price}${plan.period}`;
 }
 
-export function formatTierPriceLong(tier: MembershipTier): string {
-  const plan = PLAN_BY_TIER[tier];
+export function formatTierPriceLong(
+  tier: MembershipTier,
+  interval: BillingInterval = "monthly"
+): string {
+  const plan = planPricingForInterval(tier, interval);
   return `${plan.name} — ${plan.price}${plan.period}`;
 }
 

@@ -1,4 +1,5 @@
 import type { SessionPayload } from "@/lib/auth/session";
+import { effectiveHasProIntelligence } from "@/lib/billing/effective-access";
 import { isDemoMode } from "@/lib/demo/config";
 import type { MembershipTier } from "@/lib/stripe/config";
 
@@ -6,6 +7,7 @@ export type ProAccessContext = {
   role: SessionPayload["role"];
   subscriptionStatus: SessionPayload["subscriptionStatus"];
   membershipTier?: MembershipTier | null;
+  proGrantedUntil?: string | null;
 } | null;
 
 export function sessionToProContext(
@@ -16,6 +18,7 @@ export function sessionToProContext(
     role: session.role,
     subscriptionStatus: session.subscriptionStatus,
     membershipTier: session.membershipTier ?? null,
+    proGrantedUntil: session.proGrantedUntil ?? null,
   };
 }
 
@@ -36,8 +39,12 @@ export function canAccessProIntelligence(ctx: ProAccessContext): boolean {
   if (process.env.NEXT_PUBLIC_PRO_INTEL_UNLOCK === "true") {
     return ctx.subscriptionStatus === "active";
   }
-  if (ctx.subscriptionStatus !== "active") return false;
-  return ctx.membershipTier === "pro";
+  return effectiveHasProIntelligence({
+    role: ctx.role,
+    subscriptionStatus: ctx.subscriptionStatus,
+    membershipTier: ctx.membershipTier ?? null,
+    proGrantedUntil: ctx.proGrantedUntil,
+  });
 }
 
 export function isProIntelligenceLocked(ctx: ProAccessContext): boolean {
