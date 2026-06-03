@@ -33,7 +33,9 @@ Add to Vercel (Production) and local `.env`:
 - **Post to X** — live when `X_API_ENABLED=true`, `X_API_DRY_RUN=false`, and token is set.
 - **Force repost** — bypasses idempotency for manual posts.
 
-Same tab includes **From X post** (inbound curation): paste an X post URL (with optional text backup) → per-ticker context → **Analyze** → publish Fueled call. Requires `tweet.read` on your X app token for URL fetch; `OPENAI_API_KEY` for analysis.
+Same tab includes **From X post** (inbound curation): paste an X post URL (with optional text backup) → per-ticker context → **Analyze** → publish Fueled call.
+
+**Tweet URL fetch:** PortFuel tries X API v2 when `X_API_BEARER_TOKEN` is set; if that fails (common on free tier: `client-not-enrolled` / no read access), it falls back to X’s public oEmbed endpoint (no extra cost). Manual paste still works as backup. `OPENAI_API_KEY` is required for AI analysis.
 
 ## Cron
 

@@ -143,14 +143,20 @@ export async function parseSocialPost(input: {
       tweetUrl = fetched.tweet.url;
       textSource = "fetched";
       authorUsername = fetched.tweet.authorUsername;
+      if (fetched.tweet.via === "oembed") {
+        fetchWarning =
+          "Loaded via X embed (no API read). For higher volume or private posts, fix X API enrollment in the developer portal.";
+      }
     } else if (!manualText) {
       return {
         error:
-          fetched.error === "no_token"
-            ? "x_not_configured"
-            : fetched.error === "invalid_url"
-              ? "invalid_url"
-              : "fetch_failed",
+          fetched.error === "invalid_url"
+            ? "invalid_url"
+            : fetched.error === "tweet_not_found"
+              ? "tweet_not_found"
+              : fetched.error === "no_token"
+                ? "x_not_configured"
+                : "fetch_failed",
       };
     } else {
       fetchWarning = "Could not load from URL — using pasted text.";

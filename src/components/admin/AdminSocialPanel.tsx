@@ -7,7 +7,8 @@ import { AdminSocialMilestonePanel } from "@/components/admin/AdminSocialMilesto
 type XConfigSummary = {
   enabled: boolean;
   dryRun: boolean;
-  configured: boolean;
+  bearerTokenSet: boolean;
+  livePostingReady: boolean;
   fueledPosts: boolean;
   leaderboardPosts: boolean;
   autopostFueledOnPublish: boolean;
@@ -108,6 +109,22 @@ export function AdminSocialPanel() {
         {config ? (
           <ul className="mt-4 grid gap-2 text-xs text-[var(--pf-gray-600)] sm:grid-cols-2">
             <li>
+              X bearer token:{" "}
+              <span
+                className={`font-semibold ${config.bearerTokenSet ? "text-emerald-700" : "text-rose-700"}`}
+              >
+                {config.bearerTokenSet ? "set" : "missing on server"}
+              </span>
+            </li>
+            <li>
+              Live post to X:{" "}
+              <span
+                className={`font-semibold ${config.livePostingReady ? "text-emerald-700" : "text-[var(--pf-black)]"}`}
+              >
+                {config.livePostingReady ? "ready" : "not yet"}
+              </span>
+            </li>
+            <li>
               API enabled:{" "}
               <span className="font-semibold text-[var(--pf-black)]">
                 {config.enabled ? "yes" : "no"}
@@ -119,15 +136,9 @@ export function AdminSocialPanel() {
                 {config.dryRun ? "yes" : "no"}
               </span>
             </li>
-            <li>
-              Bearer token:{" "}
-              <span className="font-semibold text-[var(--pf-black)]">
-                {config.configured ? "set" : "missing"}
-              </span>
-            </li>
-            <li>
+            <li className="sm:col-span-2">
               Cron types: Fueled {config.fueledPosts ? "on" : "off"} · Leaderboard{" "}
-              {config.leaderboardPosts ? "on" : "off"}
+              {config.leaderboardPosts ? "on" : "off"} · Set vars on Vercel for production.
             </li>
           </ul>
         ) : null}
@@ -162,7 +173,7 @@ export function AdminSocialPanel() {
           <Button
             type="button"
             size="sm"
-            disabled={xLoading || !previewText || !config?.configured}
+            disabled={xLoading || !previewText || !config?.livePostingReady}
             onClick={() => void postX(false)}
           >
             Post to X

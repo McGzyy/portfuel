@@ -42,15 +42,24 @@ export function isXConfigured(): boolean {
 export function xConfigSummary(): {
   enabled: boolean;
   dryRun: boolean;
+  /** Token present (inbound URL fetch + outbound API). */
+  bearerTokenSet: boolean;
+  /** Live post to X: enabled + token + not dry run. */
+  livePostingReady: boolean;
+  /** @deprecated Use bearerTokenSet / livePostingReady — kept for API compat. */
   configured: boolean;
   fueledPosts: boolean;
   leaderboardPosts: boolean;
   autopostFueledOnPublish: boolean;
 } {
   const c = getXConfig();
+  const bearerTokenSet = Boolean(c.bearerToken);
+  const livePostingReady = c.enabled && bearerTokenSet && !c.dryRun;
   return {
     enabled: c.enabled,
     dryRun: c.dryRun,
+    bearerTokenSet,
+    livePostingReady,
     configured: isXConfigured(),
     fueledPosts: c.fueledPosts,
     leaderboardPosts: c.leaderboardPosts,

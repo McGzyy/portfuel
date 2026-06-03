@@ -298,12 +298,18 @@ export function AdminSocialInboundPanel() {
           text_too_short: "Add a URL or paste at least a few lines of tweet text.",
           invalid_url: "That doesn't look like an X post URL.",
           invalid_input: "Paste a post URL or tweet text.",
+          tweet_not_found:
+            "That post wasn't found (deleted, private, or invalid URL). Paste the text below.",
           x_not_configured:
-            "X API token not set — paste the tweet text below and try again.",
+            "Could not load that URL — paste the tweet text below and try again.",
           fetch_failed: "Could not load that post. Paste the tweet text below and retry.",
         };
         setError(messages[json.error as string] ?? "Could not parse post.");
-        if (json.error === "fetch_failed" || json.error === "x_not_configured") {
+        if (
+          json.error === "fetch_failed" ||
+          json.error === "x_not_configured" ||
+          json.error === "tweet_not_found"
+        ) {
           setShowManual(true);
         }
         return;
