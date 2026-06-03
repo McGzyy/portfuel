@@ -7,7 +7,20 @@ export async function POST() {
   try {
     await requireAdmin();
     const result = await refreshQuotesAndScores();
-    return NextResponse.json({ ok: true, ...result });
+    const failed = result.quotes.filter((q) => q.lastPrice == null);
+    return NextResponse.json({
+      ok: true,
+      updated: result.updated,
+      milestonesNotified: result.milestonesNotified,
+      memberWinGates: result.memberWinGates,
+      quotes: result.quotes,
+      ...(failed.length > 0
+        ? {
+            warning:
+              "Some symbols did not return a price (check FINNHUB_API_KEY or symbol).",
+          }
+        : {}),
+    });
   } catch (e) {
     if (e instanceof Error && e.message === "unauthorized") {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });

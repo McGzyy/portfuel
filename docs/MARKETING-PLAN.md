@@ -255,7 +255,7 @@ Cap: **max 5 automated + 1–2 manual** per week.
 
 ### 8.1 Referrals (shipped — activate in campaigns)
 
-- Every member gets `referral_code`; attribute on join/voucher redeem
+- Every member gets `referral_code`; **Profile → Referrals** (link + email invites + history). See [REFERRALS.md](./REFERRALS.md).
 - **Campaign:** “Spotlight post tags your handle — bring friends with your link”
 - Track: conversions per referrer in admin/analytics
 

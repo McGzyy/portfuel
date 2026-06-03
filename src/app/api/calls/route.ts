@@ -4,7 +4,7 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { assertCanPublishCalls, moderationErrorResponse } from "@/lib/auth/moderation-guards";
 import { requireActiveMember } from "@/lib/auth/session";
 import { getQuote, getCryptoLastPrice } from "@/lib/market/finnhub";
-import { fetchCallsFeed, refreshQuotesAndScores } from "@/lib/calls/service";
+import { fetchCallsFeed, refreshQuotesForSymbols } from "@/lib/calls/service";
 import {
   computeReturnPct,
   computeScorePoints,
@@ -213,7 +213,7 @@ export async function POST(request: Request) {
       username: session.username,
     }).catch((e) => console.error("[discord/new-call]", e));
 
-    void refreshQuotesAndScores().catch((e) =>
+    void refreshQuotesForSymbols([resolvedSymbol]).catch((e) =>
       console.error("[calls POST refresh-quotes]", e)
     );
 

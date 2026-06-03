@@ -85,10 +85,17 @@ export function AdminSocialActivityPanel() {
         ok?: boolean;
         updated?: number;
         error?: string;
+        warning?: string;
+        quotes?: Array<{ symbol: string; lastPrice: number | null; error?: string }>;
       };
       if (res.ok && json.ok) {
+        const failed = (json.quotes ?? []).filter((q) => q.lastPrice == null);
+        const failNote =
+          failed.length > 0
+            ? ` No price for: ${failed.map((q) => q.symbol).join(", ")} (check FINNHUB_API_KEY).`
+            : "";
         setQuoteRefresh(
-          `Updated ${json.updated ?? 0} call(s). Reload ticker/feed to see new returns.`
+          `Updated ${json.updated ?? 0} call(s). Reload ticker page to see new returns.${failNote}`
         );
         await load();
       } else {

@@ -5,16 +5,13 @@ import {
   getDemoCallsFeed,
   getDemoPublicTeasers,
 } from "@/lib/demo/fixtures";
-import { processCallMilestones } from "@/lib/notifications/milestones";
-import { processMemberWinGates } from "@/lib/social/member-win-gate";
-import { refreshMemberRankings } from "@/lib/users/rankings";
-import { getQuote, getCryptoLastPrice } from "@/lib/market/finnhub";
 import {
-  computeHypeScore,
-  computeReturnPct,
-  computeScorePoints,
-  computeTargetProgress,
-} from "@/lib/scoring/returns";
+  refreshAllQuotesAndScores,
+  refreshQuotesForSymbols,
+  type QuoteFetchResult,
+} from "@/lib/calls/quote-refresh";
+
+export { refreshQuotesForSymbols, type QuoteFetchResult };
 
 export type TeaserView =
   | "teaser_latest_calls"
@@ -98,139 +95,13 @@ export async function refreshQuotesAndScores(): Promise<{
   updated: number;
   milestonesNotified: number;
   memberWinGates: number;
+  quotes: QuoteFetchResult[];
 }> {
-  const db = createServiceClient();
-  const { data: calls, error } = await db.from("calls").select("*");
-  if (error) throw error;
-
-  const symbols = [...new Set((calls ?? []).map((c) => c.symbol))];
-  const priceMap = new Map<string, number>();
-
-  for (const sym of symbols) {
-    const { data: snap } = await db
-      .from("ticker_snapshots")
-      .select("asset_class, finnhub_symbol")
-      .eq("symbol", sym)
-      .maybeSingle();
-
-    const assetClass = snap?.asset_class ?? "equity";
-    let lastPrice: number | null = null;
-
-    if (assetClass === "crypto" && snap?.finnhub_symbol) {
-      lastPrice = await getCryptoLastPrice(snap.finnhub_symbol);
-    } else {
-      const quote = await getQuote(sym);
-      lastPrice = quote?.c ?? null;
-    }
-
-    if (lastPrice != null) {
-      priceMap.set(sym, lastPrice);
-      await db.from("ticker_snapshots").upsert({
-        symbol: sym,
-        last_price: lastPrice,
-        asset_class: assetClass,
-        finnhub_symbol: snap?.finnhub_symbol ?? null,
-        updated_at: new Date().toISOString(),
-      } as never);
-    }
-  }
-
-  let updated = 0;
-  const milestoneRows: {
-    id: string;
-    user_id: string;
-    symbol: string;
-    direction: string;
-    called_at: string;
-    is_fueled: boolean;
-    entry_price: number | null;
-    target_price: number | null;
-    return_pct: number | null;
-    target_progress: number | null;
-  }[] = [];
-
-  for (const call of calls ?? []) {
-    const last = priceMap.get(call.symbol);
-    if (!last) continue;
-
-    const basis = call.entry_price ?? call.price_at_call;
-    const returnPct =
-      basis != null
-        ? computeReturnPct({
-            direction: call.direction,
-            basisPrice: Number(basis),
-            lastPrice: last,
-          })
-        : null;
-
-    let targetProgress: number | null = null;
-    if (call.entry_price && call.target_price) {
-      targetProgress = computeTargetProgress({
-        direction: call.direction,
-        entry: Number(call.entry_price),
-        target: Number(call.target_price),
-        lastPrice: last,
-      });
-    }
-
-    const ageDays =
-      (Date.now() - new Date(call.called_at).getTime()) / (86400000);
-    const scorePoints = computeScorePoints({
-      returnPct,
-      voteScore: call.vote_score,
-      ageDays,
-    });
-
-    await db
-      .from("calls")
-      .update({
-        last_price: last,
-        return_pct: returnPct,
-        target_progress: targetProgress,
-        score_points: scorePoints,
-      } as never)
-      .eq("id", call.id);
-    updated++;
-
-    milestoneRows.push({
-      id: call.id,
-      user_id: call.user_id,
-      symbol: call.symbol,
-      direction: call.direction,
-      called_at: call.called_at,
-      is_fueled: Boolean(call.is_fueled),
-      entry_price: call.entry_price,
-      target_price: call.target_price,
-      return_pct: returnPct,
-      target_progress: targetProgress,
-    });
-  }
-
-  for (const sym of symbols) {
-    const since7d = new Date(Date.now() - 7 * 86400000).toISOString();
-    const symCalls = (calls ?? []).filter((c) => c.symbol === sym);
-    const recent = symCalls.filter((c) => c.called_at >= since7d);
-    const callers = new Set(recent.map((c) => c.user_id));
-    const score = computeHypeScore({
-      distinctCallers7d: callers.size,
-      totalCalls7d: recent.length,
-      commentCount7d: recent.reduce((a, c) => a + c.comment_count, 0),
-    });
-    await db.from("hype_scores").upsert({
-      symbol: sym,
-      score,
-      components: {
-        distinctCallers7d: callers.size,
-        totalCalls7d: recent.length,
-      },
-      updated_at: new Date().toISOString(),
-    } as never);
-  }
-
-  await refreshMemberRankings();
-
-  const { notified: milestonesNotified } = await processCallMilestones(milestoneRows);
-  const { gated: memberWinGates } = await processMemberWinGates(milestoneRows);
-
-  return { updated, milestonesNotified, memberWinGates };
+  const result = await refreshAllQuotesAndScores();
+  return {
+    updated: result.updated,
+    milestonesNotified: result.milestonesNotified,
+    memberWinGates: result.memberWinGates,
+    quotes: result.quotes,
+  };
 }

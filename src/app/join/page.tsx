@@ -50,6 +50,7 @@ export default function JoinPage() {
   const [loading, setLoading] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [referrerName, setReferrerName] = useState<string | null>(null);
+  const [refereeOffer, setRefereeOffer] = useState<string | null>(null);
   const [voucherCode, setVoucherCode] = useState("");
   const [voucherHint, setVoucherHint] = useState<string | null>(null);
 
@@ -81,9 +82,10 @@ export default function JoinPage() {
 
     fetch(`/api/referrals/validate?code=${encodeURIComponent(code)}`)
       .then((r) => r.json())
-      .then((d: { valid?: boolean; displayName?: string }) => {
+      .then((d: { valid?: boolean; displayName?: string; refereeOffer?: string | null }) => {
         if (d.valid && d.displayName) {
           setReferrerName(d.displayName);
+          setRefereeOffer(d.refereeOffer ?? null);
         }
       })
       .catch(() => undefined);
@@ -250,9 +252,14 @@ export default function JoinPage() {
         ) : null}
 
         {referrerName ? (
-          <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-4 py-3 text-sm text-[var(--pf-gray-700)]">
+          <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-[var(--pf-gray-700)]">
             Invited by{" "}
             <span className="font-semibold text-[var(--pf-black)]">{referrerName}</span>
+            {refereeOffer ? (
+              <span className="mt-1 block font-semibold text-emerald-800">
+                Referral offer: {refereeOffer} on your first month when you activate membership.
+              </span>
+            ) : null}
           </div>
         ) : null}
 

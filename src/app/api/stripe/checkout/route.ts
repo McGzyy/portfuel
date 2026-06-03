@@ -12,6 +12,7 @@ import {
   recordCheckoutRedemptionPending,
   validateVoucherForCheckout,
 } from "@/lib/vouchers/service";
+import { refereePromotionCodeId } from "@/lib/referrals/config";
 
 const schema = z.object({
   tier: z.enum(["member", "pro"]),
@@ -82,6 +83,8 @@ export async function POST(request: Request) {
       if (!promotionCodeId) {
         return NextResponse.json({ error: "voucher_not_synced" }, { status: 503 });
       }
+    } else if (user.referred_by_user_id && billingInterval === "monthly") {
+      promotionCodeId = refereePromotionCodeId() ?? undefined;
     }
 
     const { url, sessionId } = await createCheckoutSession({

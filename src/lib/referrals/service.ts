@@ -1,12 +1,38 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { appPath } from "@/lib/social/app-url";
+import {
+  isReferralProgramEnabled,
+  monthlyCapLabel,
+  refereeDiscountLabel,
+  referralRewardsCapPerMonth,
+  referrerRewardCents,
+  referrerRewardLabel,
+} from "@/lib/referrals/config";
+import { countReferrerRewardsThisMonth, grantReferrerRewardForConversion } from "@/lib/referrals/rewards";
 
 export type ReferralStats = {
   referralCode: string;
   shareUrl: string;
   signedUp: number;
   converted: number;
+  programEnabled: boolean;
+  refereeOffer: string;
+  referrerReward: string;
+  monthlyCap: string;
+  creditBalanceCents: number;
+  rewardsThisMonth: number;
+  rewardsCap: number;
+};
+
+export type ReferralHistoryRow = {
+  id: string;
+  kind: "referral" | "invite";
+  label: string;
+  status: string;
+  createdAt: string;
+  rewardCents: number | null;
+  rewardStatus: string | null;
 };
 
 export type ReferrerPreview = {
@@ -119,10 +145,47 @@ export async function markReferralConverted(referredUserId: string): Promise<voi
 
   if (error) {
     console.error("[referrals/markReferralConverted]", error);
+    return;
   }
+
+  await db
+    .from("referral_invites")
+    .update({ status: "converted" } as never)
+    .eq("referred_user_id", referredUserId);
+
+  await grantReferrerRewardForConversion(referredUserId);
+}
+
+export async function linkReferralInviteOnSignup(
+  referredUserId: string,
+  email: string | null | undefined
+): Promise<void> {
+  if (!email?.trim()) return;
+  const db = createServiceClient();
+  const normalized = email.trim().toLowerCase();
+  await db
+    .from("referral_invites")
+    .update({
+      status: "signed_up",
+      referred_user_id: referredUserId,
+    } as never)
+    .eq("normalized_email", normalized)
+    .eq("status", "sent");
+}
+
+function programMeta() {
+  return {
+    programEnabled: isReferralProgramEnabled(),
+    refereeOffer: refereeDiscountLabel(),
+    referrerReward: referrerRewardLabel(),
+    monthlyCap: monthlyCapLabel(),
+    rewardsCap: referralRewardsCapPerMonth(),
+  };
 }
 
 export async function fetchReferralStats(userId: string, username: string): Promise<ReferralStats> {
+  const meta = programMeta();
+
   if (isDemoMode()) {
     const code = normalizeCode(username);
     return {
@@ -134,16 +197,20 @@ export async function fetchReferralStats(userId: string, username: string): Prom
       }),
       signedUp: 2,
       converted: 1,
+      creditBalanceCents: 2500,
+      rewardsThisMonth: 1,
+      ...meta,
     };
   }
 
   const code = await ensureReferralCode(userId, username);
   const db = createServiceClient();
 
-  const { data, error } = await db
-    .from("user_referrals")
-    .select("status")
-    .eq("referrer_id", userId);
+  const [{ data, error }, { data: userRow }, rewardsThisMonth] = await Promise.all([
+    db.from("user_referrals").select("status").eq("referrer_id", userId),
+    db.from("users").select("referral_credit_balance_cents").eq("id", userId).maybeSingle(),
+    countReferrerRewardsThisMonth(userId),
+  ]);
 
   if (error) {
     console.error("[referrals/fetchReferralStats]", error);
@@ -162,5 +229,114 @@ export async function fetchReferralStats(userId: string, username: string): Prom
     }),
     signedUp,
     converted,
+    creditBalanceCents: Number(userRow?.referral_credit_balance_cents ?? 0),
+    rewardsThisMonth,
+    ...meta,
   };
+}
+
+export async function fetchReferralHistory(
+  userId: string,
+  limit = 30
+): Promise<ReferralHistoryRow[]> {
+  if (isDemoMode()) {
+    return [
+      {
+        id: "demo-1",
+        kind: "referral",
+        label: "@friend1",
+        status: "converted",
+        createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+        rewardCents: referrerRewardCents(),
+        rewardStatus: "applied",
+      },
+      {
+        id: "demo-2",
+        kind: "invite",
+        label: "pending@example.com",
+        status: "sent",
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
+        rewardCents: null,
+        rewardStatus: null,
+      },
+    ];
+  }
+
+  const db = createServiceClient();
+
+  const [{ data: referrals }, { data: invites }, { data: rewards }] = await Promise.all([
+    db
+      .from("user_referrals")
+      .select("id, referral_code, status, created_at, converted_at, referred_user_id")
+      .eq("referrer_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    db
+      .from("referral_invites")
+      .select("id, email, status, created_at")
+      .eq("referrer_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    db
+      .from("referral_rewards")
+      .select("user_referral_id, amount_cents, status, role")
+      .eq("referrer_id", userId)
+      .eq("role", "referrer"),
+  ]);
+
+  const rewardByRef = new Map(
+    (rewards ?? []).map((r) => [
+      r.user_referral_id as string,
+      {
+        amountCents: r.amount_cents as number,
+        status: r.status as string,
+      },
+    ])
+  );
+
+  const referredIds = (referrals ?? [])
+    .map((r) => r.referred_user_id as string | null)
+    .filter(Boolean) as string[];
+
+  let userLabels = new Map<string, string>();
+  if (referredIds.length > 0) {
+    const { data: users } = await db
+      .from("users")
+      .select("id, username, display_name")
+      .in("id", referredIds);
+    for (const u of users ?? []) {
+      const label = u.display_name?.trim() || `@${u.username}`;
+      userLabels.set(u.id as string, label);
+    }
+  }
+
+  const rows: ReferralHistoryRow[] = [];
+
+  for (const r of referrals ?? []) {
+    const reward = rewardByRef.get(r.id as string);
+    rows.push({
+      id: r.id as string,
+      kind: "referral",
+      label: userLabels.get(r.referred_user_id as string) ?? r.referral_code as string,
+      status: r.status as string,
+      createdAt: (r.converted_at ?? r.created_at) as string,
+      rewardCents: reward?.amountCents ?? null,
+      rewardStatus: reward?.status ?? null,
+    });
+  }
+
+  for (const inv of invites ?? []) {
+    rows.push({
+      id: inv.id as string,
+      kind: "invite",
+      label: inv.email as string,
+      status: inv.status as string,
+      createdAt: inv.created_at as string,
+      rewardCents: null,
+      rewardStatus: null,
+    });
+  }
+
+  rows.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  return rows.slice(0, limit);
 }

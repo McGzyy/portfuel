@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/db/supabase";
-import { fetchCallsBySymbol } from "@/lib/calls/service";
+import { fetchCallsBySymbol, refreshQuotesForSymbols } from "@/lib/calls/service";
 import { resolveCryptoAsset } from "@/lib/market/crypto-allowlist";
 import {
   getCompanyNews,
@@ -75,6 +75,14 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
 
   const to = Math.floor(Date.now() / 1000);
   const from = to - 365 * 86400;
+
+  if (!isDemoMode()) {
+    try {
+      await refreshQuotesForSymbols([sym]);
+    } catch (e) {
+      console.error("[ticker-intel refresh quotes]", sym, e);
+    }
+  }
 
   const calls = await fetchCallsBySymbol(sym);
   if (calls.length > 0 && calls[0].asset_class) {
