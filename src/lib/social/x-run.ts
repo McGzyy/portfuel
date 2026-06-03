@@ -2,6 +2,7 @@ import { composeXPost } from "@/lib/social/x-compose";
 import { getXConfig, type XPostType } from "@/lib/social/x-config";
 import { postToX } from "@/lib/social/x-client";
 import { postMemberWin } from "@/lib/social/x-member-win-post";
+import { postWeeklyDigest } from "@/lib/social/x-weekly-digest-post";
 import { pickNextMemberWinCallId } from "@/lib/social/member-win-scan";
 import { hasSocialPostBeenSent, recordSocialPost } from "@/lib/social/post-log";
 import { loadSocialChartPayload } from "@/lib/charts/social-chart-data";
@@ -50,6 +51,28 @@ export async function runXSocialBatch(opts?: {
     }
     if (type === "member_win" && !config.memberWinPosts) {
       results.push({ type, status: "skipped", error: "type_disabled" });
+      continue;
+    }
+    if (type === "weekly_digest" && !config.weeklyDigestPosts) {
+      results.push({ type, status: "skipped", error: "type_disabled" });
+      continue;
+    }
+
+    if (type === "weekly_digest") {
+      const posted = await postWeeklyDigest({ dryRun: opts?.forceDryRun });
+      results.push({
+        type,
+        status: posted.ok
+          ? posted.dryRun
+            ? "dry_run"
+            : "posted"
+          : posted.error === "already_posted"
+            ? "already_posted"
+            : "skipped",
+        text: posted.text,
+        error: posted.ok ? undefined : posted.error,
+        tweetId: posted.ok ? posted.tweetId : undefined,
+      });
       continue;
     }
 

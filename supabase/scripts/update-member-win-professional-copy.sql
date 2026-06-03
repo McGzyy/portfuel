@@ -13,5 +13,9 @@ set
 {{return_line}}
 {{link}}
 {{disclaimer}}',
+  weekly_digest_template = 'PortFuel · Community performance this week
+{{digest_lines}}
+{{link}}
+{{disclaimer}}',
   updated_at = now()
 where id = 'default';

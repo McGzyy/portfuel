@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AdminSocialMilestonePanel } from "@/components/admin/AdminSocialMilestonePanel";
 import { AdminMemberWinsPanel } from "@/components/admin/AdminMemberWinsPanel";
+import { AdminSocialCopyPanel } from "@/components/admin/AdminSocialCopyPanel";
+import { AdminWeeklyDigestPanel } from "@/components/admin/AdminWeeklyDigestPanel";
 
 type XConfigSummary = {
   enabled: boolean;
@@ -13,6 +15,7 @@ type XConfigSummary = {
   fueledPosts: boolean;
   leaderboardPosts: boolean;
   memberWinPosts: boolean;
+  weeklyDigestPosts: boolean;
   autopostFueledOnPublish: boolean;
 };
 
@@ -141,7 +144,8 @@ export function AdminSocialPanel() {
             <li className="sm:col-span-2">
               Cron types: Fueled {config.fueledPosts ? "on" : "off"} · Leaderboard{" "}
               {config.leaderboardPosts ? "on" : "off"} · Member wins{" "}
-              {config.memberWinPosts ? "on" : "off"} · Set vars on Vercel for production.
+              {config.memberWinPosts ? "on" : "off"} · Weekly digest{" "}
+              {config.weeklyDigestPosts ? "on" : "off"} · Set vars on Vercel for production.
             </li>
           </ul>
         ) : null}
@@ -202,7 +206,11 @@ export function AdminSocialPanel() {
         ) : null}
       </section>
 
+      <AdminSocialCopyPanel />
+
       <AdminMemberWinsPanel />
+
+      <AdminWeeklyDigestPanel />
 
       <AdminSocialMilestonePanel />
     </div>

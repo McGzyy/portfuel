@@ -5,9 +5,8 @@ import { getDemoCallsFeed } from "@/lib/demo/fixtures";
 import { appPath } from "@/lib/social/app-url";
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 import type { XPostType } from "@/lib/social/x-config";
-import {
-  MEMBER_WIN_GATE_MILESTONE_KEY,
-} from "@/lib/social/member-win-config";
+import { isSymbolBlockedForMemberWin } from "@/lib/social/member-win-blocklist";
+import { MEMBER_WIN_GATE_MILESTONE_KEY } from "@/lib/social/member-win-config";
 import {
   isMemberWinReadyToPost,
   meetsMemberWinReturnAgeGate,
@@ -287,6 +286,7 @@ export async function composeMemberWinPost(
   };
 
   if (row.is_fueled) return { ok: false, error: "no_content" };
+  if (isSymbolBlockedForMemberWin(row.symbol)) return { ok: false, error: "no_content" };
   if (!row.users.allow_social_highlight) return { ok: false, error: "no_content" };
   if (row.users.subscription_status !== "active") return { ok: false, error: "no_content" };
 

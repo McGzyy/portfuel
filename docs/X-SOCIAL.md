@@ -24,7 +24,10 @@ Add to Vercel (Production) and local `.env`:
 | `X_MEMBER_WIN_SUSTAIN_HOURS` | `48` | Review window after qualifying before posting |
 | `X_POST_MEMBER_WIN_UPDATES` | `false` | Quote-tweet the original spotlight at +25% or target |
 
-After migration, run `supabase/scripts/update-member-win-professional-copy.sql` if templates were created with older copy. Apply `20260605200000_member_win_update_copy.sql` for update templates.
+After migration, run `supabase/scripts/update-member-win-professional-copy.sql` if templates were created with older copy. Apply `20260605200000_member_win_update_copy.sql` and `20260605300000_weekly_digest.sql` for newer templates.
+
+| `X_POST_WEEKLY_DIGEST` | `false` | Weekly top-3 composite image + recap tweet |
+| `X_MEMBER_WIN_SYMBOL_BLOCKLIST` | _(empty)_ | Comma-separated tickers excluded from member spotlight |
 
 `CRON_SECRET` must match Vercel cron `Authorization: Bearer …` (same as other crons).
 

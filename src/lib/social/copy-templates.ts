@@ -10,6 +10,7 @@ export type SocialPostCopy = {
   leaderboardTemplate: string;
   memberWinTemplate: string;
   memberWinUpdateTemplate: string;
+  weeklyDigestTemplate: string;
   disclaimer: string;
   updatedAt: string | null;
 };
@@ -37,6 +38,10 @@ export const DEFAULT_SOCIAL_POST_COPY: SocialPostCopy = {
 {{return_line}}
 {{link}}
 {{disclaimer}}`,
+  weeklyDigestTemplate: `PortFuel · Community performance this week
+{{digest_lines}}
+{{link}}
+{{disclaimer}}`,
   disclaimer: "Not investment advice.",
   updatedAt: null,
 };
@@ -59,6 +64,7 @@ export const COPY_PLACEHOLDER_HELP = [
   "{{disclaimer}} — legal line from settings",
   "{{member_handle}} — @username or display name (member wins)",
   "{{thesis_block}} — thesis excerpt or empty (member wins)",
+  "{{digest_lines}} — numbered weekly wins (weekly digest)",
 ] as const;
 
 function trimTweet(text: string, max = 280): string {
@@ -116,7 +122,7 @@ export async function fetchSocialPostCopy(): Promise<SocialPostCopy> {
     const { data, error } = await db
       .from("social_post_copy")
       .select(
-        "milestone_lead_template, milestone_tail_template, fueled_template, leaderboard_template, member_win_template, member_win_update_template, disclaimer, updated_at"
+        "milestone_lead_template, milestone_tail_template, fueled_template, leaderboard_template, member_win_template, member_win_update_template, weekly_digest_template, disclaimer, updated_at"
       )
       .eq("id", COPY_ID)
       .maybeSingle();
@@ -130,6 +136,7 @@ export async function fetchSocialPostCopy(): Promise<SocialPostCopy> {
       leaderboard_template: string;
       member_win_template: string | null;
       member_win_update_template: string | null;
+      weekly_digest_template: string | null;
       disclaimer: string;
       updated_at: string;
     };
@@ -144,6 +151,9 @@ export async function fetchSocialPostCopy(): Promise<SocialPostCopy> {
       memberWinUpdateTemplate:
         row.member_win_update_template?.trim() ||
         DEFAULT_SOCIAL_POST_COPY.memberWinUpdateTemplate,
+      weeklyDigestTemplate:
+        row.weekly_digest_template?.trim() ||
+        DEFAULT_SOCIAL_POST_COPY.weeklyDigestTemplate,
       disclaimer: row.disclaimer,
       updatedAt: row.updated_at,
     };
@@ -157,6 +167,9 @@ export async function updateSocialPostCopy(input: {
   milestoneTailTemplate?: string;
   fueledTemplate?: string;
   leaderboardTemplate?: string;
+  memberWinTemplate?: string;
+  memberWinUpdateTemplate?: string;
+  weeklyDigestTemplate?: string;
   disclaimer?: string;
 }): Promise<{ ok: true; copy: SocialPostCopy } | { error: string }> {
   const db = createServiceClient();
@@ -181,6 +194,21 @@ export async function updateSocialPostCopy(input: {
     const v = input.leaderboardTemplate.trim();
     if (v.length < 4 || v.length > 500) return { error: "invalid_leaderboard" };
     update.leaderboard_template = v;
+  }
+  if (input.memberWinTemplate !== undefined) {
+    const v = input.memberWinTemplate.trim();
+    if (v.length < 4 || v.length > 500) return { error: "invalid_member_win" };
+    update.member_win_template = v;
+  }
+  if (input.memberWinUpdateTemplate !== undefined) {
+    const v = input.memberWinUpdateTemplate.trim();
+    if (v.length < 4 || v.length > 500) return { error: "invalid_member_win_update" };
+    update.member_win_update_template = v;
+  }
+  if (input.weeklyDigestTemplate !== undefined) {
+    const v = input.weeklyDigestTemplate.trim();
+    if (v.length < 4 || v.length > 600) return { error: "invalid_weekly_digest" };
+    update.weekly_digest_template = v;
   }
   if (input.disclaimer !== undefined) {
     const v = input.disclaimer.trim();

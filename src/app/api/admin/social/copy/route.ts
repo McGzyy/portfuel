@@ -38,6 +38,9 @@ const patchSchema = z.object({
   milestoneTailTemplate: z.string().min(4).max(400).optional(),
   fueledTemplate: z.string().min(4).max(500).optional(),
   leaderboardTemplate: z.string().min(4).max(500).optional(),
+  memberWinTemplate: z.string().min(4).max(500).optional(),
+  memberWinUpdateTemplate: z.string().min(4).max(500).optional(),
+  weeklyDigestTemplate: z.string().min(4).max(600).optional(),
   disclaimer: z.string().min(4).max(120).optional(),
 });
 

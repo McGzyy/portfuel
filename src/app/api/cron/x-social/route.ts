@@ -16,10 +16,11 @@ export async function GET(request: Request) {
   }
 
   try {
-    const types: Array<"leaderboard" | "fueled" | "member_win"> = [];
+    const types: Array<"leaderboard" | "fueled" | "member_win" | "weekly_digest"> = [];
     if (config.leaderboardPosts) types.push("leaderboard");
     if (config.fueledPosts) types.push("fueled");
     if (config.memberWinPosts) types.push("member_win");
+    if (config.weeklyDigestPosts) types.push("weekly_digest");
 
     const { results } = await runXSocialBatch({ types });
     return NextResponse.json({ ok: true, results });

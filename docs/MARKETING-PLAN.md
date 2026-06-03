@@ -191,7 +191,8 @@ Store `parent_tweet_id` on log row; use X API `quote_tweet_id` when posting.
 
 #### Phase 3 — Smarter scheduling & digest
 
-- [ ] Weekly “3 wins this week” carousel image (multi-call composite)
+- [x] Weekly “3 wins this week” composite image + recap tweet (`weekly_digest`, Admin → Social)
+- [x] Admin X copy editor for member spotlight, updates, weekly digest (`AdminSocialCopyPanel`)
 - [ ] Admin calendar view: scheduled / sent / skipped
 - [ ] A/B copy variants in `social_post_copy`
 

@@ -5,6 +5,7 @@ import {
   isMemberWinReadyToPost,
   meetsMemberWinReturnAgeGate,
 } from "@/lib/social/member-win-eligibility";
+import { isSymbolBlockedForMemberWin } from "@/lib/social/member-win-blocklist";
 import { hasSocialPostBeenSent } from "@/lib/social/post-log";
 
 export type MemberWinCandidate = {
@@ -60,6 +61,8 @@ export async function fetchMemberWinCandidates(limit = 10): Promise<MemberWinCan
       is_fueled: boolean;
       users: { username: string | null; display_name: string | null };
     };
+
+    if (isSymbolBlockedForMemberWin(c.symbol)) continue;
 
     const ageCheck = meetsMemberWinReturnAgeGate(c);
     if (!ageCheck.ok) continue;

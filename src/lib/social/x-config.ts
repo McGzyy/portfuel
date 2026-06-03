@@ -3,7 +3,8 @@ export type XPostType =
   | "leaderboard"
   | "fueled_milestone"
   | "member_win"
-  | "member_win_update";
+  | "member_win_update"
+  | "weekly_digest";
 
 export type XConfig = {
   enabled: boolean;
@@ -12,6 +13,7 @@ export type XConfig = {
   fueledPosts: boolean;
   leaderboardPosts: boolean;
   memberWinPosts: boolean;
+  weeklyDigestPosts: boolean;
   autopostFueledOnPublish: boolean;
   autopostMilestones: boolean;
 };
@@ -34,6 +36,7 @@ export function getXConfig(): XConfig {
     fueledPosts: envFlag("X_POST_FUELED", true),
     leaderboardPosts: envFlag("X_POST_LEADERBOARD", true),
     memberWinPosts: envFlag("X_POST_MEMBER_WINS", false),
+    weeklyDigestPosts: envFlag("X_POST_WEEKLY_DIGEST", false),
     autopostFueledOnPublish: envFlag("X_AUTOPOST_FUELED_ON_PUBLISH", false),
     autopostMilestones: !["0", "false", "no"].includes(
       (process.env.X_AUTOPOST_MILESTONES ?? "true").trim().toLowerCase()
@@ -58,6 +61,7 @@ export function xConfigSummary(): {
   fueledPosts: boolean;
   leaderboardPosts: boolean;
   memberWinPosts: boolean;
+  weeklyDigestPosts: boolean;
   autopostFueledOnPublish: boolean;
 } {
   const c = getXConfig();
@@ -72,6 +76,7 @@ export function xConfigSummary(): {
     fueledPosts: c.fueledPosts,
     leaderboardPosts: c.leaderboardPosts,
     memberWinPosts: c.memberWinPosts,
+    weeklyDigestPosts: c.weeklyDigestPosts,
     autopostFueledOnPublish: c.autopostFueledOnPublish,
   };
 }
