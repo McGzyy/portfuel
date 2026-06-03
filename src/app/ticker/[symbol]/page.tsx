@@ -32,6 +32,8 @@ import {
   sessionToProContext,
 } from "@/lib/features/pro-intelligence";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {

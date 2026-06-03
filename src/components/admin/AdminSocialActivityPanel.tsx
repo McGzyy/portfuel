@@ -60,6 +60,7 @@ export function AdminSocialActivityPanel() {
   const [data, setData] = useState<ActivityPayload | null>(null);
   const [tab, setTab] = useState<"published" | "queue">("queue");
   const [loading, setLoading] = useState(true);
+  const [quoteRefresh, setQuoteRefresh] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -74,6 +75,28 @@ export function AdminSocialActivityPanel() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function refreshCallQuotes() {
+    setQuoteRefresh("Running…");
+    try {
+      const res = await fetch("/api/admin/calls/refresh-quotes", { method: "POST" });
+      const json = (await res.json()) as {
+        ok?: boolean;
+        updated?: number;
+        error?: string;
+      };
+      if (res.ok && json.ok) {
+        setQuoteRefresh(
+          `Updated ${json.updated ?? 0} call(s). Reload ticker/feed to see new returns.`
+        );
+        await load();
+      } else {
+        setQuoteRefresh(json.error === "unauthorized" ? "Admin only." : "Refresh failed.");
+      }
+    } catch {
+      setQuoteRefresh("Refresh failed.");
+    }
+  }
 
   const readyMembers =
     data?.queue.memberWins.filter((c) => c.status === "ready").length ?? 0;
@@ -119,9 +142,25 @@ export function AdminSocialActivityPanel() {
           onClick={() => void load()}
           className="ml-auto text-xs font-semibold text-[var(--pf-red)] hover:underline"
         >
-          Refresh
+          Reload activity
+        </button>
+        <button
+          type="button"
+          onClick={() => void refreshCallQuotes()}
+          className="text-xs font-semibold text-[var(--pf-gray-700)] underline-offset-2 hover:underline"
+        >
+          Update call prices
         </button>
       </div>
+      {quoteRefresh ? (
+        <p className="mt-2 text-xs text-[var(--pf-gray-600)]">{quoteRefresh}</p>
+      ) : (
+        <p className="mt-2 text-xs text-[var(--pf-gray-500)]">
+          Returns refresh on Vercel every 15 minutes via cron; use{" "}
+          <strong className="font-semibold text-[var(--pf-gray-600)]">Update call prices</strong>{" "}
+          locally or to verify your call is moving.
+        </p>
+      )}
 
       {loading ? (
         <p className="mt-6 text-sm text-[var(--pf-gray-500)]">Loading…</p>

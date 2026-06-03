@@ -4,7 +4,12 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { assertCanPublishCalls, moderationErrorResponse } from "@/lib/auth/moderation-guards";
 import { requireActiveMember } from "@/lib/auth/session";
 import { getQuote, getCryptoLastPrice } from "@/lib/market/finnhub";
-import { fetchCallsFeed } from "@/lib/calls/service";
+import { fetchCallsFeed, refreshQuotesAndScores } from "@/lib/calls/service";
+import {
+  computeReturnPct,
+  computeScorePoints,
+  computeTargetProgress,
+} from "@/lib/scoring/returns";
 import {
   notifyFollowedMemberNewCall,
   notifyWatchlistNewCall,
@@ -107,6 +112,30 @@ export async function POST(request: Request) {
         ? body.socialAnalysisRawText.trim()
         : null;
 
+    const basis = body.entryPrice ?? priceAtCall;
+    const returnPct =
+      basis != null && priceAtCall != null
+        ? computeReturnPct({
+            direction: body.direction,
+            basisPrice: Number(basis),
+            lastPrice: priceAtCall,
+          })
+        : null;
+    let targetProgress: number | null = null;
+    if (body.entryPrice && body.targetPrice && priceAtCall != null) {
+      targetProgress = computeTargetProgress({
+        direction: body.direction,
+        entry: body.entryPrice,
+        target: body.targetPrice,
+        lastPrice: priceAtCall,
+      });
+    }
+    const scorePoints = computeScorePoints({
+      returnPct,
+      voteScore: 0,
+      ageDays: 0,
+    });
+
     const { data: call, error } = await db
       .from("calls")
       .insert({
@@ -121,6 +150,9 @@ export async function POST(request: Request) {
         timeframe_tag: body.timeframeTag ?? null,
         price_at_call: priceAtCall,
         last_price: priceAtCall,
+        return_pct: returnPct,
+        target_progress: targetProgress,
+        score_points: scorePoints,
         is_fueled: isFueled,
         source_tweet_url: sourceTweetUrl,
       } as never)
@@ -180,6 +212,10 @@ export async function POST(request: Request) {
       displayName: session.displayName,
       username: session.username,
     }).catch((e) => console.error("[discord/new-call]", e));
+
+    void refreshQuotesAndScores().catch((e) =>
+      console.error("[calls POST refresh-quotes]", e)
+    );
 
     return NextResponse.json({ ok: true, call });
   } catch (e) {
