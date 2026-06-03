@@ -8,5 +8,10 @@ set
 {{member_handle}}
 {{thesis_block}}{{link}}
 {{disclaimer}}',
+  member_win_update_template = 'PortFuel · Update on record
+{{symbol}} {{direction}} · {{headline}}
+{{return_line}}
+{{link}}
+{{disclaimer}}',
   updated_at = now()
 where id = 'default';

@@ -2,7 +2,8 @@ import { getXConfig } from "@/lib/social/x-config";
 
 export async function postToX(
   text: string,
-  mediaIds?: string[]
+  mediaIds?: string[],
+  opts?: { quoteTweetId?: string }
 ): Promise<
   | { ok: true; tweetId: string; dryRun: boolean }
   | { ok: false; error: string }
@@ -18,9 +19,16 @@ export async function postToX(
     return { ok: true, tweetId: "dry_run", dryRun: true };
   }
 
-  const body: { text: string; media?: { media_ids: string[] } } = { text };
+  const body: {
+    text: string;
+    media?: { media_ids: string[] };
+    quote_tweet_id?: string;
+  } = { text };
   if (mediaIds && mediaIds.length > 0) {
     body.media = { media_ids: mediaIds };
+  }
+  if (opts?.quoteTweetId) {
+    body.quote_tweet_id = opts.quoteTweetId;
   }
 
   const res = await fetch("https://api.twitter.com/2/tweets", {

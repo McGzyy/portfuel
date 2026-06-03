@@ -22,8 +22,9 @@ Add to Vercel (Production) and local `.env`:
 | `X_MEMBER_WIN_FAST_TRACK_RETURN_PCT` | `30` | Exceptional outcome shorter age path |
 | `X_MEMBER_WIN_FAST_TRACK_MIN_AGE_HOURS` | `36` | Minimum age for fast track |
 | `X_MEMBER_WIN_SUSTAIN_HOURS` | `48` | Review window after qualifying before posting |
+| `X_POST_MEMBER_WIN_UPDATES` | `false` | Quote-tweet the original spotlight at +25% or target |
 
-After migration, run `supabase/scripts/update-member-win-professional-copy.sql` if templates were created with older copy.
+After migration, run `supabase/scripts/update-member-win-professional-copy.sql` if templates were created with older copy. Apply `20260605200000_member_win_update_copy.sql` for update templates.
 
 `CRON_SECRET` must match Vercel cron `Authorization: Bearer …` (same as other crons).
 

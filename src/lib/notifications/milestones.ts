@@ -2,6 +2,7 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { notifyDiscordCallMilestone } from "@/lib/discord/events";
 import { tryAutopostFueledMilestone } from "@/lib/social/x-milestone-autopost";
+import { tryAutopostMemberWinUpdate } from "@/lib/social/x-member-win-update";
 import { createNotification } from "@/lib/notifications/service";
 
 export type CallMilestoneKey = "return_10" | "return_25" | "target_reached";
@@ -11,6 +12,7 @@ type CallRow = {
   user_id: string;
   symbol: string;
   direction: string;
+  is_fueled?: boolean;
   entry_price: number | null;
   target_price: number | null;
   return_pct: number | null;
@@ -110,6 +112,10 @@ export async function processCallMilestones(calls: CallRow[]): Promise<{ notifie
       void tryAutopostFueledMilestone(call.id, key).catch((e) =>
         console.error("[x/milestone-autopost]", e)
       );
+
+      void tryAutopostMemberWinUpdate(call.id, key, {
+        isFueled: Boolean(call.is_fueled),
+      }).catch((e) => console.error("[x/member-win-update]", e));
 
       notified++;
     }

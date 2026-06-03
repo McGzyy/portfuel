@@ -2,7 +2,8 @@ export type XPostType =
   | "fueled"
   | "leaderboard"
   | "fueled_milestone"
-  | "member_win";
+  | "member_win"
+  | "member_win_update";
 
 export type XConfig = {
   enabled: boolean;

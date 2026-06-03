@@ -9,6 +9,7 @@ export type SocialPostCopy = {
   fueledTemplate: string;
   leaderboardTemplate: string;
   memberWinTemplate: string;
+  memberWinUpdateTemplate: string;
   disclaimer: string;
   updatedAt: string | null;
 };
@@ -30,6 +31,11 @@ export const DEFAULT_SOCIAL_POST_COPY: SocialPostCopy = {
 {{symbol}} {{direction}} · {{return_line}}
 {{member_handle}}
 {{thesis_block}}{{link}}
+{{disclaimer}}`,
+  memberWinUpdateTemplate: `PortFuel · Update on record
+{{symbol}} {{direction}} · {{headline}}
+{{return_line}}
+{{link}}
 {{disclaimer}}`,
   disclaimer: "Not investment advice.",
   updatedAt: null,
@@ -110,7 +116,7 @@ export async function fetchSocialPostCopy(): Promise<SocialPostCopy> {
     const { data, error } = await db
       .from("social_post_copy")
       .select(
-        "milestone_lead_template, milestone_tail_template, fueled_template, leaderboard_template, member_win_template, disclaimer, updated_at"
+        "milestone_lead_template, milestone_tail_template, fueled_template, leaderboard_template, member_win_template, member_win_update_template, disclaimer, updated_at"
       )
       .eq("id", COPY_ID)
       .maybeSingle();
@@ -123,6 +129,7 @@ export async function fetchSocialPostCopy(): Promise<SocialPostCopy> {
       fueled_template: string;
       leaderboard_template: string;
       member_win_template: string | null;
+      member_win_update_template: string | null;
       disclaimer: string;
       updated_at: string;
     };
@@ -134,6 +141,9 @@ export async function fetchSocialPostCopy(): Promise<SocialPostCopy> {
       leaderboardTemplate: row.leaderboard_template,
       memberWinTemplate:
         row.member_win_template?.trim() || DEFAULT_SOCIAL_POST_COPY.memberWinTemplate,
+      memberWinUpdateTemplate:
+        row.member_win_update_template?.trim() ||
+        DEFAULT_SOCIAL_POST_COPY.memberWinUpdateTemplate,
       disclaimer: row.disclaimer,
       updatedAt: row.updated_at,
     };

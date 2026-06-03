@@ -353,3 +353,72 @@ export async function composeMemberWinPost(
     withChart: true,
   };
 }
+
+const MEMBER_UPDATE_HEADLINE: Record<
+  "return_25" | "target_reached",
+  string
+> = {
+  return_25: "Performance update · +25% on record",
+  target_reached: "Stated target reached on record",
+};
+
+export async function composeMemberWinUpdatePost(
+  callId: string,
+  milestone: "return_25" | "target_reached"
+): Promise<
+  | { ok: true; text: string; refId: string }
+  | { ok: false; error: "no_content" }
+> {
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("calls")
+    .select(
+      "id, symbol, direction, return_pct, is_fueled, users!inner(allow_social_highlight, subscription_status)"
+    )
+    .eq("id", callId)
+    .maybeSingle();
+
+  if (error || !data) return { ok: false, error: "no_content" };
+
+  const row = data as unknown as {
+    symbol: string;
+    direction: string;
+    return_pct: number | null;
+    is_fueled: boolean;
+    users: { allow_social_highlight: boolean; subscription_status: string };
+  };
+
+  if (row.is_fueled || !row.users.allow_social_highlight) {
+    return { ok: false, error: "no_content" };
+  }
+  if (row.users.subscription_status !== "active") {
+    return { ok: false, error: "no_content" };
+  }
+
+  const copy = await fetchSocialPostCopy();
+  const link = appPath(`/ticker/${row.symbol}`, {
+    source: "x",
+    medium: "social",
+    campaign: "member_win_update",
+  });
+  const ret =
+    row.return_pct != null
+      ? `${row.return_pct >= 0 ? "+" : ""}${row.return_pct.toFixed(1)}% since publication`
+      : "";
+  const text = trimTweet(
+    applyCopyTemplate(copy.memberWinUpdateTemplate, {
+      symbol: row.symbol,
+      direction: row.direction,
+      headline: MEMBER_UPDATE_HEADLINE[milestone],
+      return_line: ret,
+      link,
+      disclaimer: copy.disclaimer,
+    })
+  );
+
+  return {
+    ok: true,
+    text,
+    refId: `member_win_update-${callId}-${milestone}`,
+  };
+}

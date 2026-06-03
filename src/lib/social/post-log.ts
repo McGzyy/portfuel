@@ -32,10 +32,30 @@ export async function hasSocialPostBeenSent(
   return Boolean(data);
 }
 
+export async function getSocialPostTweetId(
+  postType: XPostType,
+  refId: string
+): Promise<string | null> {
+  if (isDemoMode()) return demoSent.has(logKey(postType, refId)) ? "dry_run" : null;
+
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("social_post_log")
+    .select("tweet_id")
+    .eq("post_type", postType)
+    .eq("ref_id", refId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  const id = (data as { tweet_id: string | null }).tweet_id;
+  return id && id !== "dry_run" ? id : null;
+}
+
 export async function recordSocialPost(opts: {
   postType: XPostType;
   refId: string;
   tweetId?: string | null;
+  parentTweetId?: string | null;
 }): Promise<void> {
   if (isDemoMode()) {
     demoSent.add(logKey(opts.postType, opts.refId));
@@ -47,6 +67,7 @@ export async function recordSocialPost(opts: {
     post_type: opts.postType,
     ref_id: opts.refId,
     tweet_id: opts.tweetId ?? null,
+    parent_tweet_id: opts.parentTweetId ?? null,
   } as never);
 
   if (error && error.code !== "23505") {
