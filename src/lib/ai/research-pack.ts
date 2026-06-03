@@ -42,6 +42,8 @@ export type ResearchPack = {
   webSources?: ResearchPackWebSource[];
   /** Serialized block injected into the AI prompt */
   promptBlock: string;
+  /** Bumped when analysis prompts change — invalidates cached rows. */
+  promptVersion?: number;
 };
 
 function mapHeadline(n: CompanyNewsItem): TickerAnalyzeHeadline {
@@ -203,6 +205,13 @@ export async function buildTickerResearchPack(input: {
       getFilings(symbol),
     ]);
     headlines = newsRaw.slice(0, MAX_HEADLINES).map(mapHeadline);
+    const symbolFiltered = newsRaw.filter((n) => {
+      const hay = `${n.headline} ${n.summary ?? ""}`.toUpperCase();
+      return hay.includes(symbol) || hay.includes(`$${symbol}`);
+    });
+    if (symbolFiltered.length > 0) {
+      headlines = symbolFiltered.slice(0, MAX_HEADLINES).map(mapHeadline);
+    }
     earnings = earningsRaw.slice(0, MAX_EARNINGS).map(formatEarningsRow);
     filings = filingsRaw.slice(0, MAX_FILINGS).map(formatFilingRow);
 

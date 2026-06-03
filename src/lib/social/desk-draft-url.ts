@@ -1,5 +1,6 @@
 import type { TweetDeskDraft } from "@/lib/ai/tweet-desk-draft";
 import type { TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
+import { formatFueledThesisForPublish } from "@/lib/ai/fueled-analysis-format";
 import { COPY } from "@/lib/copy";
 
 export type PublishUrlOpts = {
@@ -7,6 +8,8 @@ export type PublishUrlOpts = {
   fueled?: boolean;
   sourceTweetUrl?: string;
   socialMode?: "default" | "deep";
+  /** Prefills AI assist notes on the publish form. */
+  contextNotes?: string;
 };
 
 function appendPublishParams(params: URLSearchParams, opts: PublishUrlOpts) {
@@ -15,6 +18,9 @@ function appendPublishParams(params: URLSearchParams, opts: PublishUrlOpts) {
     params.set("sourceTweet", opts.sourceTweetUrl.trim().slice(0, 500));
   }
   if (opts.socialMode === "deep") params.set("socialMode", "deep");
+  if (opts.contextNotes?.trim()) {
+    params.set("notes", opts.contextNotes.trim().slice(0, 1500));
+  }
 }
 
 function appendLevels(
@@ -77,7 +83,7 @@ export function buildPublishUrlFromAnalysis(
 
   appendLevels(params, {
     direction: analysis.direction,
-    thesis: analysis.draftThesis,
+    thesis: formatFueledThesisForPublish(analysis),
     entryPrice: analysis.entryPrice,
     targetPrice: analysis.targetPrice,
     stopPrice: analysis.stopPrice,

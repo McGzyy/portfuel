@@ -19,6 +19,8 @@ import { ModerationBanner } from "@/components/member/ModerationBanner";
 import type { SessionPayload } from "@/lib/auth/session-types";
 import type { HeaderUser } from "@/lib/auth/session-user";
 import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
+import type { TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
+import { formatFueledThesisForPublish } from "@/lib/ai/fueled-analysis-format";
 import { COPY } from "@/lib/copy";
 import { formatPrice } from "@/lib/utils";
 
@@ -36,6 +38,7 @@ function readPublishQuery(sp: URLSearchParams) {
     stopPrice: sp.get("stop") ?? "",
     timeframeTag: sp.get("timeframe") ?? "",
     sourceTweetUrl: sp.get("sourceTweet") ?? "",
+    contextNotes: sp.get("notes") ?? "",
   };
 }
 
@@ -86,7 +89,7 @@ export function NewCallForm({
   const [aiMode, setAiMode] = useState<"default" | "deep">(
     queryDraft.socialMode === "deep" ? "deep" : "default"
   );
-  const [aiNotes, setAiNotes] = useState("");
+  const [aiNotes, setAiNotes] = useState(queryDraft.contextNotes);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiCost, setAiCost] = useState<number | null>(null);
   const [aiCacheHit, setAiCacheHit] = useState<boolean | null>(null);
@@ -150,17 +153,10 @@ export function NewCallForm({
         return;
       }
 
-      const analysis = data.analysis as {
-        draftThesis: string;
-        direction: "long" | "short" | null;
-        entryPrice: number | null;
-        targetPrice: number | null;
-        stopPrice: number | null;
-        timeframeNote: string | null;
-      };
+      const analysis = data.analysis as TickerAnalyzeResult;
 
       if (isAdmin) setPublishFueled(true);
-      setThesis(analysis.draftThesis ?? "");
+      setThesis(formatFueledThesisForPublish(analysis));
       if (analysis.direction) setDirection(analysis.direction);
       if (analysis.entryPrice != null) setEntryPrice(String(analysis.entryPrice));
       if (analysis.targetPrice != null) setTargetPrice(String(analysis.targetPrice));
@@ -354,7 +350,9 @@ export function NewCallForm({
                     ) : null}
                   </div>
                   <p className="mt-2 text-xs text-[var(--pf-gray-500)]">
-                    How to use: enter a symbol, add notes, click Generate draft, then review and publish. Levels are only filled if explicit.
+                    How to use: enter a symbol, add notes (social post context helps), click Generate draft,
+                    then review levels and thesis before publishing. Draft levels anchor to last price when
+                    not stated in your notes.
                   </p>
                 </div>
               </section>

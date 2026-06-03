@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import type { TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
 import type { ParsedPostResult, ParsedPostTicker } from "@/lib/social/parse-post";
 import { buildPublishUrlFromAnalysis } from "@/lib/social/desk-draft-url";
+import { enrichFueledAnalysis } from "@/lib/ai/fueled-analysis-format";
 import { formatPrice } from "@/lib/utils";
 import { COPY } from "@/lib/copy";
 
@@ -24,7 +25,21 @@ type TickerAnalysisState = {
     estimatedCostUsd: number;
   };
   cacheHit?: boolean;
+  lastMode?: "default" | "deep";
 };
+
+function buildContextNotes(input: {
+  tweetText: string;
+  adminNote: string;
+  inPostSnippet: string;
+}): string {
+  const parts = [
+    input.inPostSnippet.trim(),
+    input.tweetText.trim() !== input.inPostSnippet.trim() ? input.tweetText.trim() : "",
+    input.adminNote.trim() ? `Admin: ${input.adminNote.trim()}` : "",
+  ].filter(Boolean);
+  return parts.join("\n\n").slice(0, 1500);
+}
 
 function TickerCard({
   ticker,
@@ -45,8 +60,14 @@ function TickerCard({
   });
   const [autoPublish, setAutoPublish] = useState(false);
 
+  const contextNotes = buildContextNotes({
+    tweetText,
+    adminNote,
+    inPostSnippet: ticker.inPostSnippet,
+  });
+
   async function analyze(mode: "default" | "deep" = "default") {
-    setState({ loading: true, error: "", analysis: null, headlines: [] });
+    setState({ loading: true, error: "", analysis: null, headlines: [], lastMode: mode });
     try {
       const res = await fetch("/api/admin/social/analyze-ticker", {
         method: "POST",
@@ -84,6 +105,7 @@ function TickerCard({
         headlines: (json.headlines as { headline: string; source: string; url: string }[]) ?? [],
         cost: json.cost,
         cacheHit: Boolean(json.cache?.hit),
+        lastMode: mode,
       });
 
       if (autoPublish && ticker.valid) {
@@ -92,6 +114,7 @@ function TickerCard({
           fueled: true,
           sourceTweetUrl: tweetUrl ?? undefined,
           socialMode: mode,
+          contextNotes,
         });
         window.location.href = href;
       }
@@ -111,27 +134,32 @@ function TickerCard({
           assetClass: ticker.assetClass ?? "equity",
           fueled: true,
           sourceTweetUrl: tweetUrl ?? undefined,
-          socialMode: "default",
+          socialMode: state.lastMode ?? "default",
+          contextNotes,
         })
       : null;
 
   const quickPublishHref = buildPublishUrlFromAnalysis(
     ticker.symbol,
-    {
-      summary: "",
-      risks: "",
-      draftThesis: ticker.inPostSnippet,
-      direction: null,
-      entryPrice: ticker.lastPrice,
-      targetPrice: null,
-      stopPrice: null,
-      timeframeNote: null,
-    },
+    enrichFueledAnalysis(
+      {
+        summary: "",
+        risks: "Quick publish — verify catalysts, liquidity, and levels before going live.",
+        draftThesis: ticker.inPostSnippet,
+        direction: "long",
+        entryPrice: ticker.lastPrice,
+        targetPrice: null,
+        stopPrice: null,
+        timeframeNote: null,
+      },
+      ticker.lastPrice
+    ),
     {
       assetClass: ticker.assetClass ?? "equity",
       fueled: true,
       sourceTweetUrl: tweetUrl ?? undefined,
       socialMode: "default",
+      contextNotes,
     }
   );
 
