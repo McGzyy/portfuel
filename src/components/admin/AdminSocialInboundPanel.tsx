@@ -63,9 +63,15 @@ function TickerCard({
       });
       const json = await res.json();
       if (!res.ok) {
+        const errorMessages: Record<string, string> = {
+          invalid_symbol: "Invalid or unsupported symbol.",
+          deep_limit_reached: "Deepen+ daily limit reached (25/day). Try again tomorrow or use Analyze.",
+          deep_analysis_failed: "Deepen+ failed — try Analyze, or retry in a moment.",
+          analysis_failed: "Analysis failed — try again.",
+        };
         setState({
           loading: false,
-          error: json.error === "invalid_symbol" ? "Invalid or unsupported symbol." : "Analysis failed.",
+          error: errorMessages[json.error as string] ?? "Analysis failed.",
           analysis: null,
           headlines: [],
         });

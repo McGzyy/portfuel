@@ -38,10 +38,11 @@ export type TickerAnalyzeHeadline = {
 const fueledVoice = `Voice: PortFuel Fueled desk.\n- Sounds like one consistent caller.\n- Professional, concise, specific, and trader-literate.\n- Avoid hype and generic phrases.\n- No buy/sell/hold commands. No guaranteed returns.\n- If levels are not explicit in the post, keep them null.\n- Use only provided sources; never invent news.`;
 
 const intelBulletsSchema = z.object({
-  setup: z.array(z.string().min(3).max(180)).min(2).max(8),
+  setup: z.array(z.string().min(3).max(180)).min(1).max(8),
   catalysts: z.array(z.string().min(3).max(180)).min(1).max(6),
   risks: z.array(z.string().min(3).max(180)).min(1).max(6),
-  keyFacts: z.array(z.string().min(3).max(180)).max(10).optional(),
+  /** Required for OpenAI strict JSON schema (use [] when none). */
+  keyFacts: z.array(z.string().min(3).max(180)).max(10),
   direction: z.enum(["long", "short"]).nullable(),
   entryPrice: z.number().positive().nullable(),
   targetPrice: z.number().positive().nullable(),
@@ -163,43 +164,48 @@ export async function analyzeTickerFromPost(input: {
   let object: TickerAnalyzeResult;
   let costPieces = [buildCostMetrics(modelId, researchPack.promptBlock.length, 0)];
 
-  if (mode !== "deep") {
-    const res = await generateObject({
-      model: openai(modelId),
-      schema: tickerAnalyzeSchema,
-      system: systemBase,
-      prompt: `${researchPack.promptBlock}\n\nProduce the analysis.`,
-    });
-    object = res.object;
-    costPieces = [
-      buildCostMetrics(modelId, researchPack.promptBlock.length, JSON.stringify(res.object).length),
-    ];
-  } else {
-    // Deepen+ = 2-step: compress intel (mini) then rewrite in Fueled voice (4o)
-    const miniId = getAiModelId();
-    const step1 = await generateObject({
-      model: openai(miniId),
-      schema: intelBulletsSchema,
-      system: `Extract actionable intel bullets from the inputs.\n${fueledVoice}\nRules:\n- Output JSON only.\n- Use only the provided sources.\n- Keep bullets specific and short.\n- Levels only if explicit in the post.`,
-      prompt: `${researchPack.promptBlock}\n\nReturn intel bullets JSON.`,
-    });
+  try {
+    if (mode !== "deep") {
+      const res = await generateObject({
+        model: openai(modelId),
+        schema: tickerAnalyzeSchema,
+        system: systemBase,
+        prompt: `${researchPack.promptBlock}\n\nProduce the analysis.`,
+      });
+      object = res.object;
+      costPieces = [
+        buildCostMetrics(modelId, researchPack.promptBlock.length, JSON.stringify(res.object).length),
+      ];
+    } else {
+      // Deepen+ = 2-step: compress intel (mini) then rewrite in Fueled voice (4o)
+      const miniId = getAiModelId();
+      const step1 = await generateObject({
+        model: openai(miniId),
+        schema: intelBulletsSchema,
+        system: `Extract actionable intel bullets from the inputs.\n${fueledVoice}\nRules:\n- Output JSON only.\n- Use only the provided sources.\n- Keep bullets specific and short.\n- Levels only if explicit in the post.\n- keyFacts: use [] if none.`,
+        prompt: `${researchPack.promptBlock}\n\nReturn intel bullets JSON.`,
+      });
 
-    const intel = step1.object;
-    const step2Prompt = `${researchPack.promptBlock}\n\nIntel bullets (from step 1):\n${JSON.stringify(intel)}\n\nWrite the Fueled desk analysis JSON.`;
+      const intel = step1.object;
+      const step2Prompt = `${researchPack.promptBlock}\n\nIntel bullets (from step 1):\n${JSON.stringify(intel)}\n\nWrite the Fueled desk analysis JSON.`;
 
-    const deepId = getAiDeepModelId();
-    const step2 = await generateObject({
-      model: openai(deepId),
-      schema: tickerAnalyzeSchema,
-      system: systemBase,
-      prompt: step2Prompt,
-    });
+      const deepId = getAiDeepModelId();
+      const step2 = await generateObject({
+        model: openai(deepId),
+        schema: tickerAnalyzeSchema,
+        system: systemBase,
+        prompt: step2Prompt,
+      });
 
-    object = step2.object;
-    costPieces = [
-      buildCostMetrics(miniId, researchPack.promptBlock.length, JSON.stringify(step1.object).length),
-      buildCostMetrics(deepId, step2Prompt.length, JSON.stringify(step2.object).length),
-    ];
+      object = step2.object;
+      costPieces = [
+        buildCostMetrics(miniId, researchPack.promptBlock.length, JSON.stringify(step1.object).length),
+        buildCostMetrics(deepId, step2Prompt.length, JSON.stringify(step2.object).length),
+      ];
+    }
+  } catch (e) {
+    console.error("[ticker-analyze generateObject]", mode, e);
+    return { error: mode === "deep" ? "deep_analysis_failed" : "analysis_failed" };
   }
 
   const cost = sumCostMetrics(costPieces);
