@@ -22,6 +22,8 @@ type ThesisCall = {
   last_price?: number | null;
   target_progress: number | null;
   timeframe_tag: string | null;
+  /** Set when return/last were recomputed from a fresh market quote on this page load. */
+  live?: boolean;
   is_fueled: boolean;
   vote_score: number;
   comment_count: number;
@@ -90,6 +92,11 @@ export function CallThesisBlock({
         {call.users.trusted_at ? <Badge variant="trusted">Trusted</Badge> : null}
         <span className={`ml-auto text-sm font-bold tabular-nums ${retClass}`}>
           {formatPct(ret)}
+          {call.live ? (
+            <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+              live
+            </span>
+          ) : null}
         </span>
       </div>
       <p className="mt-1 text-xs text-[var(--pf-gray-400)]">{timeAgo(call.called_at)}</p>
@@ -109,6 +116,7 @@ export function CallThesisBlock({
         last_price={call.last_price}
         target_progress={call.target_progress}
         timeframe_tag={call.timeframe_tag}
+        live={call.live}
         compact
       />
       <CallEngagement

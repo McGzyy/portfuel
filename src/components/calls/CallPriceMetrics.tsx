@@ -8,6 +8,8 @@ type CallPriceMetricsProps = {
   target_progress?: number | null;
   timeframe_tag?: string | null;
   compact?: boolean;
+  /** Last price was recomputed from market data on this page load. */
+  live?: boolean;
 };
 
 export function CallPriceMetrics({
@@ -18,6 +20,7 @@ export function CallPriceMetrics({
   target_progress,
   timeframe_tag,
   compact,
+  live,
 }: CallPriceMetricsProps) {
   const hasPrices = entry_price != null || target_price != null || stop_price != null;
   const progress =
@@ -60,7 +63,9 @@ export function CallPriceMetrics({
           ) : null}
           {last_price != null ? (
             <div>
-              <dt className="font-medium uppercase tracking-wide text-[var(--pf-gray-400)]">Last</dt>
+              <dt className="font-medium uppercase tracking-wide text-[var(--pf-gray-400)]">
+                Last{live ? " (live)" : ""}
+              </dt>
               <dd className="mt-0.5 font-semibold tabular-nums text-[var(--pf-gray-800)]">
                 ${formatPrice(Number(last_price))}
               </dd>

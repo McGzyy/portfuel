@@ -1,4 +1,4 @@
-import { fetchCallsFeed } from "@/lib/calls/service";
+import { fetchCallsFeed, refreshQuotesForSymbols } from "@/lib/calls/service";
 import { isDemoMode } from "@/lib/demo/config";
 import { getDemoProfileStats } from "@/lib/demo/fixtures";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
@@ -56,7 +56,17 @@ export async function loadMemberStats(userId: string) {
 export async function loadFeedCalls(mode: "latest" | "performing" = "latest") {
   if (!isDemoMode() && !hasSupabaseConfig()) return [];
   try {
-    return await fetchCallsFeed(mode);
+    const calls = await fetchCallsFeed(mode);
+    const symbols = [...new Set(calls.map((c) => c.symbol.toUpperCase()))];
+    if (symbols.length > 0) {
+      try {
+        await refreshQuotesForSymbols(symbols);
+        return await fetchCallsFeed(mode);
+      } catch (e) {
+        console.error("[dashboard/refresh feed quotes]", e);
+      }
+    }
+    return calls;
   } catch (e) {
     console.error("[dashboard/data]", e);
     return [];
@@ -72,7 +82,17 @@ export async function loadYourRecentCalls(
   if (!isDemoMode() && !hasSupabaseConfig()) return [];
   try {
     const recent = await fetchUserRecentCalls(userId, limit);
-    return recent.map((c) => ({
+    const symbols = [...new Set(recent.map((c) => c.symbol.toUpperCase()))];
+    if (symbols.length > 0) {
+      try {
+        await refreshQuotesForSymbols(symbols);
+      } catch (e) {
+        console.error("[dashboard/refresh your calls]", e);
+      }
+    }
+    const fresh =
+      symbols.length > 0 ? await fetchUserRecentCalls(userId, limit) : recent;
+    return fresh.map((c) => ({
       id: c.id,
       symbol: c.symbol,
       asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",

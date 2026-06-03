@@ -171,6 +171,7 @@ export default async function TickerPage({
                   symbol: c.symbol,
                   stop_price: c.stop_price,
                   last_price: c.last_price,
+                  live: (c as { live?: boolean }).live,
                   users: {
                     display_name: c.users.display_name,
                     pin: c.users.username ?? c.users.pin,

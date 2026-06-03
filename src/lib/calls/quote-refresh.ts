@@ -7,6 +7,7 @@ import {
   computeScorePoints,
   computeTargetProgress,
 } from "@/lib/scoring/returns";
+import { computeCallLiveMetrics } from "@/lib/calls/live-metrics";
 import { processCallMilestones } from "@/lib/notifications/milestones";
 import { processMemberWinGates } from "@/lib/social/member-win-gate";
 import { refreshMemberRankings } from "@/lib/users/rankings";
@@ -28,6 +29,9 @@ type CallRow = {
   entry_price: number | null;
   target_price: number | null;
   price_at_call: number | null;
+  last_price: number | null;
+  return_pct: number | null;
+  target_progress: number | null;
   vote_score: number;
   comment_count: number;
   is_fueled: boolean;
@@ -119,7 +123,7 @@ export async function refreshQuotesForSymbols(
     quotes.push(result);
 
     if (result.lastPrice != null) {
-      priceMap.set(sym, result.lastPrice);
+      priceMap.set(sym.toUpperCase(), result.lastPrice);
       await db.from("ticker_snapshots").upsert({
         symbol: sym,
         last_price: result.lastPrice,
@@ -145,7 +149,7 @@ export async function refreshQuotesForSymbols(
   }[] = [];
 
   for (const call of allCalls) {
-    const last = priceMap.get(call.symbol);
+    const last = priceMap.get(call.symbol.toUpperCase());
     if (last == null) continue;
 
     const basis = call.entry_price ?? call.price_at_call;
@@ -209,6 +213,32 @@ export async function refreshQuotesForSymbols(
   return { updated, quotes };
 }
 
+/** Write live-computed metrics to DB (e.g. after ticker page fetched a fresh quote). */
+export async function persistCallsLiveMetrics(
+  calls: Array<CallRow & { id: string }>,
+  lastPrice: number
+): Promise<number> {
+  const db = createServiceClient();
+  let n = 0;
+  for (const call of calls) {
+    const metrics = computeCallLiveMetrics(call, lastPrice);
+    if (!metrics.live) continue;
+
+    const { error } = await db
+      .from("calls")
+      .update({
+        last_price: metrics.last_price,
+        return_pct: metrics.return_pct,
+        target_progress: metrics.target_progress,
+      } as never)
+      .eq("id", call.id);
+
+    if (!error) n++;
+    else console.error("[quote-refresh/persist]", call.id, error);
+  }
+  return n;
+}
+
 export async function refreshAllQuotesAndScores(): Promise<{
   updated: number;
   milestonesNotified: number;
@@ -231,7 +261,7 @@ export async function refreshAllQuotesAndScores(): Promise<{
     quotes.push(result);
 
     if (result.lastPrice != null) {
-      priceMap.set(sym, result.lastPrice);
+      priceMap.set(sym.toUpperCase(), result.lastPrice);
       await db.from("ticker_snapshots").upsert({
         symbol: sym,
         last_price: result.lastPrice,
@@ -257,7 +287,7 @@ export async function refreshAllQuotesAndScores(): Promise<{
   }[] = [];
 
   for (const call of rows) {
-    const last = priceMap.get(call.symbol);
+    const last = priceMap.get(call.symbol.toUpperCase());
     if (last == null) continue;
 
     const basis = call.entry_price ?? call.price_at_call;

@@ -1,5 +1,7 @@
 import { createServiceClient } from "@/lib/db/supabase";
+import { enrichCallWithLivePrice } from "@/lib/calls/live-metrics";
 import { fetchCallsBySymbol, refreshQuotesForSymbols } from "@/lib/calls/service";
+import { persistCallsLiveMetrics } from "@/lib/calls/quote-refresh";
 import { resolveCryptoAsset } from "@/lib/market/crypto-allowlist";
 import {
   getCompanyNews,
@@ -84,7 +86,7 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
     }
   }
 
-  const calls = await fetchCallsBySymbol(sym);
+  let calls = await fetchCallsBySymbol(sym);
   if (calls.length > 0 && calls[0].asset_class) {
     assetClass = calls[0].asset_class as AssetClass;
   }
@@ -120,6 +122,13 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
       getEarnings(sym),
       getFilings(sym),
     ]);
+  }
+
+  if (!isDemoMode() && quote?.price != null && calls.length > 0) {
+    calls = calls.map((c) => enrichCallWithLivePrice(c, quote!.price));
+    void persistCallsLiveMetrics(calls, quote.price).catch((e) =>
+      console.error("[ticker-intel persist live]", sym, e)
+    );
   }
 
   const { data: hype } = await db
