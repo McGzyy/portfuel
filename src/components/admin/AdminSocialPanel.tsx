@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AdminSocialMilestonePanel } from "@/components/admin/AdminSocialMilestonePanel";
+import { AdminMemberWinsPanel } from "@/components/admin/AdminMemberWinsPanel";
 
 type XConfigSummary = {
   enabled: boolean;
@@ -11,6 +12,7 @@ type XConfigSummary = {
   livePostingReady: boolean;
   fueledPosts: boolean;
   leaderboardPosts: boolean;
+  memberWinPosts: boolean;
   autopostFueledOnPublish: boolean;
 };
 
@@ -99,11 +101,11 @@ export function AdminSocialPanel() {
           X Posts
         </p>
         <h2 className="mt-1 text-lg font-bold text-[var(--pf-black)]">
-          Outbound updates & milestone posts
+          Outbound social publishing
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
-          Preview and publish Fueled desk updates, rankings, and milestone chart posts. To curate
-          calls from incoming X posts, use <strong>Admin → X Ingest</strong>.
+          Preview and publish desk milestones, weekly rankings, and member spotlight posts with
+          branded charts. To curate inbound X posts into desk research, use Admin → X Ingest.
         </p>
 
         {config ? (
@@ -138,7 +140,8 @@ export function AdminSocialPanel() {
             </li>
             <li className="sm:col-span-2">
               Cron types: Fueled {config.fueledPosts ? "on" : "off"} · Leaderboard{" "}
-              {config.leaderboardPosts ? "on" : "off"} · Set vars on Vercel for production.
+              {config.leaderboardPosts ? "on" : "off"} · Member wins{" "}
+              {config.memberWinPosts ? "on" : "off"} · Set vars on Vercel for production.
             </li>
           </ul>
         ) : null}
@@ -198,6 +201,8 @@ export function AdminSocialPanel() {
           </pre>
         ) : null}
       </section>
+
+      <AdminMemberWinsPanel />
 
       <AdminSocialMilestonePanel />
     </div>

@@ -10,6 +10,8 @@ import {
 import type { ChartMarker, CandlePoint, PriceLine } from "@/lib/charts/types";
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 
+export type SocialChartSpotlightKind = "desk" | "member";
+
 export type SocialChartPayload = {
   symbol: string;
   companyName: string;
@@ -17,6 +19,7 @@ export type SocialChartPayload = {
   returnPct: number | null;
   milestone: CallMilestoneKey | null;
   milestoneLabel: string | null;
+  spotlightKind: SocialChartSpotlightKind;
   featuredCallId: string;
   calledAt: string;
   candles: CandlePoint[];
@@ -49,8 +52,10 @@ function inferMilestone(call: {
 
 export async function loadSocialChartPayload(
   callId: string,
-  milestone?: CallMilestoneKey | null
+  milestone?: CallMilestoneKey | null,
+  opts?: { memberWin?: boolean }
 ): Promise<SocialChartPayload | { error: string }> {
+  const memberWin = opts?.memberWin === true;
   let call:
     | {
         id: string;
@@ -70,20 +75,20 @@ export async function loadSocialChartPayload(
     | undefined;
 
   if (isDemoMode()) {
-    call = getDemoCallsFeed("latest").find((c) => c.id === callId && c.is_fueled);
-    if (!call) {
+    call = getDemoCallsFeed("latest").find((c) => c.id === callId);
+    if (!call && !memberWin) {
       call = getDemoCallsFeed("latest").find((c) => c.is_fueled);
     }
   } else {
     const db = createServiceClient();
-    const { data, error } = await db
+    let q = db
       .from("calls")
       .select(
         "id, symbol, direction, thesis, called_at, return_pct, target_progress, entry_price, target_price, stop_price, price_at_call, is_fueled, user_id"
       )
-      .eq("id", callId)
-      .eq("is_fueled", true)
-      .maybeSingle();
+      .eq("id", callId);
+    if (!memberWin) q = q.eq("is_fueled", true);
+    const { data, error } = await q.maybeSingle();
     if (error || !data) return { error: "not_found" };
     call = data as typeof call;
   }
@@ -106,12 +111,25 @@ export async function loadSocialChartPayload(
 
   const markers: ChartMarker[] = intel.markers.map((m) => ({
     ...m,
-    label: m.kind === "fueled" ? "Fueled desk" : m.label,
+    label:
+      m.callId === call.id
+        ? memberWin
+          ? "Call on record"
+          : "Fueled desk"
+        : m.kind === "fueled"
+          ? "Fueled desk"
+          : m.label,
   }));
 
-  const priceLines = buildFeaturedCallPriceLines(call);
+  const priceLines = buildFeaturedCallPriceLines(call, memberWin ? "Member" : "Desk");
 
-  const resolvedMilestone = milestone ?? inferMilestone(call);
+  const resolvedMilestone = memberWin ? null : (milestone ?? inferMilestone(call));
+  const returnLabel =
+    call.return_pct != null
+      ? memberWin
+        ? `${call.return_pct >= 0 ? "+" : ""}${call.return_pct.toFixed(1)}% on record`
+        : `${call.return_pct >= 0 ? "+" : ""}${call.return_pct.toFixed(1)}% since call`
+      : null;
 
   return {
     symbol: call.symbol,
@@ -119,7 +137,12 @@ export async function loadSocialChartPayload(
     direction: call.direction as "long" | "short",
     returnPct: call.return_pct,
     milestone: resolvedMilestone,
-    milestoneLabel: resolvedMilestone ? MILESTONE_LABELS[resolvedMilestone] : null,
+    milestoneLabel: memberWin
+      ? returnLabel
+      : resolvedMilestone
+        ? MILESTONE_LABELS[resolvedMilestone]
+        : null,
+    spotlightKind: memberWin ? "member" : "desk",
     featuredCallId: call.id,
     calledAt: call.called_at,
     candles,

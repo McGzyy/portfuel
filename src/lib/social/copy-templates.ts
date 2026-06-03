@@ -8,6 +8,7 @@ export type SocialPostCopy = {
   milestoneTailTemplate: string;
   fueledTemplate: string;
   leaderboardTemplate: string;
+  memberWinTemplate: string;
   disclaimer: string;
   updatedAt: string | null;
 };
@@ -24,6 +25,11 @@ export const DEFAULT_SOCIAL_POST_COPY: SocialPostCopy = {
   leaderboardTemplate: `PortFuel rankings
 {{leaderboard_lines}}
 {{link}}
+{{disclaimer}}`,
+  memberWinTemplate: `PortFuel · Member call on record
+{{symbol}} {{direction}} · {{return_line}}
+{{member_handle}}
+{{thesis_block}}{{link}}
 {{disclaimer}}`,
   disclaimer: "Not investment advice.",
   updatedAt: null,
@@ -45,6 +51,8 @@ export const COPY_PLACEHOLDER_HELP = [
   "{{leaderboard_lines}} — numbered rankings (leaderboard posts)",
   "{{link}} — tracked PortFuel URL",
   "{{disclaimer}} — legal line from settings",
+  "{{member_handle}} — @username or display name (member wins)",
+  "{{thesis_block}} — thesis excerpt or empty (member wins)",
 ] as const;
 
 function trimTweet(text: string, max = 280): string {
@@ -102,7 +110,7 @@ export async function fetchSocialPostCopy(): Promise<SocialPostCopy> {
     const { data, error } = await db
       .from("social_post_copy")
       .select(
-        "milestone_lead_template, milestone_tail_template, fueled_template, leaderboard_template, disclaimer, updated_at"
+        "milestone_lead_template, milestone_tail_template, fueled_template, leaderboard_template, member_win_template, disclaimer, updated_at"
       )
       .eq("id", COPY_ID)
       .maybeSingle();
@@ -114,6 +122,7 @@ export async function fetchSocialPostCopy(): Promise<SocialPostCopy> {
       milestone_tail_template: string;
       fueled_template: string;
       leaderboard_template: string;
+      member_win_template: string | null;
       disclaimer: string;
       updated_at: string;
     };
@@ -123,6 +132,8 @@ export async function fetchSocialPostCopy(): Promise<SocialPostCopy> {
       milestoneTailTemplate: row.milestone_tail_template,
       fueledTemplate: row.fueled_template,
       leaderboardTemplate: row.leaderboard_template,
+      memberWinTemplate:
+        row.member_win_template?.trim() || DEFAULT_SOCIAL_POST_COPY.memberWinTemplate,
       disclaimer: row.disclaimer,
       updatedAt: row.updated_at,
     };

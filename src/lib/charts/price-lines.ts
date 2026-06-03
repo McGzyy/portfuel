@@ -52,13 +52,16 @@ function newestCall(calls: CallWithUser[]): CallWithUser | undefined {
 /**
  * Entry / target for a single featured call (social milestone charts).
  */
-export function buildFeaturedCallPriceLines(call: {
-  entry_price: number | null;
-  target_price: number | null;
-  stop_price?: number | null;
-}): PriceLine[] {
+export function buildFeaturedCallPriceLines(
+  call: {
+    entry_price: number | null;
+    target_price: number | null;
+    stop_price?: number | null;
+  },
+  prefix: "Desk" | "Member" = "Desk"
+): PriceLine[] {
   const lines: PriceLine[] = [];
-  pushCallLevels(lines, call as CallWithUser, "Desk");
+  pushCallLevels(lines, call as CallWithUser, prefix);
   return lines;
 }
 

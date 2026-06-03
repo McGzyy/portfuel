@@ -16,9 +16,10 @@ export async function GET(request: Request) {
   }
 
   try {
-    const types: Array<"leaderboard" | "fueled"> = [];
+    const types: Array<"leaderboard" | "fueled" | "member_win"> = [];
     if (config.leaderboardPosts) types.push("leaderboard");
     if (config.fueledPosts) types.push("fueled");
+    if (config.memberWinPosts) types.push("member_win");
 
     const { results } = await runXSocialBatch({ types });
     return NextResponse.json({ ok: true, results });

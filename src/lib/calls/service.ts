@@ -6,6 +6,7 @@ import {
   getDemoPublicTeasers,
 } from "@/lib/demo/fixtures";
 import { processCallMilestones } from "@/lib/notifications/milestones";
+import { processMemberWinGates } from "@/lib/social/member-win-gate";
 import { refreshMemberRankings } from "@/lib/users/rankings";
 import { getQuote, getCryptoLastPrice } from "@/lib/market/finnhub";
 import {
@@ -96,6 +97,7 @@ export async function fetchCallsBySymbol(symbol: string): Promise<CallWithUser[]
 export async function refreshQuotesAndScores(): Promise<{
   updated: number;
   milestonesNotified: number;
+  memberWinGates: number;
 }> {
   const db = createServiceClient();
   const { data: calls, error } = await db.from("calls").select("*");
@@ -139,6 +141,8 @@ export async function refreshQuotesAndScores(): Promise<{
     user_id: string;
     symbol: string;
     direction: string;
+    called_at: string;
+    is_fueled: boolean;
     entry_price: number | null;
     target_price: number | null;
     return_pct: number | null;
@@ -193,6 +197,8 @@ export async function refreshQuotesAndScores(): Promise<{
       user_id: call.user_id,
       symbol: call.symbol,
       direction: call.direction,
+      called_at: call.called_at,
+      is_fueled: Boolean(call.is_fueled),
       entry_price: call.entry_price,
       target_price: call.target_price,
       return_pct: returnPct,
@@ -224,6 +230,7 @@ export async function refreshQuotesAndScores(): Promise<{
   await refreshMemberRankings();
 
   const { notified: milestonesNotified } = await processCallMilestones(milestoneRows);
+  const { gated: memberWinGates } = await processMemberWinGates(milestoneRows);
 
-  return { updated, milestonesNotified };
+  return { updated, milestonesNotified, memberWinGates };
 }

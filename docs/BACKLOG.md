@@ -74,6 +74,8 @@ The brand X account needs regular activity before launch traffic matters. Manual
 - Scraping other accounts’ tweets (see Tweet → Fueled for **inbound** curation only).
 - Posting member UGC without explicit opt-in.
 
+**Planned (see [MARKETING-PLAN.md](./MARKETING-PLAN.md) §4–6):** opt-in member win spotlights, chart PNGs, quote-tweet updates, profile privacy toggles, `member_win` post type in `social_post_log`.
+
 ### Success criteria
 
 - Account posts 3–5×/week with zero manual copy-paste.

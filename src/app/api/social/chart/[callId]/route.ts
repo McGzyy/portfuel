@@ -20,7 +20,12 @@ export async function GET(
       ? milestoneSchema.safeParse(milestoneRaw).data
       : undefined;
 
-    const payload = await loadSocialChartPayload(callId, milestone as CallMilestoneKey | undefined);
+    const memberWin = url.searchParams.get("memberWin") === "1";
+    const payload = await loadSocialChartPayload(
+      callId,
+      milestone as CallMilestoneKey | undefined,
+      { memberWin }
+    );
     if ("error" in payload) {
       return NextResponse.json({ error: payload.error }, { status: 404 });
     }

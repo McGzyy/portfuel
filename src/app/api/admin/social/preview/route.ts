@@ -21,18 +21,24 @@ export async function GET() {
 }
 
 const schema = z.object({
-  type: z.enum(["fueled", "leaderboard", "fueled_milestone"]),
+  type: z.enum(["fueled", "leaderboard", "fueled_milestone", "member_win"]),
   callId: z.string().uuid().optional(),
   milestone: z.enum(["return_10", "return_25", "target_reached"]).optional(),
+  force: z.boolean().optional(),
 });
 
 export async function POST(request: Request) {
   try {
     await requireAdmin();
     const body = schema.parse(await request.json());
+    if (body.type === "member_win" && !body.callId) {
+      return NextResponse.json({ error: "call_id_required" }, { status: 400 });
+    }
+
     const composed = await composeXPost(body.type, {
       callId: body.callId,
       milestone: body.milestone,
+      skipMemberWinReadiness: body.force,
     });
     if (!composed.ok) {
       return NextResponse.json({ error: composed.error }, { status: 404 });
@@ -47,8 +53,12 @@ export async function POST(request: Request) {
       callId: composed.callId,
       milestone: composed.milestone,
       chartUrl:
-        composed.withChart && composed.callId && composed.milestone
-          ? `/api/social/chart/${composed.callId}?milestone=${composed.milestone}&format=png`
+        composed.withChart && composed.callId
+          ? body.type === "member_win"
+            ? `/api/social/chart/${composed.callId}?format=png&memberWin=1`
+            : composed.milestone
+              ? `/api/social/chart/${composed.callId}?milestone=${composed.milestone}&format=png`
+              : null
           : null,
       config: xConfigSummary(),
     });

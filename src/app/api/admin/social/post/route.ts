@@ -11,7 +11,7 @@ import { renderSocialChartPng } from "@/lib/charts/social-chart-render";
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 
 const schema = z.object({
-  type: z.enum(["fueled", "leaderboard", "fueled_milestone"]),
+  type: z.enum(["fueled", "leaderboard", "fueled_milestone", "member_win"]),
   dryRun: z.boolean().optional(),
   force: z.boolean().optional(),
   callId: z.string().uuid().optional(),
@@ -22,6 +22,32 @@ export async function POST(request: Request) {
   try {
     await requireAdmin();
     const body = schema.parse(await request.json());
+    if (body.type === "member_win") {
+      if (!body.callId) {
+        return NextResponse.json({ error: "call_id_required" }, { status: 400 });
+      }
+      const { postMemberWin } = await import("@/lib/social/x-member-win-post");
+      const result = await postMemberWin({
+        callId: body.callId,
+        dryRun: body.dryRun,
+        force: body.force,
+        skipReadiness: body.force,
+      });
+      if (!result.ok) {
+        const status = result.error === "already_posted" ? 409 : result.error === "no_content" ? 404 : 502;
+        return NextResponse.json({ error: result.error, text: result.text }, { status });
+      }
+      return NextResponse.json({
+        ok: true,
+        dryRun: result.dryRun,
+        tweetId: result.tweetId,
+        text: result.text,
+        refId: body.callId,
+        withChart: true,
+        config: xConfigSummary(),
+      });
+    }
+
     const composed = await composeXPost(body.type, {
       callId: body.callId,
       milestone: body.milestone,

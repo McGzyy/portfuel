@@ -81,6 +81,7 @@ export async function loadDemoSocialChartPayload(
     returnPct,
     milestone,
     milestoneLabel: MILESTONE_LABELS[milestone],
+    spotlightKind: "desk",
     featuredCallId: fueled.id,
     calledAt: fueled.called_at,
     candles,

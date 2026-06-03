@@ -55,6 +55,10 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
   const ret = payload.returnPct;
   const retStr = ret != null ? fmtPct(ret) : "—";
   const mile = payload.milestoneLabel ?? "";
+  const isMember = payload.spotlightKind === "member";
+  const eyebrow = isMember ? "MEMBER CALL" : "FUELED DESK";
+  const callType = isMember ? "Community call on record" : "Fueled desk call";
+  const sinceLabel = isMember ? "SINCE PUBLICATION" : "SINCE DESK CALL";
   const date = fmtDate(payload.calledAt);
   const up = (ret ?? 0) >= 0;
   const trendColor = up ? C.lineUp : C.lineDown;
@@ -70,10 +74,10 @@ export function renderSocialChartSvg(payload: SocialChartPayload): string {
     const w = label.length * 5.6 + 24;
     mileBadge = `<rect x="${PAD}" y="${y - 14}" width="${w}" height="22" rx="11" fill="${C.accentFill}" stroke="${C.accentBorder}"/>
 ${txt(PAD + w / 2, y, label, { size: 9, weight: 700, fill: C.accent, anchor: "middle" })}
-${txt(PAD + w + 16, y, "FUELED DESK", { size: 10, weight: 600, fill: C.textDim })}`;
+${txt(PAD + w + 16, y, eyebrow, { size: 10, weight: 600, fill: C.textDim })}`;
     y += 30;
   } else {
-    mileBadge = txt(PAD, y, "FUELED DESK", { size: 10, weight: 600, fill: C.textDim });
+    mileBadge = txt(PAD, y, eyebrow, { size: 10, weight: 600, fill: C.textDim });
     y += 20;
   }
 
@@ -94,11 +98,11 @@ ${txt(PAD + w + 16, y, "FUELED DESK", { size: 10, weight: 600, fill: C.textDim }
   ${txt(PAD, y + 38, payload.companyName, { size: 22, weight: 500, fill: C.text })}
   <text x="${PAD}" y="${y + 58}" font-family="${FONT_SANS}" font-size="13" font-weight="600">
     <tspan fill="${dir.color}">${esc(dir.label)}</tspan>
-    <tspan fill="${C.textDim}"> · Fueled desk call</tspan>
+    <tspan fill="${C.textDim}"> · ${esc(callType)}</tspan>
   </text>
   ${date ? txt(PAD, y + 76, `Called ${date}`, { size: 13, weight: 500, fill: C.textDim }) : ""}
   ${txt(rx, y + 8, retStr, { size: 52, weight: 700, fill: trendColor, anchor: "end" })}
-  ${txt(rx, y + 36, "SINCE DESK CALL", { size: 10, weight: 600, fill: C.textDim, anchor: "end" })}
+  ${txt(rx, y + 36, sinceLabel, { size: 10, weight: 600, fill: C.textDim, anchor: "end" })}
   ${embedPlot(payload)}
   <rect x="0" y="${footerTop}" width="${W}" height="${FOOTER}" fill="${C.surface}"/>
   <line x1="${PAD}" y1="${footerTop}" x2="${W - PAD}" y2="${footerTop}" stroke="${C.rule}"/>

@@ -21,6 +21,7 @@ import { ProfileBillingSection } from "@/components/billing/ProfileBillingSectio
 import { ProfileAiCoachStrip } from "@/components/profile/ProfileAiCoachStrip";
 import { ProfileEmailSection } from "@/components/profile/ProfileEmailSection";
 import { ProfileReferralSection } from "@/components/profile/ProfileReferralSection";
+import { ProfileSocialHighlightSection } from "@/components/profile/ProfileSocialHighlightSection";
 import { ProfileVouchersSection } from "@/components/profile/ProfileVouchersSection";
 import { ProfileDiscordSection } from "@/components/profile/ProfileDiscordSection";
 import { fetchAiCoachUsage } from "@/lib/ai/usage";
@@ -115,6 +116,10 @@ export default async function ProfilePage() {
 
       <div className="mt-6">
         <ProfileReferralSection />
+      </div>
+
+      <div className="mt-6">
+        <ProfileSocialHighlightSection />
       </div>
 
       <div className="mt-6">

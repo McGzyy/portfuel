@@ -1,4 +1,8 @@
-export type XPostType = "fueled" | "leaderboard" | "fueled_milestone";
+export type XPostType =
+  | "fueled"
+  | "leaderboard"
+  | "fueled_milestone"
+  | "member_win";
 
 export type XConfig = {
   enabled: boolean;
@@ -6,6 +10,7 @@ export type XConfig = {
   bearerToken: string | null;
   fueledPosts: boolean;
   leaderboardPosts: boolean;
+  memberWinPosts: boolean;
   autopostFueledOnPublish: boolean;
   autopostMilestones: boolean;
 };
@@ -27,6 +32,7 @@ export function getXConfig(): XConfig {
     bearerToken,
     fueledPosts: envFlag("X_POST_FUELED", true),
     leaderboardPosts: envFlag("X_POST_LEADERBOARD", true),
+    memberWinPosts: envFlag("X_POST_MEMBER_WINS", false),
     autopostFueledOnPublish: envFlag("X_AUTOPOST_FUELED_ON_PUBLISH", false),
     autopostMilestones: !["0", "false", "no"].includes(
       (process.env.X_AUTOPOST_MILESTONES ?? "true").trim().toLowerCase()
@@ -50,6 +56,7 @@ export function xConfigSummary(): {
   configured: boolean;
   fueledPosts: boolean;
   leaderboardPosts: boolean;
+  memberWinPosts: boolean;
   autopostFueledOnPublish: boolean;
 } {
   const c = getXConfig();
@@ -63,6 +70,7 @@ export function xConfigSummary(): {
     configured: isXConfigured(),
     fueledPosts: c.fueledPosts,
     leaderboardPosts: c.leaderboardPosts,
+    memberWinPosts: c.memberWinPosts,
     autopostFueledOnPublish: c.autopostFueledOnPublish,
   };
 }

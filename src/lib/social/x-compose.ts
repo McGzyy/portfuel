@@ -6,6 +6,13 @@ import { appPath } from "@/lib/social/app-url";
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 import type { XPostType } from "@/lib/social/x-config";
 import {
+  MEMBER_WIN_GATE_MILESTONE_KEY,
+} from "@/lib/social/member-win-config";
+import {
+  isMemberWinReadyToPost,
+  meetsMemberWinReturnAgeGate,
+} from "@/lib/social/member-win-eligibility";
+import {
   applyCopyTemplate,
   composeMilestonePostText,
   fetchSocialPostCopy,
@@ -18,7 +25,12 @@ function trimTweet(text: string, max = 280): string {
 
 export async function composeXPost(
   type: XPostType,
-  opts?: { callId?: string; milestone?: CallMilestoneKey }
+  opts?: {
+    callId?: string;
+    milestone?: CallMilestoneKey;
+    /** Admin preview — skip sustain timer check. */
+    skipMemberWinReadiness?: boolean;
+  }
 ): Promise<
   | {
       ok: true;
@@ -44,6 +56,11 @@ export async function composeXPost(
     const result = await composeLeaderboardPost();
     if (!result.ok) return result;
     return { ...result, withChart: false };
+  }
+  if (type === "member_win" && opts?.callId) {
+    return composeMemberWinPost(opts.callId, {
+      skipReadiness: opts.skipMemberWinReadiness,
+    });
   }
   return { ok: false, error: "unsupported" };
 }
@@ -224,4 +241,115 @@ async function composeLeaderboardPost(): Promise<
     })
   );
   return { ok: true, text, refId: `leaderboard-${week}` };
+}
+
+export async function composeMemberWinPost(
+  callId: string,
+  opts?: { skipReadiness?: boolean }
+): Promise<
+  | {
+      ok: true;
+      text: string;
+      refId: string;
+      callId: string;
+      withChart: true;
+    }
+  | { ok: false; error: "no_content" }
+> {
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("calls")
+    .select(
+      "id, symbol, direction, thesis, return_pct, called_at, is_fueled, user_id, users!inner(username, display_name, allow_social_highlight, social_highlight_show_thesis, social_highlight_show_username, subscription_status)"
+    )
+    .eq("id", callId)
+    .maybeSingle();
+
+  if (error || !data) return { ok: false, error: "no_content" };
+
+  const row = data as unknown as {
+    id: string;
+    symbol: string;
+    direction: string;
+    thesis: string | null;
+    return_pct: number | null;
+    called_at: string;
+    is_fueled: boolean;
+    user_id: string;
+    users: {
+      username: string | null;
+      display_name: string | null;
+      allow_social_highlight: boolean;
+      social_highlight_show_thesis: boolean;
+      social_highlight_show_username: boolean;
+      subscription_status: string;
+    };
+  };
+
+  if (row.is_fueled) return { ok: false, error: "no_content" };
+  if (!row.users.allow_social_highlight) return { ok: false, error: "no_content" };
+  if (row.users.subscription_status !== "active") return { ok: false, error: "no_content" };
+
+  const ageCheck = meetsMemberWinReturnAgeGate(row);
+  if (!ageCheck.ok) return { ok: false, error: "no_content" };
+
+  if (!opts?.skipReadiness) {
+    const { data: gate } = await db
+      .from("call_milestones")
+      .select("created_at")
+      .eq("call_id", callId)
+      .eq("key", MEMBER_WIN_GATE_MILESTONE_KEY)
+      .maybeSingle();
+
+    const gateAt = (gate as { created_at?: string } | null)?.created_at ?? null;
+    if (!isMemberWinReadyToPost({ call: row, gateRecordedAt: gateAt })) {
+      return { ok: false, error: "no_content" };
+    }
+  }
+
+  const copy = await fetchSocialPostCopy();
+  const link = appPath(`/ticker/${row.symbol}`, {
+    source: "x",
+    medium: "social",
+    campaign: "member_win",
+  });
+
+  const ret =
+    row.return_pct != null
+      ? `${row.return_pct >= 0 ? "+" : ""}${row.return_pct.toFixed(1)}%`
+      : "";
+  const returnLine = ret ? `${ret} since publication` : "";
+
+  const handle = row.users.social_highlight_show_username
+    ? row.users.username
+      ? `@${row.users.username}`
+      : (row.users.display_name ?? "Member")
+    : (row.users.display_name ?? "Member");
+
+  let thesisBlock = "";
+  if (row.users.social_highlight_show_thesis && row.thesis?.trim()) {
+    const t =
+      row.thesis.length > 120 ? `${row.thesis.slice(0, 117)}…` : row.thesis;
+    thesisBlock = `${t}\n`;
+  }
+
+  const text = trimTweet(
+    applyCopyTemplate(copy.memberWinTemplate, {
+      symbol: row.symbol,
+      direction: row.direction,
+      return_line: returnLine,
+      member_handle: handle,
+      thesis_block: thesisBlock,
+      link,
+      disclaimer: copy.disclaimer,
+    })
+  );
+
+  return {
+    ok: true,
+    text,
+    refId: row.id,
+    callId: row.id,
+    withChart: true,
+  };
 }

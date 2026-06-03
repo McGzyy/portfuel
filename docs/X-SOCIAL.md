@@ -2,6 +2,8 @@
 
 Keep the brand account active with **safe, on-brand** posts that link back to PortFuel. Start in dry run; turn on live posts only after copy review.
 
+**Full growth strategy (member wins, quote tweets, ads, calendar):** [MARKETING-PLAN.md](./MARKETING-PLAN.md)
+
 ## Environment variables
 
 Add to Vercel (Production) and local `.env`:
@@ -14,6 +16,14 @@ Add to Vercel (Production) and local `.env`:
 | `X_POST_FUELED` | `true` | Include latest Fueled desk call in cron batch |
 | `X_POST_LEADERBOARD` | `true` | Include top-3 rankings snippet in cron batch |
 | `X_AUTOPOST_FUELED_ON_PUBLISH` | `false` | When an admin publishes a Fueled call, auto-post it to X (still respects dry run + idempotency) |
+| `X_POST_MEMBER_WINS` | `false` | Cron: post one opted-in member win per run (when eligible) |
+| `X_MEMBER_WIN_MIN_RETURN_PCT` | `20` | Normal path minimum return % |
+| `X_MEMBER_WIN_MIN_AGE_HOURS` | `48` | Normal path minimum hours since call |
+| `X_MEMBER_WIN_FAST_TRACK_RETURN_PCT` | `30` | Exceptional outcome shorter age path |
+| `X_MEMBER_WIN_FAST_TRACK_MIN_AGE_HOURS` | `36` | Minimum age for fast track |
+| `X_MEMBER_WIN_SUSTAIN_HOURS` | `48` | Review window after qualifying before posting |
+
+After migration, run `supabase/scripts/update-member-win-professional-copy.sql` if templates were created with older copy.
 
 `CRON_SECRET` must match Vercel cron `Authorization: Bearer …` (same as other crons).
 
@@ -29,6 +39,7 @@ Add to Vercel (Production) and local `.env`:
 **Administration → Social**
 
 - Preview **Fueled** or **rankings** post text (280-char limit enforced).
+- **Member wins** queue — opted-in members, chart + thesis (see env thresholds).
 - **Dry-run post** — logs on the server, no X call.
 - **Post to X** — live when `X_API_ENABLED=true`, `X_API_DRY_RUN=false`, and token is set.
 - **Force repost** — bypasses idempotency for manual posts.

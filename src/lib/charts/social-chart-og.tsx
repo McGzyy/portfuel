@@ -32,6 +32,10 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
   const ret = payload.returnPct;
   const retStr = ret != null ? fmtPct(ret) : null;
   const mile = payload.milestoneLabel ?? "";
+  const isMember = payload.spotlightKind === "member";
+  const eyebrow = isMember ? "MEMBER CALL" : "FUELED DESK";
+  const callType = isMember ? "Community call on record" : "Fueled desk call";
+  const sinceLabel = isMember ? "SINCE PUBLICATION" : "SINCE DESK CALL";
   const date = fmtDate(payload.calledAt);
   const up = (ret ?? 0) >= 0;
   const trendColor = up ? T.lineUp : T.lineDown;
@@ -88,7 +92,7 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
                   letterSpacing: 1.2,
                 }}
               >
-                FUELED DESK
+                {eyebrow}
               </div>
             </div>
 
@@ -129,7 +133,7 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             >
               <span style={{ display: "flex", color: dir.color }}>{dir.label}</span>
               <span style={{ display: "flex", color: T.textDim, marginLeft: 8 }}>·</span>
-              <span style={{ display: "flex", color: T.textDim, marginLeft: 8 }}>Fueled desk call</span>
+              <span style={{ display: "flex", color: T.textDim, marginLeft: 8 }}>{callType}</span>
             </div>
 
             {date ? (
@@ -178,7 +182,7 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
                   letterSpacing: 1.3,
                 }}
               >
-                SINCE DESK CALL
+                {sinceLabel}
               </div>
             </div>
           ) : (
