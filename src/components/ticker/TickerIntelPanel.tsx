@@ -9,8 +9,8 @@ function formatDate(d: string | number) {
 export function TickerIntelPanel({ intel }: { intel: TickerIntel }) {
   if (intel.assetClass === "crypto") {
     return (
-      <section className="mt-8">
-        <p className="pf-eyebrow">Market intel</p>
+      <section>
+        <p className="pf-eyebrow">Market reference</p>
         <h2 className="mt-2 text-lg font-bold tracking-tight">Crypto · exchange-listed only</h2>
         <Card className="pf-card-elevated mt-4 border-0">
           <CardHeader>
@@ -25,8 +25,8 @@ export function TickerIntelPanel({ intel }: { intel: TickerIntel }) {
               {intel.finnhubSymbol ?? intel.symbol}
             </p>
             <p className="mt-3 leading-relaxed">
-              Track member calls and narrative below. Open a stock ticker for filings, earnings,
-              and headline flow.
+              Member calls and community stats appear above. Open a stock ticker for filings,
+              earnings, and headline flow.
             </p>
           </CardContent>
         </Card>
@@ -35,9 +35,12 @@ export function TickerIntelPanel({ intel }: { intel: TickerIntel }) {
   }
 
   return (
-    <section className="mt-8">
-      <p className="pf-eyebrow">Market intel</p>
-      <h2 className="mt-2 text-lg font-bold tracking-tight">Equity research stack</h2>
+    <section>
+      <p className="pf-eyebrow">Market reference</p>
+      <h2 className="mt-2 text-lg font-bold tracking-tight">News & filings</h2>
+      <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
+        Headlines, earnings, and SEC forms — newest first.
+      </p>
       <div className="mt-4 grid gap-6 lg:grid-cols-2">
       <IntelCard title="News" subtitle="Last 30 days">
         {intel.news.length === 0 ? (
@@ -119,35 +122,6 @@ export function TickerIntelPanel({ intel }: { intel: TickerIntel }) {
           </ul>
         )}
       </IntelCard>
-
-      {intel.profile ? (
-        <IntelCard title="Company stats" subtitle={intel.profile.finnhubIndustry ?? ""}>
-          <dl className="grid grid-cols-2 gap-3 text-sm">
-            {intel.profile.marketCapitalization != null ? (
-              <Stat label="Market cap" value={`$${(intel.profile.marketCapitalization / 1e3).toFixed(1)}B`} />
-            ) : null}
-            {intel.profile.shareOutstanding != null ? (
-              <Stat
-                label="Shares out"
-                value={`${(intel.profile.shareOutstanding / 1e6).toFixed(1)}M`}
-              />
-            ) : null}
-            {intel.profile.ipo ? <Stat label="IPO" value={intel.profile.ipo} /> : null}
-            {intel.profile.weburl ? (
-              <div className="col-span-2">
-                <a
-                  href={intel.profile.weburl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[var(--pf-red)] hover:underline"
-                >
-                  Company website →
-                </a>
-              </div>
-            ) : null}
-          </dl>
-        </IntelCard>
-      ) : null}
       </div>
     </section>
   );
@@ -177,13 +151,4 @@ function IntelCard({
 
 function Empty({ children }: { children: React.ReactNode }) {
   return <p className="text-sm text-[var(--pf-gray-500)]">{children}</p>;
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-[var(--pf-gray-500)]">{label}</dt>
-      <dd className="font-semibold tabular-nums">{value}</dd>
-    </div>
-  );
 }

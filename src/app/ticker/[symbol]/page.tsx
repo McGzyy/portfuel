@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { TickerChartSection } from "@/components/charts/TickerChartSection";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
+import { TickerCompanyStats } from "@/components/ticker/TickerCompanyStats";
 import { TickerIntelPanel } from "@/components/ticker/TickerIntelPanel";
 import { TickerIntelTeaser } from "@/components/ticker/TickerIntelTeaser";
 import { buildIntelTeaserSummary } from "@/lib/market/intel-teaser";
@@ -124,24 +125,9 @@ export default async function TickerPage({
         ) : null}
       </section>
 
-      <TickerCommunityBar stats={communityStats} />
+      {isEquityIntel ? <TickerCompanyStats intel={intelData} /> : null}
 
-      {isEquityIntel ? (
-        <ProIntelligenceGate
-          locked={intelGateLocked}
-          cta={proGateCta}
-          variant="preview"
-          title="Unlock full market intel"
-          description={`Read headlines, earnings, SEC filings, and company stats on every equity ticker — included with ${formatProIntelligenceLabel()}.`}
-          teaser={
-            intelGateLocked ? <TickerIntelTeaser summary={intelTeaser} /> : undefined
-          }
-        >
-          <TickerIntelPanel intel={intelData} />
-        </ProIntelligenceGate>
-      ) : (
-        <TickerIntelPanel intel={intelData} />
-      )}
+      <TickerCommunityBar stats={communityStats} />
 
       <section className="border-t border-[var(--pf-border)] pt-10">
         <WorkspacePageHeader
@@ -201,6 +187,27 @@ export default async function TickerPage({
           )}
         </div>
       </section>
+
+      {isEquityIntel ? (
+        <section className="border-t border-[var(--pf-border)] pt-10">
+          <ProIntelligenceGate
+            locked={intelGateLocked}
+            cta={proGateCta}
+            variant="preview"
+            title="Unlock full market intel"
+            description={`Read headlines, earnings, and SEC filings on every equity ticker — included with ${formatProIntelligenceLabel()}.`}
+            teaser={
+              intelGateLocked ? <TickerIntelTeaser summary={intelTeaser} /> : undefined
+            }
+          >
+            <TickerIntelPanel intel={intelData} />
+          </ProIntelligenceGate>
+        </section>
+      ) : (
+        <section className="border-t border-[var(--pf-border)] pt-10">
+          <TickerIntelPanel intel={intelData} />
+        </section>
+      )}
     </div>
   );
 

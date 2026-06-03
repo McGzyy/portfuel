@@ -31,7 +31,7 @@ export function TickerCommunityBar({ stats }: { stats: TickerCommunityStats }) {
         },
         { label: "Trusted", value: String(stats.trustedCallers), hint: "Unique callers" },
       ]}
-      className="mt-6"
+      className=""
     />
   );
 }
