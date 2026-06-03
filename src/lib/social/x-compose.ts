@@ -16,6 +16,8 @@ import {
   composeMilestonePostText,
   fetchSocialPostCopy,
 } from "@/lib/social/copy-templates";
+import { resolveMemberWinCopyVariant } from "@/lib/social/copy-variant";
+import type { SocialPostCopyVariantId } from "@/lib/social/copy-variant";
 
 function trimTweet(text: string, max = 280): string {
   if (text.length <= max) return text;
@@ -252,9 +254,11 @@ export async function composeMemberWinPost(
       refId: string;
       callId: string;
       withChart: true;
+      copyVariant: SocialPostCopyVariantId;
     }
   | { ok: false; error: "no_content" }
 > {
+  const copyVariant = resolveMemberWinCopyVariant(callId);
   const db = createServiceClient();
   const { data, error } = await db
     .from("calls")
@@ -307,7 +311,7 @@ export async function composeMemberWinPost(
     }
   }
 
-  const copy = await fetchSocialPostCopy();
+  const copy = await fetchSocialPostCopy(copyVariant);
   const link = appPath(`/ticker/${row.symbol}`, {
     source: "x",
     medium: "social",
@@ -351,6 +355,7 @@ export async function composeMemberWinPost(
     refId: row.id,
     callId: row.id,
     withChart: true,
+    copyVariant,
   };
 }
 
@@ -366,9 +371,10 @@ export async function composeMemberWinUpdatePost(
   callId: string,
   milestone: "return_25" | "target_reached"
 ): Promise<
-  | { ok: true; text: string; refId: string }
+  | { ok: true; text: string; refId: string; copyVariant: SocialPostCopyVariantId }
   | { ok: false; error: "no_content" }
 > {
+  const copyVariant = resolveMemberWinCopyVariant(callId);
   const db = createServiceClient();
   const { data, error } = await db
     .from("calls")
@@ -395,7 +401,7 @@ export async function composeMemberWinUpdatePost(
     return { ok: false, error: "no_content" };
   }
 
-  const copy = await fetchSocialPostCopy();
+  const copy = await fetchSocialPostCopy(copyVariant);
   const link = appPath(`/ticker/${row.symbol}`, {
     source: "x",
     medium: "social",
@@ -420,5 +426,6 @@ export async function composeMemberWinUpdatePost(
     ok: true,
     text,
     refId: `member_win_update-${callId}-${milestone}`,
+    copyVariant,
   };
 }

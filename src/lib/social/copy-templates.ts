@@ -1,7 +1,8 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
+import type { SocialPostCopyVariantId } from "@/lib/social/copy-variant";
 
-const COPY_ID = "default";
+export type { SocialPostCopyVariantId } from "@/lib/social/copy-variant";
 
 export type SocialPostCopy = {
   milestoneLeadTemplate: string;
@@ -116,7 +117,9 @@ export function composeMilestonePostText(
   return { lead, tail, text };
 }
 
-export async function fetchSocialPostCopy(): Promise<SocialPostCopy> {
+export async function fetchSocialPostCopy(
+  variantId: SocialPostCopyVariantId = "default"
+): Promise<SocialPostCopy> {
   try {
     const db = createServiceClient();
     const { data, error } = await db
@@ -124,7 +127,7 @@ export async function fetchSocialPostCopy(): Promise<SocialPostCopy> {
       .select(
         "milestone_lead_template, milestone_tail_template, fueled_template, leaderboard_template, member_win_template, member_win_update_template, weekly_digest_template, disclaimer, updated_at"
       )
-      .eq("id", COPY_ID)
+      .eq("id", variantId)
       .maybeSingle();
 
     if (error || !data) return DEFAULT_SOCIAL_POST_COPY;
@@ -162,7 +165,19 @@ export async function fetchSocialPostCopy(): Promise<SocialPostCopy> {
   }
 }
 
-export async function updateSocialPostCopy(input: {
+export async function fetchAllSocialPostCopy(): Promise<
+  Record<SocialPostCopyVariantId, SocialPostCopy>
+> {
+  const [defaultCopy, variantB] = await Promise.all([
+    fetchSocialPostCopy("default"),
+    fetchSocialPostCopy("variant_b"),
+  ]);
+  return { default: defaultCopy, variant_b: variantB };
+}
+
+export async function updateSocialPostCopy(
+  variantId: SocialPostCopyVariantId,
+  input: {
   milestoneLeadTemplate?: string;
   milestoneTailTemplate?: string;
   fueledTemplate?: string;
@@ -216,13 +231,16 @@ export async function updateSocialPostCopy(input: {
     update.disclaimer = v;
   }
 
-  const { error } = await db.from("social_post_copy").update(update as never).eq("id", COPY_ID);
+  const { error } = await db
+    .from("social_post_copy")
+    .update(update as never)
+    .eq("id", variantId);
 
   if (error) {
     console.error("[social/copy-templates/update]", error);
     return { error: "db_error" };
   }
 
-  const copy = await fetchSocialPostCopy();
+  const copy = await fetchSocialPostCopy(variantId);
   return { ok: true, copy };
 }

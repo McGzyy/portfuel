@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AdminSocialMilestonePanel } from "@/components/admin/AdminSocialMilestonePanel";
@@ -205,6 +206,21 @@ export function AdminSocialPanel() {
             {previewText}
           </pre>
         ) : null}
+      </section>
+
+      <section className="pf-workspace-panel flex flex-wrap items-center justify-between gap-4 p-4">
+        <div>
+          <p className="text-sm font-semibold text-[var(--pf-black)]">Curate from X</p>
+          <p className="mt-1 text-xs text-[var(--pf-gray-600)]">
+            Paste a tweet URL, analyze tickers, publish a Fueled desk call.
+          </p>
+        </div>
+        <Link
+          href="/admin?tab=x-ingest"
+          className="rounded-lg border border-[var(--pf-border)] px-4 py-2 text-sm font-semibold text-[var(--pf-red)] hover:bg-[var(--pf-red-muted)]"
+        >
+          Open X Ingest →
+        </Link>
       </section>
 
       <AdminSocialActivityPanel />

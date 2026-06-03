@@ -8,6 +8,7 @@ export type SocialPostLogRow = {
   refId: string;
   tweetId: string | null;
   parentTweetId: string | null;
+  copyVariant: string | null;
   postedAt: string;
 };
 
@@ -65,6 +66,7 @@ export async function recordSocialPost(opts: {
   refId: string;
   tweetId?: string | null;
   parentTweetId?: string | null;
+  copyVariant?: string | null;
 }): Promise<void> {
   if (isDemoMode()) {
     demoSent.add(logKey(opts.postType, opts.refId));
@@ -77,6 +79,7 @@ export async function recordSocialPost(opts: {
     ref_id: opts.refId,
     tweet_id: opts.tweetId ?? null,
     parent_tweet_id: opts.parentTweetId ?? null,
+    copy_variant: opts.copyVariant ?? null,
   } as never);
 
   if (error && error.code !== "23505") {
@@ -94,6 +97,7 @@ export async function listSocialPostLog(limit = 40): Promise<SocialPostLogRow[]>
         refId: "weekly-digest-2026-06-02",
         tweetId: null,
         parentTweetId: null,
+        copyVariant: null,
         postedAt: new Date(now - 86400000).toISOString(),
       },
       {
@@ -102,6 +106,7 @@ export async function listSocialPostLog(limit = 40): Promise<SocialPostLogRow[]>
         refId: "00000000-0000-4000-8000-000000000001",
         tweetId: "dry_run",
         parentTweetId: null,
+        copyVariant: "default",
         postedAt: new Date(now - 172800000).toISOString(),
       },
     ];
@@ -110,7 +115,7 @@ export async function listSocialPostLog(limit = 40): Promise<SocialPostLogRow[]>
   const db = createServiceClient();
   const { data, error } = await db
     .from("social_post_log")
-    .select("id, post_type, ref_id, tweet_id, parent_tweet_id, posted_at")
+    .select("id, post_type, ref_id, tweet_id, parent_tweet_id, copy_variant, posted_at")
     .order("posted_at", { ascending: false })
     .limit(limit);
 
@@ -126,6 +131,7 @@ export async function listSocialPostLog(limit = 40): Promise<SocialPostLogRow[]>
       ref_id: string;
       tweet_id: string | null;
       parent_tweet_id: string | null;
+      copy_variant: string | null;
       posted_at: string;
     };
     return {
@@ -134,6 +140,7 @@ export async function listSocialPostLog(limit = 40): Promise<SocialPostLogRow[]>
       refId: r.ref_id,
       tweetId: r.tweet_id,
       parentTweetId: r.parent_tweet_id,
+      copyVariant: r.copy_variant,
       postedAt: r.posted_at,
     };
   });

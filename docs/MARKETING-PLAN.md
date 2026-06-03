@@ -56,8 +56,8 @@ flowchart LR
 
 | Post type | Audience | When | Asset | Status |
 |-----------|----------|------|-------|--------|
-| **Member win spotlight** | Opted-in members | After performance gate | Chart PNG + thesis excerpt + link | **Planned** (§6) |
-| **Member win update** | Same call | +25%, target hit, new high since last post | Quote tweet + optional chart | **Planned** |
+| **Member win spotlight** | Opted-in members | After performance gate | Chart PNG + thesis excerpt + link | **Shipped** |
+| **Member win update** | Same call | +25%, target hit, new high since last post | Quote tweet + optional chart | **Shipped** |
 | **Fueled milestone** | Desk | +10%, +25%, target reached | Chart PNG | **Shipped** (`fueled_milestone`, cron/autopost) |
 | **Weekly leaderboard** | Community | Monday cron | Text + `/rankings` link | **Shipped** |
 
@@ -177,12 +177,12 @@ Store `parent_tweet_id` on log row; use X API `quote_tweet_id` when posting.
 
 #### Phase 1 — Member win posts (MVP)
 
-- [ ] Migration: `users.allow_social_highlight`, `social_highlight_show_thesis`, `social_highlight_show_username`
-- [ ] Migration: extend `social_post_log` — `tweet_id`, `parent_tweet_id`, `post_type` enum add `member_win`, `member_win_update`
-- [ ] `composeMemberWinPost(callId)` + chart payload for non-Fueled calls
-- [ ] Cron job after quote refresh: scan eligible calls → queue posts (respect dry run)
-- [ ] Admin: preview member win posts; force post; blocklist symbols
-- [ ] Env: `X_POST_MEMBER_WINS=true`, thresholds in env
+- [x] Migration: `users.allow_social_highlight`, `social_highlight_show_thesis`, `social_highlight_show_username`
+- [x] Migration: extend `social_post_log` — `tweet_id`, `parent_tweet_id`, `post_type` enum add `member_win`, `member_win_update`
+- [x] `composeMemberWinPost(callId)` + chart payload for non-Fueled calls
+- [x] Cron job after quote refresh: scan eligible calls → queue posts (respect dry run)
+- [x] Admin: preview member win posts; force post; blocklist symbols
+- [x] Env: `X_POST_MEMBER_WINS=true`, thresholds in env
 
 #### Phase 2 — Quote-tweet updates
 
@@ -194,11 +194,11 @@ Store `parent_tweet_id` on log row; use X API `quote_tweet_id` when posting.
 - [x] Weekly “3 wins this week” composite image + recap tweet (`weekly_digest`, Admin → Social)
 - [x] Admin X copy editor for member spotlight, updates, weekly digest (`AdminSocialCopyPanel`)
 - [x] Admin activity log + publish queue (`AdminSocialActivityPanel`)
-- [ ] A/B copy variants in `social_post_copy`
+- [x] A/B copy variants in `social_post_copy` (`variant_b` row, `X_COPY_AB_*` env, logged on post)
 
 #### Phase 4 — Inbound loop (partially shipped)
 
-- [ ] Continue **X → desk draft** for Fueled curation (Admin → Social inbound)
+- [x] **X → desk draft** for Fueled curation (Admin → **X Ingest**; link from Social tab)
 - [ ] Do **not** auto-scrape competitor accounts
 
 ---
@@ -344,12 +344,15 @@ Cap: **max 5 automated + 1–2 manual** per week.
 
 ## 12. Immediate next steps (engineering)
 
-1. **Profile:** add social highlight toggles (§4.1).
-2. **`social_post_log`:** store `tweet_id` for quote chains.
-3. **`composeMemberWinPost` + chart** for non-Fueled calls.
-4. **Cron:** `member_win` scanner after `refresh-quotes` (same hook as milestones).
-5. **Admin:** preview queue “Eligible member wins” with Approve / Skip.
-6. **Docs:** extend [X-SOCIAL.md](./X-SOCIAL.md) when Phase 1 ships.
+All Phase 1–3 automation items below are **shipped**. Current focus: paid tests, compliance checklist (§10), and engagement review.
+
+1. [x] **Profile:** social highlight toggles (§4.1) + consent timestamp.
+2. [x] **`social_post_log`:** `tweet_id`, `parent_tweet_id`, `copy_variant` for quote chains and A/B.
+3. [x] **`composeMemberWinPost` + chart** for non-Fueled calls.
+4. [x] **Cron:** `member_win` + `weekly_digest` via `/api/cron/x-social` (after quote refresh gates).
+5. [x] **Admin:** member wins queue, activity log, copy editor, dry-run post.
+6. [x] **Marketing OG:** `/opengraph-image`, `/join/opengraph-image`, `/api/og/marketing`.
+7. [ ] **Optional:** “still running” quote updates between +25% and target; referral line in spotlight template.
 
 ---
 

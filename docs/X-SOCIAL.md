@@ -28,8 +28,13 @@ After migration, run `supabase/scripts/update-member-win-professional-copy.sql` 
 
 | `X_POST_WEEKLY_DIGEST` | `false` | Weekly top-3 composite image + recap tweet |
 | `X_MEMBER_WIN_SYMBOL_BLOCKLIST` | _(empty)_ | Comma-separated tickers excluded from member spotlight |
+| `X_COPY_AB_ENABLED` | `false` | Split member spotlight/update copy between `default` and `variant_b` |
+| `X_COPY_AB_PERCENT` | `50` | Percent of posts assigned to variant B (0–100, by call id hash) |
+| `X_POST_COPY_VARIANT` | _(empty)_ | Force `default` or `variant_b` for all member posts (overrides A/B) |
 
 `CRON_SECRET` must match Vercel cron `Authorization: Bearer …` (same as other crons).
+
+Apply migration `20260606100000_social_copy_variant_b.sql` for the variant B template row and `copy_variant` column on `social_post_log`.
 
 ## Getting API access
 
@@ -49,7 +54,7 @@ After migration, run `supabase/scripts/update-member-win-professional-copy.sql` 
 - **Post to X** — live when `X_API_ENABLED=true`, `X_API_DRY_RUN=false`, and token is set.
 - **Force repost** — bypasses idempotency for manual posts.
 
-Same tab includes **From X post** (inbound curation): paste an X post URL (with optional text backup) → per-ticker context → **Analyze** → publish Fueled call.
+Inbound curation lives on **Admin → X Ingest** (linked from the Social tab): paste an X post URL (with optional text backup) → per-ticker context → **Analyze** → publish Fueled call.
 
 **Tweet URL fetch:** PortFuel tries X API v2 when `X_API_BEARER_TOKEN` is set; if that fails (common on free tier: `client-not-enrolled` / no read access), it falls back to X’s public oEmbed endpoint (no extra cost). Manual paste still works as backup. `OPENAI_API_KEY` is required for AI analysis.
 

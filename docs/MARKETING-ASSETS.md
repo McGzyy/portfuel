@@ -6,6 +6,7 @@ Companion to [MARKETING-PLAN.md](./MARKETING-PLAN.md). Use these URLs, sizes, an
 
 | Use | Size | Source in product |
 |-----|------|-------------------|
+| Homepage / join link preview | 1200×630 | Auto: `/opengraph-image` · `/join/opengraph-image` · API: `/api/og/marketing?variant=join` |
 | X / LinkedIn link preview | 1200×675 | `/api/social/chart/{callId}?format=png` · weekly: `/api/admin/social/weekly-digest/chart` (admin) |
 | Meta / display | 1200×628 (crop from 675) | Export PNG from chart URL, slight top/bottom crop |
 | Square retargeting | 1080×1080 | Crop chart or use product hero from `/` |

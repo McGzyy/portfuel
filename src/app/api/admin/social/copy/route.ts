@@ -5,21 +5,30 @@ import {
   COPY_PLACEHOLDER_HELP,
   DEFAULT_SOCIAL_POST_COPY,
   composeMilestonePostText,
+  fetchAllSocialPostCopy,
   fetchSocialPostCopy,
   updateSocialPostCopy,
+  type SocialPostCopyVariantId,
 } from "@/lib/social/copy-templates";
 import { demoMilestoneTweetParts } from "@/lib/charts/social-chart-demo";
 
 export async function GET() {
   try {
     await requireAdmin();
-    const copy = await fetchSocialPostCopy();
+    const copies = await fetchAllSocialPostCopy();
+    const copy = copies.default;
     const demo = await demoMilestoneTweetParts("return_25");
     return NextResponse.json({
       copy,
+      copies,
       defaults: DEFAULT_SOCIAL_POST_COPY,
       placeholders: COPY_PLACEHOLDER_HELP,
       demoPreview: composeMilestonePostText(copy, demo),
+      abHelp: {
+        enabled: process.env.X_COPY_AB_ENABLED === "true",
+        percent: process.env.X_COPY_AB_PERCENT ?? "50",
+        forcedVariant: process.env.X_POST_COPY_VARIANT ?? null,
+      },
     });
   } catch (e) {
     if (e instanceof Error && e.message === "unauthorized") {
@@ -34,6 +43,7 @@ export async function GET() {
 }
 
 const patchSchema = z.object({
+  variantId: z.enum(["default", "variant_b"]).optional(),
   milestoneLeadTemplate: z.string().min(4).max(400).optional(),
   milestoneTailTemplate: z.string().min(4).max(400).optional(),
   fueledTemplate: z.string().min(4).max(500).optional(),
@@ -48,15 +58,20 @@ export async function PATCH(request: Request) {
   try {
     await requireAdmin();
     const body = patchSchema.parse(await request.json());
-    const result = await updateSocialPostCopy(body);
+    const variantId: SocialPostCopyVariantId = body.variantId ?? "default";
+    const { variantId: _v, ...fields } = body;
+    const result = await updateSocialPostCopy(variantId, fields);
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
     const demo = await demoMilestoneTweetParts("return_25");
+    const defaultCopy = await fetchSocialPostCopy("default");
     return NextResponse.json({
       ok: true,
-      copy: result.copy,
-      demoPreview: composeMilestonePostText(result.copy, demo),
+      copy: variantId === "default" ? result.copy : defaultCopy,
+      savedCopy: result.copy,
+      variantId,
+      demoPreview: composeMilestonePostText(defaultCopy, demo),
     });
   } catch (e) {
     if (e instanceof z.ZodError) {

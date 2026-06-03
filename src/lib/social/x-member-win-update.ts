@@ -63,6 +63,7 @@ export async function tryAutopostMemberWinUpdate(
       refId,
       tweetId: posted.tweetId,
       parentTweetId,
+      copyVariant: composed.copyVariant,
     });
   }
 }

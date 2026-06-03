@@ -15,6 +15,7 @@ type PublishedRow = {
   refId: string;
   tweetId: string | null;
   parentTweetId: string | null;
+  copyVariant: string | null;
   postedAt: string;
 };
 
@@ -229,6 +230,13 @@ export function AdminSocialActivityPanel() {
                     </td>
                     <td className="py-3 pr-4 text-[var(--pf-gray-600)]">
                       {describePostRef(row.postType, row.refId)}
+                      {row.copyVariant &&
+                      (row.postType === "member_win" ||
+                        row.postType === "member_win_update") ? (
+                        <span className="mt-0.5 block text-xs text-[var(--pf-gray-400)]">
+                          Copy: {row.copyVariant}
+                        </span>
+                      ) : null}
                       {parentUrl ? (
                         <span className="mt-0.5 block text-xs text-[var(--pf-gray-400)]">
                           Quote of prior post

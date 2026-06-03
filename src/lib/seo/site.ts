@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getAppOrigin } from "@/lib/social/app-url";
 
 /** Browser tab / OG branding — avoid generic “stock calls dashboard” copy */
 export const SITE_NAME = "PortFuel";
@@ -17,6 +18,7 @@ export function pageTitle(segment?: string): Metadata["title"] {
 }
 
 export const rootMetadata: Metadata = {
+  metadataBase: new URL(getAppOrigin()),
   title: pageTitle(),
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
@@ -38,6 +40,20 @@ export const rootMetadata: Metadata = {
     description: SITE_DESCRIPTION,
     siteName: SITE_NAME,
     type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} — ${SITE_TAGLINE}`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+    images: ["/opengraph-image"],
   },
 };
 

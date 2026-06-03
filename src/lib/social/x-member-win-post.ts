@@ -68,6 +68,7 @@ export async function postMemberWin(opts?: {
       postType: "member_win",
       refId: composed.refId,
       tweetId: posted.tweetId,
+      copyVariant: composed.copyVariant,
     });
   }
 

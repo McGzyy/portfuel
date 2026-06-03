@@ -10,6 +10,12 @@ import {
   composeMilestonePostText,
   type SocialPostCopy,
 } from "@/lib/social/copy-templates";
+import {
+  SOCIAL_COPY_VARIANT_IDS,
+  SOCIAL_COPY_VARIANT_LABELS,
+  type SocialPostCopyVariantId,
+} from "@/lib/social/copy-variant";
+import { cn } from "@/lib/utils";
 
 const DEMO_LINK = "https://portfuel.pro/ticker/NVDA?utm_source=x&utm_medium=social&utm_campaign=preview";
 
@@ -18,15 +24,34 @@ function tweetLength(text: string): string {
 }
 
 export function AdminSocialCopyPanel() {
-  const [copy, setCopy] = useState<SocialPostCopy | null>(null);
+  const [copies, setCopies] = useState<Record<SocialPostCopyVariantId, SocialPostCopy> | null>(
+    null
+  );
+  const [editingVariant, setEditingVariant] = useState<SocialPostCopyVariantId>("default");
+  const [abHelp, setAbHelp] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+
+  const copy = copies?.[editingVariant] ?? null;
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/social/copy");
     if (res.ok) {
-      const json = (await res.json()) as { copy: SocialPostCopy };
-      setCopy(json.copy);
+      const json = (await res.json()) as {
+        copies: Record<SocialPostCopyVariantId, SocialPostCopy>;
+        abHelp?: { enabled: boolean; percent: string; forcedVariant: string | null };
+      };
+      setCopies(json.copies);
+      const ab = json.abHelp;
+      if (ab) {
+        setAbHelp(
+          ab.forcedVariant
+            ? `Server forces variant: ${ab.forcedVariant}`
+            : ab.enabled
+              ? `A/B split active (${ab.percent}% → variant B). Logged on each member spotlight post.`
+              : "A/B off — set X_COPY_AB_ENABLED=true on Vercel to split traffic."
+        );
+      }
     }
   }, []);
 
@@ -81,6 +106,7 @@ export function AdminSocialCopyPanel() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        variantId: editingVariant,
         memberWinTemplate: copy.memberWinTemplate,
         memberWinUpdateTemplate: copy.memberWinUpdateTemplate,
         weeklyDigestTemplate: copy.weeklyDigestTemplate,
@@ -94,8 +120,21 @@ export function AdminSocialCopyPanel() {
       setMessage("Save failed.");
       return;
     }
-    setCopy((await res.json()).copy as SocialPostCopy);
-    setMessage("All X templates saved.");
+    const json = (await res.json()) as {
+      savedCopy: SocialPostCopy;
+      variantId: SocialPostCopyVariantId;
+    };
+    setCopies((prev) =>
+      prev ? { ...prev, [json.variantId]: json.savedCopy } : prev
+    );
+    setMessage(`Saved ${SOCIAL_COPY_VARIANT_LABELS[json.variantId]} templates.`);
+  }
+
+  function patchCopy(patch: Partial<SocialPostCopy>) {
+    if (!copy) return;
+    setCopies((prev) =>
+      prev ? { ...prev, [editingVariant]: { ...copy, ...patch } } : prev
+    );
   }
 
   if (!copy) return null;
@@ -107,9 +146,29 @@ export function AdminSocialCopyPanel() {
       </p>
       <h2 className="mt-1 text-lg font-bold text-[var(--pf-black)]">X post copy templates</h2>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
-        Edit outbound copy for member spotlights, weekly digest, desk, and rankings. Milestone
-        lead/tail copy is edited under Milestone charts below.
+        Edit outbound copy for member spotlights, weekly digest, desk, and rankings. Use{" "}
+        <strong className="font-semibold">Variant B</strong> to A/B test a teaser-style spotlight
+        (less thesis in-tweet). Milestone lead/tail copy is edited under Milestone charts below.
       </p>
+      {abHelp ? <p className="mt-2 text-xs text-[var(--pf-gray-500)]">{abHelp}</p> : null}
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {SOCIAL_COPY_VARIANT_IDS.map((id) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setEditingVariant(id)}
+            className={cn(
+              "rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+              editingVariant === id
+                ? "border-[var(--pf-red)] bg-[var(--pf-red-muted)] text-[var(--pf-red)]"
+                : "border-[var(--pf-border)] text-[var(--pf-gray-700)]"
+            )}
+          >
+            {SOCIAL_COPY_VARIANT_LABELS[id]}
+          </button>
+        ))}
+      </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <TemplateField
@@ -118,7 +177,7 @@ export function AdminSocialCopyPanel() {
           hint="First public post when a call qualifies."
           value={copy.memberWinTemplate}
           preview={previews?.memberWin}
-          onChange={(v) => setCopy({ ...copy, memberWinTemplate: v })}
+          onChange={(v) => patchCopy({ memberWinTemplate: v })}
         />
         <TemplateField
           id="member-update"
@@ -126,7 +185,7 @@ export function AdminSocialCopyPanel() {
           hint="Quote-tweet at +25% or target."
           value={copy.memberWinUpdateTemplate}
           preview={previews?.memberUpdate}
-          onChange={(v) => setCopy({ ...copy, memberWinUpdateTemplate: v })}
+          onChange={(v) => patchCopy({ memberWinUpdateTemplate: v })}
         />
         <TemplateField
           id="weekly-digest"
@@ -134,20 +193,20 @@ export function AdminSocialCopyPanel() {
           hint="Monday-style recap · top 3 calls."
           value={copy.weeklyDigestTemplate}
           preview={previews?.weekly}
-          onChange={(v) => setCopy({ ...copy, weeklyDigestTemplate: v })}
+          onChange={(v) => patchCopy({ weeklyDigestTemplate: v })}
           className="lg:col-span-2"
         />
         <TemplateField
           id="fueled"
           label="Fueled desk"
           value={copy.fueledTemplate}
-          onChange={(v) => setCopy({ ...copy, fueledTemplate: v })}
+          onChange={(v) => patchCopy({ fueledTemplate: v })}
         />
         <TemplateField
           id="leaderboard"
           label="Rankings"
           value={copy.leaderboardTemplate}
-          onChange={(v) => setCopy({ ...copy, leaderboardTemplate: v })}
+          onChange={(v) => patchCopy({ leaderboardTemplate: v })}
         />
         <div className="lg:col-span-2">
           <Label htmlFor="disclaimer">Disclaimer (all posts)</Label>
@@ -155,7 +214,7 @@ export function AdminSocialCopyPanel() {
             id="disclaimer"
             className="mt-2 min-h-[60px] font-mono text-xs"
             value={copy.disclaimer}
-            onChange={(e) => setCopy({ ...copy, disclaimer: e.target.value })}
+            onChange={(e) => patchCopy({ disclaimer: e.target.value })}
           />
         </div>
       </div>
