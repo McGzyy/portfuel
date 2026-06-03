@@ -6,10 +6,6 @@ import {
 } from "@/lib/market/finnhub";
 import { getTwelveDataCandles, isTwelveDataConfigured } from "@/lib/market/twelvedata";
 
-function finnhubResolution(resolution: ChartCandleResolution): "D" | "60" | "15" {
-  return resolution === "D" ? "D" : resolution;
-}
-
 /** Equity OHLCV — Finnhub when paid access works, else Twelve Data (free tier). */
 export async function getEquityCandles(
   symbol: string,
@@ -20,7 +16,7 @@ export async function getEquityCandles(
   const finnhub =
     resolution === "D"
       ? await getDailyCandles(symbol, from, to)
-      : await getIntradayCandles(symbol, finnhubResolution(resolution), from, to);
+      : await getIntradayCandles(symbol, resolution, from, to);
 
   if (finnhub?.s === "ok" && finnhub.t?.length) return finnhub;
 
