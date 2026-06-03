@@ -1,4 +1,4 @@
-import { getDailyCandles } from "@/lib/market/finnhub";
+import { getEquityCandles } from "@/lib/market/equity-candles";
 import { closesToSparklinePoints } from "@/lib/charts/sparkline";
 import type { LinePoint } from "@/lib/charts/types";
 
@@ -9,7 +9,7 @@ export async function fetchSymbolSparkline(symbol: string): Promise<LinePoint[]>
   const to = Math.floor(Date.now() / 1000);
   const from = to - SPARKLINE_DAYS * 86400;
 
-  const candles = await getDailyCandles(sym, from, to);
+  const candles = await getEquityCandles(sym, from, to, "D");
   if (!candles?.t?.length || !candles.c?.length) return [];
 
   return closesToSparklinePoints(candles.t, candles.c);

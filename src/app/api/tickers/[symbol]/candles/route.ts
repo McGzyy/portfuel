@@ -4,11 +4,8 @@ import type { ChartCandleResolution } from "@/lib/charts/types";
 import { getSession } from "@/lib/auth/session";
 import { isDemoMode } from "@/lib/demo/config";
 import { resolveCryptoAsset } from "@/lib/market/crypto-allowlist";
-import {
-  getCryptoCandles,
-  getDailyCandles,
-  getIntradayCandles,
-} from "@/lib/market/finnhub";
+import { getEquityCandles } from "@/lib/market/equity-candles";
+import { getCryptoCandles } from "@/lib/market/finnhub";
 import {
   canAccessProIntelligence,
   sessionToProContext,
@@ -87,9 +84,9 @@ export async function GET(
     if (crypto?.finnhub_symbol) {
       rawCandles = await getCryptoCandles(crypto.finnhub_symbol, from, to, resolution);
     } else if (resolution === "D") {
-      rawCandles = await getDailyCandles(symbol, from, to);
+      rawCandles = await getEquityCandles(symbol, from, to, "D");
     } else {
-      rawCandles = await getIntradayCandles(symbol, resolution, from, to);
+      rawCandles = await getEquityCandles(symbol, from, to, resolution);
     }
 
     const candles = finnhubCandlesToPoints(rawCandles);

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/db/supabase";
-import { getDailyCandles, getQuote, getCompanyProfile } from "@/lib/market/finnhub";
+import { getEquityCandles } from "@/lib/market/equity-candles";
+import { getQuote, getCompanyProfile } from "@/lib/market/finnhub";
 import { fetchCallsBySymbol } from "@/lib/calls/service";
 
 export async function GET(
@@ -15,7 +16,7 @@ export async function GET(
     const from = to - 365 * 86400;
 
     const [candles, quote, profile, calls] = await Promise.all([
-      getDailyCandles(symbol, from, to),
+      getEquityCandles(symbol, from, to, "D"),
       getQuote(symbol),
       getCompanyProfile(symbol),
       fetchCallsBySymbol(symbol),

@@ -5,7 +5,6 @@ import {
   getCompanyNews,
   getCompanyProfile,
   getCryptoCandles,
-  getDailyCandles,
   getEarnings,
   getFilings,
   getQuote,
@@ -14,6 +13,7 @@ import {
   type EarningsItem,
   type FilingItem,
 } from "@/lib/market/finnhub";
+import { getEquityCandles } from "@/lib/market/equity-candles";
 import type { CallWithUser } from "@/lib/db/supabase";
 import type { AssetClass } from "@/lib/market/validate-symbol";
 import { isDemoMode } from "@/lib/demo/config";
@@ -97,7 +97,7 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
     if (price != null) quote = { price, changePct: 0 };
   } else {
     const [c, q, p] = await Promise.all([
-      getDailyCandles(sym, from, to),
+      getEquityCandles(sym, from, to, "D"),
       getQuote(sym),
       getCompanyProfile(sym),
     ]);

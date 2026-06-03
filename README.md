@@ -6,7 +6,7 @@ Professional stock call dashboard — PIN + TOTP auth, live charts, performance 
 
 - **Next.js 16** (App Router)
 - **Supabase** (Postgres)
-- **Finnhub** (quotes & candles)
+- **Finnhub** (quotes, news) + **Twelve Data** (chart candles, free tier)
 - **Vercel** (hosting + cron)
 
 ## Setup
@@ -32,7 +32,8 @@ Professional stock call dashboard — PIN + TOTP auth, live charts, performance 
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `SESSION_SECRET` (32+ chars)
    - `TOTP_ENCRYPTION_KEY`
-   - `FINNHUB_API_KEY` — free key at [finnhub.io](https://finnhub.io)
+   - `FINNHUB_API_KEY` — free key at [finnhub.io](https://finnhub.io) (quotes/news)
+   - `TWELVEDATA_API_KEY` — free key at [twelvedata.com](https://twelvedata.com) (ticker charts)
    - `CRON_SECRET`
    - `NEXT_PUBLIC_APP_URL=http://localhost:3000`
 

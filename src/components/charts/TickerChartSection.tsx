@@ -159,7 +159,8 @@ export function TickerChartSection({
         <div className="flex h-[400px] flex-col items-center justify-center gap-2 px-6 text-center text-sm text-[var(--pf-gray-500)]">
           <p className="font-medium text-[var(--pf-gray-600)]">Chart unavailable</p>
           <p className="max-w-sm text-xs">
-            Price history loads from market data. Check your API key or try another symbol.
+            Add <code className="font-mono">TWELVEDATA_API_KEY</code> on the server (free at twelvedata.com).
+            Finnhub free tier covers quotes but not candle history.
           </p>
         </div>
       )}
