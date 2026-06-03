@@ -186,14 +186,14 @@ Store `parent_tweet_id` on log row; use X API `quote_tweet_id` when posting.
 
 #### Phase 2 — Quote-tweet updates
 
-- [ ] On milestone for calls with existing `member_win` tweet → `composeMemberWinUpdate` + quote API
-- [ ] Separate idempotency ref: `member_win_update-{callId}-{milestone}`
+- [x] On milestone for calls with existing `member_win` tweet → `composeMemberWinUpdate` + quote API
+- [x] Separate idempotency ref: `member_win_update-{callId}-{milestone}`
 
 #### Phase 3 — Smarter scheduling & digest
 
 - [x] Weekly “3 wins this week” composite image + recap tweet (`weekly_digest`, Admin → Social)
 - [x] Admin X copy editor for member spotlight, updates, weekly digest (`AdminSocialCopyPanel`)
-- [ ] Admin calendar view: scheduled / sent / skipped
+- [x] Admin activity log + publish queue (`AdminSocialActivityPanel`)
 - [ ] A/B copy variants in `social_post_copy`
 
 #### Phase 4 — Inbound loop (partially shipped)

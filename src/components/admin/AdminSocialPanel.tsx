@@ -6,6 +6,7 @@ import { AdminSocialMilestonePanel } from "@/components/admin/AdminSocialMilesto
 import { AdminMemberWinsPanel } from "@/components/admin/AdminMemberWinsPanel";
 import { AdminSocialCopyPanel } from "@/components/admin/AdminSocialCopyPanel";
 import { AdminWeeklyDigestPanel } from "@/components/admin/AdminWeeklyDigestPanel";
+import { AdminSocialActivityPanel } from "@/components/admin/AdminSocialActivityPanel";
 
 type XConfigSummary = {
   enabled: boolean;
@@ -205,6 +206,8 @@ export function AdminSocialPanel() {
           </pre>
         ) : null}
       </section>
+
+      <AdminSocialActivityPanel />
 
       <AdminSocialCopyPanel />
 

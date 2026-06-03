@@ -69,5 +69,6 @@ Your job early: **curate quality over quantity** — a few good Fueled theses be
 
 - [VALUE-ROADMAP.md](./VALUE-ROADMAP.md) — product priorities
 - [MARKETING-PLAN.md](./MARKETING-PLAN.md) — X content calendar, member win posts, ads, automation phases
+- [MARKETING-ASSETS.md](./MARKETING-ASSETS.md) — ad sizes, UTMs, creative angles
 - [BACKLOG.md](./BACKLOG.md) — deferred features (e.g. tweet → Fueled draft)
 - [DEVELOPMENT.md](./DEVELOPMENT.md) — migrations, env, deploy

@@ -70,7 +70,7 @@ export async function GET() {
     for (const call of calls) {
       for (const milestone of milestonesForCall(call)) {
         const refId = `milestone-${call.id}-${milestone}`;
-        const posted = await hasSocialPostBeenSent("fueled", refId);
+        const posted = await hasSocialPostBeenSent("fueled_milestone", refId);
         items.push({
           callId: call.id,
           symbol: call.symbol,

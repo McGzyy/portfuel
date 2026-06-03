@@ -2,6 +2,15 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import type { XPostType } from "@/lib/social/x-config";
 
+export type SocialPostLogRow = {
+  id: string;
+  postType: XPostType;
+  refId: string;
+  tweetId: string | null;
+  parentTweetId: string | null;
+  postedAt: string;
+};
+
 const demoSent = new Set<string>();
 
 function logKey(postType: XPostType, refId: string): string {
@@ -73,4 +82,59 @@ export async function recordSocialPost(opts: {
   if (error && error.code !== "23505") {
     console.error("[social_post_log record]", error);
   }
+}
+
+export async function listSocialPostLog(limit = 40): Promise<SocialPostLogRow[]> {
+  if (isDemoMode()) {
+    const now = Date.now();
+    return [
+      {
+        id: "demo-1",
+        postType: "weekly_digest",
+        refId: "weekly-digest-2026-06-02",
+        tweetId: null,
+        parentTweetId: null,
+        postedAt: new Date(now - 86400000).toISOString(),
+      },
+      {
+        id: "demo-2",
+        postType: "member_win",
+        refId: "00000000-0000-4000-8000-000000000001",
+        tweetId: "dry_run",
+        parentTweetId: null,
+        postedAt: new Date(now - 172800000).toISOString(),
+      },
+    ];
+  }
+
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("social_post_log")
+    .select("id, post_type, ref_id, tweet_id, parent_tweet_id, posted_at")
+    .order("posted_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("[social_post_log list]", error);
+    return [];
+  }
+
+  return (data ?? []).map((row) => {
+    const r = row as {
+      id: string;
+      post_type: XPostType;
+      ref_id: string;
+      tweet_id: string | null;
+      parent_tweet_id: string | null;
+      posted_at: string;
+    };
+    return {
+      id: r.id,
+      postType: r.post_type,
+      refId: r.ref_id,
+      tweetId: r.tweet_id,
+      parentTweetId: r.parent_tweet_id,
+      postedAt: r.posted_at,
+    };
+  });
 }

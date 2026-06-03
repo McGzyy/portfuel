@@ -44,6 +44,7 @@ After migration, run `supabase/scripts/update-member-win-professional-copy.sql` 
 
 - Preview **Fueled** or **rankings** post text (280-char limit enforced).
 - **Member wins** queue — opted-in members, chart + thesis (see env thresholds).
+- **Activity & queue** — published `social_post_log` vs ready-to-publish pipeline.
 - **Dry-run post** — logs on the server, no X call.
 - **Post to X** — live when `X_API_ENABLED=true`, `X_API_DRY_RUN=false`, and token is set.
 - **Force repost** — bypasses idempotency for manual posts.
