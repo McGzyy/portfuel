@@ -55,7 +55,7 @@ Professional stock call dashboard — PIN + TOTP auth, live charts, performance 
 
 - Import repo, set env vars, deploy
 - Cron runs `/api/cron/refresh-quotes` every 15 minutes (set `CRON_SECRET`)
-- **Local dev:** cron does not run automatically — use **Admin → Social → Update call prices**, or `POST /api/admin/calls/refresh-quotes` as admin
+- **Local dev:** cron does not run automatically — open **`/admin?tab=social`** (Social tab) → **Update call prices**, or `POST /api/admin/calls/refresh-quotes` as admin
 - Point **PortFuel.pro** DNS to Vercel
 
 ## Development workflow

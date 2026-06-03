@@ -156,9 +156,9 @@ export function AdminSocialActivityPanel() {
         <p className="mt-2 text-xs text-[var(--pf-gray-600)]">{quoteRefresh}</p>
       ) : (
         <p className="mt-2 text-xs text-[var(--pf-gray-500)]">
-          Returns refresh on Vercel every 15 minutes via cron; use{" "}
+          Returns refresh on Vercel every 15 minutes via cron. Use{" "}
           <strong className="font-semibold text-[var(--pf-gray-600)]">Update call prices</strong>{" "}
-          locally or to verify your call is moving.
+          here (Admin → Social tab) locally or to verify a call is moving.
         </p>
       )}
 

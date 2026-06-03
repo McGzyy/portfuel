@@ -15,7 +15,7 @@ const tabs = [
   { id: "members", label: "Members" },
   { id: "vouchers", label: "Vouchers" },
   { id: "launch", label: "Launch" },
-  { id: "social", label: "X Posts" },
+  { id: "social", label: "Social" },
   { id: "x-ingest", label: "X Ingest" },
   { id: "analytics", label: "Analytics" },
   { id: "desk", label: "Desk" },

@@ -102,10 +102,10 @@ export function AdminSocialPanel() {
     <div className="mt-8 space-y-8">
       <section className="pf-workspace-panel p-6">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-          X Posts
+          Social
         </p>
         <h2 className="mt-1 text-lg font-bold text-[var(--pf-black)]">
-          Outbound social publishing
+          X posts & publishing
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
           Preview and publish desk milestones, weekly rankings, and member spotlight posts with

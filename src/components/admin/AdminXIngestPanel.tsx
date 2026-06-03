@@ -44,7 +44,7 @@ export function AdminXIngestPanel() {
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
           Paste an X URL (or manual text), extract tickers, analyze each one, then publish a Fueled
           desk call. Outbound milestone posts and copy templates live under{" "}
-          <strong>Admin → X Posts</strong>.
+          <strong>Admin → Social</strong>.
         </p>
 
         {status ? (
