@@ -8,10 +8,9 @@ import { MemberReturnChart } from "@/components/charts/MemberReturnChart";
 import { MemberTrackRecordStrip } from "@/components/member/MemberTrackRecordStrip";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
-import {
-  WorkspacePageHeader,
-  WorkspaceNewCallAction,
-} from "@/components/dashboard/WorkspacePageHeader";
+import { MemberCallsSectionHeader } from "@/components/member/MemberCallsSectionHeader";
+import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
+import { mapCallRowToCardData } from "@/lib/calls/card-display";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import { isFollowing } from "@/lib/follows/service";
@@ -82,52 +81,37 @@ export default async function MemberProfilePage({
         <MemberTrackRecordStrip record={trackRecord} />
       </div>
 
-      <section className="mt-10">
-        <WorkspacePageHeader
-          eyebrow="Published theses"
-          title="Call history"
-          description={
-            isSelf
-              ? "Your public track record — members see every thesis you've published."
-              : `Every thesis @${member.username} has published on PortFuel.`
-          }
-          action={
-            isSelf ? <WorkspaceNewCallAction /> : undefined
-          }
-          className="mb-6"
+      <section className="mt-10 space-y-6">
+        <MemberCallsSectionHeader
+          username={member.username}
+          displayName={member.display_name}
+          callCount={calls.length}
+          trackRecord={trackRecord}
+          isSelf={isSelf}
         />
 
         {calls.length === 0 ? (
-          <div className="pf-workspace-panel px-6 py-14 text-center text-sm text-[var(--pf-gray-500)]">
-            No public calls from this member yet.
-          </div>
+          <CallsEmptyState
+            title="No public calls yet"
+            description={
+              isSelf
+                ? "When you publish, your theses appear here and on the member feed."
+                : `@${member.username} hasn't published a thesis on PortFuel yet.`
+            }
+            showPublishCta={isSelf}
+            secondaryHref="/dashboard/rankings"
+            secondaryLabel="Browse rankings"
+          />
         ) : (
           <ul className="space-y-4">
             {calls.map((c) => (
               <li key={c.id}>
                 <CallCard
-                  call={{
-                    id: c.id,
-                    symbol: c.symbol,
-                    asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
-                    direction: c.direction,
-                    thesis: c.thesis,
-                    called_at: c.called_at,
-                    return_pct: c.return_pct,
-                    target_progress: c.target_progress,
-                    entry_price: c.entry_price,
-                    target_price: c.target_price,
-                    stop_price: c.stop_price,
-                    last_price: c.last_price,
-                    timeframe_tag: c.timeframe_tag,
-                    is_fueled: c.is_fueled,
-                    vote_score: c.vote_score,
-                    comment_count: c.comment_count,
+                  call={mapCallRowToCardData(c, {
                     display_name: member.display_name,
-                    pin: member.username,
                     username: member.username,
-                    is_trusted: member.trusted,
-                  }}
+                    trusted: member.trusted,
+                  })}
                   interactive
                   canGenerateSummary={!proLocked}
                   showUpgrade={proLocked}

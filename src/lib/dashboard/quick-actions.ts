@@ -5,7 +5,7 @@ export type WorkspaceQuickAction = {
   href: string;
   label: string;
   description: string;
-  icon: DashboardNavIcon | "plus";
+  icon: DashboardNavIcon | "plus" | "bell";
   primary?: boolean;
 };
 
@@ -40,5 +40,11 @@ export const WORKSPACE_QUICK_ACTIONS: WorkspaceQuickAction[] = [
     label: "Rankings",
     description: "Leaderboard & follows",
     icon: "trophy",
+  },
+  {
+    href: "/dashboard/notifications",
+    label: "Notifications",
+    description: "Votes, comments & alerts",
+    icon: "bell",
   },
 ];

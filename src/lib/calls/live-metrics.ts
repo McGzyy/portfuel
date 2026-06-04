@@ -44,11 +44,12 @@ export function computeCallLiveMetrics(
         })
       : null;
 
+  const entry = call.entry_price ?? call.price_at_call;
   let targetProgress: number | null = call.target_progress;
-  if (call.entry_price && call.target_price) {
+  if (entry != null && call.target_price != null) {
     targetProgress = computeTargetProgress({
       direction: call.direction,
-      entry: Number(call.entry_price),
+      entry: Number(entry),
       target: Number(call.target_price),
       lastPrice,
     });

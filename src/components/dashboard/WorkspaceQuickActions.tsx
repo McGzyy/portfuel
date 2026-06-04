@@ -1,25 +1,30 @@
 import Link from "next/link";
 import {
+  Bell,
   Bookmark,
   Flame,
+  GitCompare,
   LayoutDashboard,
+  MessageCircle,
   Plus,
   Rows3,
+  ScanSearch,
   Trophy,
 } from "lucide-react";
 import { WORKSPACE_QUICK_ACTIONS } from "@/lib/dashboard/quick-actions";
 import type { DashboardNavIcon } from "@/lib/dashboard/nav";
 import { cn } from "@/lib/utils";
 
-const ICONS: Record<DashboardNavIcon | "plus", typeof Plus> = {
+const ICONS: Record<DashboardNavIcon | "plus" | "bell", typeof Plus> = {
   plus: Plus,
+  bell: Bell,
   "layout-dashboard": LayoutDashboard,
   rows: Rows3,
   flame: Flame,
   bookmark: Bookmark,
-  scan: LayoutDashboard,
-  compare: LayoutDashboard,
-  messages: LayoutDashboard,
+  scan: ScanSearch,
+  compare: GitCompare,
+  messages: MessageCircle,
   trophy: Trophy,
 };
 
@@ -54,7 +59,7 @@ export function WorkspaceQuickActions({ compact = false }: { compact?: boolean }
 
   return (
     <nav
-      className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5"
+      className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
       aria-label="Quick actions"
     >
       {WORKSPACE_QUICK_ACTIONS.map((item) => {

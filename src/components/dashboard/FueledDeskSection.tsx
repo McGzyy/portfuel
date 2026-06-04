@@ -37,6 +37,7 @@ export function FueledDeskSection({
               call={call}
               interactive
               compact
+              showSummary={false}
               viewerUserId={viewerUserId}
               isAdmin={isAdmin}
             />

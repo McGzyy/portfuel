@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { NewCallPageHeader } from "@/components/calls/NewCallPageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -265,10 +265,10 @@ export function NewCallForm({
         Back to dashboard
       </Link>
 
-      <PageHeader
-        title={COPY.publishCallCta}
-        description="Share your thesis with members. Stocks get news and filings on the ticker page; crypto must be on major exchanges."
-        className="border-none pb-4"
+      <NewCallPageHeader
+        weeklyQuota={weeklyQuota}
+        fueledMode={publishFueled}
+        prefilledSymbol={symbol.trim() || undefined}
       />
 
       <ModerationBanner

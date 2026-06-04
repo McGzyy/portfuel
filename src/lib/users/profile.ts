@@ -19,7 +19,7 @@ export async function fetchUserRecentCalls(userId: string, limit = 10) {
   const { data, error } = await db
     .from("calls")
     .select(
-      "id, symbol, asset_class, direction, thesis, called_at, return_pct, target_progress, entry_price, target_price, stop_price, last_price, timeframe_tag, vote_score, comment_count, is_fueled"
+      "id, symbol, asset_class, direction, thesis, called_at, return_pct, target_progress, entry_price, price_at_call, target_price, stop_price, last_price, timeframe_tag, vote_score, comment_count, is_fueled"
     )
     .eq("user_id", userId)
     .order("called_at", { ascending: false })

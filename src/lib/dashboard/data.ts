@@ -4,6 +4,7 @@ import { getDemoProfileStats } from "@/lib/demo/fixtures";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { fetchUserProfile, fetchUserRecentCalls } from "@/lib/users/profile";
 import type { CallCardData } from "@/components/calls/CallCard";
+import { normalizeCallCardPrices } from "@/lib/calls/card-display";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 
@@ -12,6 +13,7 @@ export function mapCallForCard(
   hypeScores?: Record<string, number>
 ): CallCardData {
   const username = c.users.username ?? null;
+  const prices = normalizeCallCardPrices(c);
   return {
     id: c.id,
     user_id: c.user_id,
@@ -21,11 +23,7 @@ export function mapCallForCard(
     thesis: c.thesis,
     called_at: c.called_at,
     return_pct: c.return_pct,
-    target_progress: c.target_progress,
-    entry_price: c.entry_price,
-    target_price: c.target_price,
-    stop_price: c.stop_price,
-    last_price: c.last_price,
+    ...prices,
     timeframe_tag: c.timeframe_tag,
     is_fueled: c.is_fueled,
     vote_score: c.vote_score,

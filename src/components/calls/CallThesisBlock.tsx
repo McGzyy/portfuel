@@ -6,6 +6,7 @@ import { CallResearchExpand } from "@/components/calls/CallResearchExpand";
 import { CallEngagement } from "@/components/calls/CallEngagement";
 import { CallPriceMetrics } from "@/components/calls/CallPriceMetrics";
 import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
+import { normalizeCallCardPrices } from "@/lib/calls/card-display";
 import { formatPct, timeAgo } from "@/lib/utils";
 
 type ThesisCall = {
@@ -18,6 +19,7 @@ type ThesisCall = {
   called_at: string;
   return_pct: number | null;
   entry_price: number | null;
+  price_at_call?: number | null;
   target_price: number | null;
   stop_price?: number | null;
   last_price?: number | null;
@@ -64,6 +66,7 @@ export function CallThesisBlock({
   const ret = call.return_pct;
   const retClass =
     ret == null ? "text-[var(--pf-gray-500)]" : ret >= 0 ? "text-emerald-600" : "text-rose-600";
+  const prices = normalizeCallCardPrices(call);
 
   return (
     <article
@@ -114,11 +117,11 @@ export function CallThesisBlock({
       ) : null}
       {interactive && call.is_fueled ? <CallResearchExpand callId={call.id} /> : null}
       <CallPriceMetrics
-        entry_price={call.entry_price}
-        target_price={call.target_price}
-        stop_price={call.stop_price}
-        last_price={call.last_price}
-        target_progress={call.target_progress}
+        entry_price={prices.entry_price}
+        target_price={prices.target_price}
+        stop_price={prices.stop_price}
+        last_price={prices.last_price}
+        target_progress={prices.target_progress}
         timeframe_tag={call.timeframe_tag}
         live={call.live}
         compact
@@ -143,7 +146,7 @@ export function CallThesisBlock({
             assetClass: call.asset_class ?? "equity",
             direction: call.direction,
             thesis: call.thesis,
-            entryPrice: call.entry_price,
+            entryPrice: prices.entry_price,
             targetPrice: call.target_price,
             stopPrice: call.stop_price ?? null,
             timeframeTag: call.timeframe_tag,

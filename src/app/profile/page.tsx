@@ -5,10 +5,9 @@ import { AppShell } from "@/components/layout/AppShell";
 import { CallCard } from "@/components/calls/CallCard";
 import { MemberProfileHero } from "@/components/member/MemberProfileHero";
 import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
-import {
-  WorkspacePageHeader,
-  WorkspaceNewCallAction,
-} from "@/components/dashboard/WorkspacePageHeader";
+import { ProfileCallsSectionHeader } from "@/components/profile/ProfileCallsSectionHeader";
+import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
+import { mapCallRowToCardData } from "@/lib/calls/card-display";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
@@ -109,47 +108,30 @@ export default async function ProfilePage() {
           aiUsage={aiUsage}
         />
 
-        <section id="calls" className="scroll-mt-24">
-          <WorkspacePageHeader
-            eyebrow="Your book"
-            title="Published calls"
-            description="Manage, delete, or publish new theses — each call updates your public track record."
-            action={<WorkspaceNewCallAction />}
-            className="mb-6"
-          />
+        <section id="calls" className="scroll-mt-24 space-y-6">
+          <ProfileCallsSectionHeader callCount={calls.length} trackRecord={trackRecord} />
 
           {calls.length === 0 ? (
-            <div className="pf-workspace-panel px-6 py-14 text-center text-sm text-[var(--pf-gray-500)]">
-              No calls yet. Publish your first thesis from the workspace.
-            </div>
+            <CallsEmptyState
+              title="No calls on your book yet"
+              description="Publish a thesis with entry, target, and stop — it goes on your profile, rankings score, and member feed."
+              secondaryHref="/dashboard/feed"
+              secondaryLabel="Browse member feed"
+            />
           ) : (
             <ul className="space-y-4">
               {calls.map((c) => (
                 <li key={c.id}>
                   <CallCard
-                    call={{
-                      id: c.id,
-                      user_id: session.userId,
-                      symbol: c.symbol,
-                      asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
-                      direction: c.direction,
-                      thesis: c.thesis,
-                      called_at: c.called_at,
-                      return_pct: c.return_pct,
-                      target_progress: c.target_progress,
-                      entry_price: c.entry_price,
-                      target_price: c.target_price,
-                      stop_price: c.stop_price,
-                      last_price: c.last_price,
-                      timeframe_tag: c.timeframe_tag,
-                      is_fueled: c.is_fueled,
-                      vote_score: c.vote_score,
-                      comment_count: c.comment_count,
-                      display_name: member.display_name,
-                      pin: member.username,
-                      username: member.username,
-                      is_trusted: member.trusted,
-                    }}
+                    call={mapCallRowToCardData(
+                      c,
+                      {
+                        display_name: member.display_name,
+                        username: member.username,
+                        trusted: member.trusted,
+                      },
+                      { user_id: session.userId }
+                    )}
                     interactive
                     showThesisCoach
                     isPro={!proLocked}

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import Link from "next/link";
 import { FeedCallList } from "@/components/dashboard/FeedCallList";
 import { FueledDeskSection } from "@/components/dashboard/FueledDeskSection";
 import { FeedCommandHeader } from "@/components/dashboard/FeedCommandHeader";
@@ -10,7 +9,6 @@ import { ProFeedLeadersPanel } from "@/components/pro/ProFeedLeadersPanel";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
-import { Button } from "@/components/ui/button";
 import {
   filterCallsFeed,
   filterCallsByFollowing,
@@ -28,7 +26,7 @@ import {
   isCallNewSinceSeen,
   parseFeedSeenAt,
 } from "@/lib/feed/last-seen";
-import { COPY } from "@/lib/copy";
+import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
 import {
@@ -77,17 +75,22 @@ export default async function DashboardFeedPage({
   const fueledFeedCards = allFeedCalls
     .filter((c) => c.is_fueled)
     .slice(0, 4);
+  const fueledCalls = allFeedCalls.filter((c) => c.is_fueled);
   let memberCalls = allFeedCalls.filter((c) => !c.is_fueled);
 
   if (feedFilter === "following") {
     const followingIds = new Set(await fetchFollowingIds(session.userId));
     memberCalls = filterCallsByFollowing(memberCalls, followingIds);
+    // Fueled desk calls are house research — not filtered by follow graph.
   }
 
-  let calls = filterCallsFeed(
-    memberCalls,
-    feedFilter === "fueled" || feedFilter === "following" ? "all" : feedFilter
-  );
+  let calls =
+    feedFilter === "fueled"
+      ? fueledCalls
+      : filterCallsFeed(
+          memberCalls,
+          feedFilter === "following" ? "all" : feedFilter
+        );
   calls = filterCallsBySearch(calls, searchQuery);
   if (mode === "progress") {
     calls = sortCallsByTargetProgress(calls);
@@ -162,25 +165,25 @@ export default async function DashboardFeedPage({
 
       <section aria-label="Community calls">
         {mapped.length === 0 ? (
-          <div className="pf-workspace-panel px-6 py-16 text-center">
-            <p className="font-medium text-[var(--pf-gray-700)]">No calls match this view</p>
-            <p className="mt-2 text-sm text-[var(--pf-gray-500)]">
-              {showNewOnly
-                ? "No new calls match this filter — try showing all calls or check back after members publish."
+          <CallsEmptyState
+            title="No calls match this view"
+            description={
+              showNewOnly
+                ? "No new calls match this filter — clear “new only” or check back after members publish."
                 : feedFilter === "following"
-                  ? "Follow members from rankings or their profile to see their calls here."
-                  : "Try different filters or publish a new thesis."}
-            </p>
-            {feedFilter === "following" ? (
-              <Link href="/dashboard/rankings" className="mt-6 inline-block">
-                <Button variant="outline">Browse rankings</Button>
-              </Link>
-            ) : (
-              <Link href={COPY.newCallHref} className="mt-6 inline-block">
-                <Button>{COPY.publishCallCta}</Button>
-              </Link>
-            )}
-          </div>
+                  ? "Follow members from rankings or their profile to personalize this feed."
+                  : feedFilter === "fueled"
+                    ? "No Fueled desk calls in this window yet — house theses appear here when published."
+                    : "Try a different tab, filter, or search — or publish a new thesis."
+            }
+            showPublishCta={feedFilter !== "following"}
+            secondaryHref={
+              feedFilter === "following" ? "/dashboard/rankings" : "/dashboard/watchlist"
+            }
+            secondaryLabel={
+              feedFilter === "following" ? "Browse rankings" : "Open watchlist"
+            }
+          />
         ) : (
           <FeedCallList
             calls={mapped}
