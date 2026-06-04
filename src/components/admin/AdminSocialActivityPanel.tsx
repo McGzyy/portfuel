@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import {
   describePostRef,
   POST_TYPE_LABELS,
@@ -121,6 +122,38 @@ export function AdminSocialActivityPanel() {
         flags. Dry runs are not logged here — only live posts written to{" "}
         <code className="text-xs">social_post_log</code>.
       </p>
+
+      {data && !loading ? (
+        <MetricsStrip
+          variant="embedded"
+          className="mt-4 border-t border-[var(--pf-border)] pt-4 !px-0"
+          eyebrow="Queue snapshot"
+          items={[
+            {
+              label: "Member wins",
+              value: String(data.queue.memberWins.length),
+              hint: `${readyMembers} ready`,
+            },
+            {
+              label: "Desk milestones",
+              value: String(data.queue.deskMilestones.length),
+            },
+            {
+              label: "Weekly digest",
+              value: data.queue.weeklyDigest.alreadyPostedThisWeek
+                ? "Posted"
+                : data.queue.weeklyDigest.eligible
+                  ? "Ready"
+                  : "Waiting",
+            },
+            {
+              label: "Published",
+              value: String(data.published.length),
+              hint: "Live X posts",
+            },
+          ]}
+        />
+      ) : null}
 
       <div className="mt-4 flex flex-wrap gap-2">
         <button

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { AdminCommandHeader } from "@/components/admin/AdminCommandHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
@@ -13,10 +13,7 @@ export default async function AdminPage() {
 
   return (
     <AppShell user={toHeaderUser(session)}>
-      <PageHeader
-        title="Administration"
-        description="Member access, Stripe tier counts, platform analytics, and submission quotas."
-      />
+      <AdminCommandHeader />
       <Suspense
         fallback={
           <div className="mt-8 flex justify-center py-16">

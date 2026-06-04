@@ -7,6 +7,7 @@ import {
   Bookmark,
   Flame,
   LayoutDashboard,
+  Bell,
   Menu,
   MessageCircle,
   Plus,
@@ -85,17 +86,26 @@ export function MemberNav({
         >
           <Menu className="h-5 w-5" strokeWidth={2.25} />
         </button>
-        <Link
-          href="/dashboard/messages"
-          className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
-          aria-label="Messages"
-        >
-          <MessageCircle className="h-5 w-5" strokeWidth={2} />
-          <DmUnreadBadge
-            initial={dmUnread}
-            className="absolute -right-0.5 -top-0.5 min-w-[1rem] px-1"
-          />
-        </Link>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <Link
+            href="/dashboard/notifications"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
+            aria-label="Notifications"
+          >
+            <Bell className="h-5 w-5" strokeWidth={2} />
+          </Link>
+          <Link
+            href="/dashboard/messages"
+            className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
+            aria-label="Messages"
+          >
+            <MessageCircle className="h-5 w-5" strokeWidth={2} />
+            <DmUnreadBadge
+              initial={dmUnread}
+              className="absolute -right-0.5 -top-0.5 min-w-[1rem] px-1"
+            />
+          </Link>
+        </div>
       </div>
 
       {open ? (

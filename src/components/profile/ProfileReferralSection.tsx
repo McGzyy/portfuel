@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Gift } from "lucide-react";
+import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import { ProfileAffiliateVouchers } from "@/components/profile/ProfileAffiliateVouchers";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -138,40 +139,29 @@ export function ProfileReferralSection() {
 
       {stats ? (
         <>
-          <div className="mt-4 flex flex-wrap gap-4">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                Credits earned
-              </p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--pf-black)]">
-                {formatUsdCents(stats.creditBalanceCents)}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                This month
-              </p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--pf-black)]">
-                {stats.rewardsThisMonth} / {stats.rewardsCap}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                Signups
-              </p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--pf-black)]">
-                {stats.signedUp}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                Activated
-              </p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--pf-black)]">
-                {stats.converted}
-              </p>
-            </div>
-          </div>
+          <MetricsStrip
+            variant="embedded"
+            className="mt-4 border-t border-[var(--pf-border)] pt-4 !px-0"
+            eyebrow="Your referrals"
+            items={[
+              {
+                label: "Credits",
+                value: formatUsdCents(stats.creditBalanceCents),
+                hint: "Balance",
+              },
+              {
+                label: "This month",
+                value: `${stats.rewardsThisMonth}/${stats.rewardsCap}`,
+                hint: "Rewards",
+              },
+              { label: "Signups", value: String(stats.signedUp) },
+              {
+                label: "Activated",
+                value: String(stats.converted),
+                hint: "Paid members",
+              },
+            ]}
+          />
 
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
             <input

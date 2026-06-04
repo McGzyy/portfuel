@@ -28,6 +28,11 @@ Use this after deploys or when validating Pro / feed behavior in production.
 4. **Ticker (free)** — Pro Intelligence strip with Compare / Screener links.
 5. First visit — **Workspace map** modal once (sidebar **Help** reopens it).
 
+## Admin & referrals
+
+- [ ] **Admin → Social** — X status strip on one row; queue snapshot before publish tabs.
+- [ ] **Profile → Sharing** — referral stats on one row; Discord shows linked tier inline.
+
 ## Marketing (process)
 
 - Paid ads and compliance steps live in `MARKETING-PLAN.md` — not automated in app code.

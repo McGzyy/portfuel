@@ -46,22 +46,40 @@ export function ProfileDiscordSection() {
 
   const discordChannelUrl = `https://discord.com/channels/${GUILD_ID}/${VERIFICATION_CHANNEL_ID}`;
 
+  const tierLabel = status.loading
+    ? "…"
+    : !status.linked
+      ? "Not linked"
+      : status.isPro
+        ? "Pro Member"
+        : status.isActive
+          ? "Member"
+          : "Verified only";
+
   return (
-    <section className="pf-workspace-panel p-6">
-      <h2 className="text-lg font-semibold tracking-tight">Discord</h2>
-      <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
-        Connect your Discord account to unlock member and Pro channels in the PortFuel server.
+    <section className="pf-workspace-panel p-5 sm:p-6">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
+        Integrations · Discord
+      </p>
+      <h2 className="mt-1 text-lg font-bold tracking-tight text-[var(--pf-black)]">
+        Discord server
+      </h2>
+      <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
+        Link your account for member and Pro channels. Roles sync when your subscription changes.
       </p>
 
-      {status.loading ? (
-        <p className="mt-4 text-sm text-[var(--pf-gray-500)]">Checking link status…</p>
-      ) : status.linked ? (
+      {!status.loading ? (
+        <p
+          className={`mt-3 text-sm font-semibold ${status.linked ? "text-emerald-700" : "text-[var(--pf-gray-600)]"}`}
+        >
+          {status.linked ? "Connected" : "Not connected"} · {tierLabel}
+        </p>
+      ) : (
+        <p className="mt-3 text-sm text-[var(--pf-gray-500)]">Checking link status…</p>
+      )}
+
+      {status.loading ? null : status.linked ? (
         <div className="mt-4 space-y-3 text-sm">
-          <p className="font-medium text-emerald-700">Discord linked</p>
-          <p className="text-[var(--pf-gray-600)]">
-            Tier:{" "}
-            {status.isPro ? "Pro Member" : status.isActive ? "PortFuel Member" : "Verified only (no active subscription)"}
-          </p>
           <p className="text-xs text-[var(--pf-gray-500)]">
             Roles sync automatically when your subscription changes.
           </p>

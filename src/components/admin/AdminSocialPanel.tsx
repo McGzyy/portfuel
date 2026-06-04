@@ -8,6 +8,7 @@ import { AdminMemberWinsPanel } from "@/components/admin/AdminMemberWinsPanel";
 import { AdminSocialCopyPanel } from "@/components/admin/AdminSocialCopyPanel";
 import { AdminWeeklyDigestPanel } from "@/components/admin/AdminWeeklyDigestPanel";
 import { AdminSocialActivityPanel } from "@/components/admin/AdminSocialActivityPanel";
+import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 
 type XConfigSummary = {
   enabled: boolean;
@@ -114,42 +115,36 @@ export function AdminSocialPanel() {
         </p>
 
         {config ? (
-          <ul className="mt-4 grid gap-2 text-xs text-[var(--pf-gray-600)] sm:grid-cols-2">
-            <li>
-              X bearer token:{" "}
-              <span
-                className={`font-semibold ${config.bearerTokenSet ? "text-emerald-700" : "text-rose-700"}`}
-              >
-                {config.bearerTokenSet ? "set" : "missing on server"}
-              </span>
-            </li>
-            <li>
-              Live post to X:{" "}
-              <span
-                className={`font-semibold ${config.livePostingReady ? "text-emerald-700" : "text-[var(--pf-black)]"}`}
-              >
-                {config.livePostingReady ? "ready" : "not yet"}
-              </span>
-            </li>
-            <li>
-              API enabled:{" "}
-              <span className="font-semibold text-[var(--pf-black)]">
-                {config.enabled ? "yes" : "no"}
-              </span>
-            </li>
-            <li>
-              Dry run:{" "}
-              <span className="font-semibold text-[var(--pf-black)]">
-                {config.dryRun ? "yes" : "no"}
-              </span>
-            </li>
-            <li className="sm:col-span-2">
-              Cron types: Fueled {config.fueledPosts ? "on" : "off"} · Leaderboard{" "}
-              {config.leaderboardPosts ? "on" : "off"} · Member wins{" "}
-              {config.memberWinPosts ? "on" : "off"} · Weekly digest{" "}
-              {config.weeklyDigestPosts ? "on" : "off"} · Set vars on Vercel for production.
-            </li>
-          </ul>
+          <MetricsStrip
+            variant="embedded"
+            className="mt-4 border-t border-[var(--pf-border)] pt-4 !px-0"
+            eyebrow="X status"
+            items={[
+              {
+                label: "Bearer",
+                value: config.bearerTokenSet ? "Set" : "Missing",
+                accent: config.bearerTokenSet ? "positive" : "negative",
+              },
+              {
+                label: "Live post",
+                value: config.livePostingReady ? "Ready" : "Blocked",
+                accent: config.livePostingReady ? "positive" : undefined,
+              },
+              { label: "API", value: config.enabled ? "On" : "Off" },
+              { label: "Dry run", value: config.dryRun ? "On" : "Off" },
+              {
+                label: "Cron",
+                value: [
+                  config.fueledPosts && "Fueled",
+                  config.leaderboardPosts && "Rank",
+                  config.memberWinPosts && "Wins",
+                  config.weeklyDigestPosts && "Digest",
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || "All off",
+              },
+            ]}
+          />
         ) : null}
 
         <div className="mt-5 flex flex-wrap gap-2">

@@ -44,7 +44,7 @@ export function AdminShell() {
   return (
     <>
       <nav
-        className="mt-6 flex gap-2 border-b border-[var(--pf-border)] pb-px"
+        className="mt-6 flex gap-1 overflow-x-auto border-b border-[var(--pf-border)] pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         aria-label="Admin sections"
       >
         {tabs.map((t) => (
@@ -52,7 +52,7 @@ export function AdminShell() {
             key={t.id}
             href={t.id === "members" ? "/admin" : `/admin?tab=${t.id}`}
             className={cn(
-              "-mb-px border-b-2 px-4 py-2 text-sm font-semibold transition-colors",
+              "-mb-px shrink-0 border-b-2 px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap",
               tab === t.id
                 ? "border-[var(--pf-red)] text-[var(--pf-black)]"
                 : "border-transparent text-[var(--pf-gray-500)] hover:text-[var(--pf-gray-700)]"
