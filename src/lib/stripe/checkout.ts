@@ -65,7 +65,7 @@ export async function createBillingPortalSession(customerId: string) {
   const appUrl = getAppUrl();
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
-    return_url: `${appUrl}/profile?billing=return`,
+    return_url: `${appUrl}/settings?billing=return`,
   });
   return session.url;
 }

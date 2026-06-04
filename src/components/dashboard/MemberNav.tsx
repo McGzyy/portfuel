@@ -219,11 +219,18 @@ export function MemberNav({
                 </Link>
               ) : null}
               <Link
-                href="/profile"
+                href={`/member/${username}`}
                 onClick={() => setOpen(false)}
                 className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
               >
                 Profile
+              </Link>
+              <Link
+                href="/settings"
+                onClick={() => setOpen(false)}
+                className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
+              >
+                Settings
               </Link>
             </div>
           </div>

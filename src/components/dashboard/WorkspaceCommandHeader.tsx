@@ -10,10 +10,12 @@ function greetingForHour(h: number): string {
 
 export function WorkspaceCommandHeader({
   displayName,
+  username,
   openCallsCount,
   className,
 }: {
   displayName: string;
+  username: string;
   openCallsCount: number;
   className?: string;
 }) {
@@ -43,7 +45,7 @@ export function WorkspaceCommandHeader({
           <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">{subtitle}</p>
           {openCallsCount > 0 ? (
             <Link
-              href="/profile"
+              href={`/member/${username}`}
               className="mt-3 inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
             >
               Full track record →

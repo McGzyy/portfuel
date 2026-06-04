@@ -11,7 +11,7 @@ export default function AccountRestrictedPage() {
           You can still manage billing from your profile. Contact support if you need this lifted.
         </p>
         <Link
-          href="/profile"
+          href="/settings"
           className="inline-flex w-full items-center justify-center rounded-[var(--pf-radius-md)] bg-[var(--pf-red)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--pf-red-hover)]"
         >
           Open profile

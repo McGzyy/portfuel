@@ -28,7 +28,7 @@ export function ProfileAiCoachStrip({ usage }: { usage: AiCoachUsageStatus }) {
         {usage.tier !== "pro" && usage.remaining === 0 ? (
           <p className="mt-2 text-xs text-[var(--pf-gray-500)]">
             Member limit is {AI_COACH_MONTHLY_LIMIT.member}/month.{" "}
-            <Link href="/profile" className="font-semibold text-[var(--pf-red)] hover:underline">
+            <Link href="/settings" className="font-semibold text-[var(--pf-red)] hover:underline">
               Upgrade to Pro
             </Link>{" "}
             for {AI_COACH_MONTHLY_LIMIT.pro}/month and track-record context.

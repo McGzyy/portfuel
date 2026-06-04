@@ -16,6 +16,7 @@ const protectedPaths = [
   "/calls",
   "/onboarding",
   "/profile",
+  "/settings",
   "/member",
   "/admin",
   "/security",
@@ -112,13 +113,14 @@ export async function middleware(request: NextRequest) {
     if (sub !== "active" && role !== "admin") {
       const onBillingPath =
         pathname.startsWith("/profile") ||
+        pathname.startsWith("/settings") ||
         pathname === "/join" ||
         pathname.startsWith("/join/");
 
       if (sub === "cancelled") {
         if (!onBillingPath && isProtected) {
           return withFreshCookie(
-            NextResponse.redirect(new URL("/profile", request.url)),
+            NextResponse.redirect(new URL("/settings", request.url)),
             freshToken
           );
         }
@@ -184,7 +186,8 @@ export async function middleware(request: NextRequest) {
       role !== "admin" &&
       isProtected
     ) {
-      const onProfile = pathname.startsWith("/profile");
+      const onProfile =
+        pathname.startsWith("/profile") || pathname.startsWith("/settings");
       if (!onProfile) {
         return withFreshCookie(
           NextResponse.redirect(new URL(accountRestrictedPath, request.url)),
@@ -302,6 +305,9 @@ export const config = {
     "/calls/:path*",
     "/onboarding",
     "/profile/:path*",
+    "/settings",
+    "/settings/:path*",
+    "/member/:path*",
     "/admin/:path*",
     "/security/:path*",
     "/notifications",

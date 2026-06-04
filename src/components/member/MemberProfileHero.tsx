@@ -25,7 +25,7 @@ export function MemberProfileHero({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--pf-gray-500)]">
-            Member profile
+            {isSelf ? "Your public profile" : "Member profile"}
           </p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-3xl">
             {member.display_name ?? member.username}

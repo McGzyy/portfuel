@@ -38,7 +38,7 @@ export function ProIntelDiscoverStrip({ symbol }: { symbol?: string }) {
               {label}
             </Link>
           ))}
-          <Link href="/profile">
+          <Link href="/settings">
             <Button size="sm">Upgrade</Button>
           </Link>
         </div>

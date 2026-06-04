@@ -24,7 +24,7 @@ export function WatchlistMoveAlerts({
       <div className="rounded-[var(--pf-radius-lg)] border border-dashed border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-3 text-xs text-[var(--pf-gray-600)]">
         <span className="font-semibold text-[var(--pf-black)]">{alerts.length} symbol(s)</span> moved
         ±{WATCHLIST_MOVE_ALERT_PCT}%+ since you added them.{" "}
-        <Link href="/profile" className="font-semibold text-[var(--pf-red)] hover:underline">
+        <Link href="/settings" className="font-semibold text-[var(--pf-red)] hover:underline">
           Pro Intelligence
         </Link>{" "}
         unlocks move alerts on your watchlist.

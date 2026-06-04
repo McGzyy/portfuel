@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, X } from "lucide-react";
-export function PublishSuccessBanner({ symbol }: { symbol: string }) {
+export function PublishSuccessBanner({
+  symbol,
+  username,
+}: {
+  symbol: string;
+  username?: string;
+}) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [visible, setVisible] = useState(false);
@@ -37,7 +43,10 @@ export function PublishSuccessBanner({ symbol }: { symbol: string }) {
           watchlist.
         </p>
         <div className="mt-2 flex flex-wrap gap-3 text-xs font-semibold">
-          <Link href="/profile#calls" className="text-emerald-800 hover:underline">
+          <Link
+            href={username ? `/member/${username}#calls` : "/profile#calls"}
+            className="text-emerald-800 hover:underline"
+          >
             Your calls →
           </Link>
           <Link href="/dashboard/watchlist" className="text-emerald-800 hover:underline">

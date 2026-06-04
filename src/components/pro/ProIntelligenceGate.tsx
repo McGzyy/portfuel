@@ -76,7 +76,7 @@ function ProGateActions({ cta }: { cta: ProGateCta }) {
   if (cta === "upgrade") {
     return (
       <>
-        <Link href="/profile" className="mt-4 inline-block">
+        <Link href="/settings" className="mt-4 inline-block">
           <Button size="sm">{formatProUpgradeCta()}</Button>
         </Link>
         <p className="mt-2 text-center text-xs text-[var(--pf-gray-500)]">

@@ -2,17 +2,17 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
-  { href: "#performance", label: "Performance" },
-  { href: "#calls", label: "Your calls" },
-  { href: "#membership", label: "Membership" },
-  { href: "#sharing", label: "Sharing" },
+  { href: "#billing", label: "Billing" },
+  { href: "#email", label: "Email" },
+  { href: "#referrals", label: "Referrals" },
+  { href: "#integrations", label: "Integrations" },
 ] as const;
 
-export function ProfilePageNav() {
+export function SettingsPageNav() {
   return (
     <nav
-      className="sticky top-0 z-20 -mx-1 flex gap-2 overflow-x-auto border-b border-[var(--pf-border)] bg-[var(--pf-app-bg)]/95 px-1 py-2 backdrop-blur-sm [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      aria-label="Profile sections"
+      className="sticky top-0 z-20 flex gap-2 overflow-x-auto border-b border-[var(--pf-border)] bg-[var(--pf-app-bg)]/95 py-2 backdrop-blur-sm [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      aria-label="Settings sections"
     >
       {LINKS.map((item) => (
         <Link

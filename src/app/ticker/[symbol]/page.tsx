@@ -101,7 +101,7 @@ export default async function TickerPage({
     <div className="mx-auto max-w-5xl space-y-8">
       {session ? (
         <Suspense fallback={null}>
-          <PublishSuccessBanner symbol={symbol} />
+          <PublishSuccessBanner symbol={symbol} username={session.username} />
         </Suspense>
       ) : null}
       <section className="pf-ticker-shell">

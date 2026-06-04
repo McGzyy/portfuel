@@ -18,7 +18,7 @@ export function ProUpgradeBanner() {
           </p>
         </div>
       </div>
-      <Link href="/profile" className="shrink-0">
+      <Link href="/settings" className="shrink-0">
         <Button size="sm">Upgrade</Button>
       </Link>
     </div>

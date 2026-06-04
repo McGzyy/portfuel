@@ -181,8 +181,13 @@ export const WORKSPACE_GUIDE_SECTIONS: {
     items: [
       {
         href: "/profile",
-        label: "Profile & billing",
-        description: "Track record, quota, upgrade to Pro, manage Stripe.",
+        label: "Profile",
+        description: "Your public track record and published calls.",
+      },
+      {
+        href: "/settings",
+        label: "Settings",
+        description: "Billing, email, referrals, and Discord.",
       },
       {
         href: "/dashboard/notifications",

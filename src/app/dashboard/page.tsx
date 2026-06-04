@@ -217,6 +217,7 @@ export default async function DashboardOverviewPage({
     <div className="space-y-6">
       <WorkspaceCommandHeader
         displayName={displayLabel}
+        username={session.username}
         openCallsCount={openCallCards.length}
       />
 

@@ -46,10 +46,16 @@ export function SiteHeader({
                     Rankings
                   </Link>
                   <Link
-                    href="/profile"
+                    href={`/member/${user.username}`}
                     className="hidden text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] sm:inline"
                   >
                     Profile
+                  </Link>
+                  <Link
+                    href="/settings"
+                    className="hidden text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] sm:inline"
+                  >
+                    Settings
                   </Link>
                 </>
               ) : null}

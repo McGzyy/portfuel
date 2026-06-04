@@ -182,7 +182,7 @@ export function ThesisCoachPanel({
         <p className="mt-3 text-xs text-[var(--pf-gray-500)]">
           Pro adds track-record context and {AI_COACH_MONTHLY_LIMIT.pro} reviews/month vs{" "}
           {AI_COACH_MONTHLY_LIMIT.member} on Member.{" "}
-          <Link href="/profile" className="font-semibold text-[var(--pf-red)] hover:underline">
+          <Link href="/settings" className="font-semibold text-[var(--pf-red)] hover:underline">
             Upgrade to Pro
           </Link>
         </p>

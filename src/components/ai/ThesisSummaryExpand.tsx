@@ -92,7 +92,7 @@ export function ThesisSummaryExpand({
         <p className="mt-2 text-xs text-[var(--pf-gray-600)]">
           {error}{" "}
           {showUpgrade ? (
-            <Link href="/profile" className="font-semibold text-[var(--pf-red)] hover:underline">
+            <Link href="/settings" className="font-semibold text-[var(--pf-red)] hover:underline">
               Upgrade to Pro
             </Link>
           ) : null}

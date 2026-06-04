@@ -38,7 +38,7 @@ export function ProMembershipStrip({ locked }: { locked: boolean }) {
             </ul>
           </div>
         </div>
-        <Link href="/profile" className="shrink-0 self-center">
+        <Link href="/settings" className="shrink-0 self-center">
           <Button size="sm">View plans</Button>
         </Link>
       </div>

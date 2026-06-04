@@ -17,7 +17,7 @@ function layout(opts: { title: string; bodyHtml: string; ctaHref?: string; ctaLa
   <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3">${opts.title}</h1>
   ${opts.bodyHtml}
   ${cta}
-  <p style="margin:32px 0 0;font-size:12px;color:#94a3b8">Manage alerts in <a href="${base}/profile">Profile</a> · <a href="${base}/dashboard/notifications">Notifications</a></p>
+  <p style="margin:32px 0 0;font-size:12px;color:#94a3b8">Manage alerts in <a href="${base}/settings">Settings</a> · <a href="${base}/dashboard/notifications">Notifications</a></p>
 </div></body></html>`;
 
   const textBody = opts.bodyHtml
@@ -29,7 +29,7 @@ function layout(opts: { title: string; bodyHtml: string; ctaHref?: string; ctaLa
 
   const text = `${opts.title}\n\n${textBody}${
     opts.ctaHref && opts.ctaLabel ? `\n\n${opts.ctaLabel}: ${opts.ctaHref}` : ""
-  }\n\nProfile: ${base}/profile`;
+  }\n\nSettings: ${base}/settings`;
 
   return { html, text };
 }

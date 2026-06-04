@@ -31,7 +31,7 @@ export function ProValueCard({ className }: { className?: string }) {
               </li>
             ))}
           </ul>
-          <Link href="/profile" className="mt-5 inline-block">
+          <Link href="/settings" className="mt-5 inline-block">
             <Button size="sm">View upgrade on profile</Button>
           </Link>
         </div>

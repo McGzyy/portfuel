@@ -47,7 +47,7 @@ export function MemberQuotaStrip({
       </div>
       {showUpgrade && quota.tier === "member" ? (
         <Link
-          href="/profile"
+          href="/settings"
           className="shrink-0 rounded-[var(--pf-radius)] bg-[var(--pf-red-muted)] px-3 py-2 text-xs font-semibold text-[var(--pf-red)] hover:bg-[var(--pf-red)]/15"
         >
           Upgrade to Pro
