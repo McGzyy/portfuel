@@ -9,6 +9,7 @@ import { MemberTrackRecordStrip } from "@/components/member/MemberTrackRecordStr
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
 import { MemberCallsSectionHeader } from "@/components/member/MemberCallsSectionHeader";
+import { MemberProfileNav } from "@/components/member/MemberProfileNav";
 import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
 import { mapCallRowToCardData } from "@/lib/calls/card-display";
 import { getSession } from "@/lib/auth/session";
@@ -65,23 +66,21 @@ export default async function MemberProfilePage({
     <AppShell user={toHeaderUser(session)}>
       <WorkspaceBackLink />
 
-      <div className="mt-6">
+      <div className="mt-6 space-y-4">
         <MemberProfileHero
           member={member}
           isSelf={isSelf}
           initialFollowing={initialFollowing}
         />
+        <MemberProfileNav />
       </div>
 
-      <div className="mt-6">
+      <section id="performance" className="scroll-mt-24 mt-6 space-y-6">
         <MemberReturnChart points={returnSeries} />
-      </div>
-
-      <div className="mt-6">
         <MemberTrackRecordStrip record={trackRecord} />
-      </div>
+      </section>
 
-      <section className="mt-10 space-y-6">
+      <section id="calls" className="scroll-mt-24 mt-10 space-y-6">
         <MemberCallsSectionHeader
           username={member.username}
           displayName={member.display_name}

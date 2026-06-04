@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { SymbolSparkline } from "@/components/charts/SymbolSparkline";
-import { cn, formatPct, timeAgo } from "@/lib/utils";
+import { cn, formatPct, formatPrice, timeAgo } from "@/lib/utils";
 
 export type CallPreviewData = {
   id: string;
@@ -15,7 +15,16 @@ export type CallPreviewData = {
   display_name: string | null;
   username?: string | null;
   is_fueled?: boolean;
+  entry_price?: number | null;
+  last_price?: number | null;
 };
+
+function previewPriceLine(call: CallPreviewData): string | null {
+  const parts: string[] = [];
+  if (call.entry_price != null) parts.push(`E $${formatPrice(Number(call.entry_price))}`);
+  if (call.last_price != null) parts.push(`L $${formatPrice(Number(call.last_price))}`);
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
 
 export function CallPreviewRow({
   call,
@@ -29,6 +38,7 @@ export function CallPreviewRow({
   const slug = call.username && !/^\d{5}$/.test(call.username) ? call.username : null;
   const name = call.display_name ?? (slug ? `@${slug}` : "Member");
   const ret = call.return_pct;
+  const prices = previewPriceLine(call);
   const dark = variant === "on-dark";
 
   return (
@@ -79,9 +89,19 @@ export function CallPreviewRow({
           </div>
         </div>
       </div>
+      {prices ? (
+        <p
+          className={cn(
+            "mt-2 font-mono text-[10px] font-semibold tabular-nums",
+            dark ? "text-slate-400" : "text-[var(--pf-gray-500)]"
+          )}
+        >
+          {prices}
+        </p>
+      ) : null}
       <p
         className={cn(
-          "mt-2 line-clamp-1 text-xs leading-relaxed",
+          "mt-1.5 line-clamp-1 text-xs leading-relaxed",
           dark ? "text-slate-400" : "text-[var(--pf-gray-600)]"
         )}
       >

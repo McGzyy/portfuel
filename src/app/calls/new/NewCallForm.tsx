@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import { Card, CardContent } from "@/components/ui/card";
 import { TradeSetupPreview } from "@/components/calls/TradeSetupPreview";
 import { ThesisCoachPanel } from "@/components/ai/ThesisCoachPanel";
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
@@ -287,8 +286,7 @@ export function NewCallForm({
         </div>
       ) : null}
 
-      <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
-        <CardContent className="pt-6">
+      <div className="pf-workspace-panel p-5 sm:p-6">
           <form onSubmit={handleSubmit} className="space-y-8">
             {isAdmin || isPro ? (
               <section className="space-y-3 rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-4">
@@ -549,8 +547,7 @@ export function NewCallForm({
               {loading ? COPY.publishingCall : COPY.publishCall}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+      </div>
     </AppShell>
   );
 }

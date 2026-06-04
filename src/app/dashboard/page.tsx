@@ -96,6 +96,8 @@ function toPreview(c: ReturnType<typeof mapCallForCard>): CallPreviewData {
     display_name: c.display_name,
     username: c.username,
     is_fueled: c.is_fueled,
+    entry_price: c.entry_price,
+    last_price: c.last_price,
   };
 }
 

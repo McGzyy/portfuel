@@ -1,13 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Map, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WORKSPACE_GUIDE_SECTIONS } from "@/lib/dashboard/nav";
 
+const GUIDE_SEEN_KEY = "pf_workspace_guide_seen";
+
 export function WorkspaceGuide() {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(GUIDE_SEEN_KEY) !== "1") {
+        setOpen(true);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  function dismissGuide() {
+    try {
+      localStorage.setItem(GUIDE_SEEN_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+    setOpen(false);
+  }
 
   return (
     <>
@@ -39,7 +60,7 @@ export function WorkspaceGuide() {
               </div>
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={dismissGuide}
                 className="rounded-lg p-1 text-[var(--pf-gray-500)] hover:bg-[var(--pf-gray-100)]"
                 aria-label="Close"
               >
@@ -57,7 +78,7 @@ export function WorkspaceGuide() {
                       <li key={item.href}>
                         <Link
                           href={item.href}
-                          onClick={() => setOpen(false)}
+                          onClick={dismissGuide}
                           className="block rounded-lg border border-[var(--pf-border)] px-3 py-2.5 transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
                         >
                           <span className="text-sm font-semibold text-[var(--pf-black)]">
@@ -73,8 +94,19 @@ export function WorkspaceGuide() {
                 </div>
               ))}
             </div>
-            <div className="border-t border-[var(--pf-border)] px-5 py-4">
-              <Button className="w-full" size="sm" onClick={() => setOpen(false)}>
+            <div className="border-t border-[var(--pf-border)] px-5 py-4 space-y-3">
+              <p className="text-center text-xs text-[var(--pf-gray-500)]">
+                New here? Finish the launch checklist on{" "}
+                <Link
+                  href="/dashboard"
+                  className="font-semibold text-[var(--pf-red)] hover:underline"
+                  onClick={dismissGuide}
+                >
+                  Overview
+                </Link>
+                .
+              </p>
+              <Button className="w-full" size="sm" onClick={dismissGuide}>
                 Got it
               </Button>
             </div>

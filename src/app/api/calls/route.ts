@@ -112,20 +112,20 @@ export async function POST(request: Request) {
         ? body.socialAnalysisRawText.trim()
         : null;
 
-    const basis = body.entryPrice ?? priceAtCall;
+    const entryForRecord = body.entryPrice ?? priceAtCall ?? null;
     const returnPct =
-      basis != null && priceAtCall != null
+      entryForRecord != null && priceAtCall != null
         ? computeReturnPct({
             direction: body.direction,
-            basisPrice: Number(basis),
+            basisPrice: Number(entryForRecord),
             lastPrice: priceAtCall,
           })
         : null;
     let targetProgress: number | null = null;
-    if (body.entryPrice && body.targetPrice && priceAtCall != null) {
+    if (entryForRecord != null && body.targetPrice != null && priceAtCall != null) {
       targetProgress = computeTargetProgress({
         direction: body.direction,
-        entry: body.entryPrice,
+        entry: Number(entryForRecord),
         target: body.targetPrice,
         lastPrice: priceAtCall,
       });
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
         asset_class: body.assetClass,
         direction: body.direction,
         thesis: body.thesis.trim(),
-        entry_price: body.entryPrice ?? null,
+        entry_price: entryForRecord,
         target_price: body.targetPrice ?? null,
         stop_price: body.stopPrice ?? null,
         timeframe_tag: body.timeframeTag ?? null,

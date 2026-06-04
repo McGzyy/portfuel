@@ -13,6 +13,7 @@ import { TickerPageNav } from "@/components/ticker/TickerPageNav";
 import { TickerCallsSection } from "@/components/ticker/TickerCallsSection";
 import { TickerIntelSection } from "@/components/ticker/TickerIntelSection";
 import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
+import { ProIntelDiscoverStrip } from "@/components/pro/ProIntelDiscoverStrip";
 import { SITE_NAME } from "@/lib/seo/site";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
@@ -129,6 +130,8 @@ export default async function TickerPage({
       {communityStats.callCount > 0 ? (
         <TickerCommunityBar stats={communityStats} />
       ) : null}
+
+      {session && proLocked ? <ProIntelDiscoverStrip symbol={symbol} /> : null}
 
       <section id="chart" className="scroll-mt-24">
         <TickerChartSection
