@@ -25,7 +25,7 @@ export function ScreenerCommandHeader({ data }: { data: CommunityScreenerData })
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
             {calledLine}
-            {returnLine} — built from PortFuel calls, not generic market screens.
+            {returnLine} — activity, target progress, desk vs crowd, and conviction filters.
           </p>
           <Link
             href="/dashboard/feed"

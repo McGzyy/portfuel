@@ -27,6 +27,9 @@ Use this after deploys or when validating Pro / feed behavior in production.
 3. **Publish** — after submit, green banner on ticker; checklist updates.
 4. **Ticker (free)** — Pro Intelligence strip with Compare / Screener links.
 5. First visit — **Workspace map** modal once (sidebar **Help** reopens it).
+6. **Profile → Share** — download verified track record PNG when you have calls.
+7. **Screener (Pro)** — Activity / Target progress / Desk vs crowd / Conviction tabs.
+8. **Earnings battleboard (Pro)** — reporting symbols with community lean + desk direction.
 
 ## Admin & referrals
 

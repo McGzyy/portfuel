@@ -22,6 +22,7 @@ import { ProfileSocialHighlightSection } from "@/components/profile/ProfileSocia
 import { ProfileVouchersSection } from "@/components/profile/ProfileVouchersSection";
 import { ProfileDiscordSection } from "@/components/profile/ProfileDiscordSection";
 import { ProfilePageNav } from "@/components/profile/ProfilePageNav";
+import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard";
 import { ProfilePerformanceSection } from "@/components/profile/ProfilePerformanceSection";
 import { ProfileSettingsGroup } from "@/components/profile/ProfileSettingsGroup";
 import { fetchAiCoachUsage } from "@/lib/ai/usage";
@@ -107,6 +108,8 @@ export default async function ProfilePage() {
           proGateCta={proGateCta}
           aiUsage={aiUsage}
         />
+
+        <ShareTrackRecordCard username={member.username} callCount={trackRecord.callCount} />
 
         <section id="calls" className="scroll-mt-24 space-y-6">
           <ProfileCallsSectionHeader callCount={calls.length} trackRecord={trackRecord} />

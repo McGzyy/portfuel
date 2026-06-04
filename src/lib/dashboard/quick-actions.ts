@@ -62,4 +62,10 @@ export const PRO_WORKSPACE_QUICK_ACTIONS: WorkspaceQuickAction[] = [
     description: "Top calls",
     icon: "scan",
   },
+  {
+    href: "/dashboard/earnings",
+    label: "Earnings",
+    description: "Report week",
+    icon: "calendar",
+  },
 ];

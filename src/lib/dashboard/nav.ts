@@ -6,6 +6,7 @@ export type DashboardNavIcon =
   | "flame"
   | "bookmark"
   | "scan"
+  | "calendar"
   | "compare"
   | "messages"
   | "bell"
@@ -70,6 +71,12 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
     icon: "scan",
   },
   {
+    href: "/dashboard/earnings",
+    label: "Earnings",
+    description: "Reporting week battleboard",
+    icon: "calendar",
+  },
+  {
     href: "/dashboard/compare",
     label: "Compare",
     description: "2–3 symbols side by side",
@@ -93,7 +100,7 @@ export const WORKSPACE_NAV_GROUPS: { title: string; items: DashboardNavItem[] }[
   {
     title: "Research",
     items: DASHBOARD_NAV.filter((i) =>
-      ["/dashboard/desk", "/dashboard/watchlist", "/dashboard/screener", "/dashboard/compare"].includes(
+      ["/dashboard/desk", "/dashboard/watchlist", "/dashboard/screener", "/dashboard/earnings", "/dashboard/compare"].includes(
         i.href
       )
     ),
@@ -155,7 +162,12 @@ export const WORKSPACE_GUIDE_SECTIONS: {
       {
         href: "/dashboard/screener",
         label: "Screener",
-        description: "Most-called symbols and top 30-day returns (Pro).",
+        description: "Conviction, progress & desk vs crowd filters (Pro).",
+      },
+      {
+        href: "/dashboard/earnings",
+        label: "Earnings battleboard",
+        description: "Reporting week symbols with community positioning (Pro).",
       },
       {
         href: "/dashboard/compare",

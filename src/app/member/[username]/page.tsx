@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { CallCard } from "@/components/calls/CallCard";
 import { MemberProfileHero } from "@/components/member/MemberProfileHero";
+import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard";
 import { MemberReturnChart } from "@/components/charts/MemberReturnChart";
 import { MemberTrackRecordStrip } from "@/components/member/MemberTrackRecordStrip";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
@@ -78,6 +79,9 @@ export default async function MemberProfilePage({
       <section id="performance" className="scroll-mt-24 mt-6 space-y-6">
         <MemberReturnChart points={returnSeries} />
         <MemberTrackRecordStrip record={trackRecord} />
+        {isSelf ? (
+          <ShareTrackRecordCard username={member.username} callCount={trackRecord.callCount} />
+        ) : null}
       </section>
 
       <section id="calls" className="scroll-mt-24 mt-10 space-y-6">

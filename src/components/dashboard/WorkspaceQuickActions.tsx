@@ -9,6 +9,7 @@ import {
   Plus,
   Rows3,
   ScanSearch,
+  Calendar,
   Trophy,
 } from "lucide-react";
 import {
@@ -26,6 +27,7 @@ const ICONS: Record<DashboardNavIcon | "plus" | "bell", typeof Plus> = {
   flame: Flame,
   bookmark: Bookmark,
   scan: ScanSearch,
+  calendar: Calendar,
   compare: GitCompare,
   messages: MessageCircle,
   trophy: Trophy,

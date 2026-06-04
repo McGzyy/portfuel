@@ -18,9 +18,49 @@ export type TopReturnRow = {
   display_name: string | null;
 };
 
+export type TargetProgressRow = {
+  symbol: string;
+  direction: string;
+  target_progress: number;
+  return_pct: number | null;
+  username: string;
+  called_at: string;
+};
+
+export type DeskVsCrowdRow = {
+  symbol: string;
+  communityLongPct: number;
+  communityCalls: number;
+  deskDirection: "long" | "short" | null;
+  diverges: boolean;
+  bestReturnPct: number | null;
+};
+
+export type ConvictionRow = {
+  symbol: string;
+  voteScore: number;
+  callCount: number;
+  latestDirection: string;
+  bestReturnPct: number | null;
+};
+
 export type CommunityScreenerData = {
   mostCalled: MostCalledRow[];
   topReturns: TopReturnRow[];
+  targetProgress: TargetProgressRow[];
+  deskVsCrowd: DeskVsCrowdRow[];
+  highConviction: ConvictionRow[];
+};
+
+type RawCall = {
+  symbol: string;
+  direction: string;
+  return_pct: number | null;
+  called_at: string;
+  is_fueled?: boolean;
+  target_progress?: number | null;
+  vote_score?: number | null;
+  users?: { username: string; display_name: string | null; subscription_status?: string } | { username: string; display_name: string | null; subscription_status?: string }[];
 };
 
 function aggregateMostCalled(
@@ -65,84 +105,251 @@ function aggregateMostCalled(
     .slice(0, 12);
 }
 
-export async function fetchCommunityScreener(): Promise<CommunityScreenerData> {
-  if (isDemoMode()) {
-    const latest = await loadFeedCalls("latest");
-    const weekCalls = latest
-      .filter((c) => !c.is_fueled)
+function aggregateConviction(
+  calls: { symbol: string; direction: string; return_pct: number | null; called_at: string; vote_score?: number | null }[]
+): ConvictionRow[] {
+  const bySymbol = new Map<
+    string,
+    { votes: number; count: number; latestDirection: string; bestReturn: number | null; latestAt: string }
+  >();
+
+  for (const c of calls) {
+    const sym = c.symbol.toUpperCase();
+    const prev = bySymbol.get(sym);
+    const votes = Number(c.vote_score ?? 0);
+    const ret = c.return_pct != null ? Number(c.return_pct) : null;
+    if (!prev) {
+      bySymbol.set(sym, {
+        votes,
+        count: 1,
+        latestDirection: c.direction,
+        bestReturn: ret,
+        latestAt: c.called_at,
+      });
+      continue;
+    }
+    prev.votes += votes;
+    prev.count += 1;
+    if (c.called_at > prev.latestAt) prev.latestDirection = c.direction;
+    if (ret != null && (prev.bestReturn == null || ret > prev.bestReturn)) prev.bestReturn = ret;
+  }
+
+  return [...bySymbol.entries()]
+    .map(([symbol, v]) => ({
+      symbol,
+      voteScore: v.votes,
+      callCount: v.count,
+      latestDirection: v.latestDirection,
+      bestReturnPct: v.bestReturn,
+    }))
+    .sort((a, b) => b.voteScore - a.voteScore || b.callCount - a.callCount)
+    .slice(0, 12);
+}
+
+function aggregateDeskVsCrowd(
+  calls: { symbol: string; direction: string; return_pct: number | null; called_at: string; is_fueled?: boolean }[]
+): DeskVsCrowdRow[] {
+  const bySymbol = new Map<
+    string,
+    {
+      memberLong: number;
+      memberShort: number;
+      memberTotal: number;
+      deskDirection: "long" | "short" | null;
+      deskAt: string;
+      bestReturn: number | null;
+    }
+  >();
+
+  for (const c of calls) {
+    const sym = c.symbol.toUpperCase();
+    const prev = bySymbol.get(sym) ?? {
+      memberLong: 0,
+      memberShort: 0,
+      memberTotal: 0,
+      deskDirection: null,
+      deskAt: "",
+      bestReturn: null,
+    };
+    const ret = c.return_pct != null ? Number(c.return_pct) : null;
+
+    if (c.is_fueled) {
+      if (c.called_at >= prev.deskAt) {
+        prev.deskAt = c.called_at;
+        prev.deskDirection = c.direction as "long" | "short";
+      }
+    } else {
+      prev.memberTotal += 1;
+      if (c.direction === "long") prev.memberLong += 1;
+      else prev.memberShort += 1;
+    }
+
+    if (ret != null && (prev.bestReturn == null || ret > prev.bestReturn)) {
+      prev.bestReturn = ret;
+    }
+
+    bySymbol.set(sym, prev);
+  }
+
+  return [...bySymbol.entries()]
+    .filter(([, v]) => v.memberTotal >= 2 && v.deskDirection != null)
+    .map(([symbol, v]) => {
+      const communityLongPct = Math.round((v.memberLong / v.memberTotal) * 100);
+      const communityLean: "long" | "short" =
+        communityLongPct >= 50 ? "long" : "short";
+      return {
+        symbol,
+        communityLongPct,
+        communityCalls: v.memberTotal,
+        deskDirection: v.deskDirection,
+        diverges: communityLean !== v.deskDirection,
+        bestReturnPct: v.bestReturn,
+      };
+    })
+    .sort((a, b) => Number(b.diverges) - Number(a.diverges) || b.communityCalls - a.communityCalls)
+    .slice(0, 12);
+}
+
+function mapTargetProgress(rows: RawCall[]): TargetProgressRow[] {
+  return rows
+    .filter((c) => c.target_progress != null && !c.is_fueled)
+    .map((c) => {
+      const u = Array.isArray(c.users) ? c.users[0] : c.users;
+      return {
+        symbol: c.symbol.toUpperCase(),
+        direction: c.direction,
+        target_progress: Number(c.target_progress),
+        return_pct: c.return_pct != null ? Number(c.return_pct) : null,
+        username: u?.username ?? "member",
+        called_at: c.called_at,
+      };
+    })
+    .sort((a, b) => b.target_progress - a.target_progress)
+    .slice(0, 12);
+}
+
+async function buildDemoData(): Promise<CommunityScreenerData> {
+  const latest = await loadFeedCalls("latest");
+  const weekCalls = latest
+    .filter((c) => !c.is_fueled)
+    .map((c) => ({
+      symbol: c.symbol,
+      direction: c.direction,
+      return_pct: c.return_pct,
+      called_at: c.called_at,
+      vote_score: c.vote_score,
+      target_progress: c.target_progress,
+      is_fueled: false,
+      users: c.users,
+    }));
+
+  const all30d = latest.map((c) => ({
+    symbol: c.symbol,
+    direction: c.direction,
+    return_pct: c.return_pct,
+    called_at: c.called_at,
+    is_fueled: c.is_fueled,
+    vote_score: c.vote_score,
+    target_progress: c.target_progress,
+  }));
+
+  const fueled = latest.filter((c) => c.is_fueled);
+  const combined30d = [
+    ...weekCalls,
+    ...fueled.map((c) => ({
+      symbol: c.symbol,
+      direction: c.direction,
+      return_pct: c.return_pct,
+      called_at: c.called_at,
+      is_fueled: true,
+    })),
+  ];
+
+  const performing = await loadFeedCalls("performing");
+
+  return {
+    mostCalled: aggregateMostCalled(weekCalls),
+    topReturns: performing
+      .filter((c) => !c.is_fueled && c.return_pct != null)
+      .slice(0, 12)
       .map((c) => ({
         symbol: c.symbol,
         direction: c.direction,
-        return_pct: c.return_pct,
+        return_pct: Number(c.return_pct),
         called_at: c.called_at,
-      }));
-    const performing = await loadFeedCalls("performing");
-    return {
-      mostCalled: aggregateMostCalled(weekCalls),
-      topReturns: performing
-        .filter((c) => !c.is_fueled && c.return_pct != null)
-        .slice(0, 12)
-        .map((c) => ({
-          symbol: c.symbol,
-          direction: c.direction,
-          return_pct: Number(c.return_pct),
-          called_at: c.called_at,
-          username: c.users.username ?? c.users.pin,
-          display_name: c.users.display_name,
-        })),
-    };
+        username: c.users.username ?? c.users.pin,
+        display_name: c.users.display_name,
+      })),
+    targetProgress: weekCalls
+      .filter((c) => c.target_progress != null)
+      .map((c) => ({
+        symbol: c.symbol,
+        direction: c.direction,
+        target_progress: Number(c.target_progress),
+        return_pct: c.return_pct != null ? Number(c.return_pct) : null,
+        username: c.users.username ?? c.users.pin,
+        called_at: c.called_at,
+      }))
+      .sort((a, b) => b.target_progress - a.target_progress)
+      .slice(0, 12),
+    deskVsCrowd: aggregateDeskVsCrowd(combined30d),
+    highConviction: aggregateConviction(weekCalls),
+  };
+}
+
+export async function fetchCommunityScreener(): Promise<CommunityScreenerData> {
+  if (isDemoMode()) {
+    return buildDemoData();
   }
 
   const db = createServiceClient();
   const sinceWeek = new Date(Date.now() - 7 * 86400000).toISOString();
   const since30d = new Date(Date.now() - 30 * 86400000).toISOString();
 
-  const { data: weekCalls, error: weekErr } = await db
-    .from("calls")
-    .select("symbol, direction, return_pct, called_at")
-    .eq("is_fueled", false)
-    .gte("called_at", sinceWeek);
+  const [weekRes, topRes, progressRes, crowdRes] = await Promise.all([
+    db
+      .from("calls")
+      .select("symbol, direction, return_pct, called_at, vote_score")
+      .eq("is_fueled", false)
+      .gte("called_at", sinceWeek),
+    db
+      .from("calls")
+      .select(
+        "symbol, direction, return_pct, called_at, users!inner(username, display_name, subscription_status)"
+      )
+      .eq("is_fueled", false)
+      .eq("users.subscription_status", "active")
+      .not("return_pct", "is", null)
+      .gte("called_at", since30d)
+      .order("return_pct", { ascending: false })
+      .limit(15),
+    db
+      .from("calls")
+      .select(
+        "symbol, direction, return_pct, called_at, target_progress, users!inner(username, display_name, subscription_status)"
+      )
+      .eq("is_fueled", false)
+      .eq("users.subscription_status", "active")
+      .not("target_progress", "is", null)
+      .gte("called_at", since30d)
+      .order("target_progress", { ascending: false })
+      .limit(15),
+    db
+      .from("calls")
+      .select("symbol, direction, return_pct, called_at, is_fueled")
+      .gte("called_at", since30d),
+  ]);
 
-  if (weekErr) {
-    console.error("[screener/week]", weekErr);
-    return { mostCalled: [], topReturns: [] };
-  }
+  if (weekRes.error) console.error("[screener/week]", weekRes.error);
+  if (topRes.error) console.error("[screener/top]", topRes.error);
+  if (progressRes.error) console.error("[screener/progress]", progressRes.error);
+  if (crowdRes.error) console.error("[screener/crowd]", crowdRes.error);
 
-  const { data: topCalls, error: topErr } = await db
-    .from("calls")
-    .select(
-      "symbol, direction, return_pct, called_at, users!inner(username, display_name, subscription_status)"
-    )
-    .eq("is_fueled", false)
-    .eq("users.subscription_status", "active")
-    .not("return_pct", "is", null)
-    .gte("called_at", since30d)
-    .order("return_pct", { ascending: false })
-    .limit(15);
+  const weekCalls = (weekRes.data ?? []) as RawCall[];
+  const crowdCalls = (crowdRes.data ?? []) as RawCall[];
 
-  if (topErr) {
-    console.error("[screener/top]", topErr);
-    return {
-      mostCalled: aggregateMostCalled(
-        (weekCalls ?? []) as {
-          symbol: string;
-          direction: string;
-          return_pct: number | null;
-          called_at: string;
-        }[]
-      ),
-      topReturns: [],
-    };
-  }
-
-  const topReturns = (topCalls ?? []).map((row) => {
-    const c = row as {
-      symbol: string;
-      direction: string;
-      return_pct: number;
-      called_at: string;
-      users: { username: string; display_name: string | null } | { username: string; display_name: string | null }[];
-    };
+  const topReturns = (topRes.data ?? []).map((row) => {
+    const c = row as RawCall;
     const u = Array.isArray(c.users) ? c.users[0] : c.users;
     return {
       symbol: c.symbol,
@@ -155,15 +362,11 @@ export async function fetchCommunityScreener(): Promise<CommunityScreenerData> {
   });
 
   return {
-    mostCalled: aggregateMostCalled(
-      (weekCalls ?? []) as {
-        symbol: string;
-        direction: string;
-        return_pct: number | null;
-        called_at: string;
-      }[]
-    ),
+    mostCalled: aggregateMostCalled(weekCalls),
     topReturns,
+    targetProgress: mapTargetProgress((progressRes.data ?? []) as RawCall[]),
+    deskVsCrowd: aggregateDeskVsCrowd(crowdCalls),
+    highConviction: aggregateConviction(weekCalls),
   };
 }
 
@@ -182,6 +385,30 @@ export function screenerToCsv(data: CommunityScreenerData): string {
   for (const r of data.topReturns) {
     lines.push(
       `${r.symbol},${r.direction},${r.return_pct},${r.called_at},${r.username}`
+    );
+  }
+
+  lines.push("");
+  lines.push("Target progress leaders (symbol,direction,target_progress,return_pct,username)");
+  for (const r of data.targetProgress) {
+    lines.push(
+      `${r.symbol},${r.direction},${r.target_progress},${r.return_pct ?? ""},${r.username}`
+    );
+  }
+
+  lines.push("");
+  lines.push("Desk vs crowd (symbol,community_long_pct,community_calls,desk_direction,diverges)");
+  for (const r of data.deskVsCrowd) {
+    lines.push(
+      `${r.symbol},${r.communityLongPct},${r.communityCalls},${r.deskDirection ?? ""},${r.diverges}`
+    );
+  }
+
+  lines.push("");
+  lines.push("High conviction (symbol,vote_score,calls,direction,best_return_pct)");
+  for (const r of data.highConviction) {
+    lines.push(
+      `${r.symbol},${r.voteScore},${r.callCount},${r.latestDirection},${r.bestReturnPct ?? ""}`
     );
   }
 
