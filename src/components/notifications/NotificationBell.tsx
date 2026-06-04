@@ -85,6 +85,7 @@ export function NotificationBell() {
     });
     setUnread(0);
     setItems((prev) => prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })));
+    window.dispatchEvent(new Event("portfuel:notifications-unread-changed"));
   }
 
   async function openNotification(n: UserNotification) {
@@ -95,6 +96,7 @@ export function NotificationBell() {
         body: JSON.stringify({ ids: [n.id] }),
       });
       setUnread((c) => Math.max(0, c - 1));
+      window.dispatchEvent(new Event("portfuel:notifications-unread-changed"));
       setItems((prev) =>
         prev.map((x) =>
           x.id === n.id ? { ...x, read_at: new Date().toISOString() } : x

@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import { cn } from "@/lib/utils";
 
 type Voucher = {
@@ -76,6 +77,14 @@ export function AdminVouchersPanel() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const stats = useMemo(() => {
+    const active = vouchers.filter((v) => v.active).length;
+    const redemptions = vouchers.reduce((sum, v) => sum + v.redemptionCount, 0);
+    const checkout = vouchers.filter((v) => v.kind === "checkout_discount").length;
+    const trials = vouchers.filter((v) => v.kind === "pro_trial").length;
+    return { total: vouchers.length, active, redemptions, checkout, trials };
+  }, [vouchers]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -187,11 +196,39 @@ export function AdminVouchersPanel() {
         <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-sm text-[var(--pf-red)]">{error}</p>
       ) : null}
 
+      <section className="pf-workspace-panel p-6">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
+          Growth · Vouchers
+        </p>
+        <h2 className="mt-1 text-lg font-bold tracking-tight text-[var(--pf-black)]">
+          Promo codes & Pro trials
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
+          Checkout discounts sync to Stripe. Pro trials grant intelligence access without changing
+          the subscription tier.
+        </p>
+        <MetricsStrip
+          variant="embedded"
+          className="mt-4 border-t border-[var(--pf-border)] pt-4 !px-0"
+          eyebrow="Inventory"
+          items={[
+            { label: "Total", value: String(stats.total) },
+            { label: "Active", value: String(stats.active), accent: "positive" },
+            { label: "Redemptions", value: String(stats.redemptions) },
+            { label: "Checkout", value: String(stats.checkout) },
+            { label: "Pro trials", value: String(stats.trials) },
+          ]}
+        />
+      </section>
+
       <form
         onSubmit={handleCreate}
-        className="space-y-4 rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-6 shadow-[var(--pf-shadow-sm)]"
+        className="pf-workspace-panel space-y-4 p-6"
       >
-        <h2 className="text-lg font-semibold text-[var(--pf-black)]">Create voucher</h2>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
+          Create
+        </p>
+        <h2 className="text-lg font-bold text-[var(--pf-black)]">New voucher</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm">
             <span className="font-medium text-[var(--pf-gray-700)]">Code</span>
@@ -338,8 +375,11 @@ export function AdminVouchersPanel() {
         </p>
       </form>
 
-      <div className="rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-6 shadow-[var(--pf-shadow-sm)]">
-        <h2 className="text-lg font-semibold text-[var(--pf-black)]">Assign / affiliate grant</h2>
+      <div className="pf-workspace-panel p-6">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
+          Assign
+        </p>
+        <h2 className="mt-1 text-lg font-bold text-[var(--pf-black)]">Assign / affiliate grant</h2>
         <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
           For assigned or affiliate audience vouchers, paste the member user id (from Members tab).
         </p>

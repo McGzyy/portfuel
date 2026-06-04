@@ -72,6 +72,7 @@ export function NotificationsList({ proUnlocked = false }: { proUnlocked?: boole
     });
     setUnread(0);
     setItems((prev) => prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })));
+    window.dispatchEvent(new Event("portfuel:notifications-unread-changed"));
   }
 
   async function openItem(n: UserNotification) {
@@ -82,6 +83,7 @@ export function NotificationsList({ proUnlocked = false }: { proUnlocked?: boole
         body: JSON.stringify({ ids: [n.id] }),
       });
       setUnread((c) => Math.max(0, c - 1));
+      window.dispatchEvent(new Event("portfuel:notifications-unread-changed"));
     } else if (!n.read_at) {
       setUnread((c) => Math.max(0, c - 1));
       setItems((prev) =>

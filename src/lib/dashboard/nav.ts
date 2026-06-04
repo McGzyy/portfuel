@@ -8,6 +8,7 @@ export type DashboardNavIcon =
   | "scan"
   | "compare"
   | "messages"
+  | "bell"
   | "trophy";
 
 export type DashboardNavItem = {
@@ -51,6 +52,12 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
     icon: "messages",
   },
   {
+    href: "/dashboard/notifications",
+    label: "Notifications",
+    description: "Votes, calls & alerts",
+    icon: "bell",
+  },
+  {
     href: "/dashboard/rankings",
     label: "Rankings",
     description: "Leaderboard & rank scores",
@@ -78,7 +85,9 @@ export const WORKSPACE_NAV_GROUPS: { title: string; items: DashboardNavItem[] }[
   {
     title: "Community",
     items: DASHBOARD_NAV.filter((i) =>
-      ["/dashboard/feed", "/dashboard/messages", "/dashboard/rankings"].includes(i.href)
+      ["/dashboard/feed", "/dashboard/messages", "/dashboard/notifications", "/dashboard/rankings"].includes(
+        i.href
+      )
     ),
   },
   {

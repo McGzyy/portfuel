@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import { cn, timeAgo } from "@/lib/utils";
 
 type Member = {
@@ -142,14 +143,33 @@ export function AdminMembersPanel() {
         </p>
       ) : null}
 
-      {/* Summary */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <StatCard label="Total members" value={stats.total} />
-        <StatCard label="Active" value={stats.active} tone="green" />
-        <StatCard label="Pending" value={stats.pending} tone="amber" />
-        <StatCard label="Pro" value={stats.pro} tone="red" />
-        <StatCard label="Banned" value={stats.banned} tone={stats.banned > 0 ? "muted" : "default"} />
-      </div>
+      <section className="pf-workspace-panel p-6">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
+          Members · Directory
+        </p>
+        <h2 className="mt-1 text-lg font-bold tracking-tight text-[var(--pf-black)]">
+          Member directory
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
+          Search, filter, and open Member 360 for access, Pro grants, and moderation.
+        </p>
+        <MetricsStrip
+          variant="embedded"
+          className="mt-4 border-t border-[var(--pf-border)] pt-4 !px-0"
+          eyebrow="Roster"
+          items={[
+            { label: "Total", value: String(stats.total) },
+            { label: "Active", value: String(stats.active), accent: "positive" },
+            { label: "Pending", value: String(stats.pending) },
+            { label: "Pro", value: String(stats.pro), accent: stats.pro > 0 ? "positive" : undefined },
+            {
+              label: "Banned",
+              value: String(stats.banned),
+              accent: stats.banned > 0 ? "negative" : undefined,
+            },
+          ]}
+        />
+      </section>
 
       {/* Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -338,36 +358,6 @@ export function AdminMembersPanel() {
       <p className="text-xs text-[var(--pf-gray-400)]">
         Friend demos: send <span className="font-mono">/join?invite=1</span>, then open their row
         and use <strong>Comp Pro</strong> on Member 360.
-      </p>
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: number;
-  tone?: "default" | "green" | "amber" | "red" | "muted";
-}) {
-  return (
-    <div className="rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-white px-4 py-3 shadow-[var(--pf-shadow-sm)]">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-        {label}
-      </p>
-      <p
-        className={cn(
-          "mt-1 text-2xl font-bold tabular-nums tracking-tight",
-          tone === "green" && "text-emerald-700",
-          tone === "amber" && "text-amber-700",
-          tone === "red" && "text-[var(--pf-red)]",
-          tone === "default" && "text-[var(--pf-black)]",
-          tone === "muted" && "text-[var(--pf-gray-600)]"
-        )}
-      >
-        {value}
       </p>
     </div>
   );

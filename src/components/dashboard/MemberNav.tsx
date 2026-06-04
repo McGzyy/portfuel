@@ -21,6 +21,7 @@ import { COPY } from "@/lib/copy";
 import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
 import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
+import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
@@ -31,6 +32,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   scan: ScanSearch,
   compare: GitCompare,
   messages: MessageCircle,
+  bell: Bell,
   trophy: Trophy,
 };
 
@@ -43,11 +45,13 @@ function isNavActive(pathname: string, href: string, exact?: boolean) {
 /** Mobile / tablet workspace nav — menu button opens a drawer instead of horizontal scroll. */
 export function MemberNav({
   dmUnread = 0,
+  notifUnread = 0,
   username,
   displayName,
   isAdmin = false,
 }: {
   dmUnread?: number;
+  notifUnread?: number;
   username: string;
   displayName: string;
   isAdmin?: boolean;
@@ -89,10 +93,14 @@ export function MemberNav({
         <div className="flex shrink-0 items-center gap-1.5">
           <Link
             href="/dashboard/notifications"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
+            className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
             aria-label="Notifications"
           >
             <Bell className="h-5 w-5" strokeWidth={2} />
+            <NotificationUnreadBadge
+              initial={notifUnread}
+              className="absolute -right-0.5 -top-0.5 min-w-[1rem] px-1"
+            />
           </Link>
           <Link
             href="/dashboard/messages"
@@ -174,6 +182,9 @@ export function MemberNav({
                         <span className="truncate">{item.label}</span>
                         {item.href === "/dashboard/messages" ? (
                           <DmUnreadBadge initial={dmUnread} />
+                        ) : null}
+                        {item.href === "/dashboard/notifications" ? (
+                          <NotificationUnreadBadge initial={notifUnread} />
                         ) : null}
                       </span>
                     </Link>

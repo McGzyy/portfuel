@@ -6,6 +6,7 @@ import { WorkspaceContent } from "@/components/dashboard/WorkspaceContent";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import { countUnreadDmThreads } from "@/lib/messages/service";
+import { fetchUnreadCount } from "@/lib/notifications/service";
 import { workspaceMetadata } from "@/lib/seo/site";
 
 export const metadata = workspaceMetadata;
@@ -17,8 +18,12 @@ export default async function DashboardLayout({
 }) {
   const session = await requireDashboardSession();
   let dmUnread = 0;
+  let notifUnread = 0;
   try {
-    dmUnread = await countUnreadDmThreads(session.userId);
+    [dmUnread, notifUnread] = await Promise.all([
+      countUnreadDmThreads(session.userId),
+      fetchUnreadCount(session.userId),
+    ]);
   } catch {
     /* optional */
   }
@@ -36,11 +41,13 @@ export default async function DashboardLayout({
             displayName={session.displayName ?? session.username}
             isAdmin={session.role === "admin"}
             dmUnread={dmUnread}
+            notifUnread={notifUnread}
           />
         </div>
         <div className="pf-workspace-main">
           <MemberNav
             dmUnread={dmUnread}
+            notifUnread={notifUnread}
             username={session.username}
             displayName={session.displayName ?? session.username}
             isAdmin={session.role === "admin"}

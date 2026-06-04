@@ -30,8 +30,11 @@ Use this after deploys or when validating Pro / feed behavior in production.
 
 ## Admin & referrals
 
+- [ ] **Admin → Members** — roster strip on one row; directory panel header.
+- [ ] **Admin → Vouchers** — inventory strip; create/assign panels use `pf-workspace-panel`.
 - [ ] **Admin → Social** — X status strip on one row; queue snapshot before publish tabs.
 - [ ] **Profile → Sharing** — referral stats on one row; Discord shows linked tier inline.
+- [ ] **Mobile nav** — notifications bell shows unread badge; sidebar includes Notifications link.
 
 ## Marketing (process)
 

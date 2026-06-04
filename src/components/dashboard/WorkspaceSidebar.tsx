@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bookmark,
+  Bell,
   Flame,
   LayoutDashboard,
   Rows3,
@@ -17,6 +18,7 @@ import { COPY } from "@/lib/copy";
 import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
 import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
+import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
@@ -27,6 +29,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   scan: ScanSearch,
   compare: GitCompare,
   messages: MessageCircle,
+  bell: Bell,
   trophy: Trophy,
 };
 
@@ -35,11 +38,13 @@ export function WorkspaceSidebar({
   displayName,
   isAdmin,
   dmUnread = 0,
+  notifUnread = 0,
 }: {
   username: string;
   displayName: string;
   isAdmin?: boolean;
   dmUnread?: number;
+  notifUnread?: number;
 }) {
   const pathname = usePathname();
 
@@ -91,6 +96,9 @@ export function WorkspaceSidebar({
                       <span className="truncate">{item.label}</span>
                       {item.href === "/dashboard/messages" ? (
                         <DmUnreadBadge initial={dmUnread} />
+                      ) : null}
+                      {item.href === "/dashboard/notifications" ? (
+                        <NotificationUnreadBadge initial={notifUnread} />
                       ) : null}
                     </span>
                   </Link>
