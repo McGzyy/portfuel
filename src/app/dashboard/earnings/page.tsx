@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { EarningsBattleboardCommandHeader } from "@/components/pro/EarningsBattleboardCommandHeader";
+import { EarningsSurfacesExplainer } from "@/components/pro/EarningsSurfacesExplainer";
 import { EarningsBattleboardTable } from "@/components/pro/EarningsBattleboardTable";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
@@ -32,6 +33,8 @@ export default async function DashboardEarningsPage() {
       <EarningsBattleboardCommandHeader summary={summary} />
 
       <WorkspaceQuickActions compact proUnlocked={!proLocked} />
+
+      <EarningsSurfacesExplainer />
 
       {proLocked ? <ProMembershipStrip locked /> : null}
 

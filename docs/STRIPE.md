@@ -64,13 +64,13 @@ Adds `membership_tier`, `stripe_customer_id`, `stripe_subscription_id` on `users
 4. Success → `/join/success` activates membership + signs user in
 5. **2FA setup** → workspace
 
-Pending users (logged in): `/join?pending=1` or profile **Complete checkout**.
+Pending users (logged in): `/join?pending=1` or **Settings** → **Complete checkout**.
 
-Active subscribers: profile → **Manage billing** (Stripe Customer Portal).
+Active subscribers: **Settings** → **Manage billing** (Stripe Customer Portal).
 
-**Member → Pro upgrade:** Active Member plans use **Upgrade to Pro** on profile. The UI loads a Stripe **invoice preview** (`GET /api/stripe/upgrade-preview`) showing estimated proration before confirm (`POST /api/stripe/upgrade` with matching `prorationDate`). Webhook `customer.subscription.updated` keeps Supabase in sync if the client path races.
+**Member → Pro upgrade:** Active Member plans use **Upgrade to Pro** on Settings. The UI loads a Stripe **invoice preview** (`GET /api/stripe/upgrade-preview`) showing estimated proration before confirm (`POST /api/stripe/upgrade` with matching `prorationDate`). Webhook `customer.subscription.updated` keeps Supabase in sync if the client path races.
 
-**Session sync:** After portal or webhook changes, JWT billing fields refresh from Supabase on each request (middleware + `getSession`). Returning from portal lands on `/profile?billing=return` to refresh the page.
+**Session sync:** After portal or webhook changes, JWT billing fields refresh from Supabase on each request (middleware + `getSession`). Returning from portal lands on `/settings?billing=return` to refresh the page.
 
 ## 6. Tiers & Pro gates
 

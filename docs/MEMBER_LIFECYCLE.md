@@ -17,7 +17,7 @@ Comp / invite signups skip Stripe email mismatch; they still verify email when `
 |----------|---------|---------|
 | `RESEND_API_KEY` + `EMAIL_FROM` | — | Required for verification and password-reset emails |
 | `REQUIRE_EMAIL_VERIFICATION` | on when email configured | Set `false` to disable gate (e.g. local dev) |
-| `NEXT_PUBLIC_ANNUAL_BILLING_ENABLED` | `false` | Show annual plan toggle on join/profile |
+| `NEXT_PUBLIC_ANNUAL_BILLING_ENABLED` | `false` | Show annual plan toggle on join/settings |
 
 ## Email verification
 

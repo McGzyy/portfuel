@@ -56,7 +56,7 @@ Deferred / optional: **[BACKLOG.md](./BACKLOG.md)** · X setup **[X-SOCIAL.md](.
 | Votes & comments (API + UI) | ✅ | Dashboard + ticker theses |
 | Public landing teasers | ✅ | Winners only; thesis gated |
 | Rankings / leaderboard | ✅ | `/rankings` + cron score refresh |
-| Profile page | ✅ | Username (read-only), stats, recent calls |
+| Public profile (`/member/{username}`) + Settings | ✅ | Track record public page; billing/referrals at `/settings`; `/profile` redirects |
 | Username + password auth | ✅ | Immutable username; 2FA after activation |
 | Admin panel | ✅ | `/admin` — activate members, quotas |
 
@@ -132,7 +132,7 @@ Work through these **one branch at a time**. Finish and merge before starting th
 
 **Goal:** Member identity, admin controls, modern auth.
 
-- [x] `/profile` — username, stats, recent calls
+- [x] `/member/{username}` — public track record; `/settings` for account; `/profile` redirects
 - [x] Login: username + password; TOTP when enabled
 - [x] Signup: username (immutable) + password; `pending` until activated
 - [x] `/security/2fa` — required for active members before dashboard

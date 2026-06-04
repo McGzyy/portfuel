@@ -27,16 +27,17 @@ Use this after deploys or when validating Pro / feed behavior in production.
 3. **Publish** — after submit, green banner on ticker; checklist updates.
 4. **Ticker (free)** — Pro Intelligence strip with Compare / Screener links.
 5. First visit — **Workspace map** modal once (sidebar **Help** reopens it).
-6. **Profile → Share** — download verified track record PNG when you have calls.
+6. **Public profile** (`/member/{username}`) — share track record PNG when you have calls; **Settings** (`/settings`) for billing and referrals.
 7. **Screener (Pro)** — Activity / Target progress / Desk vs crowd / Conviction tabs.
-8. **Earnings battleboard (Pro)** — reporting symbols with community lean + desk direction.
+8. **Earnings battleboard (Pro)** — three-surfaces explainer; reporting symbols with community lean + desk direction.
+9. **Legacy `/profile`** — redirects to your public member page.
 
 ## Admin & referrals
 
 - [ ] **Admin → Members** — roster strip on one row; directory panel header.
 - [ ] **Admin → Vouchers** — inventory strip; create/assign panels use `pf-workspace-panel`.
 - [ ] **Admin → Social** — X status strip on one row; queue snapshot before publish tabs.
-- [ ] **Profile → Sharing** — referral stats on one row; Discord shows linked tier inline.
+- [ ] **Settings → Sharing** — referral stats on one row; Discord shows linked tier inline.
 - [ ] **Mobile nav** — notifications bell shows unread badge; sidebar includes Notifications link.
 
 ## Marketing (process)

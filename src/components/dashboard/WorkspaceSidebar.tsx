@@ -120,7 +120,7 @@ export function WorkspaceSidebar({
           {COPY.newCall}
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
-          <WorkspaceGuide />
+          <WorkspaceGuide username={username} />
           <div className="flex items-center gap-3">
             {isAdmin ? (
               <Link

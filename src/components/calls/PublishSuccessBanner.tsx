@@ -44,7 +44,7 @@ export function PublishSuccessBanner({
         </p>
         <div className="mt-2 flex flex-wrap gap-3 text-xs font-semibold">
           <Link
-            href={username ? `/member/${username}#calls` : "/profile#calls"}
+            href={username ? `/member/${username}#calls` : "/dashboard"}
             className="text-emerald-800 hover:underline"
           >
             Your calls →

@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Map, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { WORKSPACE_GUIDE_SECTIONS } from "@/lib/dashboard/nav";
+import { buildWorkspaceGuideSections } from "@/lib/dashboard/nav";
 
 const GUIDE_SEEN_KEY = "pf_workspace_guide_seen";
 
-export function WorkspaceGuide() {
+export function WorkspaceGuide({ username }: { username: string }) {
   const [open, setOpen] = useState(false);
+  const sections = buildWorkspaceGuideSections(username);
 
   useEffect(() => {
     try {
@@ -68,7 +69,7 @@ export function WorkspaceGuide() {
               </button>
             </div>
             <div className="space-y-5 p-5">
-              {WORKSPACE_GUIDE_SECTIONS.map((section) => (
+              {sections.map((section) => (
                 <div key={section.title}>
                   <p className="text-xs font-bold uppercase tracking-wide text-[var(--pf-gray-400)]">
                     {section.title}

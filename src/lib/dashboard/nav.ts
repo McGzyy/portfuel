@@ -107,9 +107,28 @@ export const WORKSPACE_NAV_GROUPS: { title: string; items: DashboardNavItem[] }[
   },
 ];
 
-export const WORKSPACE_GUIDE_SECTIONS: {
+export function memberPublicPath(username: string): string {
+  return `/member/${encodeURIComponent(username)}`;
+}
+
+export function buildWorkspaceGuideSections(username: string): {
   title: string;
   items: { href: string; label: string; description: string }[];
+}[] {
+  const profileHref = memberPublicPath(username);
+  return WORKSPACE_GUIDE_SECTIONS_TEMPLATE.map((section) => ({
+    title: section.title,
+    items: section.items.map(({ href, label, description, profileLink }) => ({
+      href: profileLink ? profileHref : href,
+      label,
+      description,
+    })),
+  }));
+}
+
+const WORKSPACE_GUIDE_SECTIONS_TEMPLATE: {
+  title: string;
+  items: { href: string; label: string; description: string; profileLink?: true }[];
 }[] = [
   {
     title: "Start here",
@@ -183,6 +202,7 @@ export const WORKSPACE_GUIDE_SECTIONS: {
         href: "/profile",
         label: "Profile",
         description: "Your public track record and published calls.",
+        profileLink: true,
       },
       {
         href: "/settings",
@@ -197,6 +217,9 @@ export const WORKSPACE_GUIDE_SECTIONS: {
     ],
   },
 ];
+
+/** @deprecated Use buildWorkspaceGuideSections(username) for profile href. */
+export const WORKSPACE_GUIDE_SECTIONS = WORKSPACE_GUIDE_SECTIONS_TEMPLATE;
 
 export type FeedTab = "latest" | "performing" | "progress";
 

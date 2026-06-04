@@ -38,13 +38,13 @@ export async function notifyDiscordSubscriptionChange(input: {
   if (!discordUserId) return;
 
   const appUrl = getAppUrl();
-  const profileUrl = `${appUrl}/profile`;
+  const settingsUrl = `${appUrl}/settings`;
 
   if (input.afterStatus === "cancelled" && input.beforeStatus === "active") {
     await enqueueDiscordDm(
       discordUserId,
       `Your PortFuel subscription was **cancelled**. Member/Pro Discord channels will be removed shortly.\n\n` +
-        `Renew anytime: ${profileUrl}`
+        `Renew anytime: ${settingsUrl}`
     );
     return;
   }
