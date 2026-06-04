@@ -44,7 +44,7 @@ export const ONBOARDING_TOUR_STEPS: OnboardingTourStep[] = [
     icon: Trophy,
     title: "Rankings",
     body: "Leaderboard by rank score — follow trusted members and see how the Trusted badge works.",
-    href: "/rankings",
+    href: "/dashboard/rankings",
   },
   {
     icon: PenLine,

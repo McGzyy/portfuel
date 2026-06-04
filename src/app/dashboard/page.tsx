@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AdminCommunityHint } from "@/components/dashboard/AdminCommunityHint";
-import { GettingStartedCard } from "@/components/dashboard/GettingStartedCard";
+import { WorkspaceOnboardingChecklist } from "@/components/dashboard/WorkspaceOnboardingChecklist";
 import { OverviewActivityPanels } from "@/components/dashboard/OverviewActivityPanels";
 import { COPY } from "@/lib/copy";
 import { WorkspaceOverviewStats } from "@/components/dashboard/WorkspaceOverviewStats";
@@ -151,8 +151,11 @@ export default async function DashboardOverviewPage({
   const featuredDesk = fueledPreviews[0] ?? null;
 
   let watchlistPreview: Awaited<ReturnType<typeof fetchWatchlist>> = [];
+  let watchlistCount = 0;
   try {
-    watchlistPreview = (await fetchWatchlist(session.userId)).slice(0, 6);
+    const watchlist = await fetchWatchlist(session.userId);
+    watchlistCount = watchlist.length;
+    watchlistPreview = watchlist.slice(0, 6);
   } catch {
     /* optional */
   }
@@ -181,9 +184,6 @@ export default async function DashboardOverviewPage({
   const avgPulse = communityPulse.avgReturnPct;
   const avgAccent =
     avgPulse == null ? undefined : avgPulse >= 0 ? ("positive" as const) : ("negative" as const);
-  const showGettingStarted =
-    ownCalls.length === 0 && watchlistPreview.length === 0 && followingMembers.length === 0;
-
   const isPro = !proLocked;
 
   return (
@@ -219,7 +219,13 @@ export default async function DashboardOverviewPage({
         />
       ) : null}
 
-      {showGettingStarted ? <GettingStartedCard /> : null}
+      {session.role !== "admin" ? (
+        <WorkspaceOnboardingChecklist
+          publishedCall={ownCalls.length > 0}
+          watchlistCount={watchlistCount}
+          followingCount={followingMembers.length}
+        />
+      ) : null}
 
       {session.role === "admin" && communityPulse.count === 0 && latestPreviews.length === 0 ? (
         <AdminCommunityHint />

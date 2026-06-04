@@ -6,7 +6,10 @@ import { DeskPortfolioPanel } from "@/components/desk/DeskPortfolioPanel";
 import { DeskPortfolioChart } from "@/components/charts/DeskPortfolioChart";
 import { buildDeskPortfolioCurve } from "@/lib/charts/desk-portfolio-curve";
 import { DeskPortfolioWatchlistButton } from "@/components/desk/DeskPortfolioWatchlistButton";
-import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
+import { FueledDeskCommandHeader } from "@/components/dashboard/FueledDeskCommandHeader";
+import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
+import { ChecklistVisitMarker } from "@/components/dashboard/ChecklistVisitMarker";
+import { CHECKLIST_DESK_VISITED_KEY } from "@/lib/onboarding/workspace-checklist";
 import { Button } from "@/components/ui/button";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { fetchDeskBrief } from "@/lib/desk/brief";
@@ -42,15 +45,21 @@ export default async function DashboardDeskPage() {
     .map((c) => mapCallForCard(c, hypeScores));
   const fueledTrackRecord = await fetchFueledTrackRecord();
 
+  const openPositions = portfolio.filter((e) => e.status === "open").length;
+
   return (
-    <>
-      <WorkspacePageHeader
-        eyebrow="PortFuel research"
-        title="Fueled desk"
-        description="Official PortFuel research — curated desk theses, clearly separated from the member feed."
+    <div className="space-y-6">
+      <ChecklistVisitMarker storageKey={CHECKLIST_DESK_VISITED_KEY} />
+
+      <FueledDeskCommandHeader
+        weeklyNote={deskBrief.weeklyNote}
+        openPositions={openPositions}
+        totalDeskCalls={fueledLatest.length + fueledPerforming.length}
       />
 
-      <FueledDeskBrief brief={deskBrief}       />
+      <WorkspaceQuickActions compact />
+
+      <FueledDeskBrief brief={deskBrief} />
 
       <FueledTrackRecordPanel record={fueledTrackRecord} />
 
@@ -124,6 +133,6 @@ export default async function DashboardDeskPage() {
           </div>
         </section>
       ) : null}
-    </>
+    </div>
   );
 }
