@@ -24,7 +24,7 @@ export function FeedNewBanner({
 
   if (showNewOnly && newCount === 0) {
     return (
-      <div className="mt-4 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-3 text-sm text-[var(--pf-gray-600)]">
+      <div className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-3 text-sm text-[var(--pf-gray-600)]">
         <p className="font-medium text-[var(--pf-gray-700)]">No new calls in this view</p>
         <p className="mt-1 text-xs">
           Everything here was already on the feed when you last visited, or you marked the feed read.
@@ -41,7 +41,7 @@ export function FeedNewBanner({
   if (newCount === 0) return null;
 
   return (
-    <div className="mt-4 flex flex-col gap-3 rounded-lg border border-emerald-200/80 bg-emerald-50/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 rounded-lg border border-emerald-200/80 bg-emerald-50/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex gap-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
           <Sparkles className="h-4 w-4" aria-hidden />

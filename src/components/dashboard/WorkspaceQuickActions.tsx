@@ -23,7 +23,35 @@ const ICONS: Record<DashboardNavIcon | "plus", typeof Plus> = {
   trophy: Trophy,
 };
 
-export function WorkspaceQuickActions() {
+export function WorkspaceQuickActions({ compact = false }: { compact?: boolean }) {
+  if (compact) {
+    return (
+      <nav
+        className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        aria-label="Quick actions"
+      >
+        {WORKSPACE_QUICK_ACTIONS.map((item) => {
+          const Icon = ICONS[item.icon];
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors",
+                item.primary
+                  ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white hover:bg-[#1a2332]"
+                  : "border-[var(--pf-border)] bg-white text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+    );
+  }
+
   return (
     <nav
       className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5"

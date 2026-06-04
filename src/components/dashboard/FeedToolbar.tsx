@@ -5,28 +5,39 @@ import { DashboardFeedSearch } from "@/components/dashboard/DashboardFeedSearch"
 import { FeedNewBanner } from "@/components/dashboard/FeedNewBanner";
 import { buildFeedHref, type FeedTab } from "@/lib/dashboard/nav";
 import type { FeedFilter } from "@/lib/calls/filter-feed";
+import { FeedRefreshButton } from "@/components/dashboard/FeedRefreshButton";
 import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
 
 export function FeedToolbar({
   mode,
   feedFilter,
   searchQuery,
-  resultCount,
   newCount = 0,
   showNewOnly = false,
 }: {
   mode: FeedTab;
   feedFilter: FeedFilter;
   searchQuery: string;
-  resultCount: number;
   newCount?: number;
   showNewOnly?: boolean;
 }) {
   const filterArg = feedFilter === "all" ? undefined : feedFilter;
   const qArg = searchQuery || undefined;
 
+  const tabBase = {
+    filter: filterArg,
+    q: qArg,
+    newSince: showNewOnly || undefined,
+  };
+
   return (
-    <div className="pf-feed-toolbar pf-feed-toolbar-premium space-y-4">
+    <div className="pf-feed-toolbar pf-feed-toolbar-premium pf-feed-toolbar-sticky space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+          Browse & filter
+        </p>
+        <FeedRefreshButton />
+      </div>
       <FeedNewBanner
         newCount={newCount}
         mode={mode}
@@ -37,23 +48,19 @@ export function FeedToolbar({
       <TabNav
         tabs={[
           {
-            href: buildFeedHref({
-              filter: filterArg,
-              q: qArg,
-              newSince: showNewOnly || undefined,
-            }),
+            href: buildFeedHref(tabBase),
             label: "Latest",
             active: mode === "latest",
           },
           {
-            href: buildFeedHref({
-              tab: "performing",
-              filter: filterArg,
-              q: qArg,
-              newSince: showNewOnly || undefined,
-            }),
+            href: buildFeedHref({ ...tabBase, tab: "performing" }),
             label: "Performing",
             active: mode === "performing",
+          },
+          {
+            href: buildFeedHref({ ...tabBase, tab: "progress" }),
+            label: "Near target",
+            active: mode === "progress",
           },
         ]}
       />
@@ -70,22 +77,8 @@ export function FeedToolbar({
         />
       </div>
       <p className="text-xs text-[var(--pf-gray-500)]">
-        {resultCount} call{resultCount === 1 ? "" : "s"} ·{" "}
-        {mode === "performing"
-          ? "30-day top returns"
-          : mode === "progress"
-            ? "Highest target progress first"
-            : "Newest first"}
-        {newCount > 0 ? (
-          <span className="font-semibold text-emerald-700">
-            {" "}
-            · {newCount} new since last visit
-            {showNewOnly ? " (filtered)" : ""}
-          </span>
-        ) : null}
-        {searchQuery ? ` · “${searchQuery}”` : ""}
-        {" · "}
-        {quotesRefreshLabel()}
+        {quotesRefreshLabel()} · Use <span className="font-medium">Update prices</span> for
+        immediate marks
       </p>
     </div>
   );

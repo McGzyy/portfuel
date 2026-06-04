@@ -3,14 +3,12 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { FeedCallList } from "@/components/dashboard/FeedCallList";
 import { FueledDeskSection } from "@/components/dashboard/FueledDeskSection";
-import {
-  WorkspacePageHeader,
-  WorkspaceNewCallAction,
-} from "@/components/dashboard/WorkspacePageHeader";
+import { FeedCommandHeader } from "@/components/dashboard/FeedCommandHeader";
 import { FeedToolbar } from "@/components/dashboard/FeedToolbar";
 import { FeedSummaryBar } from "@/components/dashboard/FeedSummaryBar";
 import { ProFeedLeadersPanel } from "@/components/pro/ProFeedLeadersPanel";
-import { ProIntelDiscoverStrip } from "@/components/pro/ProIntelDiscoverStrip";
+import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
+import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { Button } from "@/components/ui/button";
 import {
@@ -115,62 +113,54 @@ export default async function DashboardFeedPage({
     session.membershipTier ?? null
   );
 
+  const showLeadersPanel = mapped.length >= 3 && mode !== "progress";
+
   return (
-    <>
-      <WorkspacePageHeader
-        eyebrow="Community"
-        title="Member feed"
-        description="Search and filter community calls — latest, top performers, or symbols you follow."
-        action={<WorkspaceNewCallAction />}
-        className="mb-6 pb-6"
+    <div className="space-y-6">
+      <FeedCommandHeader
+        resultCount={mapped.length}
+        mode={mode}
+        newCount={newCount}
+        showNewOnly={showNewOnly}
       />
 
-      <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} className="mt-4" />
+      <WorkspaceQuickActions compact />
 
-      {proLocked ? (
-        <div className="mt-4">
-          <ProIntelDiscoverStrip />
-        </div>
-      ) : null}
+      <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} />
+
+      <ProMembershipStrip locked={proLocked} />
 
       <FeedToolbar
         mode={mode}
         feedFilter={feedFilter}
         searchQuery={searchQuery}
-        resultCount={mapped.length}
         newCount={newCount}
         showNewOnly={showNewOnly}
       />
       <FeedVisitTracker />
 
       {fueledMapped.length > 0 && feedFilter !== "fueled" ? (
-        <div className="mt-6">
-          <FueledDeskSection
-            calls={fueledMapped}
-            viewerUserId={session.userId}
-            isAdmin={session.role === "admin"}
-          />
-        </div>
+        <FueledDeskSection
+          calls={fueledMapped}
+          viewerUserId={session.userId}
+          isAdmin={session.role === "admin"}
+        />
       ) : null}
 
       {feedSummary.count > 0 ? (
-        <div className="mt-6">
-          <FeedSummaryBar
-            summary={feedSummary}
-            mode={mode}
-            proLocked={proLocked}
-            proGateCta={proGateCta}
-          />
-        </div>
+        <FeedSummaryBar
+          summary={feedSummary}
+          mode={mode}
+          proLocked={proLocked}
+          proGateCta={proGateCta}
+        />
       ) : null}
 
-      {mapped.length > 0 ? (
-        <div className="mt-6">
-          <ProFeedLeadersPanel calls={mapped} locked={proLocked} proGateCta={proGateCta} />
-        </div>
+      {showLeadersPanel ? (
+        <ProFeedLeadersPanel calls={mapped} locked={proLocked} proGateCta={proGateCta} />
       ) : null}
 
-      <div className="mt-8 space-y-4">
+      <section aria-label="Community calls">
         {mapped.length === 0 ? (
           <div className="pf-workspace-panel px-6 py-16 text-center">
             <p className="font-medium text-[var(--pf-gray-700)]">No calls match this view</p>
@@ -182,7 +172,7 @@ export default async function DashboardFeedPage({
                   : "Try different filters or publish a new thesis."}
             </p>
             {feedFilter === "following" ? (
-              <Link href="/rankings" className="mt-6 inline-block">
+              <Link href="/dashboard/rankings" className="mt-6 inline-block">
                 <Button variant="outline">Browse rankings</Button>
               </Link>
             ) : (
@@ -200,7 +190,7 @@ export default async function DashboardFeedPage({
             isAdmin={session.role === "admin"}
           />
         )}
-      </div>
-    </>
+      </section>
+    </div>
   );
 }

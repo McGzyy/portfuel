@@ -545,6 +545,12 @@ body {
   border-color: var(--pf-gray-200);
 }
 
+.pf-feed-toolbar-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
 .pf-watchlist-mini {
   display: flex;
   align-items: center;

@@ -1,5 +1,4 @@
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
-import { ChartFrame } from "@/components/charts/ChartFrame";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import { formatPct } from "@/lib/utils";
@@ -24,73 +23,79 @@ export function FeedSummaryBar({
   const avgAccent =
     avg == null ? undefined : avg >= 0 ? ("positive" as const) : ("negative" as const);
 
-  return (
-    <div className="space-y-4">
-      <ChartFrame
-        title="Feed intelligence"
-        subtitle={mode === "performing" ? "30-day movers in this view" : "Community pulse for this feed"}
-      >
-        <MetricsStrip
-          variant="embedded"
-          items={[
-            {
-              label: "Avg return",
-              value: formatPct(avg),
-              hint: mode === "performing" ? "30-day movers" : "This view",
-              accent: avgAccent,
-            },
-            {
-              label: "Winners",
-              value: String(summary.winners),
-              hint: "Positive P&L",
-            },
-            {
-              label: "Long / short",
-              value: `${summary.longCount} / ${summary.shortCount}`,
-              hint: "Position mix",
-            },
-            {
-              label: "Active calls",
-              value: String(summary.count),
-              hint: "In view",
-            },
-          ]}
-        />
-      </ChartFrame>
+  const baseItems = [
+    {
+      label: "Avg return",
+      value: formatPct(avg),
+      hint: mode === "performing" ? "30-day movers" : "This view",
+      accent: avgAccent,
+    },
+    {
+      label: "Winners",
+      value: String(summary.winners),
+      hint: "Positive P&L",
+    },
+    {
+      label: "Long / short",
+      value: `${summary.longCount} / ${summary.shortCount}`,
+      hint: "Mix",
+    },
+    {
+      label: "In view",
+      value: String(summary.count),
+      hint: "Calls",
+    },
+  ];
 
-      <ProIntelligenceGate
-        locked={proLocked}
-        cta={proGateCta}
-        title="Pro feed analytics"
-        description={`Target progress, desk thesis counts, and deeper performance slices — included with ${formatProIntelligenceLabel()}.`}
-        compact
-      >
-        <ChartFrame title="Pro analytics" subtitle="Desk theses and target progress in this feed">
-          <MetricsStrip
-            variant="embedded"
-            items={[
-              {
-                label: "Fueled",
-                value: String(summary.fueledCount),
-                hint: "Desk theses in view",
-              },
-              {
-                label: "To target",
-                value:
-                  summary.avgTargetProgress != null
-                    ? `${summary.avgTargetProgress.toFixed(0)}%`
-                    : "—",
-                hint: "Avg progress",
-              },
-              {
-                label: "Losers",
-                value: String(summary.losers),
-                hint: "Negative P&L",
-              },
-            ]}
-          />
-        </ChartFrame>
-      </ProIntelligenceGate>
+  const proItems = proLocked
+    ? []
+    : [
+        {
+          label: "Fueled",
+          value: String(summary.fueledCount),
+          hint: "Desk",
+        },
+        {
+          label: "To target",
+          value:
+            summary.avgTargetProgress != null
+              ? `${summary.avgTargetProgress.toFixed(0)}%`
+              : "—",
+          hint: "Avg progress",
+        },
+        {
+          label: "Losers",
+          value: String(summary.losers),
+          hint: "Negative P&L",
+        },
+      ];
+
+  return (
+    <div className="pf-workspace-panel overflow-hidden">
+      <div className="border-b border-[var(--pf-border)] px-4 py-3 sm:px-5">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+          Feed pulse
+        </p>
+        <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
+          {mode === "performing"
+            ? "Snapshot of top performers in this view"
+            : mode === "progress"
+              ? "Calls sorted by progress toward stated targets"
+              : "Community stats for your current filters"}
+        </p>
+      </div>
+      <MetricsStrip variant="embedded" items={[...baseItems, ...proItems]} />
+      {proLocked ? (
+        <ProIntelligenceGate
+          locked={proLocked}
+          cta={proGateCta}
+          title="Pro feed analytics"
+          description={`Fueled counts, target progress averages, and progress board — included with ${formatProIntelligenceLabel()}.`}
+          compact
+        >
+          <div className="px-4 py-3 text-xs text-[var(--pf-gray-500)]">Pro analytics unlocked.</div>
+        </ProIntelligenceGate>
+      ) : null}
     </div>
   );
 }
