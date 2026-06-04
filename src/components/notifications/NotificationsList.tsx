@@ -40,7 +40,7 @@ function iconForType(type: NotificationType) {
   }
 }
 
-export function NotificationsList() {
+export function NotificationsList({ proUnlocked = false }: { proUnlocked?: boolean }) {
   const router = useRouter();
   const [items, setItems] = useState<UserNotification[]>([]);
   const [unread, setUnread] = useState(0);
@@ -102,7 +102,7 @@ export function NotificationsList() {
         ) : null}
       </div>
 
-      <WorkspaceQuickActions compact />
+      <WorkspaceQuickActions compact proUnlocked={proUnlocked} />
 
       {loading ? (
         <p className="text-sm text-[var(--pf-gray-500)]">Loading…</p>

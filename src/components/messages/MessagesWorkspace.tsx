@@ -12,7 +12,7 @@ import { DmTypingIndicator } from "@/components/messages/DmTypingIndicator";
 import { useDmTyping } from "@/components/messages/useDmTyping";
 import type { DmMessage, DmThreadDetail, DmThreadSummary } from "@/lib/messages/types";
 
-export function MessagesWorkspace() {
+export function MessagesWorkspace({ proUnlocked = false }: { proUnlocked?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const threadParam = searchParams.get("thread");
@@ -160,7 +160,7 @@ export function MessagesWorkspace() {
         activeName={otherName}
       />
 
-      <WorkspaceQuickActions compact />
+      <WorkspaceQuickActions compact proUnlocked={proUnlocked} />
 
       {error && !activeThread ? (
         <p className="text-sm text-rose-600">{error}</p>

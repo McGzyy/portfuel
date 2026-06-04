@@ -50,7 +50,7 @@ export default async function DashboardComparePage({
         watchlistCount={watchlistSymbols.length}
       />
 
-      <WorkspaceQuickActions compact />
+      <WorkspaceQuickActions compact proUnlocked={!proLocked} />
 
       {proLocked ? <ProMembershipStrip locked /> : null}
 

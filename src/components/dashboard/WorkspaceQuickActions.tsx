@@ -11,7 +11,10 @@ import {
   ScanSearch,
   Trophy,
 } from "lucide-react";
-import { WORKSPACE_QUICK_ACTIONS } from "@/lib/dashboard/quick-actions";
+import {
+  PRO_WORKSPACE_QUICK_ACTIONS,
+  WORKSPACE_QUICK_ACTIONS,
+} from "@/lib/dashboard/quick-actions";
 import type { DashboardNavIcon } from "@/lib/dashboard/nav";
 import { cn } from "@/lib/utils";
 
@@ -28,14 +31,24 @@ const ICONS: Record<DashboardNavIcon | "plus" | "bell", typeof Plus> = {
   trophy: Trophy,
 };
 
-export function WorkspaceQuickActions({ compact = false }: { compact?: boolean }) {
+export function WorkspaceQuickActions({
+  compact = false,
+  proUnlocked = false,
+}: {
+  compact?: boolean;
+  proUnlocked?: boolean;
+}) {
+  const items = proUnlocked
+    ? [...WORKSPACE_QUICK_ACTIONS, ...PRO_WORKSPACE_QUICK_ACTIONS]
+    : WORKSPACE_QUICK_ACTIONS;
+
   if (compact) {
     return (
       <nav
         className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         aria-label="Quick actions"
       >
-        {WORKSPACE_QUICK_ACTIONS.map((item) => {
+        {items.map((item) => {
           const Icon = ICONS[item.icon];
           return (
             <Link
@@ -62,7 +75,7 @@ export function WorkspaceQuickActions({ compact = false }: { compact?: boolean }
       className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
       aria-label="Quick actions"
     >
-      {WORKSPACE_QUICK_ACTIONS.map((item) => {
+      {items.map((item) => {
         const Icon = ICONS[item.icon];
         return (
           <Link

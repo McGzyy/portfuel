@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { PublishSuccessBanner } from "@/components/calls/PublishSuccessBanner";
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { AppShell } from "@/components/layout/AppShell";
 import { TickerChartSection } from "@/components/charts/TickerChartSection";
@@ -96,6 +98,11 @@ export default async function TickerPage({
 
   const body = (
     <div className="mx-auto max-w-5xl space-y-8">
+      {session ? (
+        <Suspense fallback={null}>
+          <PublishSuccessBanner symbol={symbol} />
+        </Suspense>
+      ) : null}
       <section className="pf-ticker-shell">
         <TickerPageHeader
           symbol={symbol}

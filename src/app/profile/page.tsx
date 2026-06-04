@@ -95,7 +95,7 @@ export default async function ProfilePage() {
 
         <MemberProfileHero member={member} isSelf />
 
-        <WorkspaceQuickActions compact />
+        <WorkspaceQuickActions compact proUnlocked={!proLocked} />
 
         <ProfilePageNav />
 

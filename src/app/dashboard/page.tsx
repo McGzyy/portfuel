@@ -43,6 +43,7 @@ import { filterCallsByFollowing } from "@/lib/calls/filter-feed";
 import { fetchDeskBrief } from "@/lib/desk/brief";
 import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
 import { fetchWatchlist } from "@/lib/watchlist/service";
+import { normalizeCallCardPrices } from "@/lib/calls/card-display";
 import { formatPct, formatPrice } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -57,6 +58,15 @@ function toOwnStripCard(
   displayName: string | null,
   userId: string
 ): CallCardData {
+  const prices = normalizeCallCardPrices({
+    direction: c.direction as "long" | "short",
+    entry_price: c.entry_price,
+    price_at_call: c.price_at_call,
+    target_price: c.target_price,
+    stop_price: c.stop_price,
+    last_price: c.last_price,
+    target_progress: c.target_progress,
+  });
   return {
     id: c.id,
     user_id: userId,
@@ -66,11 +76,7 @@ function toOwnStripCard(
     thesis: c.thesis,
     called_at: c.called_at,
     return_pct: c.return_pct,
-    entry_price: c.entry_price,
-    target_price: c.target_price,
-    stop_price: c.stop_price,
-    last_price: c.last_price,
-    target_progress: c.target_progress,
+    ...prices,
     timeframe_tag: c.timeframe_tag,
     is_fueled: Boolean(c.is_fueled),
     display_name: displayName,
@@ -205,7 +211,7 @@ export default async function DashboardOverviewPage({
         communityAvgAccent={avgAccent}
       />
 
-      <WorkspaceQuickActions />
+      <WorkspaceQuickActions proUnlocked={isPro} />
 
       {workspacePulse ? <WorkspaceLiveBar initial={workspacePulse} compact /> : null}
 

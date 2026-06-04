@@ -246,7 +246,7 @@ export function NewCallForm({
         }
         return;
       }
-      router.push(`/ticker/${data.call.symbol}`);
+      router.push(`/ticker/${data.call.symbol}?published=1`);
       router.refresh();
     } catch {
       setError("Something went wrong.");

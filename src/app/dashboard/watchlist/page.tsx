@@ -47,7 +47,7 @@ export default async function DashboardWatchlistPage() {
         callsLast7d={callsLast7d}
       />
 
-      <WorkspaceQuickActions compact />
+      <WorkspaceQuickActions compact proUnlocked={proUnlocked} />
 
       {proLocked ? <ProMembershipStrip locked /> : null}
 

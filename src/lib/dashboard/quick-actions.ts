@@ -48,3 +48,18 @@ export const WORKSPACE_QUICK_ACTIONS: WorkspaceQuickAction[] = [
     icon: "bell",
   },
 ];
+
+export const PRO_WORKSPACE_QUICK_ACTIONS: WorkspaceQuickAction[] = [
+  {
+    href: "/dashboard/compare",
+    label: "Compare",
+    description: "2–3 symbols side by side",
+    icon: "compare",
+  },
+  {
+    href: "/dashboard/screener",
+    label: "Screener",
+    description: "Most called & top returns",
+    icon: "scan",
+  },
+];

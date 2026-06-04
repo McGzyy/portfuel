@@ -11,7 +11,7 @@ const LINKS = [
 export function ProfilePageNav() {
   return (
     <nav
-      className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="sticky top-0 z-20 -mx-1 flex gap-2 overflow-x-auto border-b border-[var(--pf-border)] bg-[var(--pf-app-bg)]/95 px-1 py-2 backdrop-blur-sm [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       aria-label="Profile sections"
     >
       {LINKS.map((item) => (

@@ -33,7 +33,7 @@ export default async function DashboardScreenerPage() {
     <div className="space-y-6">
       <ScreenerCommandHeader data={data} />
 
-      <WorkspaceQuickActions compact />
+      <WorkspaceQuickActions compact proUnlocked={!proLocked} />
 
       {proLocked ? <ProMembershipStrip locked /> : null}
 
