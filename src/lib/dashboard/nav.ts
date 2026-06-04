@@ -164,7 +164,7 @@ export const WORKSPACE_GUIDE_SECTIONS: {
         description: "Track record, quota, upgrade to Pro, manage Stripe.",
       },
       {
-        href: "/notifications",
+        href: "/dashboard/notifications",
         label: "Notifications",
         description: "Votes, comments, watchlist calls, and messages.",
       },

@@ -192,7 +192,7 @@ export function NotificationBell() {
 
           <div className="border-t border-[var(--pf-border)] px-4 py-2.5 text-center">
             <Link
-              href="/notifications"
+              href="/dashboard/notifications"
               onClick={() => setOpen(false)}
               className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
             >

@@ -10,7 +10,7 @@ export default function DashboardMessagesPage() {
   return (
     <Suspense
       fallback={
-        <p className="mt-8 text-sm text-[var(--pf-gray-500)]">Loading messages…</p>
+        <p className="text-sm text-[var(--pf-gray-500)]">Loading messages…</p>
       }
     >
       <MessagesWorkspace />

@@ -14,6 +14,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { NotificationsCommandHeader } from "@/components/notifications/NotificationsCommandHeader";
+import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { Button } from "@/components/ui/button";
 import { cn, timeAgo } from "@/lib/utils";
 import type { NotificationType, UserNotification } from "@/lib/notifications/types";
@@ -100,6 +101,8 @@ export function NotificationsList() {
           </Button>
         ) : null}
       </div>
+
+      <WorkspaceQuickActions compact />
 
       {loading ? (
         <p className="text-sm text-[var(--pf-gray-500)]">Loading…</p>

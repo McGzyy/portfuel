@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
+import { MessagesCommandHeader } from "@/components/messages/MessagesCommandHeader";
+import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { cn, timeAgo } from "@/lib/utils";
 import { DmTypingIndicator } from "@/components/messages/DmTypingIndicator";
 import { useDmTyping } from "@/components/messages/useDmTyping";
@@ -137,6 +138,8 @@ export function MessagesWorkspace() {
     router.push(`/dashboard/messages?thread=${id}`);
   }
 
+  const unreadThreads = threads.filter((t) => t.unread).length;
+
   const otherName =
     activeThread?.other_user.display_name ?? activeThread?.other_user.username;
 
@@ -150,18 +153,20 @@ export function MessagesWorkspace() {
   }
 
   return (
-    <>
-      <WorkspacePageHeader
-        eyebrow="Community"
-        title="Messages"
-        description="Private 1:1 chats with other members. Not investment advice — coordinate ideas and follow up on theses."
+    <div className="space-y-6">
+      <MessagesCommandHeader
+        threadCount={threads.length}
+        unreadThreads={unreadThreads}
+        activeName={otherName}
       />
 
+      <WorkspaceQuickActions compact />
+
       {error && !activeThread ? (
-        <p className="mt-4 text-sm text-rose-600">{error}</p>
+        <p className="text-sm text-rose-600">{error}</p>
       ) : null}
 
-      <div className="mt-6 grid min-h-[420px] overflow-hidden rounded-xl border border-[var(--pf-border)] bg-white lg:grid-cols-[280px_1fr]">
+      <div className="pf-workspace-panel grid min-h-[420px] overflow-hidden lg:grid-cols-[280px_1fr]">
         <aside className="border-b border-[var(--pf-border)] lg:border-b-0 lg:border-r">
           <p className="border-b border-[var(--pf-border)] px-4 py-3 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
             Conversations
@@ -286,6 +291,6 @@ export function MessagesWorkspace() {
           )}
         </section>
       </div>
-    </>
+    </div>
   );
 }
