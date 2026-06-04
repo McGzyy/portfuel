@@ -2,11 +2,9 @@ import Link from "next/link";
 import { LeaderboardTable } from "@/components/rankings/LeaderboardTable";
 import { RankingsTrustedNote } from "@/components/rankings/RankingsTrustedNote";
 import { RankingsSummaryBar } from "@/components/rankings/RankingsSummaryBar";
-import {
-  WorkspacePageHeader,
-  WorkspaceNewCallAction,
-} from "@/components/dashboard/WorkspacePageHeader";
-import { Button } from "@/components/ui/button";
+import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
+import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
+import { RankingsCommandHeader } from "@/components/rankings/RankingsCommandHeader";
 import { COPY } from "@/lib/copy";
 import type { LeaderboardEntry } from "@/lib/calls/leaderboard";
 import type { RankingsSummary } from "@/lib/calls/rankings-summary";
@@ -25,30 +23,34 @@ export function RankingsPageContent({
   proGateCta: ProGateCta;
   loggedIn: boolean;
 }) {
+  const topMember = rows[0] ?? null;
+
   return (
-    <>
-      <WorkspacePageHeader
-        eyebrow="Community"
-        title="Rankings"
-        description="Ranked by cumulative call score — return performance plus community votes. Refreshes when quotes update."
-        action={loggedIn ? <WorkspaceNewCallAction /> : undefined}
-        className="mb-6 pb-6"
+    <div className="space-y-6">
+      <RankingsCommandHeader
+        summary={summary}
+        topMember={topMember}
+        loggedIn={loggedIn}
       />
+
+      {loggedIn ? <WorkspaceQuickActions compact /> : null}
+
+      {loggedIn && proLocked ? <ProMembershipStrip locked /> : null}
 
       <RankingsSummaryBar summary={summary} proLocked={proLocked} proGateCta={proGateCta} />
       <RankingsTrustedNote />
-      <div className="pf-workspace-panel mt-6 overflow-hidden">
+      <div className="pf-workspace-panel overflow-hidden">
         <LeaderboardTable rows={rows} embedded />
       </div>
 
       {!loggedIn ? (
-        <p className="mt-8 text-center text-sm text-[var(--pf-gray-500)]">
+        <p className="text-center text-sm text-[var(--pf-gray-500)]">
           Want the live workspace and full theses?{" "}
           <Link href="/join" className="font-semibold text-[var(--pf-red)] hover:underline">
             {COPY.ctaGetAccess}
           </Link>
         </p>
       ) : null}
-    </>
+    </div>
   );
 }

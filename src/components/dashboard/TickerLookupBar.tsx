@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 
-export function TickerLookupBar() {
+export function TickerLookupBar({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [symbol, setSymbol] = useState("");
   const [assetClass, setAssetClass] = useState<"equity" | "crypto">("equity");
@@ -44,16 +44,24 @@ export function TickerLookupBar() {
 
   return (
     <section
-      className="rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-4 shadow-[var(--pf-shadow-sm)]"
+      className={
+        embedded
+          ? ""
+          : "rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-4 shadow-[var(--pf-shadow-sm)]"
+      }
       aria-label="Look up any ticker"
     >
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-        Look up ticker
-      </p>
-      <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-        Open chart, community calls, and market intel for any symbol — not a fixed shortcut.
-      </p>
-      <form onSubmit={goToTicker} className="mt-4 space-y-3">
+      {!embedded ? (
+        <>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            Look up ticker
+          </p>
+          <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
+            Open chart, community calls, and market intel for any symbol — not a fixed shortcut.
+          </p>
+        </>
+      ) : null}
+      <form onSubmit={goToTicker} className={embedded ? "space-y-3" : "mt-4 space-y-3"}>
         <SegmentedControl
           value={assetClass}
           onChange={setAssetClass}

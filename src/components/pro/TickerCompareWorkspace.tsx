@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { buildCompareHref } from "@/lib/dashboard/compare-symbols";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import { ChartFrame } from "@/components/charts/ChartFrame";
 import { ChartLoadingSkeleton } from "@/components/charts/ChartLoadingSkeleton";
@@ -25,11 +26,14 @@ export function TickerCompareWorkspace({
   proGateCta,
   watchlistSymbols,
   initialSymbols,
+  syncUrl = false,
 }: {
   locked: boolean;
   proGateCta: ProGateCta;
   watchlistSymbols: string[];
   initialSymbols?: string[];
+  /** Keep /dashboard/compare?symbols= in sync for sharing and deep links. */
+  syncUrl?: boolean;
 }) {
   const [input, setInput] = useState("");
   const [symbols, setSymbols] = useState<string[]>(
@@ -77,6 +81,15 @@ export function TickerCompareWorkspace({
   useEffect(() => {
     void load(symbols);
   }, [symbols, load]);
+
+  useEffect(() => {
+    if (!syncUrl || typeof window === "undefined") return;
+    const href = buildCompareHref(symbols);
+    const current = `${window.location.pathname}${window.location.search}`;
+    if (current !== href) {
+      window.history.replaceState(null, "", href);
+    }
+  }, [symbols, syncUrl]);
 
   function addSymbol(raw: string) {
     const sym = raw.toUpperCase().trim().replace(/[^A-Z0-9.-]/g, "");

@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
-import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
+import { CompareCommandHeader } from "@/components/pro/CompareCommandHeader";
 import { TickerCompareWorkspace } from "@/components/pro/TickerCompareWorkspace";
+import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
+import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
+import { parseCompareSymbolsParam } from "@/lib/dashboard/compare-symbols";
 import {
   getProGateCta,
   isProIntelligenceLocked,
@@ -13,7 +16,12 @@ export const metadata: Metadata = {
   title: "Ticker compare",
 };
 
-export default async function DashboardComparePage() {
+export default async function DashboardComparePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ symbols?: string }>;
+}) {
+  const params = await searchParams;
   const session = await requireDashboardSession();
   const proContext = sessionToProContext(session);
   const proLocked = isProIntelligenceLocked(proContext);
@@ -27,22 +35,32 @@ export default async function DashboardComparePage() {
     /* optional */
   }
 
+  const fromQuery = parseCompareSymbolsParam(params.symbols);
+  const initialSymbols =
+    fromQuery.length >= 2
+      ? fromQuery
+      : fromQuery.length === 1
+        ? [...fromQuery, ...watchlistSymbols.filter((s) => s !== fromQuery[0])].slice(0, 3)
+        : watchlistSymbols.slice(0, 2);
+
   return (
-    <>
-      <WorkspacePageHeader
-        eyebrow="Pro Intelligence"
-        title="Ticker compare"
-        description="See how symbols move together on a normalized % scale — useful when weighing which name the community is backing."
+    <div className="space-y-6">
+      <CompareCommandHeader
+        symbolCount={initialSymbols.length}
+        watchlistCount={watchlistSymbols.length}
       />
 
-      <div className="mt-8">
-        <TickerCompareWorkspace
-          locked={proLocked}
-          proGateCta={proGateCta}
-          watchlistSymbols={watchlistSymbols}
-          initialSymbols={watchlistSymbols.slice(0, 2)}
-        />
-      </div>
-    </>
+      <WorkspaceQuickActions compact />
+
+      {proLocked ? <ProMembershipStrip locked /> : null}
+
+      <TickerCompareWorkspace
+        locked={proLocked}
+        proGateCta={proGateCta}
+        watchlistSymbols={watchlistSymbols}
+        initialSymbols={initialSymbols}
+        syncUrl
+      />
+    </div>
   );
 }

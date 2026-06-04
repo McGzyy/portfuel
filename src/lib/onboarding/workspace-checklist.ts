@@ -4,6 +4,7 @@ import { COPY } from "@/lib/copy";
 
 export const CHECKLIST_DESK_VISITED_KEY = "pf_checklist_desk_visited";
 export const CHECKLIST_DISMISSED_KEY = "pf_checklist_dismissed";
+export const CHECKLIST_COMPLETE_DISMISSED_KEY = "pf_checklist_complete_dismissed";
 
 export type WorkspaceChecklistStepId =
   | "publish_call"

@@ -18,7 +18,7 @@ export function WatchlistIntelHint() {
             Member feed
           </Link>
           {" · "}
-          <Link href="/rankings" className="font-semibold text-[var(--pf-red)] hover:underline">
+          <Link href="/dashboard/rankings" className="font-semibold text-[var(--pf-red)] hover:underline">
             Rankings
           </Link>
         </p>

@@ -13,7 +13,7 @@ import {
   TrendingUp,
   UserPlus,
 } from "lucide-react";
-import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
+import { NotificationsCommandHeader } from "@/components/notifications/NotificationsCommandHeader";
 import { Button } from "@/components/ui/button";
 import { cn, timeAgo } from "@/lib/utils";
 import type { NotificationType, UserNotification } from "@/lib/notifications/types";
@@ -91,24 +91,20 @@ export function NotificationsList() {
   }
 
   return (
-    <>
-      <WorkspacePageHeader
-        eyebrow="Activity"
-        title="Notifications"
-        description="Desk portfolio updates, watchlist calls, comments, votes, and followed members."
-        action={
-          unread > 0 ? (
-            <Button size="sm" variant="secondary" onClick={markAllRead}>
-              Mark all read
-            </Button>
-          ) : undefined
-        }
-      />
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <NotificationsCommandHeader unreadCount={unread} totalCount={items.length} />
+        {unread > 0 ? (
+          <Button size="sm" variant="secondary" onClick={markAllRead} className="shrink-0">
+            Mark all read
+          </Button>
+        ) : null}
+      </div>
 
       {loading ? (
-        <p className="mt-10 text-sm text-[var(--pf-gray-500)]">Loading…</p>
+        <p className="text-sm text-[var(--pf-gray-500)]">Loading…</p>
       ) : items.length === 0 ? (
-        <div className="pf-workspace-panel mt-8 px-6 py-14 text-center text-sm text-[var(--pf-gray-500)]">
+        <div className="pf-workspace-panel px-6 py-14 text-center text-sm text-[var(--pf-gray-500)]">
           No notifications yet. Add symbols to your{" "}
           <Link href="/dashboard/watchlist" className="font-semibold text-[var(--pf-red)] hover:underline">
             watchlist
@@ -116,7 +112,7 @@ export function NotificationsList() {
           and publish calls — engagement shows up here.
         </div>
       ) : (
-        <ul className="mt-8 space-y-2">
+        <ul className="space-y-2">
           {items.map((n) => {
             const Icon = iconForType(n.type);
             return (
@@ -143,6 +139,6 @@ export function NotificationsList() {
           })}
         </ul>
       )}
-    </>
+    </div>
   );
 }

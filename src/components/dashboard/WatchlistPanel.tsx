@@ -173,7 +173,7 @@ export function WatchlistPanel({
 
   return (
     <section
-      className="rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-4 shadow-[var(--pf-shadow-sm)]"
+      className="pf-workspace-panel p-4 sm:p-5"
       aria-label="Your watchlist"
     >
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">

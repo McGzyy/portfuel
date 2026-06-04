@@ -2,6 +2,7 @@ import Link from "next/link";
 import { GitCompare, Plus, Rows3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeedRefreshButton } from "@/components/dashboard/FeedRefreshButton";
+import { buildCompareHref } from "@/lib/dashboard/compare-symbols";
 import { buildFeedHref } from "@/lib/dashboard/nav";
 import { COPY } from "@/lib/copy";
 import type { AssetClass } from "@/lib/market/validate-symbol";
@@ -36,7 +37,7 @@ export function TickerActionBar({
         </Link>
         {!proLocked ? (
           <Link
-            href="/dashboard/compare"
+            href={buildCompareHref([symbol])}
             className="inline-flex h-9 items-center gap-1.5 rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-white px-3.5 text-xs font-semibold text-[var(--pf-gray-700)] hover:bg-[var(--pf-gray-50)]"
           >
             <GitCompare className="h-3.5 w-3.5" strokeWidth={2.25} />

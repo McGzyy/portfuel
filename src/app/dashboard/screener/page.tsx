@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
+import { ScreenerCommandHeader } from "@/components/pro/ScreenerCommandHeader";
 import { ProCommunityScreener } from "@/components/pro/ProCommunityScreener";
+import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
+import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import {
   getProGateCta,
   isProIntelligenceLocked,
@@ -8,6 +10,7 @@ import {
 } from "@/lib/features/pro-intelligence";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { fetchCommunityScreener } from "@/lib/screener/community";
+import { buildCompareHref } from "@/lib/dashboard/compare-symbols";
 
 export const metadata: Metadata = {
   title: "Community screener",
@@ -20,22 +23,34 @@ export default async function DashboardScreenerPage() {
   const proGateCta = getProGateCta(proContext);
   const data = await fetchCommunityScreener();
 
-  return (
-    <>
-      <WorkspacePageHeader
-        eyebrow="Pro Intelligence"
-        title="Community screener"
-        description="Where conviction is clustering this week and which member theses are leading on returns — built from PortFuel call data, not generic market screens."
-      />
+  const compareSymbols = [
+    data.mostCalled[0]?.symbol,
+    data.topReturns[0]?.symbol,
+  ].filter((s): s is string => Boolean(s));
+  const compareHref = buildCompareHref(compareSymbols);
 
-      <div className="mt-8">
-        <ProCommunityScreener
-          data={data}
-          locked={proLocked}
-          proGateCta={proGateCta}
-          showExport
-        />
-      </div>
-    </>
+  return (
+    <div className="space-y-6">
+      <ScreenerCommandHeader data={data} />
+
+      <WorkspaceQuickActions compact />
+
+      {proLocked ? <ProMembershipStrip locked /> : null}
+
+      {!proLocked && compareSymbols.length >= 2 ? (
+        <p className="text-xs text-[var(--pf-gray-500)]">
+          <a href={compareHref} className="font-semibold text-[var(--pf-red)] hover:underline">
+            Compare {compareSymbols.join(" vs ")} →
+          </a>
+        </p>
+      ) : null}
+
+      <ProCommunityScreener
+        data={data}
+        locked={proLocked}
+        proGateCta={proGateCta}
+        showExport
+      />
+    </div>
   );
 }

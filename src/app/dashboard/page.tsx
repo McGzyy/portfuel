@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AdminCommunityHint } from "@/components/dashboard/AdminCommunityHint";
 import { WorkspaceOnboardingChecklist } from "@/components/dashboard/WorkspaceOnboardingChecklist";
+import { WorkspaceChecklistCompleteBanner } from "@/components/dashboard/WorkspaceChecklistCompleteBanner";
 import { OverviewActivityPanels } from "@/components/dashboard/OverviewActivityPanels";
 import { COPY } from "@/lib/copy";
 import { WorkspaceOverviewStats } from "@/components/dashboard/WorkspaceOverviewStats";
@@ -220,11 +221,18 @@ export default async function DashboardOverviewPage({
       ) : null}
 
       {session.role !== "admin" ? (
-        <WorkspaceOnboardingChecklist
-          publishedCall={ownCalls.length > 0}
-          watchlistCount={watchlistCount}
-          followingCount={followingMembers.length}
-        />
+        <>
+          <WorkspaceOnboardingChecklist
+            publishedCall={ownCalls.length > 0}
+            watchlistCount={watchlistCount}
+            followingCount={followingMembers.length}
+          />
+          <WorkspaceChecklistCompleteBanner
+            publishedCall={ownCalls.length > 0}
+            watchlistCount={watchlistCount}
+            followingCount={followingMembers.length}
+          />
+        </>
       ) : null}
 
       {session.role === "admin" && communityPulse.count === 0 && latestPreviews.length === 0 ? (
