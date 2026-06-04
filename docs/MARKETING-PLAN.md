@@ -352,7 +352,7 @@ All Phase 1–3 automation items below are **shipped**. Current focus: paid test
 4. [x] **Cron:** `member_win` + `weekly_digest` via `/api/cron/x-social` (after quote refresh gates).
 5. [x] **Admin:** member wins queue, activity log, copy editor, dry-run post.
 6. [x] **Marketing OG:** `/opengraph-image`, `/join/opengraph-image`, `/api/og/marketing`.
-7. [ ] **Optional:** “still running” quote updates between +25% and target; referral line in spotlight template.
+7. [x] **Optional:** “still running” quote updates (+15% to +25%, `X_POST_MEMBER_WIN_STILL_RUNNING`); referral line in spotlight (`{{referral_line}}`).
 
 ---
 

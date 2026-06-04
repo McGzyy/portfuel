@@ -71,7 +71,7 @@ export async function fetchLastPriceForSymbol(
       return { symbol: sym, lastPrice, assetClass };
     }
 
-    const quote = await getQuote(sym);
+    const quote = await getQuote(sym, { fresh: true });
     const lastPrice = quote?.c ?? null;
     if (lastPrice == null) {
       return { symbol: sym, lastPrice: null, assetClass, error: "quote_unavailable" };

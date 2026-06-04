@@ -1,12 +1,9 @@
 import Link from "next/link";
-import { Shield } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
 import type { HeaderUser } from "@/lib/auth/session-user";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { cn } from "@/lib/utils";
-
 export function SiteHeader({
   showAuth = true,
   user,
@@ -28,40 +25,18 @@ export function SiteHeader({
         <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
           {user ? (
             <>
-              {user.role === "admin" ? (
-                inWorkspace ? (
-                  <Link
-                    href="/admin"
-                    className={cn(
-                      "hidden items-center gap-1.5 rounded-full border border-[var(--pf-red)]/30 bg-[var(--pf-red-muted)] px-3 py-1 text-xs font-semibold text-[var(--pf-red)] transition-colors hover:border-[var(--pf-red)]/50 sm:inline-flex"
-                    )}
-                  >
-                    <Shield className="h-3.5 w-3.5" strokeWidth={2.5} />
-                    Admin
-                  </Link>
-                ) : (
-                  <>
-                    <span
-                      className={cn(
-                        "hidden items-center gap-1.5 rounded-full border border-[var(--pf-red)]/30 bg-[var(--pf-red-muted)] px-3 py-1 text-xs font-semibold text-[var(--pf-red)] sm:inline-flex"
-                      )}
-                    >
-                      <Shield className="h-3.5 w-3.5" strokeWidth={2.5} />
-                      Administrator
-                    </span>
-                    <Link
-                      href="/admin"
-                      className="hidden text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] sm:inline"
-                    >
-                      Admin
-                    </Link>
-                  </>
-                )
-              ) : (
+              {user.role === "admin" && !inWorkspace ? (
+                <Link
+                  href="/admin"
+                  className="hidden text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] sm:inline"
+                >
+                  Administration
+                </Link>
+              ) : user.role !== "admin" ? (
                 <span className="hidden max-w-[10rem] truncate rounded-full bg-[var(--pf-gray-100)] px-3 py-1 text-xs font-medium text-[var(--pf-gray-600)] sm:inline">
                   @{user.username}
                 </span>
-              )}
+              ) : null}
               {!inWorkspace ? (
                 <>
                   <Link

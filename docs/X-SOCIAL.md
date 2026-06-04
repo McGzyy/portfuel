@@ -23,6 +23,8 @@ Add to Vercel (Production) and local `.env`:
 | `X_MEMBER_WIN_FAST_TRACK_MIN_AGE_HOURS` | `36` | Minimum age for fast track |
 | `X_MEMBER_WIN_SUSTAIN_HOURS` | `48` | Review window after qualifying before posting |
 | `X_POST_MEMBER_WIN_UPDATES` | `false` | Quote-tweet the original spotlight at +25% or target |
+| `X_POST_MEMBER_WIN_STILL_RUNNING` | `false` | Quote-tweet “still running” when return is ≥15% and &lt;25% (after spotlight) |
+| `X_MEMBER_WIN_STILL_RUNNING_MIN_PCT` | `15` | Minimum return % for still-running update |
 
 After migration, run `supabase/scripts/update-member-win-professional-copy.sql` if templates were created with older copy. Apply `20260605200000_member_win_update_copy.sql` and `20260605300000_weekly_digest.sql` for newer templates.
 

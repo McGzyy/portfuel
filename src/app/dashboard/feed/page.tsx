@@ -145,7 +145,11 @@ export default async function DashboardFeedPage({
 
       {fueledMapped.length > 0 && feedFilter !== "fueled" ? (
         <div className="mt-6">
-          <FueledDeskSection calls={fueledMapped} />
+          <FueledDeskSection
+            calls={fueledMapped}
+            viewerUserId={session.userId}
+            isAdmin={session.role === "admin"}
+          />
         </div>
       ) : null}
 
@@ -192,6 +196,8 @@ export default async function DashboardFeedPage({
             calls={mapped}
             feedSeenAt={feedSeenAt}
             proLocked={proLocked}
+            viewerUserId={session.userId}
+            isAdmin={session.role === "admin"}
           />
         )}
       </div>

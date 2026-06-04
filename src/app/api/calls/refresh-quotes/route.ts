@@ -8,10 +8,11 @@ export async function POST() {
   try {
     const session = await requireSession();
     const db = createServiceClient();
-    const { data, error } = await db
-      .from("calls")
-      .select("symbol")
-      .eq("user_id", session.userId);
+    const isAdmin = session.role === "admin";
+    const query = db.from("calls").select("symbol");
+    const { data, error } = isAdmin
+      ? await query.limit(400)
+      : await query.eq("user_id", session.userId);
 
     if (error) throw error;
 

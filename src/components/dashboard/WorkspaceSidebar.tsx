@@ -11,7 +11,6 @@ import {
   GitCompare,
   MessageCircle,
   Plus,
-  Shield,
   Trophy,
 } from "lucide-react";
 import { COPY } from "@/lib/copy";
@@ -51,15 +50,6 @@ export function WorkspaceSidebar({
         <p className="mt-0.5 truncate font-mono text-[11px] text-[var(--pf-gray-500)]">
           @{username}
         </p>
-        {isAdmin ? (
-          <Link
-            href="/admin"
-            className="mt-2 inline-flex items-center gap-1 rounded-full bg-[var(--pf-red-muted)] px-2 py-0.5 text-[10px] font-semibold text-[var(--pf-red)] hover:bg-[var(--pf-red)]/10"
-          >
-            <Shield className="h-3 w-3" strokeWidth={2.5} />
-            Admin
-          </Link>
-        ) : null}
       </div>
 
       <nav
@@ -119,14 +109,24 @@ export function WorkspaceSidebar({
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           {COPY.newCall}
         </Link>
-        <div className="flex items-center justify-between gap-2 px-1">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
           <WorkspaceGuide />
-          <Link
-            href="/profile"
-            className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
-          >
-            Profile
-          </Link>
+          <div className="flex items-center gap-3">
+            {isAdmin ? (
+              <Link
+                href="/admin"
+                className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
+              >
+                Administration
+              </Link>
+            ) : null}
+            <Link
+              href="/profile"
+              className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
+            >
+              Profile
+            </Link>
+          </div>
         </div>
       </div>
     </aside>

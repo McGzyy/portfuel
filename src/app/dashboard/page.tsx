@@ -55,16 +55,24 @@ type OwnCallRow = Awaited<ReturnType<typeof fetchUserRecentCalls>>[number];
 function toOwnStripCard(
   c: OwnCallRow,
   username: string,
-  displayName: string | null
+  displayName: string | null,
+  userId: string
 ): CallCardData {
   return {
     id: c.id,
+    user_id: userId,
     symbol: c.symbol,
     asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
     direction: c.direction as "long" | "short",
     thesis: c.thesis,
     called_at: c.called_at,
     return_pct: c.return_pct,
+    entry_price: c.entry_price,
+    target_price: c.target_price,
+    stop_price: c.stop_price,
+    last_price: c.last_price,
+    target_progress: c.target_progress,
+    timeframe_tag: c.timeframe_tag,
     is_fueled: Boolean(c.is_fueled),
     display_name: displayName,
     pin: username,
@@ -163,16 +171,14 @@ export default async function DashboardOverviewPage({
   }
 
   const ownCallCards = ownCalls.map((c) =>
-    toOwnStripCard(c, session.username, session.displayName)
+    toOwnStripCard(c, session.username, session.displayName, session.userId)
   );
   const openCallCards = ownCallCards.filter((c) => {
     const row = ownCalls.find((r) => r.id === c.id);
     return row ? isOpenMemberCall(row) : true;
   });
 
-  const displayLabel =
-    session.displayName ??
-    (session.role === "admin" ? "Administrator" : session.username);
+  const displayLabel = session.displayName ?? session.username;
 
   const avgPulse = communityPulse.avgReturnPct;
   const avgAccent =

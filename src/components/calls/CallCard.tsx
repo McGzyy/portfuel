@@ -7,10 +7,12 @@ import { ThesisSummaryExpand } from "@/components/ai/ThesisSummaryExpand";
 import { CallResearchExpand } from "@/components/calls/CallResearchExpand";
 import { Card, CardContent } from "@/components/ui/card";
 import { SymbolSparkline } from "@/components/charts/SymbolSparkline";
+import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { cn, formatPct, timeAgo } from "@/lib/utils";
 import type { TeaserCallRow } from "@/lib/db/supabase";
 
 type CallCardExtras = {
+  user_id?: string;
   username?: string | null;
   entry_price?: number | null;
   target_price?: number | null;
@@ -55,6 +57,8 @@ type CallCardProps = {
   canGenerateSummary?: boolean;
   /** Requires SparklineProvider ancestor — lazy-loaded on feed. */
   showSparkline?: boolean;
+  viewerUserId?: string | null;
+  isAdmin?: boolean;
 };
 
 export function CallCard({
@@ -68,7 +72,12 @@ export function CallCard({
   showSummary = true,
   canGenerateSummary = false,
   showSparkline = false,
+  viewerUserId,
+  isAdmin = false,
 }: CallCardProps) {
+  const canDelete =
+    Boolean(viewerUserId) &&
+    (isAdmin || (call.user_id != null && call.user_id === viewerUserId));
   const handle = /^\d{5}$/.test(call.pin) ? call.pin : `@${call.pin}`;
   const name = call.display_name ?? `Trader ${handle}`;
   const ret = call.return_pct;
@@ -179,13 +188,18 @@ export function CallCard({
             compact={compact}
           />
         ) : null}
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <Link
-            href={`/ticker/${call.symbol}`}
-            className="text-xs font-semibold text-[var(--pf-red)] transition-colors hover:text-[var(--pf-red-hover)]"
-          >
-            Chart & intel →
-          </Link>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={`/ticker/${call.symbol}`}
+              className="text-xs font-semibold text-[var(--pf-red)] transition-colors hover:text-[var(--pf-red-hover)]"
+            >
+              Chart & intel →
+            </Link>
+            {canDelete ? (
+              <CallDeleteButton callId={call.id} symbol={call.symbol} />
+            ) : null}
+          </div>
           {(call.vote_score ?? 0) !== 0 || (call.comment_count ?? 0) > 0 ? (
             <span className="text-[10px] tabular-nums text-[var(--pf-gray-400)]">
               {(call.vote_score ?? 0) > 0 ? "+" : ""}

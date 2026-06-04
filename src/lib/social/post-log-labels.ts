@@ -13,6 +13,9 @@ export function describePostRef(postType: XPostType, refId: string): string {
   if (postType === "member_win" && refId.length === 36) {
     return `Call ${refId.slice(0, 8)}…`;
   }
+  if (postType === "member_win_update" && refId.includes("still_running")) {
+    return "Member spotlight · still running";
+  }
   if (postType === "member_win_update" && refId.startsWith("member_win_update-")) {
     const parts = refId.replace("member_win_update-", "").split("-");
     const milestone = parts[parts.length - 1];

@@ -5,6 +5,7 @@ import { ThesisSummaryExpand } from "@/components/ai/ThesisSummaryExpand";
 import { CallResearchExpand } from "@/components/calls/CallResearchExpand";
 import { CallEngagement } from "@/components/calls/CallEngagement";
 import { CallPriceMetrics } from "@/components/calls/CallPriceMetrics";
+import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { formatPct, timeAgo } from "@/lib/utils";
 
 type ThesisCall = {
@@ -42,6 +43,7 @@ export function CallThesisBlock({
   isPro,
   showUpgrade,
   canGenerateSummary,
+  isAdmin = false,
 }: {
   call: ThesisCall;
   interactive: boolean;
@@ -49,8 +51,10 @@ export function CallThesisBlock({
   isPro?: boolean;
   showUpgrade?: boolean;
   canGenerateSummary?: boolean;
+  isAdmin?: boolean;
 }) {
   const isOwnCall = Boolean(viewerUserId && call.user_id && viewerUserId === call.user_id);
+  const canDelete = Boolean(viewerUserId) && (isAdmin || isOwnCall);
   const handle = call.users.username
     ? `@${call.users.username}`
     : /^\d{5}$/.test(call.users.pin)
@@ -119,6 +123,11 @@ export function CallThesisBlock({
         live={call.live}
         compact
       />
+      {canDelete && call.symbol ? (
+        <div className="mt-3 border-t border-[var(--pf-border)] pt-3">
+          <CallDeleteButton callId={call.id} symbol={call.symbol} />
+        </div>
+      ) : null}
       <CallEngagement
         callId={call.id}
         initialVoteScore={call.vote_score}

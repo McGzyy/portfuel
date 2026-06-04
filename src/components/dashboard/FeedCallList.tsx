@@ -8,10 +8,14 @@ export function FeedCallList({
   calls,
   feedSeenAt,
   proLocked,
+  viewerUserId,
+  isAdmin = false,
 }: {
   calls: CallCardData[];
   feedSeenAt: number;
   proLocked: boolean;
+  viewerUserId?: string;
+  isAdmin?: boolean;
 }) {
   const symbols = calls.map((c) => c.symbol);
 
@@ -27,6 +31,8 @@ export function FeedCallList({
             canGenerateSummary={!proLocked}
             showUpgrade={proLocked}
             showSparkline
+            viewerUserId={viewerUserId}
+            isAdmin={isAdmin}
           />
         ))}
       </div>

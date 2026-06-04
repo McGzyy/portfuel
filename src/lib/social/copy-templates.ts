@@ -32,7 +32,7 @@ export const DEFAULT_SOCIAL_POST_COPY: SocialPostCopy = {
   memberWinTemplate: `PortFuel · Member call on record
 {{symbol}} {{direction}} · {{return_line}}
 {{member_handle}}
-{{thesis_block}}{{link}}
+{{thesis_block}}{{referral_line}}{{link}}
 {{disclaimer}}`,
   memberWinUpdateTemplate: `PortFuel · Update on record
 {{symbol}} {{direction}} · {{headline}}
@@ -65,6 +65,7 @@ export const COPY_PLACEHOLDER_HELP = [
   "{{disclaimer}} — legal line from settings",
   "{{member_handle}} — @username or display name (member wins)",
   "{{thesis_block}} — thesis excerpt or empty (member wins)",
+  "{{referral_line}} — member join link when referral code set (member wins)",
   "{{digest_lines}} — numbered weekly wins (weekly digest)",
 ] as const;
 

@@ -6,7 +6,7 @@ set
   member_win_template = 'PortFuel · Member call on record
 {{symbol}} {{direction}} · {{return_line}}
 {{member_handle}}
-{{thesis_block}}{{link}}
+{{thesis_block}}{{referral_line}}{{link}}
 {{disclaimer}}',
   member_win_update_template = 'PortFuel · Update on record
 {{symbol}} {{direction}} · {{headline}}

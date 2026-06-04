@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Activity } from "lucide-react";
@@ -16,8 +17,10 @@ export function WorkspaceLiveBar({
   /** Overview: stats only — no scrolling tape. */
   compact?: boolean;
 }) {
+  const router = useRouter();
   const [pulse, setPulse] = useState<WorkspacePulse | null>(initial ?? null);
   const [tick, setTick] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -31,6 +34,21 @@ export function WorkspaceLiveBar({
       /* ignore */
     }
   }, []);
+
+  const refreshPrices = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const res = await fetch("/api/calls/refresh-quotes", { method: "POST" });
+      if (res.ok) {
+        await load();
+        router.refresh();
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setRefreshing(false);
+    }
+  }, [load]);
 
   useEffect(() => {
     if (!initial) void load();
@@ -73,6 +91,14 @@ export function WorkspaceLiveBar({
             </strong>{" "}
             calls (24h)
           </span>
+          <button
+            type="button"
+            disabled={refreshing}
+            onClick={() => void refreshPrices()}
+            className="font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] disabled:opacity-50"
+          >
+            {refreshing ? "Updating…" : "Update prices"}
+          </button>
           <Link
             href="/dashboard/feed"
             className="font-semibold text-[var(--pf-gray-700)] hover:text-[var(--pf-black)]"

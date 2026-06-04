@@ -16,6 +16,7 @@ import {
   composeMilestonePostText,
   fetchSocialPostCopy,
 } from "@/lib/social/copy-templates";
+import { formatMemberReferralLine } from "@/lib/referrals/spotlight-line";
 import { resolveMemberWinCopyVariant } from "@/lib/social/copy-variant";
 import type { SocialPostCopyVariantId } from "@/lib/social/copy-variant";
 
@@ -263,7 +264,7 @@ export async function composeMemberWinPost(
   const { data, error } = await db
     .from("calls")
     .select(
-      "id, symbol, direction, thesis, return_pct, called_at, is_fueled, user_id, users!inner(username, display_name, allow_social_highlight, social_highlight_show_thesis, social_highlight_show_username, subscription_status)"
+      "id, symbol, direction, thesis, return_pct, called_at, is_fueled, user_id, users!inner(username, display_name, referral_code, allow_social_highlight, social_highlight_show_thesis, social_highlight_show_username, subscription_status)"
     )
     .eq("id", callId)
     .maybeSingle();
@@ -282,6 +283,7 @@ export async function composeMemberWinPost(
     users: {
       username: string | null;
       display_name: string | null;
+      referral_code: string | null;
       allow_social_highlight: boolean;
       social_highlight_show_thesis: boolean;
       social_highlight_show_username: boolean;
@@ -337,6 +339,8 @@ export async function composeMemberWinPost(
     thesisBlock = `${t}\n`;
   }
 
+  const referralLine = formatMemberReferralLine(row.users.referral_code);
+
   const text = trimTweet(
     applyCopyTemplate(copy.memberWinTemplate, {
       symbol: row.symbol,
@@ -344,6 +348,7 @@ export async function composeMemberWinPost(
       return_line: returnLine,
       member_handle: handle,
       thesis_block: thesisBlock,
+      referral_line: referralLine,
       link,
       disclaimer: copy.disclaimer,
     })
@@ -359,17 +364,17 @@ export async function composeMemberWinPost(
   };
 }
 
-const MEMBER_UPDATE_HEADLINE: Record<
-  "return_25" | "target_reached",
-  string
-> = {
+export type MemberWinUpdateMilestone = "return_25" | "target_reached" | "still_running";
+
+const MEMBER_UPDATE_HEADLINE: Record<MemberWinUpdateMilestone, string> = {
   return_25: "Performance update · +25% on record",
   target_reached: "Stated target reached on record",
+  still_running: "Still running on record",
 };
 
 export async function composeMemberWinUpdatePost(
   callId: string,
-  milestone: "return_25" | "target_reached"
+  milestone: MemberWinUpdateMilestone
 ): Promise<
   | { ok: true; text: string; refId: string; copyVariant: SocialPostCopyVariantId }
   | { ok: false; error: "no_content" }

@@ -162,6 +162,7 @@ export default async function ProfilePage() {
                 <CallCard
                   call={{
                     id: c.id,
+                    user_id: session.userId,
                     symbol: c.symbol,
                     asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
                     direction: c.direction,
@@ -187,6 +188,8 @@ export default async function ProfilePage() {
                   isPro={!proLocked}
                   showUpgrade={proLocked}
                   canGenerateSummary={!proLocked}
+                  viewerUserId={session.userId}
+                  isAdmin={session.role === "admin"}
                 />
               </li>
             ))}

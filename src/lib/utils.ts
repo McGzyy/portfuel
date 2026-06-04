@@ -7,8 +7,10 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatPct(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return "—";
+  const abs = Math.abs(value);
+  const decimals = abs > 0 && abs < 0.1 ? 3 : 2;
   const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(2)}%`;
+  return `${sign}${value.toFixed(decimals)}%`;
 }
 
 export function formatPrice(value: number | null | undefined): string {

@@ -33,10 +33,7 @@ export default async function DashboardLayout({
         <div className="pf-workspace-sidebar-wrap">
           <WorkspaceSidebar
             username={session.username}
-            displayName={
-              session.displayName ??
-              (session.role === "admin" ? "Administrator" : session.username)
-            }
+            displayName={session.displayName ?? session.username}
             isAdmin={session.role === "admin"}
             dmUnread={dmUnread}
           />
@@ -45,10 +42,7 @@ export default async function DashboardLayout({
           <MemberNav
             dmUnread={dmUnread}
             username={session.username}
-            displayName={
-              session.displayName ??
-              (session.role === "admin" ? "Administrator" : session.username)
-            }
+            displayName={session.displayName ?? session.username}
             isAdmin={session.role === "admin"}
           />
           <ModerationBanner

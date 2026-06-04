@@ -13,7 +13,6 @@ import {
   Rows3,
   ScanSearch,
   GitCompare,
-  Shield,
   Trophy,
   X,
 } from "lucide-react";
@@ -132,19 +131,6 @@ export function MemberNav({
           </button>
         </div>
 
-        {isAdmin ? (
-          <div className="border-b border-[var(--pf-border)] px-4 py-2">
-            <Link
-              href="/admin"
-              onClick={() => setOpen(false)}
-              className="inline-flex items-center gap-1 rounded-full bg-[var(--pf-red-muted)] px-2.5 py-1 text-[11px] font-semibold text-[var(--pf-red)]"
-            >
-              <Shield className="h-3 w-3" strokeWidth={2.5} />
-              Admin
-            </Link>
-          </div>
-        ) : null}
-
         <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3" aria-label="Workspace">
           {WORKSPACE_NAV_GROUPS.map((group) => (
             <div key={group.title} className="mb-4 last:mb-0">
@@ -197,15 +183,26 @@ export function MemberNav({
             <Plus className="h-4 w-4" strokeWidth={2.5} />
             {COPY.newCall}
           </Link>
-          <div className="flex items-center justify-between gap-2 px-1">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
             <WorkspaceGuide />
-            <Link
-              href="/profile"
-              onClick={() => setOpen(false)}
-              className="text-xs font-semibold text-[var(--pf-gray-500)]"
-            >
-              Profile
-            </Link>
+            <div className="flex items-center gap-3">
+              {isAdmin ? (
+                <Link
+                  href="/admin"
+                  onClick={() => setOpen(false)}
+                  className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
+                >
+                  Administration
+                </Link>
+              ) : null}
+              <Link
+                href="/profile"
+                onClick={() => setOpen(false)}
+                className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
+              >
+                Profile
+              </Link>
+            </div>
           </div>
         </div>
       </aside>

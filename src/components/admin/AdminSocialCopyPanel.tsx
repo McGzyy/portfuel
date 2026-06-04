@@ -68,6 +68,8 @@ export function AdminSocialCopyPanel() {
         return_line: "+24.2% since publication",
         member_handle: "@demo_member",
         thesis_block: "AI capex cycle intact; positioning for continuation.\n",
+        referral_line:
+          "Track your calls on PortFuel: https://portfuel.pro/join?ref=demo_member&utm_source=referral&utm_medium=social&utm_campaign=member_win\n",
         link: DEMO_LINK,
         disclaimer: copy.disclaimer,
       }),

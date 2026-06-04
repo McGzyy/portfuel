@@ -14,6 +14,7 @@ export function mapCallForCard(
   const username = c.users.username ?? null;
   return {
     id: c.id,
+    user_id: c.user_id,
     symbol: c.symbol,
     asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
     direction: c.direction,

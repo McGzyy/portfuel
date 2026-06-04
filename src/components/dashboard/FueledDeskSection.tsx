@@ -2,7 +2,15 @@ import Link from "next/link";
 import { CallCard } from "@/components/calls/CallCard";
 import type { CallCardData } from "@/components/calls/CallCard";
 
-export function FueledDeskSection({ calls }: { calls: CallCardData[] }) {
+export function FueledDeskSection({
+  calls,
+  viewerUserId,
+  isAdmin = false,
+}: {
+  calls: CallCardData[];
+  viewerUserId?: string;
+  isAdmin?: boolean;
+}) {
   if (calls.length === 0) return null;
 
   return (
@@ -25,7 +33,13 @@ export function FueledDeskSection({ calls }: { calls: CallCardData[] }) {
       <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {calls.slice(0, 3).map((call) => (
           <div key={call.id} className="[&_.group]:border-white/10 [&_.group]:bg-white/95">
-            <CallCard call={call} interactive compact />
+            <CallCard
+              call={call}
+              interactive
+              compact
+              viewerUserId={viewerUserId}
+              isAdmin={isAdmin}
+            />
           </div>
         ))}
       </div>

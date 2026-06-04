@@ -2,6 +2,7 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { notifyDiscordCallMilestone } from "@/lib/discord/events";
 import { tryAutopostFueledMilestone } from "@/lib/social/x-milestone-autopost";
+import { tryAutopostMemberStillRunning } from "@/lib/social/x-member-win-still-running";
 import { tryAutopostMemberWinUpdate } from "@/lib/social/x-member-win-update";
 import { createNotification } from "@/lib/notifications/service";
 
@@ -85,7 +86,6 @@ export async function processCallMilestones(calls: CallRow[]): Promise<{ notifie
   let notified = 0;
   for (const call of calls) {
     const keys = milestonesForCall(call);
-    if (keys.length === 0) continue;
 
     for (const key of keys) {
       const isNew = await recordMilestone(call.id, call.user_id, key);
@@ -119,6 +119,12 @@ export async function processCallMilestones(calls: CallRow[]): Promise<{ notifie
 
       notified++;
     }
+
+    void tryAutopostMemberStillRunning({
+      id: call.id,
+      is_fueled: call.is_fueled,
+      return_pct: call.return_pct,
+    }).catch((e) => console.error("[x/member-win-still-running]", e));
   }
   return { notified };
 }

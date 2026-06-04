@@ -8,6 +8,7 @@ import {
   getDemoProfileCalls,
 } from "@/lib/demo/fixtures";
 import type { BillingInterval } from "@/lib/stripe/config";
+import { refreshQuotesForSymbols } from "@/lib/calls/service";
 import { fetchUserProfile, fetchUserRecentCalls } from "@/lib/users/profile";
 import type { PublicMemberProfile } from "@/lib/users/public-profile";
 
@@ -116,7 +117,16 @@ export async function fetchOwnProfile(session: SessionPayload): Promise<
     };
   }
 
-  const calls = await fetchUserRecentCalls(session.userId, 20);
+  let calls = await fetchUserRecentCalls(session.userId, 20);
+  const symbols = [...new Set(calls.map((c) => c.symbol.toUpperCase()))];
+  if (symbols.length > 0) {
+    try {
+      await refreshQuotesForSymbols(symbols);
+      calls = await fetchUserRecentCalls(session.userId, 20);
+    } catch (e) {
+      console.error("[own-profile/refresh quotes]", e);
+    }
+  }
   const extended = row as {
     pro_granted_until?: string | null;
     billing_interval?: BillingInterval | null;

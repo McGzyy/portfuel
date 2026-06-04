@@ -82,9 +82,21 @@ export type CompanyProfile = {
   ipo?: string;
 };
 
-export async function getQuote(symbol: string): Promise<FinnhubQuote | null> {
+export async function getQuote(
+  symbol: string,
+  opts?: { fresh?: boolean }
+): Promise<FinnhubQuote | null> {
+  const sym = symbol.toUpperCase();
   try {
-    return await finnhubFetch<FinnhubQuote>("/quote", { symbol: symbol.toUpperCase() });
+    if (opts?.fresh) {
+      const url = new URL(`${BASE}/quote`);
+      url.searchParams.set("token", getApiKey());
+      url.searchParams.set("symbol", sym);
+      const res = await fetch(url.toString(), { cache: "no-store" });
+      if (!res.ok) return null;
+      return (await res.json()) as FinnhubQuote;
+    }
+    return await finnhubFetch<FinnhubQuote>("/quote", { symbol: sym });
   } catch {
     return null;
   }

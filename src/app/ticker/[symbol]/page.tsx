@@ -184,6 +184,7 @@ export default async function TickerPage({
                 isPro={isPro}
                 showUpgrade={session ? proLocked : false}
                 canGenerateSummary={isPro}
+                isAdmin={session?.role === "admin"}
               />
               </div>
             ))

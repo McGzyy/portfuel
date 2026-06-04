@@ -108,7 +108,7 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
   } else {
     const [c, q, p] = await Promise.all([
       getEquityCandles(sym, from, to, "D"),
-      getQuote(sym),
+      getQuote(sym, { fresh: true }),
       getCompanyProfile(sym),
     ]);
     candlesRaw = c;
