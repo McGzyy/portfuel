@@ -44,6 +44,12 @@ import { fetchDeskBrief } from "@/lib/desk/brief";
 import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
+import { ProOverviewIntelStrip } from "@/components/pro/ProOverviewIntelStrip";
+import { fetchCommunityScreener } from "@/lib/screener/community";
+import {
+  fetchEarningsBattleboard,
+  summarizeBattleboard,
+} from "@/lib/earnings/battleboard";
 import { formatPct, formatPrice } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -195,6 +201,18 @@ export default async function DashboardOverviewPage({
     avgPulse == null ? undefined : avgPulse >= 0 ? ("positive" as const) : ("negative" as const);
   const isPro = !proLocked;
 
+  let proIntel: { battleboard: ReturnType<typeof summarizeBattleboard>; screener: Awaited<ReturnType<typeof fetchCommunityScreener>> } | null = null;
+  if (isPro) {
+    const [screener, battleboardRows] = await Promise.all([
+      fetchCommunityScreener(),
+      fetchEarningsBattleboard(),
+    ]);
+    proIntel = {
+      screener,
+      battleboard: summarizeBattleboard(battleboardRows),
+    };
+  }
+
   return (
     <div className="space-y-6">
       <WorkspaceCommandHeader
@@ -214,6 +232,13 @@ export default async function DashboardOverviewPage({
       />
 
       <WorkspaceQuickActions proUnlocked={isPro} />
+
+      {proIntel ? (
+        <ProOverviewIntelStrip
+          battleboard={proIntel.battleboard}
+          screener={proIntel.screener}
+        />
+      ) : null}
 
       {workspacePulse ? <WorkspaceLiveBar initial={workspacePulse} compact /> : null}
 

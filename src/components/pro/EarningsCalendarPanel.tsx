@@ -73,7 +73,10 @@ export function EarningsCalendarPanel({
         </p>
       </div>
       <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-        Upcoming reports for symbols on your watchlist (equity only).
+        Upcoming reports for symbols on your watchlist (equity only).{" "}
+        <Link href="/dashboard/earnings" className="font-semibold text-[var(--pf-red)] hover:underline">
+          Earnings battleboard →
+        </Link>
       </p>
 
       {loading ? (

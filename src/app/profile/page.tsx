@@ -109,7 +109,16 @@ export default async function ProfilePage() {
           aiUsage={aiUsage}
         />
 
-        <ShareTrackRecordCard username={member.username} callCount={trackRecord.callCount} />
+        <ShareTrackRecordCard
+          username={member.username}
+          callCount={trackRecord.callCount}
+          winRatePct={
+            trackRecord.callCount > 0
+              ? Math.round((trackRecord.winners / trackRecord.callCount) * 100)
+              : null
+          }
+          avgReturnPct={trackRecord.avgReturnPct}
+        />
 
         <section id="calls" className="scroll-mt-24 space-y-6">
           <ProfileCallsSectionHeader callCount={calls.length} trackRecord={trackRecord} />

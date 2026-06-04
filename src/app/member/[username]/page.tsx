@@ -80,7 +80,16 @@ export default async function MemberProfilePage({
         <MemberReturnChart points={returnSeries} />
         <MemberTrackRecordStrip record={trackRecord} />
         {isSelf ? (
-          <ShareTrackRecordCard username={member.username} callCount={trackRecord.callCount} />
+          <ShareTrackRecordCard
+            username={member.username}
+            callCount={trackRecord.callCount}
+            winRatePct={
+              trackRecord.callCount > 0
+                ? Math.round((trackRecord.winners / trackRecord.callCount) * 100)
+                : null
+            }
+            avgReturnPct={trackRecord.avgReturnPct}
+          />
         ) : null}
       </section>
 
