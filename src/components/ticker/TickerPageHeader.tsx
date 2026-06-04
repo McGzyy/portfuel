@@ -16,6 +16,7 @@ export function TickerPageHeader({
   backHref,
   backLabel,
   onWatchlist,
+  callCount = 0,
 }: {
   symbol: string;
   intel: Awaited<ReturnType<typeof loadTickerIntel>> | null;
@@ -23,6 +24,7 @@ export function TickerPageHeader({
   backHref?: string;
   backLabel?: string;
   onWatchlist?: boolean;
+  callCount?: number;
 }) {
   const change = intel?.quote?.changePct;
   const changeAccent =
@@ -55,6 +57,12 @@ export function TickerPageHeader({
           </div>
           <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
             {intel?.companyName ?? symbol}
+            {callCount > 0 ? (
+              <span className="text-[var(--pf-gray-400)]">
+                {" "}
+                · {callCount} community call{callCount === 1 ? "" : "s"}
+              </span>
+            ) : null}
           </p>
           {onWatchlist ? <TickerWatchlistChip symbol={symbol} /> : null}
           {intel?.quote ? (

@@ -13,7 +13,9 @@ export function TickerCommunityBar({ stats }: { stats: TickerCommunityStats }) {
     best == null ? undefined : best >= 0 ? ("positive" as const) : ("negative" as const);
 
   return (
+    <div className="pf-workspace-panel overflow-hidden">
     <MetricsStrip
+      variant="embedded"
       eyebrow="Community on this ticker"
       items={[
         { label: "Member calls", value: String(stats.callCount) },
@@ -31,7 +33,7 @@ export function TickerCommunityBar({ stats }: { stats: TickerCommunityStats }) {
         },
         { label: "Trusted", value: String(stats.trustedCallers), hint: "Unique callers" },
       ]}
-      className=""
     />
+    </div>
   );
 }
