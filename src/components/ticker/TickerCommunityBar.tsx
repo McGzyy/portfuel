@@ -31,7 +31,10 @@ export function TickerCommunityBar({ stats }: { stats: TickerCommunityStats }) {
           value: formatPct(best),
           accent: bestAccent,
         },
-        { label: "Trusted", value: String(stats.trustedCallers), hint: "Unique callers" },
+        {
+          label: "Trusted callers",
+          value: String(stats.trustedCallers),
+        },
       ]}
     />
     </div>

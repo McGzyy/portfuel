@@ -71,10 +71,7 @@ export function WorkspaceQuickActions({
   }
 
   return (
-    <nav
-      className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
-      aria-label="Quick actions"
-    >
+    <nav className="pf-quick-actions-row" aria-label="Quick actions">
       {items.map((item) => {
         const Icon = ICONS[item.icon];
         return (
@@ -88,29 +85,32 @@ export function WorkspaceQuickActions({
           >
             <span
               className={cn(
-                "flex h-9 w-9 items-center justify-center rounded-lg border transition-colors",
+                "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors",
                 item.primary
                   ? "border-white/20 bg-white/15 text-white"
                   : "border-[var(--pf-border)] bg-[var(--pf-gray-50)] text-[var(--pf-gray-600)] group-hover:border-[var(--pf-gray-300)] group-hover:text-[var(--pf-black)]"
               )}
             >
-              <Icon className="h-4 w-4" strokeWidth={2.25} />
+              <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
             </span>
-            <span
-              className={cn(
-                "text-sm font-bold tracking-tight",
-                item.primary ? "text-white" : "text-[var(--pf-black)]"
-              )}
-            >
-              {item.label}
-            </span>
-            <span
-              className={cn(
-                "text-xs leading-snug",
-                item.primary ? "text-slate-300" : "text-[var(--pf-gray-500)]"
-              )}
-            >
-              {item.description}
+            <span className="min-w-0 text-sm leading-none">
+              <span
+                className={cn(
+                  "font-bold tracking-tight",
+                  item.primary ? "text-white" : "text-[var(--pf-black)]"
+                )}
+              >
+                {item.label}
+              </span>
+              <span
+                className={cn(
+                  "font-normal",
+                  item.primary ? "text-slate-300" : "text-[var(--pf-gray-500)]"
+                )}
+              >
+                {" · "}
+                {item.description}
+              </span>
             </span>
           </Link>
         );

@@ -13,38 +13,38 @@ export const WORKSPACE_QUICK_ACTIONS: WorkspaceQuickAction[] = [
   {
     href: COPY.newCallHref,
     label: COPY.newCall,
-    description: "Publish thesis · entry & target",
+    description: "Publish thesis",
     icon: "plus",
     primary: true,
   },
   {
     href: "/dashboard/feed",
     label: "Member feed",
-    description: "Community calls & filters",
+    description: "Calls & filters",
     icon: "rows",
   },
   {
     href: "/dashboard/desk",
     label: "Fueled desk",
-    description: "House research & portfolio",
+    description: "House research",
     icon: "flame",
   },
   {
     href: "/dashboard/watchlist",
     label: "Watchlist",
-    description: "Track symbols & alerts",
+    description: "Symbols & alerts",
     icon: "bookmark",
   },
   {
     href: "/dashboard/rankings",
     label: "Rankings",
-    description: "Leaderboard & follows",
+    description: "Leaderboard",
     icon: "trophy",
   },
   {
     href: "/dashboard/notifications",
     label: "Notifications",
-    description: "Votes, comments & alerts",
+    description: "Activity",
     icon: "bell",
   },
 ];
@@ -53,13 +53,13 @@ export const PRO_WORKSPACE_QUICK_ACTIONS: WorkspaceQuickAction[] = [
   {
     href: "/dashboard/compare",
     label: "Compare",
-    description: "2–3 symbols side by side",
+    description: "2–3 symbols",
     icon: "compare",
   },
   {
     href: "/dashboard/screener",
     label: "Screener",
-    description: "Most called & top returns",
+    description: "Top calls",
     icon: "scan",
   },
 ];

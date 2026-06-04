@@ -28,7 +28,7 @@ export function MetricsStrip({
       className={cn(
         !embedded && "pf-metrics-strip",
         dark && "pf-metrics-strip-dark",
-        embedded && "px-4 py-4",
+        embedded && "pf-metrics-strip--embedded px-4 py-4",
         className
       )}
       aria-label={eyebrow}

@@ -437,11 +437,27 @@ body {
   box-shadow: var(--pf-shadow-sm);
 }
 
+.pf-quick-actions-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.125rem;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.pf-quick-actions-row::-webkit-scrollbar {
+  display: none;
+}
+
 .pf-quick-action {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1rem 1.125rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.625rem;
+  flex-shrink: 0;
+  padding: 0.625rem 1rem;
   border-radius: var(--pf-radius-lg);
   border: 1px solid var(--pf-border);
   background: #fff;
@@ -450,6 +466,7 @@ body {
     border-color 0.15s ease,
     box-shadow 0.15s ease,
     transform 0.15s ease;
+  white-space: nowrap;
 }
 
 .pf-quick-action:hover {
@@ -611,21 +628,26 @@ body {
 
 .pf-metrics-strip-grid {
   margin-top: 1rem;
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 1.25rem 1.75rem;
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-@media (min-width: 640px) {
-  .pf-metrics-strip-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.pf-metrics-strip-grid::-webkit-scrollbar {
+  display: none;
 }
 
-@media (min-width: 1024px) {
-  .pf-metrics-strip-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
+.pf-metrics-strip-cell {
+  flex: 1 1 0;
+  min-width: 4.75rem;
+}
+
+.pf-metrics-strip--embedded .pf-metrics-strip-grid {
+  margin-top: 0;
 }
 
 .pf-metrics-strip-label {
@@ -634,6 +656,7 @@ body {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--pf-gray-400);
+  white-space: nowrap;
 }
 
 .pf-metrics-strip-dark .pf-metrics-strip-label,
@@ -643,17 +666,19 @@ body {
 
 .pf-metrics-strip-value {
   margin-top: 0.25rem;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
   color: var(--pf-black);
+  white-space: nowrap;
 }
 
 .pf-metrics-strip-hint {
-  margin-top: 0.25rem;
+  margin-top: 0.125rem;
   font-size: 10px;
   color: var(--pf-gray-400);
+  white-space: nowrap;
 }
 
 .pf-fueled-panel {
