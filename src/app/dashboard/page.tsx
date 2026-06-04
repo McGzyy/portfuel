@@ -4,14 +4,13 @@ import { redirect } from "next/navigation";
 import { AdminCommunityHint } from "@/components/dashboard/AdminCommunityHint";
 import { GettingStartedCard } from "@/components/dashboard/GettingStartedCard";
 import { OverviewActivityPanels } from "@/components/dashboard/OverviewActivityPanels";
-import {
-  WorkspacePageHeader,
-  WorkspaceNewCallAction,
-} from "@/components/dashboard/WorkspacePageHeader";
 import { COPY } from "@/lib/copy";
 import { WorkspaceOverviewStats } from "@/components/dashboard/WorkspaceOverviewStats";
-import { ProUpgradeBanner } from "@/components/pro/ProUpgradeBanner";
 import { WorkspaceLiveBar } from "@/components/dashboard/WorkspaceLiveBar";
+import { WorkspaceCommandHeader } from "@/components/dashboard/WorkspaceCommandHeader";
+import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
+import { OpenCallsPanel } from "@/components/dashboard/OpenCallsPanel";
+import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
 import { fetchWorkspacePulse } from "@/lib/workspace/pulse";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
@@ -21,7 +20,6 @@ import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerform
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { FueledDeskPreview } from "@/components/dashboard/FueledDeskPreview";
-import { FueledDeskHero } from "@/components/dashboard/FueledDeskHero";
 import { FueledTrackRecordPanel } from "@/components/dashboard/FueledTrackRecordPanel";
 import { fetchFueledTrackRecord } from "@/lib/fueled/track-record";
 import { WorkspacePanel } from "@/components/dashboard/WorkspacePanel";
@@ -186,14 +184,13 @@ export default async function DashboardOverviewPage({
   const showGettingStarted =
     ownCalls.length === 0 && watchlistPreview.length === 0 && followingMembers.length === 0;
 
+  const isPro = !proLocked;
+
   return (
     <div className="space-y-6">
-      <WorkspacePageHeader
-        eyebrow="Overview"
-        title={displayLabel}
-        description="Your track record, open book, and a quick read on what the community is trading."
-        action={<WorkspaceNewCallAction />}
-        className="mb-6 pb-6"
+      <WorkspaceCommandHeader
+        displayName={displayLabel}
+        openCallsCount={openCallCards.length}
       />
 
       <WorkspaceOverviewStats
@@ -207,7 +204,20 @@ export default async function DashboardOverviewPage({
         communityAvgAccent={avgAccent}
       />
 
+      <WorkspaceQuickActions />
+
       {workspacePulse ? <WorkspaceLiveBar initial={workspacePulse} compact /> : null}
+
+      {openCallCards.length > 0 ? (
+        <OpenCallsPanel
+          calls={openCallCards}
+          viewerUserId={session.userId}
+          isAdmin={session.role === "admin"}
+          username={session.username}
+          isPro={isPro}
+          proLocked={proLocked}
+        />
+      ) : null}
 
       {showGettingStarted ? <GettingStartedCard /> : null}
 
@@ -215,21 +225,11 @@ export default async function DashboardOverviewPage({
         <AdminCommunityHint />
       ) : null}
 
-      {proLocked ? <ProUpgradeBanner /> : null}
-
-      <FueledDeskHero
-        featured={featuredDesk}
-        totalDeskCalls={fueledCalls.length}
-        weeklyNote={deskBrief.weeklyNote}
-      />
+      <ProMembershipStrip locked={proLocked} />
 
       <FueledTrackRecordPanel record={fueledTrackRecord} />
 
-      <OverviewActivityPanels
-        openCalls={openCallCards}
-        username={session.username}
-        hotTickers={hotTickers}
-      />
+      <OverviewActivityPanels hotTickers={hotTickers} />
 
       <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
         <div className="space-y-6 lg:col-span-7 xl:col-span-8">

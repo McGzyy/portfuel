@@ -19,7 +19,7 @@ export function FueledDeskPreview({
       : featured?.thesis;
 
   return (
-    <div className="space-y-4 px-3 pb-3">
+    <div className="space-y-4 px-4 pb-4 pt-1">
       {weeklyNote ? (
         <div className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-3">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">

@@ -1,0 +1,83 @@
+"use client";
+
+import Link from "next/link";
+import { CallCard, type CallCardData } from "@/components/calls/CallCard";
+import { SparklineProvider } from "@/components/charts/SparklineProvider";
+import { Button } from "@/components/ui/button";
+import { COPY } from "@/lib/copy";
+
+export function OpenCallsPanel({
+  calls,
+  viewerUserId,
+  isAdmin,
+  username,
+  isPro,
+  proLocked,
+}: {
+  calls: CallCardData[];
+  viewerUserId: string;
+  isAdmin: boolean;
+  username: string;
+  isPro: boolean;
+  proLocked: boolean;
+}) {
+  if (calls.length === 0) return null;
+
+  const symbols = calls.map((c) => c.symbol);
+
+  return (
+    <section className="pf-workspace-panel" aria-label="Your open calls">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--pf-border)] px-5 py-4">
+        <div>
+          <h2 className="text-sm font-bold tracking-tight text-[var(--pf-black)]">
+            Your open calls
+          </h2>
+          <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
+            Live return and progress — manage or delete from each card
+          </p>
+        </div>
+        <Link
+          href={`/member/${username}`}
+          className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
+        >
+          Profile →
+        </Link>
+      </div>
+      <SparklineProvider symbols={symbols}>
+        <div className="space-y-4 p-4 sm:p-5">
+          {calls.slice(0, 4).map((call) => (
+            <CallCard
+              key={call.id}
+              call={call}
+              compact
+              interactive
+              showSparkline
+              viewerUserId={viewerUserId}
+              isAdmin={isAdmin}
+              isPro={isPro}
+              showUpgrade={proLocked}
+              canGenerateSummary={!proLocked}
+            />
+          ))}
+        </div>
+      </SparklineProvider>
+      {calls.length > 4 ? (
+        <div className="border-t border-[var(--pf-border)] px-5 py-3 text-center">
+          <Link href={`/member/${username}`}>
+            <Button variant="secondary" size="sm">
+              View all {calls.length} calls
+            </Button>
+          </Link>
+        </div>
+      ) : (
+        <div className="border-t border-[var(--pf-border)] px-5 py-3">
+          <Link href={COPY.newCallHref}>
+            <Button variant="outline" size="sm" className="w-full sm:w-auto">
+              {COPY.publishCallCta}
+            </Button>
+          </Link>
+        </div>
+      )}
+    </section>
+  );
+}
