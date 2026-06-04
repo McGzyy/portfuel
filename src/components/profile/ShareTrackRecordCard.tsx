@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Download, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getAppOrigin } from "@/lib/social/app-url";
 
 function xIntentUrl(text: string, url: string): string {
   const params = new URLSearchParams({ text, url });
@@ -22,10 +23,7 @@ export function ShareTrackRecordCard({
 }) {
   const [copied, setCopied] = useState(false);
   const cardUrl = `/api/social/track-record/${encodeURIComponent(username)}`;
-  const origin =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://portfuel.com";
+  const origin = typeof window !== "undefined" ? window.location.origin : getAppOrigin();
   const profileUrl = `${origin}/member/${username}`;
   const cardAbsoluteUrl = `${origin}${cardUrl}`;
 

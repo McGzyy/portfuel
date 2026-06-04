@@ -4,6 +4,17 @@ export function getAppOrigin(): string {
   return url.replace(/\/$/, "");
 }
 
+/** Hostname for social cards and share copy (e.g. portfuel.pro). */
+export function getPublicSiteHost(): string {
+  try {
+    const host = new URL(getAppOrigin()).hostname.replace(/^www\./, "");
+    if (host === "localhost" || host.endsWith(".local")) return "portfuel.pro";
+    return host;
+  } catch {
+    return "portfuel.pro";
+  }
+}
+
 export function appPath(path: string, utm?: { source?: string; medium?: string; campaign?: string }): string {
   const base = getAppOrigin();
   const normalized = path.startsWith("/") ? path : `/${path}`;

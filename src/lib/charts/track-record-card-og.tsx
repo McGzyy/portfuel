@@ -279,7 +279,7 @@ export async function renderTrackRecordCardOgPng(
               color: T.accent,
             }}
           >
-            portfuel.com
+            {payload.siteHost}
           </div>
         </div>
       </div>

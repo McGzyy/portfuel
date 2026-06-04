@@ -3,6 +3,7 @@ import {
   fetchMemberPublicCalls,
 } from "@/lib/users/public-profile";
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
+import { getAppOrigin, getPublicSiteHost } from "@/lib/social/app-url";
 
 export type TrackRecordHighlight = {
   symbol: string;
@@ -23,6 +24,7 @@ export type TrackRecordCardPayload = {
   trusted: boolean;
   highlights: TrackRecordHighlight[];
   profileUrl: string;
+  siteHost: string;
 };
 
 export async function loadTrackRecordCardPayload(
@@ -50,8 +52,7 @@ export async function loadTrackRecordCardPayload(
     returnPct: c.return_pct != null ? Number(c.return_pct) : null,
   }));
 
-  const base =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://portfuel.com";
+  const origin = getAppOrigin();
 
   return {
     payload: {
@@ -66,7 +67,8 @@ export async function loadTrackRecordCardPayload(
       rankScore: member.rank_score,
       trusted: member.trusted,
       highlights,
-      profileUrl: `${base}/member/${member.username}`,
+      profileUrl: `${origin}/member/${member.username}`,
+      siteHost: getPublicSiteHost(),
     },
   };
 }
