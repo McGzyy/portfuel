@@ -160,7 +160,7 @@ export function MessagesWorkspace({ proUnlocked = false }: { proUnlocked?: boole
         activeName={otherName}
       />
 
-      <WorkspaceQuickActions compact proUnlocked={proUnlocked} />
+      <WorkspaceQuickActions proUnlocked={proUnlocked} />
 
       {error && !activeThread ? (
         <p className="text-sm text-rose-600">{error}</p>

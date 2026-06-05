@@ -13,6 +13,7 @@ import {
   type JournalOutcome,
 } from "@/lib/watchlist/journal-meta";
 import type { WatchlistJournal } from "@/lib/watchlist/journal-types";
+import { COPY } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 
 export function WatchlistJournalPlanForm({
@@ -310,7 +311,7 @@ export function WatchlistJournalPlanForm({
       ) : null}
 
       <Button type="submit" size="sm" disabled={saving}>
-        {saving ? "Saving…" : "Save journal"}
+        {saving ? COPY.journalSavingPlan : COPY.journalSavePlan}
       </Button>
     </form>
   );

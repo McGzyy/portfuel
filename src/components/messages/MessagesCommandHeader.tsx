@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
 
 export function MessagesCommandHeader({
   threadCount,
@@ -18,6 +19,7 @@ export function MessagesCommandHeader({
 
   return (
     <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="max-w-2xl">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
           Community · Messages
@@ -42,6 +44,8 @@ export function MessagesCommandHeader({
         >
           Find members to follow →
         </Link>
+      </div>
+      <WorkspaceNewCallAction />
       </div>
     </header>
   );

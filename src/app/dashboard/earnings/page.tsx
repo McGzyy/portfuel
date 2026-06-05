@@ -33,7 +33,7 @@ export default async function DashboardEarningsPage() {
     <div className="space-y-6">
       <EarningsBattleboardCommandHeader summary={summary} />
 
-      <WorkspaceQuickActions compact proUnlocked={!proLocked} />
+      <WorkspaceQuickActions proUnlocked={!proLocked} />
 
       <EarningsSurfacesExplainer />
 

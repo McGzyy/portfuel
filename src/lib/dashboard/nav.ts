@@ -54,8 +54,8 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
   },
   {
     href: "/dashboard/notifications",
-    label: "Notifications",
-    description: "Votes, calls & alerts",
+    label: "Alerts",
+    description: "Votes, calls & watchlist",
     icon: "bell",
   },
   {
@@ -207,12 +207,12 @@ const WORKSPACE_GUIDE_SECTIONS_TEMPLATE: {
       {
         href: "/settings",
         label: "Settings",
-        description: "Billing, email, referrals, and Discord.",
+        description: "Billing, email, watchlist alerts, referrals, and Discord.",
       },
       {
         href: "/dashboard/notifications",
-        label: "Notifications",
-        description: "Votes, comments, watchlist calls, and messages.",
+        label: "Alerts",
+        description: "Votes, comments, watchlist alerts, and messages.",
       },
     ],
   },

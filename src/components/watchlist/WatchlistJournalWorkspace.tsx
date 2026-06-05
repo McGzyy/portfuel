@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, LineChart, Megaphone } from "lucide-react";
+import { ArrowLeft, LineChart, Megaphone, NotebookPen } from "lucide-react";
+import { COPY } from "@/lib/copy";
 import { TickerChartSection } from "@/components/charts/TickerChartSection";
 import { WatchlistJournalPlanForm } from "@/components/watchlist/WatchlistJournalPlanForm";
 import { WatchlistJournalStats } from "@/components/watchlist/WatchlistJournalStats";
@@ -79,7 +80,9 @@ export function WatchlistJournalWorkspace({
             </p>
             {setupMode ? (
               <p className="mt-2 text-xs font-semibold text-[var(--pf-red)]">
-                Start with your thesis — why are you watching this symbol?
+                New watchlist symbol — add your thesis and plan below. Use{" "}
+                <span className="text-[var(--pf-black)]">{COPY.journalAddEntry}</span> on the
+                timeline for price-action notes (not a community call).
               </p>
             ) : null}
             <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold">
@@ -99,13 +102,20 @@ export function WatchlistJournalWorkspace({
               </Link>
             </div>
           </div>
-          <Link
-            href={publishUrl}
-            className="inline-flex items-center gap-2 rounded-lg bg-[var(--pf-red)] px-4 py-2.5 text-sm font-semibold text-white shadow-[var(--pf-shadow-sm)] transition-colors hover:bg-[var(--pf-red-hover)]"
-          >
-            <Megaphone className="h-4 w-4" strokeWidth={2.25} />
-            Turn into a call
-          </Link>
+          {setupMode ? (
+            <div className="inline-flex items-center gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-2.5 text-sm font-semibold text-[var(--pf-gray-600)]">
+              <NotebookPen className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+              {COPY.journalSavePlan} first
+            </div>
+          ) : (
+            <Link
+              href={publishUrl}
+              className="inline-flex items-center gap-2 rounded-lg bg-[var(--pf-red)] px-4 py-2.5 text-sm font-semibold text-white shadow-[var(--pf-shadow-sm)] transition-colors hover:bg-[var(--pf-red-hover)]"
+            >
+              <Megaphone className="h-4 w-4" strokeWidth={2.25} />
+              {COPY.publishFromJournal}
+            </Link>
+          )}
         </div>
       </header>
 

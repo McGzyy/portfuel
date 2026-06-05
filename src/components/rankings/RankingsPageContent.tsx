@@ -34,7 +34,7 @@ export function RankingsPageContent({
       />
 
       {loggedIn ? (
-        <WorkspaceQuickActions compact proUnlocked={!proLocked} />
+        <WorkspaceQuickActions proUnlocked={!proLocked} />
       ) : null}
 
       {loggedIn && proLocked ? <ProMembershipStrip locked /> : null}

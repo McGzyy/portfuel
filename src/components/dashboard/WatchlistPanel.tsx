@@ -11,6 +11,7 @@ import { WatchlistMoveAlerts } from "@/components/dashboard/WatchlistMoveAlerts"
 import { MiniSparkline } from "@/components/charts/MiniSparkline";
 import type { LinePoint } from "@/lib/charts/types";
 import { formatPct, formatPrice } from "@/lib/utils";
+import { COPY } from "@/lib/copy";
 import { outcomeLabel } from "@/lib/watchlist/journal-meta";
 import { WATCHLIST_MOVE_ALERT_PCT } from "@/lib/watchlist/service";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
@@ -212,8 +213,11 @@ export function WatchlistPanel({
             className="font-mono text-sm"
             aria-label="Add to watchlist"
           />
-          <Button type="submit" size="sm" variant="secondary" disabled={adding}>
+          <Button type="submit" size="sm" variant="secondary" disabled={adding} className="gap-1.5">
             <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">
+              {adding ? "Adding…" : COPY.journalAddSymbol}
+            </span>
           </Button>
         </div>
         {showThesis ? (

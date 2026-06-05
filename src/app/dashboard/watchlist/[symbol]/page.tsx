@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { WatchlistJournalWorkspace } from "@/components/watchlist/WatchlistJournalWorkspace";
 import {
   canAccessProIntelligence,
@@ -71,13 +72,16 @@ export default async function WatchlistJournalPage({
   const publishUrl = buildPublishUrlFromJournal(journal);
 
   return (
-    <WatchlistJournalWorkspace
-      journal={journal}
-      entries={entries}
-      intel={intelData}
-      publishUrl={publishUrl}
-      proUnlocked={proUnlocked}
-      setupMode={sp.setup === "1"}
-    />
+    <div className="space-y-6">
+      <WorkspaceQuickActions proUnlocked={proUnlocked} />
+      <WatchlistJournalWorkspace
+        journal={journal}
+        entries={entries}
+        intel={intelData}
+        publishUrl={publishUrl}
+        proUnlocked={proUnlocked}
+        setupMode={sp.setup === "1"}
+      />
+    </div>
   );
 }

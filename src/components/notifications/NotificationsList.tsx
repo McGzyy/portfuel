@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Bell,
+  Calendar,
   Flame,
+  LineChart,
   MessageCircle,
   MessageSquare,
   Target,
@@ -14,6 +16,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { NotificationsCommandHeader } from "@/components/notifications/NotificationsCommandHeader";
+import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { Button } from "@/components/ui/button";
 import { cn, timeAgo } from "@/lib/utils";
@@ -23,6 +26,12 @@ function iconForType(type: NotificationType) {
   switch (type) {
     case "watchlist_call":
       return TrendingUp;
+    case "watchlist_price_move":
+      return LineChart;
+    case "watchlist_earnings":
+      return Calendar;
+    case "watchlist_plan_level":
+      return Target;
     case "vote_on_call":
       return ThumbsUp;
     case "comment_on_call":
@@ -95,16 +104,21 @@ export function NotificationsList({ proUnlocked = false }: { proUnlocked?: boole
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <NotificationsCommandHeader unreadCount={unread} totalCount={items.length} />
-        {unread > 0 ? (
-          <Button size="sm" variant="secondary" onClick={markAllRead} className="shrink-0">
-            Mark all read
-          </Button>
-        ) : null}
-      </div>
+      <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <NotificationsCommandHeader unreadCount={unread} totalCount={items.length} embedded />
+          <div className="flex shrink-0 flex-wrap items-center gap-2 pt-1">
+            {unread > 0 ? (
+              <Button size="sm" variant="secondary" onClick={markAllRead}>
+                Mark all read
+              </Button>
+            ) : null}
+            <WorkspaceNewCallAction />
+          </div>
+        </div>
+      </header>
 
-      <WorkspaceQuickActions compact proUnlocked={proUnlocked} />
+      <WorkspaceQuickActions proUnlocked={proUnlocked} />
 
       {loading ? (
         <p className="text-sm text-[var(--pf-gray-500)]">Loading…</p>

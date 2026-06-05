@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { ProfileBillingSection } from "@/components/billing/ProfileBillingSection";
+import { ProfileAlertsSection } from "@/components/profile/ProfileAlertsSection";
 import { ProfileEmailSection } from "@/components/profile/ProfileEmailSection";
 import { ProfileReferralSection } from "@/components/profile/ProfileReferralSection";
 import { ProfileSocialHighlightSection } from "@/components/profile/ProfileSocialHighlightSection";
@@ -65,6 +66,10 @@ export default async function SettingsPage() {
 
         <section id="email" className="scroll-mt-24">
           <ProfileEmailSection />
+        </section>
+
+        <section id="alerts" className="scroll-mt-24">
+          <ProfileAlertsSection />
         </section>
 
         <section id="referrals" className="scroll-mt-24 space-y-4">

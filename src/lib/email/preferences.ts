@@ -40,6 +40,9 @@ export async function fetchEmailPrefs(userId: string): Promise<EmailPrefs | null
 
 const INSTANT_EMAIL_TYPES: NotificationType[] = [
   "watchlist_call",
+  "watchlist_price_move",
+  "watchlist_earnings",
+  "watchlist_plan_level",
   "comment_on_call",
   "followed_member_call",
   "desk_portfolio_update",

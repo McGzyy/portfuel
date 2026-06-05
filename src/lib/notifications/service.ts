@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import { fetchUserAlertPrefs, isWatchlistAlertTypeEnabled } from "@/lib/alerts/preferences";
 import { maybeSendInstantNotificationEmail } from "@/lib/email/instant";
 import { getDemoNotifications } from "@/lib/notifications/demo";
 import type { NotificationType, UserNotification } from "@/lib/notifications/types";
@@ -222,6 +223,14 @@ export async function notifyWatchlistNewCall(opts: {
 
   const name = opts.callerDisplayName ?? opts.callerUsername;
   for (const w of watchers ?? []) {
+    const prefs = await fetchUserAlertPrefs(w.user_id);
+    if (
+      prefs &&
+      !isWatchlistAlertTypeEnabled(prefs.watchlist, "community_calls")
+    ) {
+      continue;
+    }
+
     await createNotification({
       userId: w.user_id,
       type: "watchlist_call",

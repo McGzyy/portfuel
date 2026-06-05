@@ -12,7 +12,7 @@ export function WatchlistIntelHint() {
         <p className="mt-0.5 leading-relaxed">
           Open <strong className="font-semibold text-[var(--pf-gray-800)]">Journal</strong> on any row
           for a private thesis, entry/stop/target on your chart, and timestamped updates. Use{" "}
-          <strong className="font-semibold text-[var(--pf-gray-800)]">Turn into a call</strong> when you
+          <strong className="font-semibold text-[var(--pf-gray-800)]">Publish call</strong> when you
           want the community to see it.
         </p>
         <p className="mt-2 text-xs">

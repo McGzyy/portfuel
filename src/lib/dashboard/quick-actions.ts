@@ -1,71 +1,69 @@
-import { COPY } from "@/lib/copy";
 import type { DashboardNavIcon } from "@/lib/dashboard/nav";
 
-export type WorkspaceQuickAction = {
+export type WorkspaceNavRailItem = {
   href: string;
   label: string;
-  description: string;
-  icon: DashboardNavIcon | "plus" | "bell";
-  primary?: boolean;
+  icon: DashboardNavIcon;
+  exact?: boolean;
+  badge?: "notifications" | "messages";
 };
 
-export const WORKSPACE_QUICK_ACTIONS: WorkspaceQuickAction[] = [
+/** Cross-page workspace navigation — publish lives in page headers / sidebar. */
+export const WORKSPACE_NAV_RAIL: WorkspaceNavRailItem[] = [
   {
-    href: COPY.newCallHref,
-    label: COPY.newCall,
-    description: "Publish thesis",
-    icon: "plus",
-    primary: true,
+    href: "/dashboard",
+    label: "Overview",
+    icon: "layout-dashboard",
+    exact: true,
   },
   {
     href: "/dashboard/feed",
-    label: "Member feed",
-    description: "Calls & filters",
+    label: "Feed",
     icon: "rows",
   },
   {
     href: "/dashboard/desk",
-    label: "Fueled desk",
-    description: "House research",
+    label: "Desk",
     icon: "flame",
   },
   {
     href: "/dashboard/watchlist",
     label: "Watchlist",
-    description: "Symbols & alerts",
     icon: "bookmark",
   },
   {
     href: "/dashboard/rankings",
     label: "Rankings",
-    description: "Leaderboard",
     icon: "trophy",
   },
   {
     href: "/dashboard/notifications",
-    label: "Notifications",
-    description: "Activity",
+    label: "Alerts",
     icon: "bell",
+    badge: "notifications",
+  },
+  {
+    href: "/dashboard/messages",
+    label: "Messages",
+    icon: "messages",
+    badge: "messages",
   },
 ];
 
-export const PRO_WORKSPACE_QUICK_ACTIONS: WorkspaceQuickAction[] = [
-  {
-    href: "/dashboard/compare",
-    label: "Compare",
-    description: "2–3 symbols",
-    icon: "compare",
-  },
+export const PRO_NAV_RAIL: WorkspaceNavRailItem[] = [
   {
     href: "/dashboard/screener",
     label: "Screener",
-    description: "Top calls",
     icon: "scan",
   },
   {
     href: "/dashboard/earnings",
     label: "Earnings",
-    description: "Report week",
     icon: "calendar",
+  },
+  {
+    href: "/dashboard/compare",
+    label: "Compare",
+    icon: "compare",
   },
 ];

@@ -57,7 +57,7 @@ export default async function DashboardDeskPage() {
         totalDeskCalls={fueledLatest.length + fueledPerforming.length}
       />
 
-      <WorkspaceQuickActions compact proUnlocked={!proLocked} />
+      <WorkspaceQuickActions proUnlocked={!proLocked} />
 
       <FueledDeskBrief brief={deskBrief} />
 

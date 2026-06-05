@@ -116,8 +116,12 @@ export function ProfileEmailSection() {
 
       <p className="mt-3 text-sm text-[var(--pf-gray-500)]">
         Alert address can match your account email or a separate inbox. Weekly digest covers
-        Fueled portfolio marks, your calls, and community movers. Instant alerts cover comments,
-        watchlist, desk updates, and DMs.
+        Fueled portfolio marks, your calls, and community movers. Instant email covers comments,
+        desk updates, DMs, and watchlist alerts (configure types in{" "}
+        <Link href="#alerts" className="font-semibold text-[var(--pf-red)] hover:underline">
+          Alerts
+        </Link>
+        ).
       </p>
 
       {!prefs.emailConfigured ? (

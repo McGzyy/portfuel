@@ -20,6 +20,16 @@ export const AI_SUMMARY_MONTHLY_LIMIT: Record<MembershipTier | "admin", number> 
 export const AI_SUMMARY_DISCLAIMER =
   "AI summary for skimming only — not investment advice. Read the full thesis.";
 
+/** AI-enhanced watchlist alert copy (journal context) — more generous than thesis coach. */
+export const AI_JOURNAL_ALERT_MONTHLY_LIMIT: Record<MembershipTier | "admin", number> = {
+  member: 15,
+  pro: 75,
+  admin: 500,
+};
+
+export const AI_JOURNAL_ALERT_DISCLAIMER =
+  "AI alert context for your journal only — not investment advice.";
+
 export function isAiCoachConfigured(): boolean {
   const key = process.env.OPENAI_API_KEY?.trim();
   return Boolean(key?.startsWith("sk-"));
@@ -55,4 +65,12 @@ export function canGenerateSummary(
   role: "member" | "admin"
 ): boolean {
   return role === "admin" || tier === "pro";
+}
+
+export function journalAlertLimitForRole(
+  tier: MembershipTier | null,
+  role: "member" | "admin"
+): number {
+  if (role === "admin") return AI_JOURNAL_ALERT_MONTHLY_LIMIT.admin;
+  return AI_JOURNAL_ALERT_MONTHLY_LIMIT[tier === "pro" ? "pro" : "member"];
 }

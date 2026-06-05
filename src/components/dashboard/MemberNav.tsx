@@ -10,7 +10,7 @@ import {
   Bell,
   Menu,
   MessageCircle,
-  Plus,
+  Megaphone,
   Rows3,
   ScanSearch,
   Calendar,
@@ -203,7 +203,7 @@ export function MemberNav({
             onClick={() => setOpen(false)}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--pf-red)] px-3 py-2.5 text-sm font-semibold text-white"
           >
-            <Plus className="h-4 w-4" strokeWidth={2.5} />
+            <Megaphone className="h-4 w-4" strokeWidth={2.25} />
             {COPY.newCall}
           </Link>
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">

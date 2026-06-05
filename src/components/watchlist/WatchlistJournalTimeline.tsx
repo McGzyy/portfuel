@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { COPY } from "@/lib/copy";
 import type { WatchlistJournalEntry } from "@/lib/watchlist/journal-types";
 import { formatPrice } from "@/lib/utils";
 
@@ -49,7 +50,7 @@ export function WatchlistJournalTimeline({
       );
       const data = await res.json();
       if (!res.ok) {
-        setError("Could not add update.");
+        setError("Could not add entry.");
         return;
       }
       const entry = data.entry as WatchlistJournalEntry;
@@ -57,7 +58,7 @@ export function WatchlistJournalTimeline({
       setBody("");
       setReplyTo(null);
     } catch {
-      setError("Could not add update.");
+      setError("Could not add entry.");
     } finally {
       setPosting(false);
     }
@@ -154,7 +155,7 @@ export function WatchlistJournalTimeline({
         />
         {error ? <p className="text-xs text-rose-600">{error}</p> : null}
         <Button type="submit" size="sm" variant="secondary" disabled={posting || !body.trim()}>
-          {posting ? "Posting…" : "Add update"}
+          {posting ? COPY.journalAddingEntry : COPY.journalAddEntry}
         </Button>
       </form>
     </section>

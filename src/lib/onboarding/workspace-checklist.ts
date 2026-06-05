@@ -31,7 +31,7 @@ export const WORKSPACE_CHECKLIST_STEPS: WorkspaceChecklistStepDef[] = [
   {
     id: "watchlist",
     label: "Seed your watchlist",
-    description: "Track symbols you care about; get alerts when members call them.",
+    description: "Track symbols and journal your thesis — configure alerts in Settings.",
     href: "/dashboard/watchlist",
     icon: Bookmark,
   },

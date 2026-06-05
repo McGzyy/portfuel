@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Megaphone } from "lucide-react";
 import { COPY } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 
@@ -55,8 +56,9 @@ export function WorkspaceHeaderAction({
   return (
     <Link
       href={href}
-      className="inline-flex h-10 items-center justify-center rounded-[var(--pf-radius)] bg-[var(--pf-red)] px-4 text-sm font-semibold text-white shadow-[var(--pf-shadow-sm)] transition-colors hover:bg-[var(--pf-red-hover)]"
+      className="inline-flex h-10 items-center justify-center gap-2 rounded-[var(--pf-radius)] bg-[var(--pf-red)] px-4 text-sm font-semibold text-white shadow-[var(--pf-shadow-sm)] transition-colors hover:bg-[var(--pf-red-hover)]"
     >
+      <Megaphone className="h-4 w-4 shrink-0" strokeWidth={2.25} />
       {label}
     </Link>
   );

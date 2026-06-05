@@ -14,7 +14,8 @@ export const TIER_COMPARISON_ROWS: TierComparisonRow[] = [
   { feature: "Watchlist, rankings & follow callers", member: true, pro: true },
   { feature: "Fueled desk + model portfolio (live marks)", member: true, pro: true },
   { feature: "Onboarding watchlist + workspace tour", member: true, pro: true },
-  { feature: "In-app + email alerts", member: true, pro: true },
+  { feature: "In-app + email watchlist alerts", member: true, pro: true },
+  { feature: "SMS text watchlist alerts", member: false, pro: true },
   { feature: "Published calls per week", member: "2", pro: "6" },
   { feature: "News, earnings & SEC on tickers", member: false, pro: true },
   { feature: "Intraday chart (1H / 15m) + SMA / VWAP", member: false, pro: true },
@@ -22,11 +23,12 @@ export const TIER_COMPARISON_ROWS: TierComparisonRow[] = [
   { feature: "Earnings — reporting week + positioning", member: false, pro: true },
   { feature: "Shareable track record card", member: true, pro: true },
   { feature: "Ticker compare (2–3 symbols)", member: false, pro: true },
-  { feature: "Watchlist move & earnings alerts", member: false, pro: true },
+  { feature: "Watchlist price, earnings & plan-level alerts", member: true, pro: true },
   { feature: "Return distribution on profile", member: false, pro: true },
   { feature: "Pro feed & rankings analytics strips", member: false, pro: true },
   { feature: "AI thesis coach (educational — feedback on your draft)", member: "2/mo", pro: "30/mo" },
   { feature: "AI call summaries (one line for skimming)", member: "Read cached", pro: "Generate 60/mo" },
+  { feature: "AI journal context on watchlist alerts", member: "15/mo", pro: "75/mo" },
   { feature: "AI Assist (generate a draft call from ticker + notes)", member: false, pro: "10/day + 3 Deepen+/day" },
 ];
 
@@ -54,6 +56,8 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
       "Ticker charts with entry / target / stop lines",
       "AI thesis coach (educational): 2 reviews/mo",
       "AI call summaries: read cached quick reads",
+      "Watchlist alerts: price moves, earnings & plan levels (in-app + email)",
+      "AI journal context on alerts: 15/mo",
     ],
   },
   pro: {
@@ -71,6 +75,8 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
       "AI thesis coach (educational): 30 reviews/mo + track-record context",
       "AI call summaries: generate 60/mo",
       "AI Assist: generate draft calls from ticker + notes (10/day + 3 Deepen+/day)",
+      "SMS text alerts for watchlist (price, earnings, plan levels)",
+      "AI journal context on alerts: 75/mo",
     ],
   },
 };
@@ -182,7 +188,7 @@ export const LANDING_PRODUCT_PILLARS = [
   {
     title: "Research terminal (Pro)",
     description:
-      "Screener, multi-symbol compare, CSV export, watchlist move alerts, and analytics strips on feed and rankings.",
+      "Screener, multi-symbol compare, CSV export, SMS watchlist alerts, and analytics strips on feed and rankings.",
   },
 ] as const;
 
@@ -195,7 +201,8 @@ export const PRO_VALUE_BULLETS = [
   "Intraday chart (1H / 15m) with SMA and VWAP overlays",
   "Pro feed & rankings analytics (target progress, win-rate depth)",
   "6 published calls per week (vs 2 on Member)",
-  "Watchlist move alerts (±5% since you added a symbol)",
+  "SMS text watchlist alerts (price, earnings, plan levels)",
+  "Watchlist alerts with AI journal context (75/mo)",
   "Earnings calendar for your watchlist (next 14 days)",
   "Community screener — conviction, target progress, desk vs crowd (CSV export)",
   "Earnings — reporting week with community positioning",

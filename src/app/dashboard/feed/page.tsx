@@ -127,7 +127,7 @@ export default async function DashboardFeedPage({
         showNewOnly={showNewOnly}
       />
 
-      <WorkspaceQuickActions compact proUnlocked={!proLocked} />
+      <WorkspaceQuickActions proUnlocked={!proLocked} />
 
       <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} />
 

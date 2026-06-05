@@ -82,6 +82,10 @@ export function EarningsCalendarPanel({
         <Link href="/dashboard/earnings" className="font-semibold text-[var(--pf-red)] hover:underline">
           Open Earnings →
         </Link>
+        {" · "}
+        <Link href="/settings#alerts" className="font-semibold text-[var(--pf-red)] hover:underline">
+          Earnings alert prefs
+        </Link>
       </p>
 
       {loading ? (

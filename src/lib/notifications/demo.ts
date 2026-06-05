@@ -24,6 +24,15 @@ export function getDemoNotifications(): UserNotification[] {
       actor_username: "trader_mike",
     },
     {
+      id: "demo-n3a",
+      type: "watchlist_price_move",
+      title: "NVDA watchlist move",
+      body: "Up +6.2% since you added it. Your thesis still cites AI capex as the main catalyst.",
+      href: "/dashboard/watchlist/NVDA",
+      read_at: null,
+      created_at: new Date(now - 5400000).toISOString(),
+    },
+    {
       id: "demo-n3",
       type: "vote_on_call",
       title: "New vote on SPY",
