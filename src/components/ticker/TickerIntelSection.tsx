@@ -32,7 +32,7 @@ export function TickerIntelSection({
           {isEquity
             ? locked
               ? "Preview below — upgrade to read full headlines and SEC forms on every equity ticker."
-              : "Headlines, earnings calendar, and recent SEC filings for this symbol."
+              : "Headlines, earnings history, and SEC filings for this symbol. Watchlist = your upcoming dates; battleboard = market-wide positioning."
             : "Exchange-listed pairs only; equity tickers include full intel."}
         </p>
       </div>

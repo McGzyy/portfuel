@@ -46,7 +46,7 @@ export function ProOverviewIntelStrip({
         >
           <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-[var(--pf-red)]" strokeWidth={2.25} />
           <span className="min-w-0">
-            <span className="block text-sm font-bold text-[var(--pf-black)]">Earnings week</span>
+            <span className="block text-sm font-bold text-[var(--pf-black)]">Earnings battleboard</span>
             <span className="mt-0.5 block text-xs leading-relaxed text-[var(--pf-gray-600)]">
               {earningsLine}
             </span>

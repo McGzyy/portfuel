@@ -24,7 +24,7 @@ export function EarningsBattleboardCommandHeader({
               ? ` · Next: ${summary.nextSymbol} ${fmtDate(summary.nextDate)}`
               : ""
           }`
-        : `${summary.reportingCount} symbols reporting — add watchlist symbols or publish calls to see positioning.`;
+        : `${summary.reportingCount} symbols reporting — publish calls or follow names on the feed to fill in community columns.`;
 
   return (
     <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
@@ -37,11 +37,15 @@ export function EarningsBattleboardCommandHeader({
             Earnings battleboard
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">{headline}</p>
+          <p className="mt-2 text-xs leading-relaxed text-[var(--pf-gray-500)]">
+            Report dates = next 14 days (market calendar). Community &amp; desk stats = PortFuel calls
+            on those symbols from the last 30 days.
+          </p>
           <Link
             href="/dashboard/watchlist"
             className="mt-3 inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
           >
-            Watchlist & earnings calendar →
+            Watchlist calendar (your symbols only) →
           </Link>
         </div>
         <WorkspaceNewCallAction />

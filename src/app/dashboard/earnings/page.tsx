@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { EarningsBattleboardCommandHeader } from "@/components/pro/EarningsBattleboardCommandHeader";
 import { EarningsSurfacesExplainer } from "@/components/pro/EarningsSurfacesExplainer";
+import { EarningsBattleboardLegend } from "@/components/pro/EarningsBattleboardLegend";
 import { EarningsBattleboardTable } from "@/components/pro/EarningsBattleboardTable";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
@@ -42,9 +43,12 @@ export default async function DashboardEarningsPage() {
         locked={proLocked}
         cta={proGateCta}
         title="Earnings battleboard"
-        description="See which reporting symbols have community calls and how they line up with the Fueled desk."
+        description="Market-wide reporting week plus how PortFuel members and the Fueled desk are positioned before each report."
       >
-        <EarningsBattleboardTable rows={rows} />
+        <div className="space-y-4">
+          <EarningsBattleboardLegend />
+          <EarningsBattleboardTable rows={rows} />
+        </div>
       </ProIntelligenceGate>
     </div>
   );

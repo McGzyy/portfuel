@@ -72,8 +72,8 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
   },
   {
     href: "/dashboard/earnings",
-    label: "Earnings",
-    description: "Reporting week battleboard",
+    label: "Earnings battleboard",
+    description: "Reporting week + community positioning",
     icon: "calendar",
   },
   {

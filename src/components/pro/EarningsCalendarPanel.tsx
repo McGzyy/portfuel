@@ -69,13 +69,18 @@ export function EarningsCalendarPanel({
       <div className="flex items-center gap-2">
         <Calendar className="h-4 w-4 text-[var(--pf-red)]" strokeWidth={2.25} />
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-          Earnings calendar · next 14 days
+          Watchlist earnings calendar · next 14 days
         </p>
       </div>
-      <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-        Upcoming reports for symbols on your watchlist (equity only).{" "}
+      <p className="mt-1 text-xs leading-relaxed text-[var(--pf-gray-500)]">
+        <strong className="font-semibold text-[var(--pf-gray-700)]">Your symbols only</strong> —
+        report dates from the same market calendar as the battleboard, filtered to equities on your
+        watchlist. No member or desk positioning here.
+      </p>
+      <p className="mt-1.5 text-xs text-[var(--pf-gray-500)]">
+        Want market-wide positioning before earnings?{" "}
         <Link href="/dashboard/earnings" className="font-semibold text-[var(--pf-red)] hover:underline">
-          Earnings battleboard →
+          Open earnings battleboard →
         </Link>
       </p>
 
@@ -116,8 +121,8 @@ export function EarningsCalendarPanel({
     <ProIntelligenceGate
       locked={locked}
       cta={proGateCta}
-      title="Pro earnings calendar"
-      description="See upcoming earnings for every symbol on your watchlist — plan around community calls."
+      title="Watchlist earnings calendar"
+      description="Upcoming report dates for symbols you track. For community lean and desk direction, use the earnings battleboard."
       compact
     >
       {body}
