@@ -29,7 +29,7 @@ Use this after deploys or when validating Pro / feed behavior in production.
 5. First visit — **Workspace map** modal once (sidebar **Help** reopens it).
 6. **Public profile** (`/member/{username}`) — share track record PNG when you have calls; **Settings** (`/settings`) for billing and referrals.
 7. **Screener (Pro)** — Activity / Target progress / Desk vs crowd / Conviction tabs.
-8. **Earnings battleboard (Pro)** — three-surfaces explainer; reporting symbols with community lean + desk direction.
+8. **Earnings (Pro)** — how-it-works explainer; reporting symbols with community lean + desk direction.
 9. **Legacy `/profile`** — redirects to your public member page.
 
 ## Admin & referrals

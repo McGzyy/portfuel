@@ -18,7 +18,7 @@ import {
 } from "@/lib/earnings/battleboard";
 
 export const metadata: Metadata = {
-  title: "Earnings battleboard",
+  title: "Earnings",
 };
 
 export default async function DashboardEarningsPage() {
@@ -42,7 +42,7 @@ export default async function DashboardEarningsPage() {
       <ProIntelligenceGate
         locked={proLocked}
         cta={proGateCta}
-        title="Earnings battleboard"
+        title="Earnings"
         description="Market-wide reporting week plus how PortFuel members and the Fueled desk are positioned before each report."
       >
         <div className="space-y-4">

@@ -31,8 +31,8 @@ export function ProOverviewIntelStrip({
     battleboard.withCommunity > 0 && battleboard.nextSymbol && battleboard.nextDate
       ? `${battleboard.withCommunity} reporting name${battleboard.withCommunity === 1 ? "" : "s"} with calls · next ${battleboard.nextSymbol} ${fmtShortDate(battleboard.nextDate)}`
       : battleboard.reportingCount > 0
-        ? `${battleboard.reportingCount} symbols reporting — open battleboard for positioning`
-        : "Earnings battleboard";
+        ? `${battleboard.reportingCount} symbols reporting — open Earnings for positioning`
+        : "Earnings";
 
   return (
     <section className="pf-workspace-panel px-4 py-3 sm:px-5">
@@ -46,7 +46,7 @@ export function ProOverviewIntelStrip({
         >
           <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-[var(--pf-red)]" strokeWidth={2.25} />
           <span className="min-w-0">
-            <span className="block text-sm font-bold text-[var(--pf-black)]">Earnings battleboard</span>
+            <span className="block text-sm font-bold text-[var(--pf-black)]">Earnings</span>
             <span className="mt-0.5 block text-xs leading-relaxed text-[var(--pf-gray-600)]">
               {earningsLine}
             </span>

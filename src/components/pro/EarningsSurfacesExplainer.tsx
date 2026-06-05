@@ -18,7 +18,7 @@ const SURFACES = [
     linkLabel: "Watchlist calendar",
   },
   {
-    title: "Earnings battleboard",
+    title: "Earnings",
     when: "Scanning the market",
     description:
       "Every symbol reporting in the next 14 days, plus how PortFuel members and the Fueled desk are positioned (calls from the last 30 days).",
@@ -41,8 +41,8 @@ export function EarningsSurfacesExplainer() {
         Same earnings dates, three scopes
       </h2>
       <p className="mt-1.5 max-w-3xl text-xs leading-relaxed text-[var(--pf-gray-500)]">
-        All views use the same market earnings calendar (via Finnhub). Only the{" "}
-        <strong className="font-semibold text-[var(--pf-gray-700)]">battleboard</strong> layers on
+        All views use the same market earnings calendar (via Finnhub). Only{" "}
+        <strong className="font-semibold text-[var(--pf-gray-700)]">Earnings</strong> layers on
         PortFuel call data — who is long/short before the report.
       </p>
 
@@ -58,7 +58,7 @@ export function EarningsSurfacesExplainer() {
         </li>
         <li className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-3.5">
           <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--pf-red)]">
-            Step 2 · Battleboard overlay
+            Step 2 · Earnings overlay
           </p>
           <p className="mt-1.5 text-xs leading-relaxed text-[var(--pf-gray-600)]">
             <strong className="font-semibold text-[var(--pf-black)]">Who is positioned?</strong>{" "}

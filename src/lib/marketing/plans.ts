@@ -19,7 +19,7 @@ export const TIER_COMPARISON_ROWS: TierComparisonRow[] = [
   { feature: "News, earnings & SEC on tickers", member: false, pro: true },
   { feature: "Intraday chart (1H / 15m) + SMA / VWAP", member: false, pro: true },
   { feature: "Community screener & CSV export", member: false, pro: true },
-  { feature: "Earnings battleboard", member: false, pro: true },
+  { feature: "Earnings — reporting week + positioning", member: false, pro: true },
   { feature: "Shareable track record card", member: true, pro: true },
   { feature: "Ticker compare (2–3 symbols)", member: false, pro: true },
   { feature: "Watchlist move & earnings alerts", member: false, pro: true },
@@ -198,7 +198,7 @@ export const PRO_VALUE_BULLETS = [
   "Watchlist move alerts (±5% since you added a symbol)",
   "Earnings calendar for your watchlist (next 14 days)",
   "Community screener — conviction, target progress, desk vs crowd (CSV export)",
-  "Earnings battleboard — reporting week with community positioning",
+  "Earnings — reporting week with community positioning",
   "Ticker compare — 2–3 symbols on one normalized chart",
   "Return distribution on your profile track record",
 ] as const;

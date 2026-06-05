@@ -74,13 +74,13 @@ export function EarningsCalendarPanel({
       </div>
       <p className="mt-1 text-xs leading-relaxed text-[var(--pf-gray-500)]">
         <strong className="font-semibold text-[var(--pf-gray-700)]">Your symbols only</strong> —
-        report dates from the same market calendar as the battleboard, filtered to equities on your
+        report dates from the same market calendar as Earnings, filtered to equities on your
         watchlist. No member or desk positioning here.
       </p>
       <p className="mt-1.5 text-xs text-[var(--pf-gray-500)]">
-        Want market-wide positioning before earnings?{" "}
+        Want market-wide positioning before reports?{" "}
         <Link href="/dashboard/earnings" className="font-semibold text-[var(--pf-red)] hover:underline">
-          Open earnings battleboard →
+          Open Earnings →
         </Link>
       </p>
 
@@ -122,7 +122,7 @@ export function EarningsCalendarPanel({
       locked={locked}
       cta={proGateCta}
       title="Watchlist earnings calendar"
-      description="Upcoming report dates for symbols you track. For community lean and desk direction, use the earnings battleboard."
+      description="Upcoming report dates for symbols you track. For community lean and desk direction, open Earnings."
       compact
     >
       {body}

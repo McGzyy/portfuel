@@ -5,7 +5,7 @@ import { formatTierPrice } from "@/lib/marketing/plans";
 
 const LINKS = [
   { href: "/dashboard/screener", label: "Screener", icon: ScanSearch },
-  { href: "/dashboard/earnings", label: "Earnings battleboard", icon: Calendar },
+  { href: "/dashboard/earnings", label: "Earnings", icon: Calendar },
   { href: "/dashboard/compare", label: "Compare", icon: GitCompare },
   { href: "/ticker/NVDA", label: "Ticker intel", icon: BarChart3 },
 ] as const;

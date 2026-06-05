@@ -34,7 +34,7 @@ export function EarningsBattleboardCommandHeader({
             Pro Intelligence · Earnings
           </p>
           <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
-            Earnings battleboard
+            Earnings
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">{headline}</p>
           <p className="mt-2 text-xs leading-relaxed text-[var(--pf-gray-500)]">

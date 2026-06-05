@@ -72,8 +72,8 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
   },
   {
     href: "/dashboard/earnings",
-    label: "Earnings battleboard",
-    description: "Reporting week + community positioning",
+    label: "Earnings",
+    description: "Reporting week + positioning",
     icon: "calendar",
   },
   {
@@ -185,8 +185,8 @@ const WORKSPACE_GUIDE_SECTIONS_TEMPLATE: {
       },
       {
         href: "/dashboard/earnings",
-        label: "Earnings battleboard",
-        description: "Reporting week symbols with community positioning (Pro).",
+        label: "Earnings",
+        description: "Reporting week with community positioning (Pro).",
       },
       {
         href: "/dashboard/compare",
