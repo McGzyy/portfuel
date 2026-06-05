@@ -7,7 +7,8 @@ import { TickerChartSection } from "@/components/charts/TickerChartSection";
 import { WatchlistJournalPlanForm } from "@/components/watchlist/WatchlistJournalPlanForm";
 import { WatchlistJournalStats } from "@/components/watchlist/WatchlistJournalStats";
 import { WatchlistJournalTimeline } from "@/components/watchlist/WatchlistJournalTimeline";
-import { buildJournalPriceLines } from "@/lib/charts/price-lines";
+import { buildJournalPriceLines, buildJournalScenarioPriceLines } from "@/lib/charts/price-lines";
+import { WatchlistJournalScenarioStrip } from "@/components/watchlist/WatchlistJournalScenarioStrip";
 import type { CandlePoint, ChartMarker } from "@/lib/charts/types";
 import type { TickerIntel } from "@/lib/market/ticker-intel";
 import { buildJournalEntryMarkers } from "@/lib/watchlist/journal-markers";
@@ -30,7 +31,10 @@ export function WatchlistJournalWorkspace({
 }) {
   const [journal, setJournal] = useState(initialJournal);
   const [entries, setEntries] = useState(initialEntries);
-  const priceLines = useMemo(() => buildJournalPriceLines(journal), [journal]);
+  const priceLines = useMemo(
+    () => [...buildJournalPriceLines(journal), ...buildJournalScenarioPriceLines(journal)],
+    [journal]
+  );
 
   const candles: CandlePoint[] = intel.candles.map((c) => ({
     time: c.time,
@@ -106,6 +110,8 @@ export function WatchlistJournalWorkspace({
       </header>
 
       <WatchlistJournalStats intel={intel} />
+
+      <WatchlistJournalScenarioStrip journal={journal} />
 
       <TickerChartSection
         symbol={journal.symbol}

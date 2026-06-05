@@ -130,3 +130,40 @@ export function buildJournalPriceLines(journal: {
 
   return lines;
 }
+
+const SCENARIO_BULL = "#d97706";
+const SCENARIO_BASE = "#64748b";
+const SCENARIO_BEAR = "#be123c";
+
+export function buildJournalScenarioPriceLines(journal: {
+  bull_case_price?: number | null;
+  base_case_price?: number | null;
+  bear_case_price?: number | null;
+}): PriceLine[] {
+  const lines: PriceLine[] = [];
+  if (journal.bull_case_price != null && journal.bull_case_price > 0) {
+    lines.push({
+      price: journal.bull_case_price,
+      label: "Bull case",
+      color: SCENARIO_BULL,
+      style: "dashed",
+    });
+  }
+  if (journal.base_case_price != null && journal.base_case_price > 0) {
+    lines.push({
+      price: journal.base_case_price,
+      label: "Base case",
+      color: SCENARIO_BASE,
+      style: "dashed",
+    });
+  }
+  if (journal.bear_case_price != null && journal.bear_case_price > 0) {
+    lines.push({
+      price: journal.bear_case_price,
+      label: "Bear case",
+      color: SCENARIO_BEAR,
+      style: "dashed",
+    });
+  }
+  return lines;
+}

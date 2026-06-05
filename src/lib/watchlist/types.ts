@@ -17,4 +17,6 @@ export type WatchlistEntry = {
   has_thesis?: boolean;
   /** Private journal last update */
   journal_updated_at?: string | null;
+  outcome?: string | null;
+  catalyst_count?: number;
 };

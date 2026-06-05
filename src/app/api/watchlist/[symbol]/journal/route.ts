@@ -2,11 +2,39 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireActiveMember } from "@/lib/auth/session";
 import {
+  JOURNAL_CATALYST_OPTIONS,
+  JOURNAL_OUTCOMES,
+  normalizeCatalysts,
+  normalizePersonalTags,
+  type JournalOutcome,
+} from "@/lib/watchlist/journal-meta";
+import type { WatchlistJournalPatch } from "@/lib/watchlist/journal-types";
+import {
   fetchWatchlistJournal,
   updateWatchlistJournal,
 } from "@/lib/watchlist/journal";
 
 type RouteContext = { params: Promise<{ symbol: string }> };
+
+const outcomeValues = JOURNAL_OUTCOMES.map((o) => o.value) as [string, ...string[]];
+
+const patchSchema = z.object({
+  thesis: z.string().max(4000).nullable().optional(),
+  conviction: z.number().int().min(1).max(10).nullable().optional(),
+  entry_price: z.number().positive().nullable().optional(),
+  stop_price: z.number().positive().nullable().optional(),
+  target_price: z.number().positive().nullable().optional(),
+  entry_note: z.string().max(500).nullable().optional(),
+  catalysts: z
+    .array(z.enum([...JOURNAL_CATALYST_OPTIONS] as [string, ...string[]]))
+    .optional(),
+  risk_factors: z.string().max(2000).nullable().optional(),
+  personal_tags: z.array(z.string().max(24)).max(12).optional(),
+  outcome: z.enum(outcomeValues).optional(),
+  bull_case_price: z.number().positive().nullable().optional(),
+  base_case_price: z.number().positive().nullable().optional(),
+  bear_case_price: z.number().positive().nullable().optional(),
+});
 
 export async function GET(_request: Request, context: RouteContext) {
   try {
@@ -26,21 +54,18 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 }
 
-const patchSchema = z.object({
-  thesis: z.string().max(4000).nullable().optional(),
-  conviction: z.number().int().min(1).max(10).nullable().optional(),
-  entry_price: z.number().positive().nullable().optional(),
-  stop_price: z.number().positive().nullable().optional(),
-  target_price: z.number().positive().nullable().optional(),
-  entry_note: z.string().max(500).nullable().optional(),
-});
-
 export async function PATCH(request: Request, context: RouteContext) {
   try {
     const session = await requireActiveMember();
     const { symbol } = await context.params;
     const body = patchSchema.parse(await request.json());
-    const result = await updateWatchlistJournal(session.userId, symbol, body);
+    const patch: WatchlistJournalPatch = {
+      ...body,
+      catalysts: body.catalysts ? normalizeCatalysts(body.catalysts) : undefined,
+      personal_tags: body.personal_tags ? normalizePersonalTags(body.personal_tags) : undefined,
+      outcome: body.outcome as JournalOutcome | undefined,
+    };
+    const result = await updateWatchlistJournal(session.userId, symbol, patch);
     if ("error" in result) {
       const status =
         result.error === "not_on_watchlist"

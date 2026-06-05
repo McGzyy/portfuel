@@ -18,7 +18,7 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
   const { data, error } = await db
     .from("user_watchlist")
     .select(
-      "symbol, asset_class, created_at, baseline_price, conviction, thesis, journal_updated_at"
+      "symbol, asset_class, created_at, baseline_price, conviction, thesis, journal_updated_at, outcome, catalysts"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
@@ -239,6 +239,8 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
       thesis?: string | null;
       conviction?: number | null;
       journal_updated_at?: string | null;
+      outcome?: string | null;
+      catalysts?: string[] | null;
     };
     return {
       ...row,
@@ -247,6 +249,7 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
       return_pct: returnMap.get(e.symbol) ?? null,
       change_since_add_pct,
       has_thesis: Boolean(row.thesis?.trim()),
+      catalyst_count: row.catalysts?.length ?? 0,
     };
   });
 }

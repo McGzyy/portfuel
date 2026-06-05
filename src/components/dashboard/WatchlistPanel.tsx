@@ -11,6 +11,7 @@ import { WatchlistMoveAlerts } from "@/components/dashboard/WatchlistMoveAlerts"
 import { MiniSparkline } from "@/components/charts/MiniSparkline";
 import type { LinePoint } from "@/lib/charts/types";
 import { formatPct, formatPrice } from "@/lib/utils";
+import { outcomeLabel } from "@/lib/watchlist/journal-meta";
 import { WATCHLIST_MOVE_ALERT_PCT } from "@/lib/watchlist/service";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { getDemoWatchlistSeed } from "@/lib/watchlist/demo";
@@ -68,6 +69,7 @@ export function WatchlistPanel({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(false);
+  const [filter, setFilter] = useState<"all" | "high">("all");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -241,6 +243,33 @@ export function WatchlistPanel({
 
       {error ? <p className="mt-2 text-xs text-rose-600">{error}</p> : null}
 
+      {items.length > 0 ? (
+        <div className="mt-3 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setFilter("all")}
+            className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${
+              filter === "all"
+                ? "bg-[var(--pf-black)] text-white"
+                : "border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
+            }`}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilter("high")}
+            className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${
+              filter === "high"
+                ? "bg-indigo-600 text-white"
+                : "border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
+            }`}
+          >
+            High conviction (8+)
+          </button>
+        </div>
+      ) : null}
+
       {!loading && items.length > 0 ? (
         <div className="mt-3">
           <WatchlistMoveAlerts items={items} proUnlocked={proUnlocked} />
@@ -253,7 +282,11 @@ export function WatchlistPanel({
         <p className="mt-4 text-xs text-[var(--pf-gray-500)]">No symbols yet. Add one above.</p>
       ) : (
         <ul className="mt-4 space-y-1">
-          {items.map((item) => (
+          {items
+            .filter((item) =>
+              filter === "high" ? (item.conviction ?? 0) >= 8 : true
+            )
+            .map((item) => (
             <li
               key={item.symbol}
               className="group flex items-center gap-2 rounded-lg border border-transparent px-2 py-2 hover:border-[var(--pf-border)] hover:bg-[var(--pf-gray-50)]"
@@ -279,6 +312,11 @@ export function WatchlistPanel({
                     {!item.has_thesis ? (
                       <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
                         No thesis
+                      </span>
+                    ) : null}
+                    {item.outcome && item.outcome !== "watching" ? (
+                      <span className="rounded-full bg-[var(--pf-gray-100)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--pf-gray-600)]">
+                        {outcomeLabel(item.outcome)}
                       </span>
                     ) : null}
                   </span>

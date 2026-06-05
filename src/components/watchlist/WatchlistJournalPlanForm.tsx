@@ -5,7 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  JOURNAL_CATALYST_OPTIONS,
+  JOURNAL_OUTCOMES,
+  parseTagsInput,
+  type JournalCatalyst,
+  type JournalOutcome,
+} from "@/lib/watchlist/journal-meta";
 import type { WatchlistJournal } from "@/lib/watchlist/journal-types";
+import { cn } from "@/lib/utils";
 
 export function WatchlistJournalPlanForm({
   symbol,
@@ -30,9 +38,28 @@ export function WatchlistJournalPlanForm({
     initial.target_price != null ? String(initial.target_price) : ""
   );
   const [entryNote, setEntryNote] = useState(initial.entry_note ?? "");
+  const [catalysts, setCatalysts] = useState<JournalCatalyst[]>(initial.catalysts ?? []);
+  const [riskFactors, setRiskFactors] = useState(initial.risk_factors ?? "");
+  const [tagsInput, setTagsInput] = useState((initial.personal_tags ?? []).join(", "));
+  const [outcome, setOutcome] = useState<JournalOutcome>(initial.outcome ?? "watching");
+  const [bullPrice, setBullPrice] = useState(
+    initial.bull_case_price != null ? String(initial.bull_case_price) : ""
+  );
+  const [basePrice, setBasePrice] = useState(
+    initial.base_case_price != null ? String(initial.base_case_price) : ""
+  );
+  const [bearPrice, setBearPrice] = useState(
+    initial.bear_case_price != null ? String(initial.bear_case_price) : ""
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+
+  function toggleCatalyst(c: JournalCatalyst) {
+    setCatalysts((prev) =>
+      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
+    );
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -50,6 +77,13 @@ export function WatchlistJournalPlanForm({
           stop_price: stopPrice ? Number(stopPrice) : null,
           target_price: targetPrice ? Number(targetPrice) : null,
           entry_note: entryNote.trim() || null,
+          catalysts,
+          risk_factors: riskFactors.trim() || null,
+          personal_tags: parseTagsInput(tagsInput),
+          outcome,
+          bull_case_price: bullPrice ? Number(bullPrice) : null,
+          base_case_price: basePrice ? Number(basePrice) : null,
+          bear_case_price: bearPrice ? Number(bearPrice) : null,
         }),
       });
       const data = await res.json();
@@ -67,13 +101,13 @@ export function WatchlistJournalPlanForm({
   }
 
   return (
-    <form onSubmit={save} className="pf-workspace-panel space-y-4 p-4 sm:p-5">
+    <form onSubmit={save} className="pf-workspace-panel space-y-5 p-4 sm:p-5">
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
           Thesis &amp; plan
         </p>
         <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-          Why are you watching this? Set conviction and plan levels — they draw on your private chart.
+          Private research notebook — catalysts, risks, and scenario prices draw on your chart.
         </p>
       </div>
 
@@ -84,26 +118,90 @@ export function WatchlistJournalPlanForm({
           value={thesis}
           onChange={(e) => setThesis(e.target.value)}
           placeholder="AI infrastructure growth, earnings turnaround, theme exposure…"
-          className="mt-1.5 min-h-[100px]"
+          className="mt-1.5 min-h-[88px]"
           maxLength={4000}
         />
       </div>
 
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="journal-conviction">Conviction (1–10)</Label>
+          <select
+            id="journal-conviction"
+            value={conviction}
+            onChange={(e) => setConviction(e.target.value)}
+            className="mt-1.5 w-full rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-white px-3 py-2 text-sm font-semibold"
+          >
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={String(n)}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <Label htmlFor="journal-outcome">Outcome</Label>
+          <select
+            id="journal-outcome"
+            value={outcome}
+            onChange={(e) => setOutcome(e.target.value as JournalOutcome)}
+            className="mt-1.5 w-full rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-white px-3 py-2 text-sm font-semibold"
+          >
+            {JOURNAL_OUTCOMES.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div>
-        <Label htmlFor="journal-conviction">Conviction (1–10)</Label>
-        <select
-          id="journal-conviction"
-          value={conviction}
-          onChange={(e) => setConviction(e.target.value)}
-          className="mt-1.5 w-full rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-white px-3 py-2 text-sm font-semibold"
-        >
-          {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-            <option key={n} value={String(n)}>
-              {n}
-              {n === 2 ? " · Interesting" : n === 5 ? " · Monitoring" : n === 8 ? " · Near entry" : n === 10 ? " · Highest" : ""}
-            </option>
-          ))}
-        </select>
+        <Label>Catalysts</Label>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {JOURNAL_CATALYST_OPTIONS.map((c) => {
+            const on = catalysts.includes(c);
+            return (
+              <button
+                key={c}
+                type="button"
+                onClick={() => toggleCatalyst(c)}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-[10px] font-semibold transition-colors",
+                  on
+                    ? "border-[var(--pf-red)] bg-[var(--pf-red)]/10 text-[var(--pf-red)]"
+                    : "border-[var(--pf-border)] bg-white text-[var(--pf-gray-600)] hover:border-[var(--pf-gray-300)]"
+                )}
+              >
+                {c}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="journal-risks">What could invalidate this?</Label>
+        <Textarea
+          id="journal-risks"
+          value={riskFactors}
+          onChange={(e) => setRiskFactors(e.target.value)}
+          placeholder="Revenue slowdown, valuation, customer concentration, regulatory risk…"
+          className="mt-1.5 min-h-[72px]"
+          maxLength={2000}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="journal-tags">Personal tags</Label>
+        <Input
+          id="journal-tags"
+          value={tagsInput}
+          onChange={(e) => setTagsInput(e.target.value)}
+          placeholder="AI, swing trade, earnings play, long-term hold"
+          className="mt-1.5"
+        />
+        <p className="mt-1 text-[10px] text-[var(--pf-gray-500)]">Comma-separated — for your own filters later.</p>
       </div>
 
       <div>
@@ -112,58 +210,107 @@ export function WatchlistJournalPlanForm({
           id="journal-entry-note"
           value={entryNote}
           onChange={(e) => setEntryNote(e.target.value)}
-          placeholder="Under $40, retest of 200 MA, pullback after earnings…"
+          placeholder="Under $40, retest of 200 MA…"
           className="mt-1.5"
           maxLength={500}
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div>
-          <Label htmlFor="journal-entry">Plan entry ($)</Label>
-          <Input
-            id="journal-entry"
-            type="number"
-            step="any"
-            min="0"
-            value={entryPrice}
-            onChange={(e) => setEntryPrice(e.target.value)}
-            className="mt-1.5 font-mono"
-          />
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+          Trade plan ($)
+        </p>
+        <div className="mt-2 grid gap-3 sm:grid-cols-3">
+          <div>
+            <Label htmlFor="journal-entry">Entry</Label>
+            <Input
+              id="journal-entry"
+              type="number"
+              step="any"
+              min="0"
+              value={entryPrice}
+              onChange={(e) => setEntryPrice(e.target.value)}
+              className="mt-1 font-mono"
+            />
+          </div>
+          <div>
+            <Label htmlFor="journal-stop">Stop</Label>
+            <Input
+              id="journal-stop"
+              type="number"
+              step="any"
+              min="0"
+              value={stopPrice}
+              onChange={(e) => setStopPrice(e.target.value)}
+              className="mt-1 font-mono"
+            />
+          </div>
+          <div>
+            <Label htmlFor="journal-target">Target</Label>
+            <Input
+              id="journal-target"
+              type="number"
+              step="any"
+              min="0"
+              value={targetPrice}
+              onChange={(e) => setTargetPrice(e.target.value)}
+              className="mt-1 font-mono"
+            />
+          </div>
         </div>
-        <div>
-          <Label htmlFor="journal-stop">Stop ($)</Label>
-          <Input
-            id="journal-stop"
-            type="number"
-            step="any"
-            min="0"
-            value={stopPrice}
-            onChange={(e) => setStopPrice(e.target.value)}
-            className="mt-1.5 font-mono"
-          />
-        </div>
-        <div>
-          <Label htmlFor="journal-target">Target ($)</Label>
-          <Input
-            id="journal-target"
-            type="number"
-            step="any"
-            min="0"
-            value={targetPrice}
-            onChange={(e) => setTargetPrice(e.target.value)}
-            className="mt-1.5 font-mono"
-          />
+      </div>
+
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+          Bull / base / bear ($)
+        </p>
+        <div className="mt-2 grid gap-3 sm:grid-cols-3">
+          <div>
+            <Label htmlFor="journal-bull">Bull case</Label>
+            <Input
+              id="journal-bull"
+              type="number"
+              step="any"
+              min="0"
+              value={bullPrice}
+              onChange={(e) => setBullPrice(e.target.value)}
+              className="mt-1 font-mono"
+            />
+          </div>
+          <div>
+            <Label htmlFor="journal-base">Base case</Label>
+            <Input
+              id="journal-base"
+              type="number"
+              step="any"
+              min="0"
+              value={basePrice}
+              onChange={(e) => setBasePrice(e.target.value)}
+              className="mt-1 font-mono"
+            />
+          </div>
+          <div>
+            <Label htmlFor="journal-bear">Bear case</Label>
+            <Input
+              id="journal-bear"
+              type="number"
+              step="any"
+              min="0"
+              value={bearPrice}
+              onChange={(e) => setBearPrice(e.target.value)}
+              className="mt-1 font-mono"
+            />
+          </div>
         </div>
       </div>
 
       {error ? <p className="text-xs text-rose-600">{error}</p> : null}
       {saved ? (
-        <p className="text-xs font-semibold text-emerald-700">Saved — chart levels updated.</p>
+        <p className="text-xs font-semibold text-emerald-700">Saved — chart and scenario strip updated.</p>
       ) : null}
 
       <Button type="submit" size="sm" disabled={saving}>
-        {saving ? "Saving…" : "Save plan"}
+        {saving ? "Saving…" : "Save journal"}
       </Button>
     </form>
   );

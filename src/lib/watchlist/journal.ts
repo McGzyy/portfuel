@@ -1,11 +1,19 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { getQuote } from "@/lib/market/finnhub";
+import {
+  normalizeCatalysts,
+  normalizePersonalTags,
+  type JournalOutcome,
+} from "@/lib/watchlist/journal-meta";
 import type {
   WatchlistJournal,
   WatchlistJournalEntry,
   WatchlistJournalPatch,
 } from "@/lib/watchlist/journal-types";
+
+const JOURNAL_SELECT =
+  "symbol, asset_class, created_at, baseline_price, thesis, conviction, entry_price, stop_price, target_price, entry_note, journal_updated_at, catalysts, risk_factors, personal_tags, outcome, bull_case_price, base_case_price, bear_case_price";
 
 type WatchlistRow = {
   symbol: string;
@@ -19,6 +27,13 @@ type WatchlistRow = {
   target_price: number | null;
   entry_note: string | null;
   journal_updated_at: string | null;
+  catalysts: string[] | null;
+  risk_factors: string | null;
+  personal_tags: string[] | null;
+  outcome: JournalOutcome;
+  bull_case_price: number | null;
+  base_case_price: number | null;
+  bear_case_price: number | null;
 };
 
 function mapJournalRow(row: WatchlistRow, lastPrice?: number | null): WatchlistJournal {
@@ -34,6 +49,13 @@ function mapJournalRow(row: WatchlistRow, lastPrice?: number | null): WatchlistJ
     stop_price: row.stop_price != null ? Number(row.stop_price) : null,
     target_price: row.target_price != null ? Number(row.target_price) : null,
     entry_note: row.entry_note,
+    catalysts: normalizeCatalysts(row.catalysts),
+    risk_factors: row.risk_factors,
+    personal_tags: normalizePersonalTags(row.personal_tags),
+    outcome: row.outcome ?? "watching",
+    bull_case_price: row.bull_case_price != null ? Number(row.bull_case_price) : null,
+    base_case_price: row.base_case_price != null ? Number(row.base_case_price) : null,
+    bear_case_price: row.bear_case_price != null ? Number(row.bear_case_price) : null,
     journal_updated_at: row.journal_updated_at,
   };
 }
@@ -72,9 +94,7 @@ export async function fetchWatchlistJournal(
   const db = createServiceClient();
   const { data, error } = await db
     .from("user_watchlist")
-    .select(
-      "symbol, asset_class, created_at, baseline_price, thesis, conviction, entry_price, stop_price, target_price, entry_note, journal_updated_at"
-    )
+    .select(JOURNAL_SELECT)
     .eq("user_id", userId)
     .eq("symbol", sym)
     .maybeSingle();
@@ -125,6 +145,30 @@ export async function updateWatchlistJournal(
     const n = patch.entry_note?.trim() ?? "";
     updates.entry_note = n.length > 0 ? n.slice(0, 500) : null;
   }
+  if (patch.catalysts !== undefined) {
+    updates.catalysts = normalizeCatalysts(patch.catalysts);
+  }
+  if (patch.risk_factors !== undefined) {
+    const r = patch.risk_factors?.trim() ?? "";
+    updates.risk_factors = r.length > 0 ? r.slice(0, 2000) : null;
+  }
+  if (patch.personal_tags !== undefined) {
+    updates.personal_tags = normalizePersonalTags(patch.personal_tags);
+  }
+  if (patch.outcome !== undefined) {
+    updates.outcome = patch.outcome;
+  }
+  if (patch.bull_case_price !== undefined) {
+    updates.bull_case_price = normalizePrice(patch.bull_case_price);
+  }
+  if (patch.base_case_price !== undefined) {
+    updates.base_case_price = normalizePrice(patch.base_case_price);
+  }
+  if (patch.bear_case_price !== undefined) {
+    updates.bear_case_price = normalizePrice(patch.bear_case_price);
+  }
+
+  const outcomeAfter = updates.outcome as JournalOutcome | undefined;
 
   const { error } = await db
     .from("user_watchlist")
@@ -146,6 +190,12 @@ export async function updateWatchlistJournal(
     await addJournalEntry(userId, sym, {
       body: `Conviction updated to ${convictionAfter}.`,
       conviction_after: convictionAfter,
+    });
+  }
+
+  if (outcomeAfter !== undefined && outcomeAfter !== existing.outcome) {
+    await addJournalEntry(userId, sym, {
+      body: `Outcome set to ${outcomeAfter.replace(/_/g, " ")}.`,
     });
   }
 

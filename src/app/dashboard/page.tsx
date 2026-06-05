@@ -43,6 +43,8 @@ import { filterCallsByFollowing } from "@/lib/calls/filter-feed";
 import { fetchDeskBrief } from "@/lib/desk/brief";
 import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
 import { fetchWatchlist } from "@/lib/watchlist/service";
+import { fetchJournalHighlights } from "@/lib/watchlist/journal-highlights";
+import { WatchlistJournalPulse } from "@/components/watchlist/WatchlistJournalPulse";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
 import { ProOverviewIntelStrip } from "@/components/pro/ProOverviewIntelStrip";
 import { fetchCommunityScreener } from "@/lib/screener/community";
@@ -201,6 +203,13 @@ export default async function DashboardOverviewPage({
     avgPulse == null ? undefined : avgPulse >= 0 ? ("positive" as const) : ("negative" as const);
   const isPro = !proLocked;
 
+  let journalIdeas: Awaited<ReturnType<typeof fetchJournalHighlights>> = [];
+  try {
+    journalIdeas = await fetchJournalHighlights(session.userId);
+  } catch {
+    /* optional */
+  }
+
   let proIntel: { battleboard: ReturnType<typeof summarizeBattleboard>; screener: Awaited<ReturnType<typeof fetchCommunityScreener>> } | null = null;
   if (isPro) {
     const [screener, battleboardRows] = await Promise.all([
@@ -233,6 +242,8 @@ export default async function DashboardOverviewPage({
       />
 
       <WorkspaceQuickActions proUnlocked={isPro} />
+
+      {journalIdeas.length > 0 ? <WatchlistJournalPulse ideas={journalIdeas} /> : null}
 
       {proIntel ? (
         <ProOverviewIntelStrip
