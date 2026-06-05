@@ -19,4 +19,6 @@ export type WatchlistEntry = {
   journal_updated_at?: string | null;
   outcome?: string | null;
   catalyst_count?: number;
+  /** Preset catalyst tags from journal */
+  catalysts?: string[];
 };

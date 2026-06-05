@@ -4,6 +4,7 @@ import { getQuote } from "@/lib/market/finnhub";
 import { getDemoWatchlist } from "@/lib/watchlist/demo";
 import { detectAssetClassForSymbol } from "@/lib/watchlist/symbol-detect";
 import { enrichWatchlistActivity } from "@/lib/watchlist/activity";
+import { normalizeCatalysts } from "@/lib/watchlist/journal-meta";
 import { addJournalEntry, resolveBaselinePrice } from "@/lib/watchlist/journal";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 
@@ -250,6 +251,7 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
       change_since_add_pct,
       has_thesis: Boolean(row.thesis?.trim()),
       catalyst_count: row.catalysts?.length ?? 0,
+      catalysts: normalizeCatalysts(row.catalysts),
     };
   });
 }

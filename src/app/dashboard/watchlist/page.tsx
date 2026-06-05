@@ -11,6 +11,8 @@ import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { isDemoMode } from "@/lib/demo/config";
 import { fetchWatchlist } from "@/lib/watchlist/service";
+import { fetchJournalReview } from "@/lib/watchlist/journal-review";
+import { WatchlistJournalReviewPanel } from "@/components/watchlist/WatchlistJournalReviewPanel";
 import {
   canAccessProIntelligence,
   getProGateCta,
@@ -30,8 +32,12 @@ export default async function DashboardWatchlistPage() {
   const proUnlocked = canAccessProIntelligence(proContext);
 
   let items: Awaited<ReturnType<typeof fetchWatchlist>> = [];
+  let journalReview: Awaited<ReturnType<typeof fetchJournalReview>> | null = null;
   try {
-    items = await fetchWatchlist(session.userId);
+    [items, journalReview] = await Promise.all([
+      fetchWatchlist(session.userId),
+      fetchJournalReview(session.userId),
+    ]);
   } catch (e) {
     console.error("[watchlist/page]", e);
   }
@@ -72,6 +78,8 @@ export default async function DashboardWatchlistPage() {
       </div>
 
       <WatchlistIntelHint />
+
+      {journalReview ? <WatchlistJournalReviewPanel review={journalReview} /> : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <WatchlistPanel demoMode={isDemoMode()} proUnlocked={proUnlocked} />
