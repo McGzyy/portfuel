@@ -10,6 +10,7 @@ import { WatchlistJournalTimeline } from "@/components/watchlist/WatchlistJourna
 import { buildJournalPriceLines } from "@/lib/charts/price-lines";
 import type { CandlePoint, ChartMarker } from "@/lib/charts/types";
 import type { TickerIntel } from "@/lib/market/ticker-intel";
+import { buildJournalEntryMarkers } from "@/lib/watchlist/journal-markers";
 import type { WatchlistJournal, WatchlistJournalEntry } from "@/lib/watchlist/journal-types";
 
 export function WatchlistJournalWorkspace({
@@ -28,6 +29,7 @@ export function WatchlistJournalWorkspace({
   setupMode?: boolean;
 }) {
   const [journal, setJournal] = useState(initialJournal);
+  const [entries, setEntries] = useState(initialEntries);
   const priceLines = useMemo(() => buildJournalPriceLines(journal), [journal]);
 
   const candles: CandlePoint[] = intel.candles.map((c) => ({
@@ -38,12 +40,23 @@ export function WatchlistJournalWorkspace({
     close: c.close,
   }));
 
-  const markers: ChartMarker[] = intel.markers.map((m) => ({
-    time: m.time,
-    price: m.price,
-    label: m.label,
-    color: m.color,
-  }));
+  const markers = useMemo(() => {
+    const journalMarkers = buildJournalEntryMarkers(entries);
+    const communityMarkers: ChartMarker[] = intel.markers.map((m) => ({
+      time: m.time,
+      price: m.price,
+      label: m.label,
+      color: m.color,
+      kind: m.kind,
+      callId: m.callId,
+    }));
+    return [...journalMarkers, ...communityMarkers];
+  }, [entries, intel.markers]);
+
+  const journalMarkerCount = useMemo(
+    () => entries.filter((e) => e.marker_price != null && e.marker_price > 0).length,
+    [entries]
+  );
 
   return (
     <div className="space-y-6">
@@ -100,6 +113,9 @@ export function WatchlistJournalWorkspace({
         markers={markers}
         priceLines={priceLines}
         proUnlocked={proUnlocked}
+        title="Private chart"
+        subtitle="Indigo dots mark each journal entry at that day's price — click a dot to jump to the note."
+        journalMarkerCount={journalMarkerCount}
       />
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -110,10 +126,8 @@ export function WatchlistJournalWorkspace({
         />
         <WatchlistJournalTimeline
           symbol={journal.symbol}
-          initialEntries={initialEntries}
-          onEntryAdded={() => {
-            /* timeline manages local state */
-          }}
+          entries={entries}
+          onEntryAdded={(entry) => setEntries((prev) => [...prev, entry])}
         />
       </div>
     </div>

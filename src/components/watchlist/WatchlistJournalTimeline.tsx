@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { WatchlistJournalEntry } from "@/lib/watchlist/journal-types";
+import { formatPrice } from "@/lib/utils";
 
 function fmtWhen(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -17,14 +18,13 @@ function fmtWhen(iso: string): string {
 
 export function WatchlistJournalTimeline({
   symbol,
-  initialEntries,
+  entries,
   onEntryAdded,
 }: {
   symbol: string;
-  initialEntries: WatchlistJournalEntry[];
+  entries: WatchlistJournalEntry[];
   onEntryAdded: (entry: WatchlistJournalEntry) => void;
 }) {
-  const [entries, setEntries] = useState(initialEntries);
   const [body, setBody] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [posting, setPosting] = useState(false);
@@ -53,7 +53,6 @@ export function WatchlistJournalTimeline({
         return;
       }
       const entry = data.entry as WatchlistJournalEntry;
-      setEntries((prev) => [...prev, entry]);
       onEntryAdded(entry);
       setBody("");
       setReplyTo(null);
@@ -70,7 +69,8 @@ export function WatchlistJournalTimeline({
         Journal timeline
       </p>
       <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-        Timestamped updates — reply to a prior note to build a thread on this idea.
+        Each update pins an indigo marker on your chart at the current price. Reply to build a
+        thread on this idea.
       </p>
 
       {entries.length === 0 ? (
@@ -84,6 +84,7 @@ export function WatchlistJournalTimeline({
             return (
               <li
                 key={entry.id}
+                id={`journal-entry-${entry.id}`}
                 className={
                   entry.reply_to_id
                     ? "ml-4 border-l-2 border-[var(--pf-border)] pl-4"
@@ -95,11 +96,18 @@ export function WatchlistJournalTimeline({
                     <time className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
                       {fmtWhen(entry.created_at)}
                     </time>
-                    {entry.conviction_after != null ? (
-                      <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-[var(--pf-red)]">
-                        Conviction {entry.conviction_after}/10
-                      </span>
-                    ) : null}
+                    <span className="flex items-center gap-2">
+                      {entry.marker_price != null ? (
+                        <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
+                          ${formatPrice(entry.marker_price)} on chart
+                        </span>
+                      ) : null}
+                      {entry.conviction_after != null ? (
+                        <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-[var(--pf-red)]">
+                          Conviction {entry.conviction_after}/10
+                        </span>
+                      ) : null}
+                    </span>
                   </div>
                   {parent ? (
                     <p className="mt-2 text-[10px] text-[var(--pf-gray-500)]">

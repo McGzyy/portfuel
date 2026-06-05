@@ -38,14 +38,28 @@ function mapJournalRow(row: WatchlistRow, lastPrice?: number | null): WatchlistJ
   };
 }
 
+export async function resolveJournalMarkerPrice(symbol: string): Promise<number | null> {
+  return lastPriceForSymbol(symbol);
+}
+
 async function lastPriceForSymbol(symbol: string): Promise<number | null> {
+  const sym = symbol.toUpperCase();
   const db = createServiceClient();
   const { data } = await db
     .from("ticker_snapshots")
     .select("last_price")
-    .eq("symbol", symbol.toUpperCase())
+    .eq("symbol", sym)
     .maybeSingle();
-  return data?.last_price != null ? Number(data.last_price) : null;
+  if (data?.last_price != null) {
+    const p = Number(data.last_price);
+    if (p > 0) return p;
+  }
+  const quote = await getQuote(sym, { fresh: true });
+  const live = quote?.c ?? quote?.pc;
+  if (live != null && Number.isFinite(live) && live > 0) {
+    return Math.round(live * 10000) / 10000;
+  }
+  return null;
 }
 
 export async function fetchWatchlistJournal(
@@ -155,7 +169,7 @@ export async function fetchJournalEntries(
   const db = createServiceClient();
   const { data, error } = await db
     .from("watchlist_journal_entries")
-    .select("id, body, reply_to_id, conviction_after, created_at")
+    .select("id, body, reply_to_id, conviction_after, marker_price, created_at")
     .eq("user_id", userId)
     .eq("symbol", sym)
     .order("created_at", { ascending: true });
@@ -188,6 +202,8 @@ export async function addJournalEntry(
       ? Math.min(10, Math.max(1, Math.round(input.conviction_after)))
       : null;
 
+  const marker_price = await resolveJournalMarkerPrice(sym);
+
   const { data, error } = await db
     .from("watchlist_journal_entries")
     .insert({
@@ -196,8 +212,9 @@ export async function addJournalEntry(
       body: body.slice(0, 4000),
       reply_to_id: input.reply_to_id ?? null,
       conviction_after,
+      marker_price,
     } as never)
-    .select("id, body, reply_to_id, conviction_after, created_at")
+    .select("id, body, reply_to_id, conviction_after, marker_price, created_at")
     .single();
 
   if (error) {

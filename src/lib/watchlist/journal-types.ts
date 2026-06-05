@@ -18,6 +18,7 @@ export type WatchlistJournalEntry = {
   body: string;
   reply_to_id: string | null;
   conviction_after: number | null;
+  marker_price: number | null;
   created_at: string;
 };
 

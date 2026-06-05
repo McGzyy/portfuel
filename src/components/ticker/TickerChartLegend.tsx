@@ -2,16 +2,18 @@ import { cn } from "@/lib/utils";
 
 export function TickerChartLegend({
   callCount,
+  journalCount = 0,
   levelCount = 0,
   showDepth = false,
   embedded,
 }: {
   callCount: number;
+  journalCount?: number;
   levelCount?: number;
   showDepth?: boolean;
   embedded?: boolean;
 }) {
-  if (callCount === 0 && levelCount === 0 && !showDepth) return null;
+  if (callCount === 0 && journalCount === 0 && levelCount === 0 && !showDepth) return null;
 
   return (
     <div
@@ -38,6 +40,12 @@ export function TickerChartLegend({
             Fueled ({callCount})
           </span>
         </>
+      ) : null}
+      {journalCount > 0 ? (
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-indigo-500" />
+          Journal ({journalCount})
+        </span>
       ) : null}
       {levelCount > 0 ? (
         <>

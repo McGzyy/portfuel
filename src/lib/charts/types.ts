@@ -16,7 +16,7 @@ export const CHART_RESOLUTION_LABELS: { key: ChartCandleResolution; label: strin
   { key: "15", label: "15m", proOnly: true },
 ];
 
-export type ChartMarkerKind = "long" | "short" | "fueled";
+export type ChartMarkerKind = "long" | "short" | "fueled" | "journal";
 
 export type ChartMarker = {
   time: number;
@@ -26,6 +26,8 @@ export type ChartMarker = {
   kind?: ChartMarkerKind;
   /** Scroll target on ticker page when marker is clicked */
   callId?: string;
+  /** Scroll target on watchlist journal timeline */
+  journalEntryId?: string;
 };
 
 /** Horizontal levels on ticker charts (entry / target / stop) — Phase G1. */

@@ -35,12 +35,14 @@ function markerShape(m: ChartMarker): SeriesMarker<Time>["shape"] {
   if (m.kind === "fueled") return "square";
   if (m.kind === "long") return "arrowUp";
   if (m.kind === "short") return "arrowDown";
+  if (m.kind === "journal") return "circle";
   return "circle";
 }
 
 function markerPosition(m: ChartMarker): SeriesMarker<Time>["position"] {
   if (m.kind === "long") return "belowBar";
   if (m.kind === "short") return "aboveBar";
+  if (m.kind === "journal") return "belowBar";
   return "aboveBar";
 }
 
@@ -154,8 +156,18 @@ export function TickerChart({
     const onClick = (param: MouseEventParams<Time>) => {
       if (param.time == null) return;
       const t = param.time as number;
-      const hit = markerDataRef.current.find((m) => m.time === t && m.callId);
-      if (!hit?.callId) return;
+      const hit = markerDataRef.current.find(
+        (m) => m.time === t && (m.callId || m.journalEntryId)
+      );
+      if (!hit) return;
+      if (hit.journalEntryId) {
+        const el = document.getElementById(`journal-entry-${hit.journalEntryId}`);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        el?.classList.add("pf-thesis-highlight");
+        window.setTimeout(() => el?.classList.remove("pf-thesis-highlight"), 2200);
+        return;
+      }
+      if (!hit.callId) return;
       const el = document.getElementById(`thesis-${hit.callId}`);
       el?.scrollIntoView({ behavior: "smooth", block: "start" });
       el?.classList.add("pf-thesis-highlight");

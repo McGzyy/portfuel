@@ -33,6 +33,9 @@ export function TickerChartSection({
   priceLines = [],
   proUnlocked = false,
   className,
+  title = "Price history",
+  subtitle,
+  journalMarkerCount = 0,
 }: {
   symbol: string;
   initialCandles: CandlePoint[];
@@ -40,6 +43,9 @@ export function TickerChartSection({
   priceLines?: PriceLine[];
   proUnlocked?: boolean;
   className?: string;
+  title?: string;
+  subtitle?: string;
+  journalMarkerCount?: number;
 }) {
   const [range, setRange] = useState<ChartRangeKey>("1y");
   const [resolution, setResolution] = useState<ChartCandleResolution>("D");
@@ -103,16 +109,25 @@ export function TickerChartSection({
   );
 
   const hasData = candles.length > 0;
+  const communityMarkerCount = filteredMarkers.filter((m) => m.kind !== "journal").length;
+  const journalCount =
+    journalMarkerCount > 0
+      ? journalMarkerCount
+      : filteredMarkers.filter((m) => m.kind === "journal").length;
 
   return (
     <ChartFrame
       className={className}
-      title="Price history"
-      subtitle={`Volume, Pro overlays (SMA · VWAP), and intraday intervals · ${quotesRefreshLabel()}`}
+      title={title}
+      subtitle={
+        subtitle ??
+        `Volume, Pro overlays (SMA · VWAP), and intraday intervals · ${quotesRefreshLabel()}`
+      }
       legend={
         hasData ? (
           <TickerChartLegend
-            callCount={filteredMarkers.length}
+            callCount={communityMarkerCount}
+            journalCount={journalCount}
             levelCount={priceLines.length}
             showDepth
             embedded
