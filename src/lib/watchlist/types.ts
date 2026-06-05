@@ -11,4 +11,10 @@ export type WatchlistEntry = {
   community_calls_7d?: number;
   /** Unread watchlist_call notification for this symbol */
   has_unread_call_alert?: boolean;
+  /** Private journal conviction 1–10 */
+  conviction?: number | null;
+  /** Whether a private thesis is saved */
+  has_thesis?: boolean;
+  /** Private journal last update */
+  journal_updated_at?: string | null;
 };

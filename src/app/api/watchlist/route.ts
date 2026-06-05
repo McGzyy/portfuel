@@ -26,13 +26,18 @@ export async function GET() {
 
 const addSchema = z.object({
   symbol: z.string().min(1).max(12),
+  thesis: z.string().max(4000).optional(),
+  conviction: z.number().int().min(1).max(10).optional(),
 });
 
 export async function POST(request: Request) {
   try {
     const session = await requireActiveMember();
     const body = addSchema.parse(await request.json());
-    const result = await addToWatchlist(session.userId, body.symbol);
+    const result = await addToWatchlist(session.userId, body.symbol, {
+      thesis: body.thesis,
+      conviction: body.conviction,
+    });
     if ("error" in result) {
       const status =
         result.error === "watchlist_full"

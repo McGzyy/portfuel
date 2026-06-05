@@ -27,6 +27,7 @@ function readPublishQuery(sp: URLSearchParams) {
   const directionParam = sp.get("direction");
   return {
     fromTweet: sp.get("from") === "tweet",
+    fromJournal: sp.get("from") === "journal",
     publishFueled: sp.get("fueled") === "1",
     socialMode: sp.get("socialMode") ?? "",
     direction:
@@ -283,6 +284,13 @@ export function NewCallForm({
       {queryDraft.fromTweet ? (
         <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           Prefilled from a social draft — confirm symbol, levels, and thesis before publishing.
+        </div>
+      ) : null}
+
+      {queryDraft.fromJournal ? (
+        <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
+          Prefilled from your private watchlist journal — review levels and thesis before publishing
+          to the community.
         </div>
       ) : null}
 

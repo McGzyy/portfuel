@@ -90,3 +90,43 @@ export function buildTickerPriceLines(opts: {
 
   return lines;
 }
+
+const PLAN_ENTRY = "#6366f1";
+const PLAN_TARGET = "#059669";
+const PLAN_STOP = "#dc2626";
+
+/** Private journal entry / stop / target on the watchlist journal chart. */
+export function buildJournalPriceLines(journal: {
+  entry_price?: number | null;
+  stop_price?: number | null;
+  target_price?: number | null;
+}): PriceLine[] {
+  const lines: PriceLine[] = [];
+
+  if (journal.entry_price != null && journal.entry_price > 0) {
+    lines.push({
+      price: journal.entry_price,
+      label: "Plan entry",
+      color: PLAN_ENTRY,
+      style: "solid",
+    });
+  }
+  if (journal.target_price != null && journal.target_price > 0) {
+    lines.push({
+      price: journal.target_price,
+      label: "Plan target",
+      color: PLAN_TARGET,
+      style: "dashed",
+    });
+  }
+  if (journal.stop_price != null && journal.stop_price > 0) {
+    lines.push({
+      price: journal.stop_price,
+      label: "Plan stop",
+      color: PLAN_STOP,
+      style: "dashed",
+    });
+  }
+
+  return lines;
+}

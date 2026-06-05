@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Bell, LineChart, Plus, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Bell, BookOpen, LineChart, Plus, X } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { WatchlistMoveAlerts } from "@/components/dashboard/WatchlistMoveAlerts";
@@ -59,7 +61,10 @@ export function WatchlistPanel({
 }) {
   const [items, setItems] = useState<WatchlistEntry[]>([]);
   const [sparklines, setSparklines] = useState<Record<string, LinePoint[]>>({});
+  const router = useRouter();
   const [symbol, setSymbol] = useState("");
+  const [thesis, setThesis] = useState("");
+  const [showThesis, setShowThesis] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(false);
@@ -126,7 +131,11 @@ export function WatchlistPanel({
       const res = await fetch("/api/watchlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symbol: sym }),
+        body: JSON.stringify({
+          symbol: sym,
+          thesis: thesis.trim() || undefined,
+          conviction: thesis.trim() ? 5 : undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -139,6 +148,13 @@ export function WatchlistPanel({
       }
       setItems(data.items ?? []);
       setSymbol("");
+      setThesis("");
+      setShowThesis(false);
+      if (!thesis.trim()) {
+        router.push(`/dashboard/watchlist/${encodeURIComponent(sym)}?setup=1`);
+      } else {
+        router.push(`/dashboard/watchlist/${encodeURIComponent(sym)}`);
+      }
     } catch {
       setError("Could not add symbol.");
     } finally {
@@ -177,26 +193,44 @@ export function WatchlistPanel({
       aria-label="Your watchlist"
     >
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-        Watchlist
+        Watchlist &amp; journal
       </p>
       <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-        Track tickers you care about — open{" "}
-        <span className="font-semibold text-[var(--pf-gray-700)]">Chart &amp; intel</span> for live
-        price, community calls, and desk context.
+        Track symbols and keep a private journal — thesis, plan levels, and updates. Open{" "}
+        <span className="font-semibold text-[var(--pf-gray-700)]">Journal</span> on any row.
       </p>
 
-      <form onSubmit={addSymbol} className="mt-3 flex gap-2">
-        <Input
-          value={symbol}
-          onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-          placeholder="Add symbol"
-          maxLength={12}
-          className="font-mono text-sm"
-          aria-label="Add to watchlist"
-        />
-        <Button type="submit" size="sm" variant="secondary" disabled={adding}>
-          <Plus className="h-4 w-4" />
-        </Button>
+      <form onSubmit={addSymbol} className="mt-3 space-y-2">
+        <div className="flex gap-2">
+          <Input
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+            placeholder="Add symbol"
+            maxLength={12}
+            className="font-mono text-sm"
+            aria-label="Add to watchlist"
+          />
+          <Button type="submit" size="sm" variant="secondary" disabled={adding}>
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+        {showThesis ? (
+          <Textarea
+            value={thesis}
+            onChange={(e) => setThesis(e.target.value)}
+            placeholder="Why are you watching this? (optional — you can add on the journal page)"
+            className="min-h-[72px] text-sm"
+            maxLength={4000}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowThesis(true)}
+            className="text-[10px] font-semibold text-[var(--pf-red)] hover:underline"
+          >
+            + Add why you&apos;re watching (optional)
+          </button>
+        )}
       </form>
 
       {demoMode ? (
@@ -230,10 +264,23 @@ export function WatchlistPanel({
                 height={20}
                 className="hidden sm:block"
               />
-              <Link href={`/ticker/${item.symbol}`} className="min-w-0 flex-1">
+              <Link
+                href={`/dashboard/watchlist/${item.symbol}`}
+                className="min-w-0 flex-1"
+              >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
+                  <span className="flex items-center gap-2 font-mono text-sm font-bold text-[var(--pf-black)]">
                     {item.symbol}
+                    {item.conviction != null ? (
+                      <span className="rounded-full bg-[var(--pf-gray-100)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--pf-gray-600)]">
+                        {item.conviction}/10
+                      </span>
+                    ) : null}
+                    {!item.has_thesis ? (
+                      <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
+                        No thesis
+                      </span>
+                    ) : null}
                   </span>
                   <span className="flex flex-col items-end gap-0.5">
                     {item.change_since_add_pct != null ? (
@@ -284,9 +331,17 @@ export function WatchlistPanel({
                 ) : null}
               </Link>
               <Link
-                href={`/ticker/${item.symbol}`}
+                href={`/dashboard/watchlist/${item.symbol}`}
                 className="hidden shrink-0 items-center gap-1 rounded-full border border-[var(--pf-border)] bg-white px-2 py-1 text-[10px] font-semibold text-[var(--pf-gray-700)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)] group-hover:inline-flex sm:inline-flex"
-                title={`${item.symbol} chart and intel`}
+                title={`${item.symbol} private journal`}
+              >
+                <BookOpen className="h-3 w-3" aria-hidden />
+                Journal
+              </Link>
+              <Link
+                href={`/ticker/${item.symbol}`}
+                className="hidden shrink-0 items-center gap-1 rounded-full border border-[var(--pf-border)] bg-white px-2 py-1 text-[10px] font-semibold text-[var(--pf-gray-500)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)] group-hover:inline-flex sm:inline-flex"
+                title={`${item.symbol} community intel`}
               >
                 <LineChart className="h-3 w-3" aria-hidden />
                 Intel

@@ -4,6 +4,7 @@ import { getQuote } from "@/lib/market/finnhub";
 import { getDemoWatchlist } from "@/lib/watchlist/demo";
 import { detectAssetClassForSymbol } from "@/lib/watchlist/symbol-detect";
 import { enrichWatchlistActivity } from "@/lib/watchlist/activity";
+import { addJournalEntry, resolveBaselinePrice } from "@/lib/watchlist/journal";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 
 const MAX_WATCHLIST = 24;
@@ -16,7 +17,9 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
   const db = createServiceClient();
   const { data, error } = await db
     .from("user_watchlist")
-    .select("symbol, asset_class, created_at, baseline_price")
+    .select(
+      "symbol, asset_class, created_at, baseline_price, conviction, thesis, journal_updated_at"
+    )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
@@ -29,7 +32,8 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
 
 export async function addToWatchlist(
   userId: string,
-  symbol: string
+  symbol: string,
+  opts?: { thesis?: string; conviction?: number }
 ): Promise<{ ok: true } | { error: string }> {
   const sym = symbol.toUpperCase().trim();
   if (!sym || sym.length > 12) return { error: "invalid_symbol" };
@@ -48,19 +52,65 @@ export async function addToWatchlist(
 
   const asset_class = await detectAssetClassForSymbol(sym);
 
-  const { error } = await db.from("user_watchlist").upsert(
-    {
-      user_id: userId,
-      symbol: sym,
-      asset_class,
-    } as never,
-    { onConflict: "user_id,symbol" }
-  );
+  const thesis = opts?.thesis?.trim();
+  const conviction =
+    opts?.conviction != null && Number.isFinite(opts.conviction)
+      ? Math.min(10, Math.max(1, Math.round(opts.conviction)))
+      : null;
+
+  const { data: existing } = await db
+    .from("user_watchlist")
+    .select("symbol, baseline_price")
+    .eq("user_id", userId)
+    .eq("symbol", sym)
+    .maybeSingle();
+
+  if (existing) {
+    const patch: Record<string, unknown> = {};
+    if (thesis && thesis.length > 0) {
+      patch.thesis = thesis.slice(0, 4000);
+      patch.journal_updated_at = new Date().toISOString();
+    }
+    if (conviction != null) patch.conviction = conviction;
+    if (Object.keys(patch).length > 0) {
+      const { error: patchErr } = await db
+        .from("user_watchlist")
+        .update(patch as never)
+        .eq("user_id", userId)
+        .eq("symbol", sym);
+      if (patchErr) {
+        console.error("[watchlist/add patch]", patchErr);
+        return { error: "db_error" };
+      }
+    }
+    return { ok: true };
+  }
+
+  const baseline_price = await resolveBaselinePrice(sym);
+  const row: Record<string, unknown> = {
+    user_id: userId,
+    symbol: sym,
+    asset_class,
+    baseline_price,
+  };
+  if (thesis && thesis.length > 0) {
+    row.thesis = thesis.slice(0, 4000);
+    row.journal_updated_at = new Date().toISOString();
+  }
+  if (conviction != null) row.conviction = conviction;
+
+  const { error } = await db.from("user_watchlist").insert(row as never);
 
   if (error) {
     console.error("[watchlist/add]", error);
     return { error: "db_error" };
   }
+
+  await addJournalEntry(userId, sym, {
+    body: thesis && thesis.length > 0 ? "Added to watchlist." : "Added to watchlist — add your thesis on the journal page.",
+    conviction_after: conviction,
+  });
+
   return { ok: true };
 }
 
@@ -134,11 +184,18 @@ export async function removeFromWatchlist(
   if (isDemoMode()) return { error: "demo_readonly" };
 
   const db = createServiceClient();
+  const sym = symbol.toUpperCase();
+  await db
+    .from("watchlist_journal_entries")
+    .delete()
+    .eq("user_id", userId)
+    .eq("symbol", sym);
+
   const { error } = await db
     .from("user_watchlist")
     .delete()
     .eq("user_id", userId)
-    .eq("symbol", symbol.toUpperCase());
+    .eq("symbol", sym);
 
   if (error) {
     console.error("[watchlist/remove]", error);
@@ -178,12 +235,18 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
     if (baseline != null && baseline > 0 && last != null) {
       change_since_add_pct = ((last - baseline) / baseline) * 100;
     }
+    const row = e as WatchlistEntry & {
+      thesis?: string | null;
+      conviction?: number | null;
+      journal_updated_at?: string | null;
+    };
     return {
-      ...e,
+      ...row,
       baseline_price: baseline,
       last_price: last,
       return_pct: returnMap.get(e.symbol) ?? null,
       change_since_add_pct,
+      has_thesis: Boolean(row.thesis?.trim()),
     };
   });
 }

@@ -43,7 +43,7 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
   {
     href: "/dashboard/watchlist",
     label: "Watchlist",
-    description: "Symbols & lookup",
+    description: "Journal & symbol lookup",
     icon: "bookmark",
   },
   {
@@ -176,7 +176,7 @@ const WORKSPACE_GUIDE_SECTIONS_TEMPLATE: {
       {
         href: "/dashboard/watchlist",
         label: "Watchlist",
-        description: "Symbols you track — alerts and ticker lookup.",
+        description: "Private journal per symbol — thesis, plan levels, updates.",
       },
       {
         href: "/dashboard/screener",
