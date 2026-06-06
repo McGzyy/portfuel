@@ -40,6 +40,17 @@ export async function fetchJournalEntryStats(
   return map;
 }
 
+/** Sort hub rows with the least complete research first. */
+export function compareJournalHubIncomplete(a: WatchlistEntry, b: WatchlistEntry): number {
+  const pa = a.journal_progress?.required_completed ?? 0;
+  const pb = b.journal_progress?.required_completed ?? 0;
+  if (pa !== pb) return pa - pb;
+  if (Boolean(a.has_thesis) !== Boolean(b.has_thesis)) {
+    return a.has_thesis ? 1 : -1;
+  }
+  return a.symbol.localeCompare(b.symbol);
+}
+
 export function attachJournalHubProgress(
   items: WatchlistEntry[],
   statsBySymbol: Record<string, JournalEntryStats>

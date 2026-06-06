@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { BookOpen, Sparkles } from "lucide-react";
 import { JournalProgressMini } from "@/components/journal/JournalProgressMini";
+import { compareJournalHubIncomplete } from "@/lib/journal/hub-summary";
 import { journalSymbolPath } from "@/lib/journal/paths";
 import { outcomeLabel, type JournalCatalyst } from "@/lib/watchlist/journal-meta";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
@@ -81,7 +82,7 @@ export function JournalIdeasPanel({
     return true;
   }
 
-  const filtered = items.filter(matchesFilters);
+  const filtered = items.filter(matchesFilters).sort(compareJournalHubIncomplete);
   const readyCount = items.filter((i) => i.journal_progress?.ready_to_publish).length;
 
   return (

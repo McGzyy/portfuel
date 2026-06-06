@@ -1,3 +1,5 @@
+import type { JournalEntryType } from "@/lib/watchlist/journal-meta";
+
 /** Research journal routes (symbols must be on watchlist). */
 export function journalHubPath(): string {
   return "/dashboard/journal";
@@ -5,13 +7,22 @@ export function journalHubPath(): string {
 
 export type JournalSection = "checklist" | "plan" | "entries" | "research" | "chart";
 
+export type JournalPrefillEntry = Extract<
+  JournalEntryType,
+  "note" | "price_action" | "earnings" | "news" | "thesis_update"
+>;
+
 export function journalSymbolPath(
   symbol: string,
-  opts?: { setup?: boolean; section?: JournalSection }
+  opts?: { setup?: boolean; section?: JournalSection; entry?: JournalPrefillEntry }
 ): string {
   const sym = symbol.toUpperCase();
   let url = `/dashboard/journal/${encodeURIComponent(sym)}`;
-  if (opts?.setup) url += "?setup=1";
+  const params = new URLSearchParams();
+  if (opts?.setup) params.set("setup", "1");
+  if (opts?.entry) params.set("entry", opts.entry);
+  const qs = params.toString();
+  if (qs) url += `?${qs}`;
   if (opts?.section) url += `#journal-${opts.section}`;
   return url;
 }
@@ -34,5 +45,8 @@ export function journalAlertHref(
   symbol: string,
   kind: "price_move" | "plan_level" | "earnings"
 ): string {
-  return journalSymbolPath(symbol, { section: journalSectionForAlert(kind) });
+  return journalSymbolPath(symbol, {
+    section: journalSectionForAlert(kind),
+    entry: kind === "earnings" ? "earnings" : undefined,
+  });
 }

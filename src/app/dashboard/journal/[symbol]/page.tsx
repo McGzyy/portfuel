@@ -11,6 +11,24 @@ import { isDemoMode } from "@/lib/demo/config";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
 import { buildPublishUrlFromJournal } from "@/lib/watchlist/journal-call-url";
 import { fetchJournalEntries, fetchWatchlistJournal } from "@/lib/watchlist/journal";
+import { normalizeJournalEntryType } from "@/lib/watchlist/journal-meta";
+import type { JournalPrefillEntry } from "@/lib/journal/paths";
+
+const PREFILL_ENTRIES = new Set<JournalPrefillEntry>([
+  "note",
+  "price_action",
+  "earnings",
+  "news",
+  "thesis_update",
+]);
+
+function parsePrefillEntry(raw: string | undefined): JournalPrefillEntry | undefined {
+  if (!raw) return undefined;
+  const normalized = normalizeJournalEntryType(raw);
+  return PREFILL_ENTRIES.has(normalized as JournalPrefillEntry)
+    ? (normalized as JournalPrefillEntry)
+    : undefined;
+}
 
 export const dynamic = "force-dynamic";
 
@@ -30,11 +48,12 @@ export default async function DashboardJournalSymbolPage({
   searchParams,
 }: {
   params: Promise<{ symbol: string }>;
-  searchParams: Promise<{ setup?: string }>;
+  searchParams: Promise<{ setup?: string; entry?: string }>;
 }) {
   const { symbol: raw } = await params;
   const symbol = raw.toUpperCase();
   const sp = await searchParams;
+  const prefillEntry = parsePrefillEntry(sp.entry);
   const session = await requireDashboardSession();
 
   if (isDemoMode() || !hasSupabaseConfig()) {
@@ -79,6 +98,7 @@ export default async function DashboardJournalSymbolPage({
         publishUrl={publishUrl}
         proUnlocked={proUnlocked}
         setupMode={sp.setup === "1"}
+        prefillEntry={prefillEntry}
       />
     </div>
   );

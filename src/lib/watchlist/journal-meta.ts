@@ -83,6 +83,16 @@ export function journalEntryTypeLabel(type: JournalEntryType | string | null | u
   return row?.label ?? "Note";
 }
 
+export const JOURNAL_ENTRY_PLACEHOLDERS: Partial<
+  Record<(typeof JOURNAL_ENTRY_TYPES)[number]["value"], string>
+> = {
+  note: "What changed your view — catalyst, risk, or conviction shift…",
+  price_action: "Price moved to $X — volume spike, broke support/resistance…",
+  earnings: "Earnings reported — revenue, guidance, margins, and what changed your view…",
+  news: "Headline or filing — what it means for your thesis…",
+  thesis_update: "Thesis update — what you got right/wrong and what you're watching next…",
+};
+
 export type JournalScenarioProgress = {
   bull: number | null;
   base: number | null;

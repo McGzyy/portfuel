@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { fetchDeskBrief } from "@/lib/desk/brief";
 import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
+import { buildJournalDigestSection } from "@/lib/journal/digest-section";
 
 export type DigestSection = { heading: string; lines: string[] };
 
@@ -197,6 +198,11 @@ export async function buildWeeklyDigestSections(
         "The workspace still includes Fueled desk research, watchlist tools, and market intel on every ticker.",
       ],
     });
+  }
+
+  const journalSection = await buildJournalDigestSection(userId);
+  if (journalSection) {
+    sections.push(journalSection);
   }
 
   const moverLines = snapshot.topMovers30d.map((c) => {

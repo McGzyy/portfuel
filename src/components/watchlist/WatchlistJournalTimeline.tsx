@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { JournalAiResearchEntryBody } from "@/components/journal/JournalResearchPanel";
 import { COPY } from "@/lib/copy";
 import {
+  JOURNAL_ENTRY_PLACEHOLDERS,
   JOURNAL_ENTRY_TYPES,
   journalEntryTypeLabel,
   type JournalEntryType,
@@ -39,13 +40,21 @@ export function WatchlistJournalTimeline({
   symbol,
   entries,
   onEntryAdded,
+  prefillEntryType,
 }: {
   symbol: string;
   entries: WatchlistJournalEntry[];
   onEntryAdded: (entry: WatchlistJournalEntry) => void;
+  prefillEntryType?: JournalEntryType;
 }) {
+  const initialType =
+    prefillEntryType && prefillEntryType !== "ai_research" && prefillEntryType !== "system"
+      ? prefillEntryType
+      : "note";
   const [body, setBody] = useState("");
-  const [entryType, setEntryType] = useState<(typeof JOURNAL_ENTRY_TYPES)[number]["value"]>("note");
+  const [entryType, setEntryType] = useState<(typeof JOURNAL_ENTRY_TYPES)[number]["value"]>(
+    initialType as (typeof JOURNAL_ENTRY_TYPES)[number]["value"]
+  );
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
@@ -62,6 +71,17 @@ export function WatchlistJournalTimeline({
     () => [...new Set(entries.map((e) => e.entry_type))],
     [entries]
   );
+
+  const placeholder =
+    JOURNAL_ENTRY_PLACEHOLDERS[entryType] ??
+    "Earnings beat — revenue accelerated. Raised conviction…";
+
+  useEffect(() => {
+    if (!prefillEntryType || prefillEntryType === "ai_research" || prefillEntryType === "system") {
+      return;
+    }
+    setEntryType(prefillEntryType);
+  }, [prefillEntryType]);
 
   async function postEntry(e: React.FormEvent) {
     e.preventDefault();
@@ -245,7 +265,7 @@ export function WatchlistJournalTimeline({
         <Textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder="Earnings beat — revenue accelerated. Raised conviction…"
+          placeholder={placeholder}
           className="min-h-[88px]"
           maxLength={4000}
         />

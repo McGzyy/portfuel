@@ -19,6 +19,7 @@ import type { CandlePoint, ChartMarker } from "@/lib/charts/types";
 import type { TickerIntel } from "@/lib/market/ticker-intel";
 import { buildJournalEntryMarkers } from "@/lib/watchlist/journal-markers";
 import type { WatchlistJournal, WatchlistJournalEntry } from "@/lib/watchlist/journal-types";
+import type { JournalPrefillEntry } from "@/lib/journal/paths";
 
 export function WatchlistJournalWorkspace({
   journal: initialJournal,
@@ -27,6 +28,7 @@ export function WatchlistJournalWorkspace({
   publishUrl,
   proUnlocked,
   setupMode,
+  prefillEntry,
 }: {
   journal: WatchlistJournal;
   entries: WatchlistJournalEntry[];
@@ -34,6 +36,7 @@ export function WatchlistJournalWorkspace({
   publishUrl: string;
   proUnlocked: boolean;
   setupMode?: boolean;
+  prefillEntry?: JournalPrefillEntry;
 }) {
   const [journal, setJournal] = useState(initialJournal);
   const [entries, setEntries] = useState(initialEntries);
@@ -195,6 +198,7 @@ export function WatchlistJournalWorkspace({
             symbol={journal.symbol}
             entries={entries}
             onEntryAdded={handleEntryAdded}
+            prefillEntryType={prefillEntry}
           />
         </div>
       </div>
