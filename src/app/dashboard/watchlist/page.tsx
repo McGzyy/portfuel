@@ -40,11 +40,6 @@ export default async function DashboardWatchlistPage() {
   const unreadAlerts = items.filter((i) => i.has_unread_call_alert).length;
   const callsLast7d = items.reduce((sum, i) => sum + (i.community_calls_7d ?? 0), 0);
   const nextUp = pickJournalNextUp(items);
-  const logHref = nextUp
-    ? nextUp.reason === "draft_thesis"
-      ? nextUp.href
-      : `${nextUp.href}#journal-entries`
-    : undefined;
 
   return (
     <div className="space-y-6">
@@ -55,7 +50,7 @@ export default async function DashboardWatchlistPage() {
         nextUp={nextUp}
       />
 
-      <ResearchPipeline current="track" logHref={logHref} />
+      <ResearchPipeline current="track" logHref={nextUp?.href} />
 
       <WorkspaceQuickActions proUnlocked={proUnlocked} />
 

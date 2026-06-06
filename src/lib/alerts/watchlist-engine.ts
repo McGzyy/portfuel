@@ -9,8 +9,8 @@ import {
   normalizeWatchlistAlertPrefs,
   type WatchlistAlertPrefs,
 } from "@/lib/alerts/preferences";
+import { journalAlertHref } from "@/lib/journal/paths";
 import { fetchEarningsForSymbols } from "@/lib/market/earnings-calendar";
-import { journalSymbolPath } from "@/lib/journal/paths";
 import type { ProAccessContext } from "@/lib/features/pro-intelligence";
 import type { MembershipTier } from "@/lib/stripe/config";
 import { formatPct } from "@/lib/utils";
@@ -263,7 +263,7 @@ export async function runWatchlistAlertsCron(): Promise<WatchlistAlertsCronResul
               type: "watchlist_price_move",
               title: `${entry.symbol} watchlist move`,
               body,
-              href: journalSymbolPath(entry.symbol),
+              href: journalAlertHref(entry.symbol, "price_move"),
               symbol: entry.symbol,
               membershipTier: entry.membership_tier,
               role,
@@ -293,7 +293,7 @@ export async function runWatchlistAlertsCron(): Promise<WatchlistAlertsCronResul
               type: "watchlist_price_move",
               title: `${entry.symbol} watchlist move`,
               body,
-              href: journalSymbolPath(entry.symbol),
+              href: journalAlertHref(entry.symbol, "price_move"),
               symbol: entry.symbol,
               membershipTier: entry.membership_tier,
               role,
@@ -376,7 +376,7 @@ export async function runWatchlistAlertsCron(): Promise<WatchlistAlertsCronResul
                 type: "watchlist_plan_level",
                 title: `${entry.symbol} plan level`,
                 body,
-                href: journalSymbolPath(entry.symbol),
+                href: journalAlertHref(entry.symbol, "plan_level"),
                 symbol: entry.symbol,
                 membershipTier: entry.membership_tier,
                 role,
@@ -428,7 +428,7 @@ export async function runWatchlistAlertsCron(): Promise<WatchlistAlertsCronResul
           type: "watchlist_earnings",
           title: `${entry.symbol} earnings ${ev.date}`,
           body,
-          href: journalSymbolPath(entry.symbol),
+          href: journalAlertHref(entry.symbol, "earnings"),
           symbol: entry.symbol,
           membershipTier: entry.membership_tier,
           role,

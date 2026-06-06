@@ -19,7 +19,7 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
   const { data, error } = await db
     .from("user_watchlist")
     .select(
-      "symbol, asset_class, created_at, baseline_price, conviction, thesis, journal_updated_at, outcome, catalysts"
+      "symbol, asset_class, created_at, baseline_price, conviction, thesis, journal_updated_at, outcome, catalysts, entry_price, target_price, risk_factors"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
@@ -108,8 +108,12 @@ export async function addToWatchlist(
   }
 
   await addJournalEntry(userId, sym, {
-    body: thesis && thesis.length > 0 ? "Added to watchlist." : "Added to watchlist — add your thesis on the journal page.",
+    body:
+      thesis && thesis.length > 0
+        ? "Added to watchlist."
+        : "Added to watchlist — add your thesis on the journal page.",
     conviction_after: conviction,
+    entry_type: "system",
   });
 
   return { ok: true };
@@ -242,6 +246,9 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
       journal_updated_at?: string | null;
       outcome?: string | null;
       catalysts?: string[] | null;
+      entry_price?: number | null;
+      target_price?: number | null;
+      risk_factors?: string | null;
     };
     return {
       ...row,
@@ -252,6 +259,10 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
       has_thesis: Boolean(row.thesis?.trim()),
       catalyst_count: row.catalysts?.length ?? 0,
       catalysts: normalizeCatalysts(row.catalysts),
+      entry_price: row.entry_price != null ? Number(row.entry_price) : null,
+      target_price: row.target_price != null ? Number(row.target_price) : null,
+      risk_factors: row.risk_factors ?? null,
+      thesis: row.thesis ?? null,
     };
   });
 }

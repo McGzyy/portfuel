@@ -7,6 +7,7 @@ import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActi
 import { WatchlistJournalReviewPanel } from "@/components/watchlist/WatchlistJournalReviewPanel";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { isDemoMode } from "@/lib/demo/config";
+import { attachJournalHubProgress, fetchJournalEntryStats } from "@/lib/journal/hub-summary";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
 import { fetchJournalReview } from "@/lib/watchlist/journal-review";
 import { fetchWatchlist } from "@/lib/watchlist/service";
@@ -25,11 +26,14 @@ export default async function DashboardJournalPage() {
 
   let items: Awaited<ReturnType<typeof fetchWatchlist>> = [];
   let journalReview: Awaited<ReturnType<typeof fetchJournalReview>> | null = null;
+  let entryStats: Awaited<ReturnType<typeof fetchJournalEntryStats>> = {};
   try {
-    [items, journalReview] = await Promise.all([
+    [items, journalReview, entryStats] = await Promise.all([
       fetchWatchlist(session.userId),
       fetchJournalReview(session.userId),
+      fetchJournalEntryStats(session.userId),
     ]);
+    items = attachJournalHubProgress(items, entryStats);
   } catch (e) {
     console.error("[journal/page]", e);
   }
@@ -39,11 +43,6 @@ export default async function DashboardJournalPage() {
     (i) => i.outcome === "watching" || i.outcome === "developing" || !i.outcome
   ).length;
   const nextUp = pickJournalNextUp(items);
-  const logHref = nextUp
-    ? nextUp.reason === "draft_thesis"
-      ? nextUp.href
-      : `${nextUp.href}#journal-entries`
-    : undefined;
 
   return (
     <div className="space-y-6">
@@ -54,7 +53,7 @@ export default async function DashboardJournalPage() {
         nextUp={nextUp}
       />
 
-      <ResearchPipeline current="research" logHref={logHref} />
+      <ResearchPipeline current="research" logHref={nextUp?.href} />
 
       {nextUp ? <JournalContinueCard nextUp={nextUp} /> : null}
 

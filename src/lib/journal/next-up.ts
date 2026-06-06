@@ -25,7 +25,7 @@ export function pickJournalNextUp(items: WatchlistEntry[]): JournalNextUp | null
       reason: "draft_thesis",
       title: `$${row.symbol} needs a thesis`,
       detail: "Start with why you're watching — catalysts and plan levels come next.",
-      href: journalSymbolPath(row.symbol, { setup: true }),
+      href: journalSymbolPath(row.symbol, { setup: true, section: "plan" }),
       cta: "Draft thesis",
     };
   }
@@ -41,7 +41,7 @@ export function pickJournalNextUp(items: WatchlistEntry[]): JournalNextUp | null
         row.conviction != null
           ? `${row.conviction}/10 conviction · add entries or run AI research review`
           : "Run AI research review or log a price-action entry",
-      href: journalSymbolPath(row.symbol),
+      href: journalSymbolPath(row.symbol, { section: "entries" }),
       cta: "Open journal",
     };
   }
@@ -54,7 +54,7 @@ export function pickJournalNextUp(items: WatchlistEntry[]): JournalNextUp | null
       reason: "revisit_broken",
       title: `Revisit $${row.symbol}`,
       detail: "Marked broken — update outcome or archive the idea.",
-      href: journalSymbolPath(row.symbol),
+      href: journalSymbolPath(row.symbol, { section: "entries" }),
       cta: "Review idea",
     };
   }

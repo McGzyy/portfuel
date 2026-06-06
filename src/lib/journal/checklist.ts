@@ -86,3 +86,47 @@ export function buildJournalResearchChecklist(
     readyToPublish: requiredCompleted === required.length,
   };
 }
+
+export type JournalHubProgress = {
+  required_completed: number;
+  required_total: number;
+  ready_to_publish: boolean;
+  manual_entry_count: number;
+  has_ai_research: boolean;
+};
+
+export function summarizeJournalHubProgress(
+  journal: {
+    thesis?: string | null;
+    catalysts?: string[];
+    risk_factors?: string | null;
+    entry_price?: number | null;
+    target_price?: number | null;
+  },
+  stats: { manualCount: number; hasAiResearch: boolean }
+): JournalHubProgress {
+  const hasThesis = Boolean(journal.thesis?.trim());
+  const hasCatalystsOrRisks =
+    (journal.catalysts?.length ?? 0) > 0 || Boolean(journal.risk_factors?.trim());
+  const hasPlan =
+    journal.entry_price != null &&
+    journal.entry_price > 0 &&
+    journal.target_price != null &&
+    journal.target_price > 0;
+
+  const required = [
+    hasThesis,
+    hasCatalystsOrRisks,
+    hasPlan,
+    stats.manualCount >= 2,
+  ];
+  const requiredCompleted = required.filter(Boolean).length;
+
+  return {
+    required_completed: requiredCompleted,
+    required_total: required.length,
+    ready_to_publish: requiredCompleted === required.length,
+    manual_entry_count: stats.manualCount,
+    has_ai_research: stats.hasAiResearch,
+  };
+}

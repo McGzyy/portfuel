@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, LineChart, Megaphone, NotebookPen } from "lucide-react";
 import { JournalResearchChecklistStrip } from "@/components/journal/JournalResearchChecklistStrip";
@@ -77,11 +77,26 @@ export function WatchlistJournalWorkspace({
     setEntries((prev) => [...prev, entry]);
   }
 
+  const scrollToHash = useCallback(() => {
+    const hash = window.location.hash;
+    if (!hash.startsWith("#journal-")) return;
+    const el = document.querySelector(hash);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
+
+  useEffect(() => {
+    scrollToHash();
+    window.addEventListener("hashchange", scrollToHash);
+    return () => window.removeEventListener("hashchange", scrollToHash);
+  }, [scrollToHash]);
+
   return (
     <div className="space-y-6">
       <ResearchPipeline
         current={setupMode ? "research" : "log"}
-        logHref={`${journalSymbolPath(journal.symbol)}#journal-entries`}
+        logHref={journalSymbolPath(journal.symbol, { section: "entries" })}
       />
 
       <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
@@ -145,29 +160,35 @@ export function WatchlistJournalWorkspace({
         </div>
       </header>
 
-      <JournalResearchChecklistStrip
-        checklist={checklist}
-        publishUrl={publishUrl}
-        setupMode={setupMode}
-      />
+      <div id="journal-checklist">
+        <JournalResearchChecklistStrip
+          checklist={checklist}
+          publishUrl={publishUrl}
+          setupMode={setupMode}
+        />
+      </div>
 
       {setupMode ? (
-        <WatchlistJournalPlanForm
-          symbol={journal.symbol}
-          initial={journal}
-          onSaved={(next) => setJournal(next)}
-        />
+        <div id="journal-plan">
+          <WatchlistJournalPlanForm
+            symbol={journal.symbol}
+            initial={journal}
+            onSaved={(next) => setJournal(next)}
+          />
+        </div>
       ) : null}
 
       <WatchlistJournalStats intel={intel} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {!setupMode ? (
-          <WatchlistJournalPlanForm
-            symbol={journal.symbol}
-            initial={journal}
-            onSaved={(next) => setJournal(next)}
-          />
+          <div id="journal-plan">
+            <WatchlistJournalPlanForm
+              symbol={journal.symbol}
+              initial={journal}
+              onSaved={(next) => setJournal(next)}
+            />
+          </div>
         ) : null}
         <div className={setupMode ? "lg:col-span-2" : undefined} id="journal-entries">
           <WatchlistJournalTimeline
@@ -178,11 +199,14 @@ export function WatchlistJournalWorkspace({
         </div>
       </div>
 
-      <JournalResearchPanel symbol={journal.symbol} onEntrySaved={handleEntryAdded} />
+      <div id="journal-research">
+        <JournalResearchPanel symbol={journal.symbol} onEntrySaved={handleEntryAdded} />
+      </div>
 
       <WatchlistJournalScenarioStrip journal={journal} />
 
-      <TickerChartSection
+      <div id="journal-chart">
+        <TickerChartSection
         symbol={journal.symbol}
         initialCandles={candles}
         markers={markers}
@@ -192,6 +216,7 @@ export function WatchlistJournalWorkspace({
         subtitle="Indigo dots mark each journal entry at that day's price — click a dot to jump to the note."
         journalMarkerCount={journalMarkerCount}
       />
+      </div>
     </div>
   );
 }

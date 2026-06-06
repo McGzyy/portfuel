@@ -21,4 +21,17 @@ export type WatchlistEntry = {
   catalyst_count?: number;
   /** Preset catalyst tags from journal */
   catalysts?: string[];
+  /** Hub summary — populated on journal page */
+  journal_progress?: {
+    required_completed: number;
+    required_total: number;
+    ready_to_publish: boolean;
+    manual_entry_count: number;
+    has_ai_research: boolean;
+  };
+  /** Private plan fields (journal hub progress) */
+  entry_price?: number | null;
+  target_price?: number | null;
+  risk_factors?: string | null;
+  thesis?: string | null;
 };

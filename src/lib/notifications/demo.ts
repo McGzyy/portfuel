@@ -1,4 +1,5 @@
 import type { UserNotification } from "@/lib/notifications/types";
+import { journalAlertHref } from "@/lib/journal/paths";
 
 export function getDemoNotifications(): UserNotification[] {
   const now = Date.now();
@@ -28,7 +29,7 @@ export function getDemoNotifications(): UserNotification[] {
       type: "watchlist_price_move",
       title: "NVDA watchlist move",
       body: "Up +6.2% since you added it. Your thesis still cites AI capex as the main catalyst.",
-      href: "/dashboard/journal/NVDA",
+      href: journalAlertHref("NVDA", "price_move"),
       read_at: null,
       created_at: new Date(now - 5400000).toISOString(),
     },
