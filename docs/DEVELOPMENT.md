@@ -235,13 +235,25 @@ git push -u origin feature/phase-1-app-shell
 
 ## Supabase / ops checklist (once per environment)
 
-- [ ] All migrations applied in SQL Editor (including `20260524300000_username_password_auth.sql`, `20260524400000_user_watchlist.sql`, `20260524500000_stripe_billing.sql`, `20260524600000_watchlist_baseline.sql`, `20260524700000_user_notifications.sql`, `20260524800000_user_email_notifications.sql`, `20260524900000_user_follows.sql`, `20260525000000_desk_brief.sql`, `20260525100000_desk_portfolio.sql`, `20260525200000_desk_portfolio_notifications.sql`, `20260525300000_ai_coach_usage.sql`, `20260525400000_call_thesis_summaries.sql`, `20260525500000_call_milestones.sql`, `20260525600000_user_onboarding.sql`, `20260525700000_direct_messages.sql`, `20260525800000_dm_typing.sql`)
+See **[MIGRATIONS.md](./MIGRATIONS.md)** for the full ordered list (44 migrations). Quick verify:
+
+```bash
+node scripts/list-migrations.mjs
+```
+
+Minimum for journal + alerts:
+
+- [ ] Through `20260610100000_journal_entries_phase4.sql`
+- [ ] Journal E2E passed on staging — [JOURNAL-E2E.md](./JOURNAL-E2E.md)
+
+Also:
+
 - [ ] Resend: `RESEND_API_KEY`, `EMAIL_FROM` — see [EMAIL.md](./EMAIL.md)
-- [ ] AI coach: `OPENAI_API_KEY` + migration `20260525300000_ai_coach_usage.sql` — see [AI.md](./AI.md)
+- [ ] AI: `OPENAI_API_KEY` — see [AI.md](./AI.md)
 - [ ] Admin password set (`ADMIN_USERNAME`, `ADMIN_PASSWORD`, `scripts/set-admin-password.mjs`)
 - [ ] Admin seeded (`scripts/seed.mjs` or `scripts/reset-admin-totp.mjs`)
 - [ ] Crypto allowlist cron triggered once (production)
-- [ ] Vercel env vars match `.env.local` (no placeholders)
+- [ ] Vercel env vars match `.env.example` (no placeholders)
 
 ## Commit message examples
 

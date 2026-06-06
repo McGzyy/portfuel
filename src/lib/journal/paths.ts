@@ -47,6 +47,11 @@ export function journalAlertHref(
 ): string {
   return journalSymbolPath(symbol, {
     section: journalSectionForAlert(kind),
-    entry: kind === "earnings" ? "earnings" : undefined,
+    entry:
+      kind === "earnings"
+        ? "earnings"
+        : kind === "price_move"
+          ? "price_action"
+          : undefined,
   });
 }

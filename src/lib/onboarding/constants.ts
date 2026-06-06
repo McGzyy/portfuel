@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Compass, PenLine, Star, TrendingUp, Trophy } from "lucide-react";
+import { Compass, NotebookPen, PenLine, Star, TrendingUp, Trophy } from "lucide-react";
 import { COPY } from "@/lib/copy";
 
 export const ONBOARDING_DEFAULT_SYMBOLS = [
@@ -31,8 +31,14 @@ export const ONBOARDING_TOUR_STEPS: OnboardingTourStep[] = [
   {
     icon: Star,
     title: "Watchlist",
-    body: "Track symbols you care about; each row opens full ticker intel — chart, calls, and desk context.",
+    body: "Track symbols for price, earnings, and plan-level alerts — each symbol gets a private journal.",
     href: "/dashboard/watchlist",
+  },
+  {
+    icon: NotebookPen,
+    title: "Research journal",
+    body: "Draft thesis, log updates, run AI research, then publish a call when your checklist is complete.",
+    href: "/dashboard/journal",
   },
   {
     icon: Compass,

@@ -243,6 +243,8 @@ export default async function DashboardOverviewPage({
         communityAvgAccent={avgAccent}
       />
 
+      <FueledTrackRecordPanel record={fueledTrackRecord} />
+
       <WorkspaceQuickActions proUnlocked={isPro} />
 
       {journalIdeas.length > 0 ? <WatchlistJournalPulse ideas={journalIdeas} /> : null}
@@ -289,8 +291,6 @@ export default async function DashboardOverviewPage({
       ) : null}
 
       <ProMembershipStrip locked={proLocked} />
-
-      <FueledTrackRecordPanel record={fueledTrackRecord} />
 
       <OverviewActivityPanels hotTickers={hotTickers} />
 

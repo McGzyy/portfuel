@@ -56,7 +56,7 @@ export default async function DashboardJournalSymbolPage({
   const prefillEntry = parsePrefillEntry(sp.entry);
   const session = await requireDashboardSession();
 
-  if (isDemoMode() || !hasSupabaseConfig()) {
+  if (!isDemoMode() && !hasSupabaseConfig()) {
     notFound();
   }
 

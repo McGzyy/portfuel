@@ -91,6 +91,38 @@ Every template ends with: `Not investment advice.`
 - [ ] No price targets or “guaranteed” language in templates
 - [ ] Rate: aim 3–5 posts/week max until engagement is measured
 
+## Staging rollout (recommended order)
+
+Use this before flipping live posts in production.
+
+### Phase 1 — Dry run only
+
+1. Set on **Preview** or staging Vercel env:
+   - `X_API_ENABLED=true`
+   - `X_API_DRY_RUN=true`
+   - `X_API_BEARER_TOKEN=` (optional for ingest; required later for live)
+2. Run milestone chart preview: `GET /api/social/chart/{callId}?milestone=return_10&format=png`
+3. Admin → Social → **Dry-run post** for Fueled + leaderboard copy
+4. Cron dry run:
+   ```bash
+   curl -H "Authorization: Bearer $CRON_SECRET" https://YOUR-PREVIEW-URL/api/cron/x-social
+   ```
+5. Confirm server logs show post text + chart attachment paths; **no** rows in `social_post_log` from dry run
+
+### Phase 2 — Live on staging
+
+1. Set `X_API_DRY_RUN=false` on a **test X account** or restricted brand account
+2. Admin → Social → **Post to X** once manually; verify link + chart PNG
+3. Publish a Fueled desk call with a known return milestone; confirm milestone chart cron path
+4. Review `social_post_log` for idempotency (re-run cron — should skip duplicates)
+
+### Phase 3 — Production
+
+1. Copy verified env vars to **Production**
+2. Enable flags one at a time: `X_AUTOPOST_MILESTONES` → `X_POST_FUELED` → `X_POST_LEADERBOARD`
+3. Keep `X_POST_MEMBER_WINS=false` until opt-in members exist and copy is reviewed
+4. Monitor Vercel function logs for 403/429 from X API
+
 ## Idempotency
 
 Table `social_post_log` (`post_type` + `ref_id` unique) records live posts:

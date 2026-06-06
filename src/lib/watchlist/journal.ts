@@ -9,6 +9,11 @@ import {
   type JournalOutcome,
 } from "@/lib/watchlist/journal-meta";
 import { parseResearchMetadata } from "@/lib/journal/research-entry";
+import {
+  getDemoJournalEntries,
+  getDemoWatchlistJournal,
+  isDemoJournalSymbol,
+} from "@/lib/watchlist/journal-demo";
 import type {
   WatchlistJournal,
   WatchlistJournalEntry,
@@ -91,9 +96,10 @@ export async function fetchWatchlistJournal(
   userId: string,
   symbol: string
 ): Promise<WatchlistJournal | null> {
-  if (isDemoMode()) return null;
-
   const sym = symbol.toUpperCase().trim();
+  if (isDemoMode()) {
+    return isDemoJournalSymbol(sym) ? getDemoWatchlistJournal(sym) : null;
+  }
   const db = createServiceClient();
   const { data, error } = await db
     .from("user_watchlist")
@@ -242,9 +248,10 @@ export async function fetchJournalEntries(
   userId: string,
   symbol: string
 ): Promise<WatchlistJournalEntry[]> {
-  if (isDemoMode()) return [];
-
   const sym = symbol.toUpperCase().trim();
+  if (isDemoMode()) {
+    return isDemoJournalSymbol(sym) ? getDemoJournalEntries(sym) : [];
+  }
   const db = createServiceClient();
   const { data, error } = await db
     .from("watchlist_journal_entries")

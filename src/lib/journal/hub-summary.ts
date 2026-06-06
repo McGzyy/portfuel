@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { summarizeJournalHubProgress } from "@/lib/journal/checklist";
+import { getDemoJournalEntryStats } from "@/lib/watchlist/journal-demo";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 
 export type JournalEntryStats = {
@@ -19,7 +20,7 @@ const MANUAL_TYPES = new Set([
 export async function fetchJournalEntryStats(
   userId: string
 ): Promise<Record<string, JournalEntryStats>> {
-  if (isDemoMode()) return {};
+  if (isDemoMode()) return getDemoJournalEntryStats();
 
   const db = createServiceClient();
   const { data, error } = await db
