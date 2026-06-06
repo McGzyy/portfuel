@@ -13,6 +13,7 @@ import {
   GitCompare,
   MessageCircle,
   Megaphone,
+  Notebook,
   Trophy,
 } from "lucide-react";
 import { COPY } from "@/lib/copy";
@@ -33,6 +34,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   messages: MessageCircle,
   bell: Bell,
   trophy: Trophy,
+  notebook: Notebook,
 };
 
 export function WorkspaceSidebar({

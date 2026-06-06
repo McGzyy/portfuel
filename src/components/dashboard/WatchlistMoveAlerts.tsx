@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
+import { journalSymbolPath } from "@/lib/journal/paths";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { WATCHLIST_MOVE_ALERT_PCT } from "@/lib/watchlist/service";
 import { formatPct } from "@/lib/utils";
@@ -42,7 +43,7 @@ export function WatchlistMoveAlerts({
         {alerts.map((i) => (
           <li key={i.symbol}>
             <Link
-              href={`/dashboard/watchlist/${i.symbol}`}
+              href={journalSymbolPath(i.symbol)}
               className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-white px-2.5 py-1 text-xs font-semibold text-amber-950 hover:border-amber-400"
             >
               <span className="font-mono">{i.symbol}</span>

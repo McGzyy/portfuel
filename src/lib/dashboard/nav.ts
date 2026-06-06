@@ -10,7 +10,8 @@ export type DashboardNavIcon =
   | "compare"
   | "messages"
   | "bell"
-  | "trophy";
+  | "trophy"
+  | "notebook";
 
 export type DashboardNavItem = {
   href: string;
@@ -43,8 +44,14 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
   {
     href: "/dashboard/watchlist",
     label: "Watchlist",
-    description: "Journal & symbol lookup",
+    description: "Symbols, lookup & alerts",
     icon: "bookmark",
+  },
+  {
+    href: "/dashboard/journal",
+    label: "Journal",
+    description: "Private research notebook",
+    icon: "notebook",
   },
   {
     href: "/dashboard/messages",
@@ -100,7 +107,7 @@ export const WORKSPACE_NAV_GROUPS: { title: string; items: DashboardNavItem[] }[
   {
     title: "Research",
     items: DASHBOARD_NAV.filter((i) =>
-      ["/dashboard/desk", "/dashboard/watchlist", "/dashboard/screener", "/dashboard/earnings", "/dashboard/compare"].includes(
+      ["/dashboard/desk", "/dashboard/watchlist", "/dashboard/journal", "/dashboard/screener", "/dashboard/earnings", "/dashboard/compare"].includes(
         i.href
       )
     ),
@@ -176,7 +183,12 @@ const WORKSPACE_GUIDE_SECTIONS_TEMPLATE: {
       {
         href: "/dashboard/watchlist",
         label: "Watchlist",
-        description: "Private journal per symbol — thesis, plan levels, updates.",
+        description: "Track symbols, price alerts, and ticker lookup.",
+      },
+      {
+        href: "/dashboard/journal",
+        label: "Journal",
+        description: "Private research — thesis, plan, AI review, and entries per symbol.",
       },
       {
         href: "/dashboard/screener",

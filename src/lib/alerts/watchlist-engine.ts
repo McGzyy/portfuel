@@ -10,6 +10,7 @@ import {
   type WatchlistAlertPrefs,
 } from "@/lib/alerts/preferences";
 import { fetchEarningsForSymbols } from "@/lib/market/earnings-calendar";
+import { journalSymbolPath } from "@/lib/journal/paths";
 import type { ProAccessContext } from "@/lib/features/pro-intelligence";
 import type { MembershipTier } from "@/lib/stripe/config";
 import { formatPct } from "@/lib/utils";
@@ -262,7 +263,7 @@ export async function runWatchlistAlertsCron(): Promise<WatchlistAlertsCronResul
               type: "watchlist_price_move",
               title: `${entry.symbol} watchlist move`,
               body,
-              href: `/dashboard/watchlist/${entry.symbol}`,
+              href: journalSymbolPath(entry.symbol),
               symbol: entry.symbol,
               membershipTier: entry.membership_tier,
               role,
@@ -292,7 +293,7 @@ export async function runWatchlistAlertsCron(): Promise<WatchlistAlertsCronResul
               type: "watchlist_price_move",
               title: `${entry.symbol} watchlist move`,
               body,
-              href: `/dashboard/watchlist/${entry.symbol}`,
+              href: journalSymbolPath(entry.symbol),
               symbol: entry.symbol,
               membershipTier: entry.membership_tier,
               role,
@@ -375,7 +376,7 @@ export async function runWatchlistAlertsCron(): Promise<WatchlistAlertsCronResul
                 type: "watchlist_plan_level",
                 title: `${entry.symbol} plan level`,
                 body,
-                href: `/dashboard/watchlist/${entry.symbol}`,
+                href: journalSymbolPath(entry.symbol),
                 symbol: entry.symbol,
                 membershipTier: entry.membership_tier,
                 role,
@@ -427,7 +428,7 @@ export async function runWatchlistAlertsCron(): Promise<WatchlistAlertsCronResul
           type: "watchlist_earnings",
           title: `${entry.symbol} earnings ${ev.date}`,
           body,
-          href: `/dashboard/watchlist/${entry.symbol}`,
+          href: journalSymbolPath(entry.symbol),
           symbol: entry.symbol,
           membershipTier: entry.membership_tier,
           role,

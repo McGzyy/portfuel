@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle, BarChart3, Target } from "lucide-react";
+import { journalSymbolPath } from "@/lib/journal/paths";
 import type { JournalReviewSnapshot } from "@/lib/watchlist/journal-review";
 import { formatPct, formatPrice } from "@/lib/utils";
 
@@ -104,7 +105,7 @@ export function WatchlistJournalReviewPanel({
             {tracking.map((row) => (
               <li key={row.symbol}>
                 <Link
-                  href={`/dashboard/watchlist/${row.symbol}`}
+                  href={journalSymbolPath(row.symbol)}
                   className="inline-flex flex-col rounded-lg border border-[var(--pf-border)] bg-white px-3 py-2 transition-colors hover:border-[var(--pf-gray-300)]"
                 >
                   <span className="font-mono text-xs font-bold text-[var(--pf-black)]">
@@ -138,7 +139,7 @@ export function WatchlistJournalReviewPanel({
             {broken.slice(0, 5).map((row) => (
               <li key={row.symbol}>
                 <Link
-                  href={`/dashboard/watchlist/${row.symbol}`}
+                  href={journalSymbolPath(row.symbol)}
                   className="block rounded-lg border border-rose-200/80 bg-rose-50/50 px-3 py-2.5 transition-colors hover:border-rose-300 hover:bg-rose-50"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">

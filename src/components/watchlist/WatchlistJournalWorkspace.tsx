@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, LineChart, Megaphone, NotebookPen } from "lucide-react";
+import { JournalResearchPanel } from "@/components/journal/JournalResearchPanel";
 import { COPY } from "@/lib/copy";
+import { journalHubPath } from "@/lib/journal/paths";
 import { TickerChartSection } from "@/components/charts/TickerChartSection";
 import { WatchlistJournalPlanForm } from "@/components/watchlist/WatchlistJournalPlanForm";
 import { WatchlistJournalStats } from "@/components/watchlist/WatchlistJournalStats";
@@ -69,14 +71,15 @@ export function WatchlistJournalWorkspace({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-              Private journal · Watchlist
+              Research · Journal
             </p>
             <h1 className="mt-1.5 font-mono text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
               ${journal.symbol}
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
               {intel.companyName !== journal.symbol ? intel.companyName : "Your research notebook"}{" "}
-              — plan, chart levels, and updates stay private until you publish a call.
+              — thesis, catalysts, plan levels, and AI research stay private until you publish a
+              call.
             </p>
             {setupMode ? (
               <p className="mt-2 text-xs font-semibold text-[var(--pf-red)]">
@@ -87,10 +90,16 @@ export function WatchlistJournalWorkspace({
             ) : null}
             <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold">
               <Link
-                href="/dashboard/watchlist"
+                href={journalHubPath()}
                 className="inline-flex items-center gap-1 text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] hover:underline"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
+                Journal
+              </Link>
+              <Link
+                href="/dashboard/watchlist"
+                className="text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] hover:underline"
+              >
                 Watchlist
               </Link>
               <Link
@@ -120,6 +129,8 @@ export function WatchlistJournalWorkspace({
       </header>
 
       <WatchlistJournalStats intel={intel} />
+
+      <JournalResearchPanel symbol={journal.symbol} />
 
       <WatchlistJournalScenarioStrip journal={journal} />
 

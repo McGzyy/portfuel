@@ -29,6 +29,7 @@ export const TIER_COMPARISON_ROWS: TierComparisonRow[] = [
   { feature: "AI thesis coach (educational — feedback on your draft)", member: "2/mo", pro: "30/mo" },
   { feature: "AI call summaries (one line for skimming)", member: "Read cached", pro: "Generate 60/mo" },
   { feature: "AI journal context on watchlist alerts", member: "15/mo", pro: "75/mo" },
+  { feature: "AI journal research assistant (thesis gaps & catalyst checks)", member: "12/mo", pro: "60/mo" },
   { feature: "AI Assist (generate a draft call from ticker + notes)", member: false, pro: "10/day + 3 Deepen+/day" },
 ];
 
@@ -58,6 +59,7 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
       "AI call summaries: read cached quick reads",
       "Watchlist alerts: price moves, earnings & plan levels (in-app + email)",
       "AI journal context on alerts: 15/mo",
+      "AI journal research assistant: 12 reviews/mo",
     ],
   },
   pro: {
@@ -77,6 +79,7 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
       "AI Assist: generate draft calls from ticker + notes (10/day + 3 Deepen+/day)",
       "SMS text alerts for watchlist (price, earnings, plan levels)",
       "AI journal context on alerts: 75/mo",
+      "AI journal research assistant: 60 reviews/mo",
     ],
   },
 };
@@ -203,6 +206,7 @@ export const PRO_VALUE_BULLETS = [
   "6 published calls per week (vs 2 on Member)",
   "SMS text watchlist alerts (price, earnings, plan levels)",
   "Watchlist alerts with AI journal context (75/mo)",
+  "AI journal research assistant — thesis gaps & catalyst checks (60/mo)",
   "Earnings calendar for your watchlist (next 14 days)",
   "Community screener — conviction, target progress, desk vs crowd (CSV export)",
   "Earnings — reporting week with community positioning",

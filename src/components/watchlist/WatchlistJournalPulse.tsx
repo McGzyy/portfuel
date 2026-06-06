@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
+import { journalHubPath, journalSymbolPath } from "@/lib/journal/paths";
 import type { JournalHighlightRow } from "@/lib/watchlist/journal-highlights";
 import { formatPrice } from "@/lib/utils";
 
@@ -22,7 +23,7 @@ export function WatchlistJournalPulse({ ideas }: { ideas: JournalHighlightRow[] 
         {ideas.map((idea) => (
           <li key={idea.symbol}>
             <Link
-              href={`/dashboard/watchlist/${idea.symbol}`}
+              href={journalSymbolPath(idea.symbol)}
               className="flex min-w-[10rem] flex-col rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2.5 transition-colors hover:border-[var(--pf-gray-300)] hover:bg-white"
             >
               <span className="flex items-center justify-between gap-2">
@@ -48,10 +49,10 @@ export function WatchlistJournalPulse({ ideas }: { ideas: JournalHighlightRow[] 
         ))}
       </ul>
       <Link
-        href="/dashboard/watchlist"
+        href={journalHubPath()}
         className="mt-3 inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
       >
-        Full watchlist →
+        Open journal →
       </Link>
     </section>
   );

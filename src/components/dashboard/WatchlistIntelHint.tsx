@@ -8,19 +8,14 @@ export function WatchlistIntelHint() {
         <BookOpen className="h-4 w-4" aria-hidden />
       </span>
       <div className="min-w-0 text-sm text-[var(--pf-gray-600)]">
-        <p className="font-semibold text-[var(--pf-gray-800)]">Journal first, publish when ready</p>
+        <p className="font-semibold text-[var(--pf-gray-800)]">Watchlist tracks symbols — Journal holds your research</p>
         <p className="mt-0.5 leading-relaxed">
-          Open <strong className="font-semibold text-[var(--pf-gray-800)]">Journal</strong> on any row
-          for a private thesis, entry/stop/target on your chart, and timestamped updates. Use{" "}
-          <strong className="font-semibold text-[var(--pf-gray-800)]">Publish call</strong> when you
-          want the community to see it.
-        </p>
-        <p className="mt-2 text-xs">
-          <Link href="/dashboard/feed" className="font-semibold text-[var(--pf-red)] hover:underline">
-            Member feed
-          </Link>
-          {" · "}
-          Community intel on each symbol via the Intel link
+          Add symbols here for alerts and quick intel. Open{" "}
+          <Link href="/dashboard/journal" className="font-semibold text-[var(--pf-red)] hover:underline">
+            Journal
+          </Link>{" "}
+          for thesis, plan levels, AI research review, and private entries. Publish a call when
+          you&apos;re ready for the community to see it.
         </p>
       </div>
     </div>

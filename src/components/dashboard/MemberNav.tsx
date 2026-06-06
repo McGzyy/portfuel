@@ -11,6 +11,7 @@ import {
   Menu,
   MessageCircle,
   Megaphone,
+  Notebook,
   Rows3,
   ScanSearch,
   Calendar,
@@ -36,6 +37,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   messages: MessageCircle,
   bell: Bell,
   trophy: Trophy,
+  notebook: Notebook,
 };
 
 function isNavActive(pathname: string, href: string, exact?: boolean) {

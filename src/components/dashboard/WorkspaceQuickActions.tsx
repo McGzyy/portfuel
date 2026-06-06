@@ -10,6 +10,7 @@ import {
   GitCompare,
   LayoutDashboard,
   MessageCircle,
+  Notebook,
   Rows3,
   ScanSearch,
   Trophy,
@@ -31,6 +32,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   messages: MessageCircle,
   bell: Bell,
   trophy: Trophy,
+  notebook: Notebook,
 };
 
 function isNavActive(pathname: string, href: string, exact?: boolean): boolean {

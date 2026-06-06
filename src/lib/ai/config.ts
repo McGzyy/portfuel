@@ -30,6 +30,16 @@ export const AI_JOURNAL_ALERT_MONTHLY_LIMIT: Record<MembershipTier | "admin", nu
 export const AI_JOURNAL_ALERT_DISCLAIMER =
   "AI alert context for your journal only — not investment advice.";
 
+/** AI research reviews on private journal theses — generous vs call coach. */
+export const AI_JOURNAL_RESEARCH_MONTHLY_LIMIT: Record<MembershipTier | "admin", number> = {
+  member: 12,
+  pro: 60,
+  admin: 500,
+};
+
+export const AI_JOURNAL_RESEARCH_DISCLAIMER =
+  "Educational research prompts for your private journal only — not investment advice.";
+
 export function isAiCoachConfigured(): boolean {
   const key = process.env.OPENAI_API_KEY?.trim();
   return Boolean(key?.startsWith("sk-"));
@@ -73,4 +83,12 @@ export function journalAlertLimitForRole(
 ): number {
   if (role === "admin") return AI_JOURNAL_ALERT_MONTHLY_LIMIT.admin;
   return AI_JOURNAL_ALERT_MONTHLY_LIMIT[tier === "pro" ? "pro" : "member"];
+}
+
+export function journalResearchLimitForRole(
+  tier: MembershipTier | null,
+  role: "member" | "admin"
+): number {
+  if (role === "admin") return AI_JOURNAL_RESEARCH_MONTHLY_LIMIT.admin;
+  return AI_JOURNAL_RESEARCH_MONTHLY_LIMIT[tier === "pro" ? "pro" : "member"];
 }

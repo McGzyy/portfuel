@@ -17,13 +17,16 @@ export function WatchlistCommandHeader({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-2xl">
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-            Research · Watchlist &amp; journal
+            Research · Watchlist
           </p>
           <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
             Watchlist
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
-            {symbolCount} of {MAX_WATCHLIST} symbols — private journal per symbol (thesis, plan, updates)
+            {symbolCount} of {MAX_WATCHLIST} symbols tracked — alerts, lookup, and links to your{" "}
+            <Link href="/dashboard/journal" className="font-semibold text-[var(--pf-red)] hover:underline">
+              journal
+            </Link>
             {unreadAlerts > 0 ? (
               <span className="font-semibold text-[var(--pf-red)]">
                 {" "}

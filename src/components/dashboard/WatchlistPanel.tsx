@@ -12,7 +12,7 @@ import { MiniSparkline } from "@/components/charts/MiniSparkline";
 import type { LinePoint } from "@/lib/charts/types";
 import { formatPct, formatPrice } from "@/lib/utils";
 import { COPY } from "@/lib/copy";
-import { outcomeLabel, type JournalCatalyst } from "@/lib/watchlist/journal-meta";
+import { journalSymbolPath } from "@/lib/journal/paths";
 import { WATCHLIST_MOVE_ALERT_PCT } from "@/lib/watchlist/service";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { getDemoWatchlistSeed } from "@/lib/watchlist/demo";
@@ -70,8 +70,6 @@ export function WatchlistPanel({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(false);
-  const [filter, setFilter] = useState<"all" | "high" | "broken">("all");
-  const [catalystFilter, setCatalystFilter] = useState<JournalCatalyst | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -114,21 +112,6 @@ export function WatchlistPanel({
     return () => controller.abort();
   }, [items]);
 
-  const usedCatalysts = [...new Set(items.flatMap((i) => i.catalysts ?? []))].sort();
-
-  function matchesFilters(item: WatchlistEntry): boolean {
-    if (filter === "high" && (item.conviction ?? 0) < 8) return false;
-    if (
-      filter === "broken" &&
-      item.outcome !== "invalidated" &&
-      item.outcome !== "closed_incorrect"
-    ) {
-      return false;
-    }
-    if (catalystFilter && !(item.catalysts ?? []).includes(catalystFilter)) return false;
-    return true;
-  }
-
   async function addSymbol(e: React.FormEvent) {
     e.preventDefault();
     const sym = symbol.trim().toUpperCase();
@@ -170,9 +153,9 @@ export function WatchlistPanel({
       setThesis("");
       setShowThesis(false);
       if (!thesis.trim()) {
-        router.push(`/dashboard/watchlist/${encodeURIComponent(sym)}?setup=1`);
+        router.push(journalSymbolPath(sym, { setup: true }));
       } else {
-        router.push(`/dashboard/watchlist/${encodeURIComponent(sym)}`);
+        router.push(journalSymbolPath(sym));
       }
     } catch {
       setError("Could not add symbol.");
@@ -212,11 +195,14 @@ export function WatchlistPanel({
       aria-label="Your watchlist"
     >
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-        Watchlist &amp; journal
+        Your symbols
       </p>
       <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-        Track symbols and keep a private journal — thesis, plan levels, and updates. Open{" "}
-        <span className="font-semibold text-[var(--pf-gray-700)]">Journal</span> on any row.
+        Track tickers for alerts and quick intel. Research lives in{" "}
+        <Link href="/dashboard/journal" className="font-semibold text-[var(--pf-red)] hover:underline">
+          Journal
+        </Link>
+        .
       </p>
 
       <form onSubmit={addSymbol} className="mt-3 space-y-2">
@@ -263,78 +249,6 @@ export function WatchlistPanel({
 
       {error ? <p className="mt-2 text-xs text-rose-600">{error}</p> : null}
 
-      {items.length > 0 ? (
-        <div className="mt-3 space-y-2">
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setFilter("all")}
-              className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${
-                filter === "all"
-                  ? "bg-[var(--pf-black)] text-white"
-                  : "border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
-              }`}
-            >
-              All
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilter("high")}
-              className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${
-                filter === "high"
-                  ? "bg-indigo-600 text-white"
-                  : "border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
-              }`}
-            >
-              High conviction (8+)
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilter("broken")}
-              className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${
-                filter === "broken"
-                  ? "bg-rose-700 text-white"
-                  : "border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
-              }`}
-            >
-              Broken ideas
-            </button>
-          </div>
-          {usedCatalysts.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                Catalyst
-              </span>
-              {usedCatalysts.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() =>
-                    setCatalystFilter((prev) => (prev === c ? null : (c as JournalCatalyst)))
-                  }
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                    catalystFilter === c
-                      ? "bg-indigo-100 text-indigo-900 ring-1 ring-indigo-300"
-                      : "border border-[var(--pf-border)] bg-white text-[var(--pf-gray-600)] hover:border-[var(--pf-gray-300)]"
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-              {catalystFilter ? (
-                <button
-                  type="button"
-                  onClick={() => setCatalystFilter(null)}
-                  className="text-[10px] font-semibold text-[var(--pf-red)] hover:underline"
-                >
-                  Clear
-                </button>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
       {!loading && items.length > 0 ? (
         <div className="mt-3">
           <WatchlistMoveAlerts items={items} proUnlocked={proUnlocked} />
@@ -345,23 +259,9 @@ export function WatchlistPanel({
         <p className="mt-4 text-xs text-[var(--pf-gray-400)]">Loading…</p>
       ) : items.length === 0 ? (
         <p className="mt-4 text-xs text-[var(--pf-gray-500)]">No symbols yet. Add one above.</p>
-      ) : items.filter(matchesFilters).length === 0 ? (
-        <p className="mt-4 text-xs text-[var(--pf-gray-500)]">
-          No symbols match this filter.{" "}
-          <button
-            type="button"
-            className="font-semibold text-[var(--pf-red)] hover:underline"
-            onClick={() => {
-              setFilter("all");
-              setCatalystFilter(null);
-            }}
-          >
-            Clear filters
-          </button>
-        </p>
       ) : (
         <ul className="mt-4 space-y-1">
-          {items.filter(matchesFilters).map((item) => (
+          {items.map((item) => (
             <li
               key={item.symbol}
               className="group flex items-center gap-2 rounded-lg border border-transparent px-2 py-2 hover:border-[var(--pf-border)] hover:bg-[var(--pf-gray-50)]"
@@ -373,35 +273,17 @@ export function WatchlistPanel({
                 className="hidden sm:block"
               />
               <Link
-                href={`/dashboard/watchlist/${item.symbol}`}
+                href={journalSymbolPath(item.symbol)}
                 className="min-w-0 flex-1"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="flex items-center gap-2 font-mono text-sm font-bold text-[var(--pf-black)]">
                     {item.symbol}
-                    {item.conviction != null ? (
-                      <span className="rounded-full bg-[var(--pf-gray-100)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--pf-gray-600)]">
-                        {item.conviction}/10
-                      </span>
-                    ) : null}
                     {!item.has_thesis ? (
                       <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
-                        No thesis
+                        Needs thesis
                       </span>
                     ) : null}
-                    {item.outcome && item.outcome !== "watching" ? (
-                      <span className="rounded-full bg-[var(--pf-gray-100)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--pf-gray-600)]">
-                        {outcomeLabel(item.outcome)}
-                      </span>
-                    ) : null}
-                    {(item.catalysts ?? []).slice(0, 2).map((c) => (
-                      <span
-                        key={c}
-                        className="hidden rounded-full bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-800 sm:inline"
-                      >
-                        {c}
-                      </span>
-                    ))}
                   </span>
                   <span className="flex flex-col items-end gap-0.5">
                     {item.change_since_add_pct != null ? (
@@ -452,9 +334,9 @@ export function WatchlistPanel({
                 ) : null}
               </Link>
               <Link
-                href={`/dashboard/watchlist/${item.symbol}`}
+                href={journalSymbolPath(item.symbol)}
                 className="hidden shrink-0 items-center gap-1 rounded-full border border-[var(--pf-border)] bg-white px-2 py-1 text-[10px] font-semibold text-[var(--pf-gray-700)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)] group-hover:inline-flex sm:inline-flex"
-                title={`${item.symbol} private journal`}
+                title={`${item.symbol} research journal`}
               >
                 <BookOpen className="h-3 w-3" aria-hidden />
                 Journal

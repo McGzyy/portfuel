@@ -28,7 +28,7 @@ export function getDemoNotifications(): UserNotification[] {
       type: "watchlist_price_move",
       title: "NVDA watchlist move",
       body: "Up +6.2% since you added it. Your thesis still cites AI capex as the main catalyst.",
-      href: "/dashboard/watchlist/NVDA",
+      href: "/dashboard/journal/NVDA",
       read_at: null,
       created_at: new Date(now - 5400000).toISOString(),
     },
