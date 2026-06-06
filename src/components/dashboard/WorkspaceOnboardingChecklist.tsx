@@ -15,10 +15,12 @@ import { cn } from "@/lib/utils";
 export function WorkspaceOnboardingChecklist({
   publishedCall,
   watchlistCount,
+  journalThesisCount,
   followingCount,
 }: {
   publishedCall: boolean;
   watchlistCount: number;
+  journalThesisCount: number;
   followingCount: number;
 }) {
   const [deskVisited, setDeskVisited] = useState(false);
@@ -54,10 +56,11 @@ export function WorkspaceOnboardingChecklist({
       computeWorkspaceChecklistProgress({
         publishedCall,
         watchlistCount,
+        journalThesisCount,
         followingCount,
         deskVisited,
       }),
-    [publishedCall, watchlistCount, followingCount, deskVisited]
+    [publishedCall, watchlistCount, journalThesisCount, followingCount, deskVisited]
   );
 
   const doneMap = useMemo(() => {

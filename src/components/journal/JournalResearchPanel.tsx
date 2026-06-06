@@ -6,11 +6,24 @@ import { Button } from "@/components/ui/button";
 import { AI_JOURNAL_RESEARCH_DISCLAIMER } from "@/lib/ai/config";
 import type { JournalResearchResponse } from "@/lib/ai/journal-research-types";
 import type { JournalResearchUsageStatus } from "@/lib/ai/journal-research-usage";
+import type { JournalResearchSnapshot } from "@/lib/journal/research-entry";
+import type { WatchlistJournalEntry } from "@/lib/watchlist/journal-types";
 
-export function JournalResearchPanel({ symbol }: { symbol: string }) {
+type ResearchApiResponse = JournalResearchResponse & {
+  entry?: WatchlistJournalEntry | null;
+};
+
+export function JournalResearchPanel({
+  symbol,
+  onEntrySaved,
+}: {
+  symbol: string;
+  onEntrySaved?: (entry: WatchlistJournalEntry) => void;
+}) {
   const [usage, setUsage] = useState<JournalResearchUsageStatus | null>(null);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<JournalResearchResponse | null>(null);
+  const [result, setResult] = useState<JournalResearchSnapshot | null>(null);
+  const [savedNotice, setSavedNotice] = useState(false);
   const [error, setError] = useState("");
 
   const loadUsage = useCallback(async () => {
@@ -29,12 +42,13 @@ export function JournalResearchPanel({ symbol }: { symbol: string }) {
   async function runResearch() {
     setLoading(true);
     setError("");
+    setSavedNotice(false);
     try {
       const res = await fetch(
         `/api/watchlist/${encodeURIComponent(symbol)}/journal/research`,
         { method: "POST" }
       );
-      const data = await res.json();
+      const data = (await res.json()) as ResearchApiResponse & { error?: string };
       if (!res.ok) {
         if (data.error === "quota_exceeded") {
           setError("Monthly research limit reached — try again next month.");
@@ -46,7 +60,14 @@ export function JournalResearchPanel({ symbol }: { symbol: string }) {
         }
         return;
       }
-      setResult(data as JournalResearchResponse);
+      setResult({
+        read: data.read,
+        strengths: data.strengths,
+        research_gaps: data.research_gaps,
+        questions_to_answer: data.questions_to_answer,
+        catalyst_notes: data.catalyst_notes,
+        risk_prompts: data.risk_prompts,
+      });
       setUsage((u) =>
         u
           ? {
@@ -56,6 +77,10 @@ export function JournalResearchPanel({ symbol }: { symbol: string }) {
             }
           : u
       );
+      if (data.entry) {
+        onEntrySaved?.(data.entry);
+        setSavedNotice(true);
+      }
     } catch {
       setError("Could not run research review.");
     } finally {
@@ -72,8 +97,7 @@ export function JournalResearchPanel({ symbol }: { symbol: string }) {
             AI research assistant
           </p>
           <p className="mt-1 max-w-xl text-xs text-[var(--pf-gray-500)]">
-            Stress-tests your private thesis — gaps to fill, questions to answer, and catalyst checks.
-            Separate from call publish coach.
+            Stress-tests your thesis — results save automatically to your journal timeline.
           </p>
         </div>
         <Button
@@ -92,6 +116,12 @@ export function JournalResearchPanel({ symbol }: { symbol: string }) {
           {usage.configured
             ? `${usage.remaining}/${usage.limit} reviews left this month`
             : "AI not configured (OPENAI_API_KEY missing)"}
+        </p>
+      ) : null}
+
+      {savedNotice ? (
+        <p className="mt-2 text-xs font-semibold text-emerald-700">
+          Saved to your journal timeline below.
         </p>
       ) : null}
 
@@ -151,6 +181,52 @@ function ResearchBlock({
             <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} />
             {item}
           </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export function JournalAiResearchEntryBody({
+  metadata,
+  body,
+}: {
+  metadata: JournalResearchSnapshot | null;
+  body: string;
+}) {
+  if (!metadata) {
+    return (
+      <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[var(--pf-gray-800)]">
+        {body}
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-2 space-y-3 text-sm">
+      <p className="leading-relaxed text-[var(--pf-gray-800)]">{metadata.read}</p>
+      <InlineBlock title="Strengths" items={metadata.strengths} />
+      <InlineBlock title="Gaps" items={metadata.research_gaps} />
+      <InlineBlock title="Questions" items={metadata.questions_to_answer} />
+      {metadata.catalyst_notes.length > 0 ? (
+        <InlineBlock title="Catalysts" items={metadata.catalyst_notes} />
+      ) : null}
+      {metadata.risk_prompts.length > 0 ? (
+        <InlineBlock title="Risks" items={metadata.risk_prompts} />
+      ) : null}
+    </div>
+  );
+}
+
+function InlineBlock({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
+        {title}
+      </p>
+      <ul className="mt-1 space-y-0.5 text-xs leading-relaxed text-[var(--pf-gray-700)]">
+        {items.map((item) => (
+          <li key={item}>• {item}</li>
         ))}
       </ul>
     </div>

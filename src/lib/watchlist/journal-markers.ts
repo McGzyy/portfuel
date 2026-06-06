@@ -16,7 +16,13 @@ function markerLabel(body: string): string {
 
 export function buildJournalEntryMarkers(entries: WatchlistJournalEntry[]): ChartMarker[] {
   return entries
-    .filter((e) => e.marker_price != null && e.marker_price > 0)
+    .filter(
+      (e) =>
+        e.marker_price != null &&
+        e.marker_price > 0 &&
+        e.entry_type !== "ai_research" &&
+        e.entry_type !== "system"
+    )
     .map((e) => ({
       time: dayStartUnix(e.created_at),
       price: e.marker_price!,

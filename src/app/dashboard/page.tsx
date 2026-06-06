@@ -169,9 +169,11 @@ export default async function DashboardOverviewPage({
 
   let watchlistPreview: Awaited<ReturnType<typeof fetchWatchlist>> = [];
   let watchlistCount = 0;
+  let journalThesisCount = 0;
   try {
     const watchlist = await fetchWatchlist(session.userId);
     watchlistCount = watchlist.length;
+    journalThesisCount = watchlist.filter((i) => i.has_thesis).length;
     watchlistPreview = watchlist.slice(0, 6);
   } catch {
     /* optional */
@@ -270,11 +272,13 @@ export default async function DashboardOverviewPage({
           <WorkspaceOnboardingChecklist
             publishedCall={ownCalls.length > 0}
             watchlistCount={watchlistCount}
+            journalThesisCount={journalThesisCount}
             followingCount={followingMembers.length}
           />
           <WorkspaceChecklistCompleteBanner
             publishedCall={ownCalls.length > 0}
             watchlistCount={watchlistCount}
+            journalThesisCount={journalThesisCount}
             followingCount={followingMembers.length}
           />
         </>

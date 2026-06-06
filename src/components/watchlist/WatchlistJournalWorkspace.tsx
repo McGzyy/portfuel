@@ -3,9 +3,11 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, LineChart, Megaphone, NotebookPen } from "lucide-react";
+import { JournalResearchChecklistStrip } from "@/components/journal/JournalResearchChecklistStrip";
 import { JournalResearchPanel } from "@/components/journal/JournalResearchPanel";
 import { ResearchPipeline } from "@/components/journal/ResearchPipeline";
 import { COPY } from "@/lib/copy";
+import { buildJournalResearchChecklist } from "@/lib/journal/checklist";
 import { journalHubPath, journalSymbolPath } from "@/lib/journal/paths";
 import { TickerChartSection } from "@/components/charts/TickerChartSection";
 import { WatchlistJournalPlanForm } from "@/components/watchlist/WatchlistJournalPlanForm";
@@ -65,6 +67,15 @@ export function WatchlistJournalWorkspace({
     () => entries.filter((e) => e.marker_price != null && e.marker_price > 0).length,
     [entries]
   );
+
+  const checklist = useMemo(
+    () => buildJournalResearchChecklist(journal, entries),
+    [journal, entries]
+  );
+
+  function handleEntryAdded(entry: WatchlistJournalEntry) {
+    setEntries((prev) => [...prev, entry]);
+  }
 
   return (
     <div className="space-y-6">
@@ -134,6 +145,12 @@ export function WatchlistJournalWorkspace({
         </div>
       </header>
 
+      <JournalResearchChecklistStrip
+        checklist={checklist}
+        publishUrl={publishUrl}
+        setupMode={setupMode}
+      />
+
       {setupMode ? (
         <WatchlistJournalPlanForm
           symbol={journal.symbol}
@@ -156,12 +173,12 @@ export function WatchlistJournalWorkspace({
           <WatchlistJournalTimeline
             symbol={journal.symbol}
             entries={entries}
-            onEntryAdded={(entry) => setEntries((prev) => [...prev, entry])}
+            onEntryAdded={handleEntryAdded}
           />
         </div>
       </div>
 
-      <JournalResearchPanel symbol={journal.symbol} />
+      <JournalResearchPanel symbol={journal.symbol} onEntrySaved={handleEntryAdded} />
 
       <WatchlistJournalScenarioStrip journal={journal} />
 

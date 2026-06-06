@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { requireActiveMember } from "@/lib/auth/session";
 import { runJournalResearchReview } from "@/lib/ai/journal-research";
 import { fetchJournalResearchUsage } from "@/lib/ai/journal-research-usage";
 import { isAiCoachConfigured } from "@/lib/ai/config";
-import { fetchJournalEntries, fetchWatchlistJournal } from "@/lib/watchlist/journal";
+import {
+  formatAiResearchJournalBody,
+  researchToSnapshot,
+} from "@/lib/journal/research-entry";
+import { addJournalEntry, fetchJournalEntries, fetchWatchlistJournal } from "@/lib/watchlist/journal";
 
 type RouteContext = { params: Promise<{ symbol: string }> };
 
@@ -44,6 +49,7 @@ export async function POST(_request: Request, context: RouteContext) {
     }
 
     const recent_entries = entries
+      .filter((e) => e.entry_type !== "ai_research" && e.entry_type !== "system")
       .slice(-5)
       .map((e) => e.body)
       .reverse();
@@ -74,7 +80,21 @@ export async function POST(_request: Request, context: RouteContext) {
       },
     });
 
-    return NextResponse.json(result);
+    const snapshot = researchToSnapshot(result);
+    const saved = await addJournalEntry(session.userId, symbol, {
+      body: formatAiResearchJournalBody(snapshot),
+      entry_type: "ai_research",
+      metadata: snapshot,
+    });
+
+    if ("error" in saved) {
+      console.error("[journal research/save-entry]", saved.error);
+    }
+
+    return NextResponse.json({
+      ...result,
+      entry: "error" in saved ? null : saved.entry,
+    });
   } catch (e) {
     if (e instanceof Error && e.message === "unauthorized") {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });

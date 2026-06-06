@@ -55,6 +55,34 @@ export function outcomeLabel(outcome: JournalOutcome | string | null | undefined
   return row?.label ?? "Watching";
 }
 
+export const JOURNAL_ENTRY_TYPES = [
+  { value: "note", label: "General note" },
+  { value: "price_action", label: "Price action" },
+  { value: "earnings", label: "Earnings" },
+  { value: "news", label: "News / filing" },
+  { value: "thesis_update", label: "Thesis update" },
+] as const;
+
+export type JournalEntryType =
+  | (typeof JOURNAL_ENTRY_TYPES)[number]["value"]
+  | "ai_research"
+  | "system";
+
+const USER_ENTRY_TYPES = new Set<string>(JOURNAL_ENTRY_TYPES.map((t) => t.value));
+
+export function normalizeJournalEntryType(raw: string | null | undefined): JournalEntryType {
+  if (raw === "ai_research" || raw === "system") return raw;
+  if (raw && USER_ENTRY_TYPES.has(raw)) return raw as (typeof JOURNAL_ENTRY_TYPES)[number]["value"];
+  return "note";
+}
+
+export function journalEntryTypeLabel(type: JournalEntryType | string | null | undefined): string {
+  if (type === "ai_research") return "AI research";
+  if (type === "system") return "System";
+  const row = JOURNAL_ENTRY_TYPES.find((t) => t.value === type);
+  return row?.label ?? "Note";
+}
+
 export type JournalScenarioProgress = {
   bull: number | null;
   base: number | null;

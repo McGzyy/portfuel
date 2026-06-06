@@ -1,4 +1,5 @@
-import type { JournalCatalyst, JournalOutcome } from "@/lib/watchlist/journal-meta";
+import type { JournalCatalyst, JournalEntryType, JournalOutcome } from "@/lib/watchlist/journal-meta";
+import type { JournalResearchSnapshot } from "@/lib/journal/research-entry";
 
 export type WatchlistJournal = {
   symbol: string;
@@ -25,6 +26,8 @@ export type WatchlistJournal = {
 export type WatchlistJournalEntry = {
   id: string;
   body: string;
+  entry_type: JournalEntryType;
+  metadata: JournalResearchSnapshot | null;
   reply_to_id: string | null;
   conviction_after: number | null;
   marker_price: number | null;

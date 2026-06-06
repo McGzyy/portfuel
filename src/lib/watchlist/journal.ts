@@ -3,9 +3,12 @@ import { isDemoMode } from "@/lib/demo/config";
 import { getQuote } from "@/lib/market/finnhub";
 import {
   normalizeCatalysts,
+  normalizeJournalEntryType,
   normalizePersonalTags,
+  type JournalEntryType,
   type JournalOutcome,
 } from "@/lib/watchlist/journal-meta";
+import { parseResearchMetadata } from "@/lib/journal/research-entry";
 import type {
   WatchlistJournal,
   WatchlistJournalEntry,
@@ -190,12 +193,14 @@ export async function updateWatchlistJournal(
     await addJournalEntry(userId, sym, {
       body: `Conviction updated to ${convictionAfter}.`,
       conviction_after: convictionAfter,
+      entry_type: "system",
     });
   }
 
   if (outcomeAfter !== undefined && outcomeAfter !== existing.outcome) {
     await addJournalEntry(userId, sym, {
       body: `Outcome set to ${outcomeAfter.replace(/_/g, " ")}.`,
+      entry_type: "system",
     });
   }
 
@@ -209,6 +214,30 @@ function normalizePrice(value: number | null | undefined): number | null {
   return Math.round(value * 10000) / 10000;
 }
 
+function mapEntryRow(row: {
+  id: string;
+  body: string;
+  entry_type?: string | null;
+  metadata?: unknown;
+  reply_to_id: string | null;
+  conviction_after: number | null;
+  marker_price: number | null;
+  created_at: string;
+}): WatchlistJournalEntry {
+  const entry_type = normalizeJournalEntryType(row.entry_type);
+  return {
+    id: row.id,
+    body: row.body,
+    entry_type,
+    metadata:
+      entry_type === "ai_research" ? parseResearchMetadata(row.metadata) : null,
+    reply_to_id: row.reply_to_id,
+    conviction_after: row.conviction_after,
+    marker_price: row.marker_price != null ? Number(row.marker_price) : null,
+    created_at: row.created_at,
+  };
+}
+
 export async function fetchJournalEntries(
   userId: string,
   symbol: string
@@ -219,13 +248,13 @@ export async function fetchJournalEntries(
   const db = createServiceClient();
   const { data, error } = await db
     .from("watchlist_journal_entries")
-    .select("id, body, reply_to_id, conviction_after, marker_price, created_at")
+    .select("id, body, entry_type, metadata, reply_to_id, conviction_after, marker_price, created_at")
     .eq("user_id", userId)
     .eq("symbol", sym)
     .order("created_at", { ascending: true });
 
   if (error) throw error;
-  return (data ?? []) as WatchlistJournalEntry[];
+  return (data ?? []).map((row) => mapEntryRow(row as Parameters<typeof mapEntryRow>[0]));
 }
 
 export async function addJournalEntry(
@@ -235,6 +264,8 @@ export async function addJournalEntry(
     body: string;
     reply_to_id?: string | null;
     conviction_after?: number | null;
+    entry_type?: JournalEntryType;
+    metadata?: Record<string, unknown> | null;
   }
 ): Promise<{ ok: true; entry: WatchlistJournalEntry } | { error: string }> {
   if (isDemoMode()) return { error: "demo_readonly" };
@@ -252,7 +283,10 @@ export async function addJournalEntry(
       ? Math.min(10, Math.max(1, Math.round(input.conviction_after)))
       : null;
 
-  const marker_price = await resolveJournalMarkerPrice(sym);
+  const entry_type = normalizeJournalEntryType(input.entry_type);
+  const skipMarker = entry_type === "ai_research" || entry_type === "system";
+
+  const marker_price = skipMarker ? null : await resolveJournalMarkerPrice(sym);
 
   const { data, error } = await db
     .from("watchlist_journal_entries")
@@ -260,11 +294,13 @@ export async function addJournalEntry(
       user_id: userId,
       symbol: sym,
       body: body.slice(0, 4000),
+      entry_type,
+      metadata: input.metadata ?? null,
       reply_to_id: input.reply_to_id ?? null,
       conviction_after,
       marker_price,
     } as never)
-    .select("id, body, reply_to_id, conviction_after, marker_price, created_at")
+    .select("id, body, entry_type, metadata, reply_to_id, conviction_after, marker_price, created_at")
     .single();
 
   if (error) {
@@ -278,7 +314,7 @@ export async function addJournalEntry(
     .eq("user_id", userId)
     .eq("symbol", sym);
 
-  return { ok: true, entry: data as WatchlistJournalEntry };
+  return { ok: true, entry: mapEntryRow(data as Parameters<typeof mapEntryRow>[0]) };
 }
 
 /** Quote at add time for move alerts. */
