@@ -3,7 +3,6 @@ import { LeaderboardTable } from "@/components/rankings/LeaderboardTable";
 import { RankingsTrustedNote } from "@/components/rankings/RankingsTrustedNote";
 import { RankingsSummaryBar } from "@/components/rankings/RankingsSummaryBar";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
-import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import { RankingsCommandHeader } from "@/components/rankings/RankingsCommandHeader";
 import { COPY } from "@/lib/copy";
 import type { LeaderboardEntry } from "@/lib/calls/leaderboard";
@@ -36,8 +35,6 @@ export function RankingsPageContent({
       {loggedIn ? (
         <WorkspaceQuickActions proUnlocked={!proLocked} />
       ) : null}
-
-      {loggedIn && proLocked ? <ProMembershipStrip locked /> : null}
 
       <RankingsSummaryBar summary={summary} proLocked={proLocked} proGateCta={proGateCta} />
       <RankingsTrustedNote />

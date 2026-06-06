@@ -5,7 +5,6 @@ import { EarningsBattleboardLegend } from "@/components/pro/EarningsBattleboardL
 import { EarningsBattleboardTable } from "@/components/pro/EarningsBattleboardTable";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
-import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import {
   getProGateCta,
   isProIntelligenceLocked,
@@ -36,8 +35,6 @@ export default async function DashboardEarningsPage() {
       <WorkspaceQuickActions proUnlocked={!proLocked} />
 
       <EarningsSurfacesExplainer />
-
-      {proLocked ? <ProMembershipStrip locked /> : null}
 
       <ProIntelligenceGate
         locked={proLocked}

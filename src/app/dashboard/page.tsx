@@ -247,6 +247,8 @@ export default async function DashboardOverviewPage({
 
       <WorkspaceQuickActions proUnlocked={isPro} />
 
+      <ProMembershipStrip locked={proLocked} />
+
       {journalIdeas.length > 0 ? <WatchlistJournalPulse ideas={journalIdeas} /> : null}
 
       {proIntel ? (
@@ -290,23 +292,32 @@ export default async function DashboardOverviewPage({
         <AdminCommunityHint />
       ) : null}
 
-      <ProMembershipStrip locked={proLocked} />
-
       <OverviewActivityPanels hotTickers={hotTickers} />
 
       <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
         <div className="space-y-6 lg:col-span-7 xl:col-span-8">
-          <WorkspacePanel
-            title="Fueled desk"
-            subtitle="House research and model portfolio"
-            href="/dashboard/desk"
-          >
+          <section className="pf-fueled-desk p-5 sm:p-6" aria-label="PortFuel Fueled desk">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="pf-eyebrow">PortFuel Fueled</p>
+                <h2 className="mt-1 text-lg font-bold tracking-tight">Fueled desk</h2>
+                <p className="mt-1 max-w-xl text-sm text-slate-400">
+                  House research and model portfolio
+                </p>
+              </div>
+              <Link
+                href="/dashboard/desk"
+                className="text-xs font-semibold text-red-300 hover:text-red-200 hover:underline"
+              >
+                Open Fueled desk →
+              </Link>
+            </div>
             <FueledDeskPreview
               featured={featuredDesk}
               totalDeskCalls={fueledCalls.length}
               weeklyNote={deskBrief.weeklyNote}
             />
-          </WorkspacePanel>
+          </section>
 
           <WorkspacePanel
             title="Member feed"

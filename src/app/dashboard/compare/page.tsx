@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { CompareCommandHeader } from "@/components/pro/CompareCommandHeader";
 import { TickerCompareWorkspace } from "@/components/pro/TickerCompareWorkspace";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
-import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import { parseCompareSymbolsParam } from "@/lib/dashboard/compare-symbols";
 import {
   getProGateCta,
@@ -51,8 +50,6 @@ export default async function DashboardComparePage({
       />
 
       <WorkspaceQuickActions proUnlocked={!proLocked} />
-
-      {proLocked ? <ProMembershipStrip locked /> : null}
 
       <TickerCompareWorkspace
         locked={proLocked}

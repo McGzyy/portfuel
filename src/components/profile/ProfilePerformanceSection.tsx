@@ -2,7 +2,6 @@ import { MemberReturnChart } from "@/components/charts/MemberReturnChart";
 import { MemberTrackRecordStrip } from "@/components/member/MemberTrackRecordStrip";
 import { MemberReturnDistribution } from "@/components/pro/MemberReturnDistribution";
 import { ProfileAiCoachStrip } from "@/components/profile/ProfileAiCoachStrip";
-import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import type { AiCoachUsageStatus } from "@/lib/ai/usage";
 import type { ReturnBucket } from "@/lib/charts/return-distribution";
 import type { ReturnChartPoint } from "@/lib/charts/types";
@@ -53,8 +52,6 @@ export function ProfilePerformanceSection({
       />
 
       <ProfileAiCoachStrip usage={aiUsage} />
-
-      {proLocked ? <ProMembershipStrip locked /> : null}
     </section>
   );
 }

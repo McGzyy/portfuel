@@ -7,7 +7,6 @@ import { FeedToolbar } from "@/components/dashboard/FeedToolbar";
 import { FeedSummaryBar } from "@/components/dashboard/FeedSummaryBar";
 import { ProFeedLeadersPanel } from "@/components/pro/ProFeedLeadersPanel";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
-import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import {
   filterCallsFeed,
@@ -130,8 +129,6 @@ export default async function DashboardFeedPage({
       <WorkspaceQuickActions proUnlocked={!proLocked} />
 
       <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} />
-
-      <ProMembershipStrip locked={proLocked} />
 
       <FeedToolbar
         mode={mode}

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { ScreenerCommandHeader } from "@/components/pro/ScreenerCommandHeader";
 import { ProCommunityScreener } from "@/components/pro/ProCommunityScreener";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
-import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import {
   getProGateCta,
   isProIntelligenceLocked,
@@ -34,8 +33,6 @@ export default async function DashboardScreenerPage() {
       <ScreenerCommandHeader data={data} />
 
       <WorkspaceQuickActions proUnlocked={!proLocked} />
-
-      {proLocked ? <ProMembershipStrip locked /> : null}
 
       {!proLocked && compareSymbols.length >= 2 ? (
         <p className="text-xs text-[var(--pf-gray-500)]">

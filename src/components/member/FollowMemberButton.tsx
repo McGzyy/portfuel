@@ -8,10 +8,13 @@ export function FollowMemberButton({
   memberId,
   memberUsername,
   initialFollowing,
+  variant = "light",
 }: {
   memberId: string;
   memberUsername: string;
   initialFollowing: boolean;
+  /** Light = white workspace panels; dark = hero bands with light text */
+  variant?: "light" | "dark";
 }) {
   const router = useRouter();
   const [following, setFollowing] = useState(initialFollowing);
@@ -65,13 +68,19 @@ export function FollowMemberButton({
         className={cn(
           "rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60",
           following
-            ? "border border-white/20 bg-white/10 text-white hover:bg-white/15"
-            : "bg-[var(--pf-red)] text-white hover:bg-red-600"
+            ? variant === "dark"
+              ? "border border-white/20 bg-white/10 text-white hover:bg-white/15"
+              : "border border-[var(--pf-border)] bg-[var(--pf-gray-100)] text-[var(--pf-gray-800)] hover:bg-[var(--pf-gray-200)]"
+            : "bg-[var(--pf-red)] text-white hover:bg-[var(--pf-red-hover)]"
         )}
       >
         {busy ? "…" : following ? "Following" : `Follow @${memberUsername}`}
       </button>
-      {error ? <p className="text-xs text-red-300">{error}</p> : null}
+      {error ? (
+        <p className={cn("text-xs", variant === "dark" ? "text-red-300" : "text-rose-600")}>
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

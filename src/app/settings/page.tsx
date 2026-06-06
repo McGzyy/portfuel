@@ -10,6 +10,7 @@ import { ProfileVouchersSection } from "@/components/profile/ProfileVouchersSect
 import { ProfileDiscordSection } from "@/components/profile/ProfileDiscordSection";
 import { SettingsCommandHeader } from "@/components/settings/SettingsCommandHeader";
 import { SettingsPageNav } from "@/components/settings/SettingsPageNav";
+import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import { ModerationBanner } from "@/components/member/ModerationBanner";
 import { SettingsBillingSync } from "@/app/settings/BillingSync";
 import { getSession } from "@/lib/auth/session";
@@ -17,6 +18,10 @@ import { toHeaderUser } from "@/lib/auth/session-user";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import {
+  isProIntelligenceLocked,
+  sessionToProContext,
+} from "@/lib/features/pro-intelligence";
 
 export const metadata: Metadata = {
   title: "Settings",
@@ -35,6 +40,8 @@ export default async function SettingsPage() {
     redirect("/dashboard");
   }
 
+  const proLocked = isProIntelligenceLocked(sessionToProContext(session));
+
   return (
     <AppShell user={toHeaderUser(session)}>
       <SettingsBillingSync />
@@ -49,6 +56,8 @@ export default async function SettingsPage() {
 
         <SettingsCommandHeader username={profile.member.username} />
         <SettingsPageNav />
+
+        {proLocked ? <ProMembershipStrip locked /> : null}
 
         <section id="billing" className="scroll-mt-24 space-y-4">
           <ProfileBillingSection

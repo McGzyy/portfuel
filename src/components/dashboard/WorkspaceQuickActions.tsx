@@ -89,7 +89,7 @@ export function WorkspaceQuickActions({
   const proItems = proUnlocked ? PRO_NAV_RAIL : [];
 
   return (
-    <nav className="pf-workspace-rail" aria-label="Workspace navigation">
+    <nav className={cn("pf-workspace-rail lg:hidden")} aria-label="Workspace navigation">
       <div className="pf-workspace-rail-scroll">
         <div className="pf-workspace-rail-group">
           {WORKSPACE_NAV_RAIL.map((item) => (

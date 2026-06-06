@@ -19,13 +19,13 @@ export function FueledDeskPreview({
       : featured?.thesis;
 
   return (
-    <div className="space-y-4 px-4 pb-4 pt-1">
+    <div className="mt-5 space-y-4">
       {weeklyNote ? (
-        <div className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+        <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
             Desk note · this week
           </p>
-          <p className="mt-1.5 text-sm leading-relaxed text-[var(--pf-gray-700)]">
+          <p className="mt-1.5 text-sm leading-relaxed text-slate-300">
             {weeklyNote.length > 200 ? `${weeklyNote.slice(0, 197)}…` : weeklyNote}
           </p>
         </div>
@@ -34,25 +34,25 @@ export function FueledDeskPreview({
       {featured ? (
         <Link
           href={`/ticker/${featured.symbol}`}
-          className="block rounded-lg border border-[var(--pf-border)] p-4 transition-colors hover:bg-[var(--pf-gray-50)]"
+          className="block rounded-lg border border-white/10 bg-black/20 p-4 transition-colors hover:bg-white/5"
         >
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="fueled">
               <Flame className="mr-1 h-3 w-3" />
               Fueled
             </Badge>
-            <span className="font-mono text-base font-bold text-[var(--pf-black)]">
+            <span className="font-mono text-base font-bold text-white">
               {featured.symbol}
             </span>
-            <span className="text-xs font-semibold uppercase text-[var(--pf-gray-500)]">
+            <span className="text-xs font-semibold uppercase text-slate-400">
               {featured.direction}
             </span>
             {featured.return_pct != null ? (
               <span
                 className={
                   featured.return_pct >= 0
-                    ? "ml-auto text-sm font-bold tabular-nums text-[var(--pf-positive)]"
-                    : "ml-auto text-sm font-bold tabular-nums text-[var(--pf-negative)]"
+                    ? "ml-auto text-sm font-bold tabular-nums text-emerald-400"
+                    : "ml-auto text-sm font-bold tabular-nums text-rose-400"
                 }
               >
                 {formatPct(featured.return_pct)}
@@ -60,23 +60,23 @@ export function FueledDeskPreview({
             ) : null}
           </div>
           {thesisPreview ? (
-            <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-600)]">{thesisPreview}</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300">{thesisPreview}</p>
           ) : null}
-          <p className="mt-2 text-xs text-[var(--pf-gray-400)]">
+          <p className="mt-2 text-xs text-slate-500">
             {timeAgo(featured.called_at)}
             {totalDeskCalls > 1 ? ` · ${totalDeskCalls} desk calls` : ""}
           </p>
         </Link>
       ) : (
-        <div className="rounded-lg border border-dashed border-[var(--pf-border)] px-4 py-8 text-center text-sm text-[var(--pf-gray-500)]">
-          <p className="font-medium text-[var(--pf-gray-600)]">No desk thesis yet</p>
+        <div className="rounded-lg border border-dashed border-white/20 px-4 py-8 text-center text-sm text-slate-400">
+          <p className="font-medium text-slate-300">No desk thesis yet</p>
           <p className="mt-1 text-xs leading-relaxed">
             House research appears here when published. Browse the{" "}
-            <Link href="/dashboard/desk" className="font-semibold text-[var(--pf-red)] hover:underline">
+            <Link href="/dashboard/desk" className="font-semibold text-red-300 hover:text-red-200 hover:underline">
               Fueled desk
             </Link>{" "}
             or the{" "}
-            <Link href="/dashboard/feed" className="font-semibold text-[var(--pf-red)] hover:underline">
+            <Link href="/dashboard/feed" className="font-semibold text-red-300 hover:text-red-200 hover:underline">
               member feed
             </Link>{" "}
             for community ideas.
