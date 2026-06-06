@@ -98,8 +98,9 @@ export function WatchlistJournalWorkspace({
   return (
     <div className="space-y-6">
       <ResearchPipeline
-        current={setupMode ? "research" : "log"}
+        current={checklist.readyToPublish ? "publish" : setupMode ? "research" : "log"}
         logHref={journalSymbolPath(journal.symbol, { section: "entries" })}
+        publishHref={checklist.readyToPublish ? publishUrl : undefined}
       />
 
       <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
@@ -151,7 +152,7 @@ export function WatchlistJournalWorkspace({
               <NotebookPen className="h-4 w-4 shrink-0" strokeWidth={2.25} />
               {COPY.journalSavePlan} first
             </div>
-          ) : (
+          ) : checklist.readyToPublish ? (
             <Link
               href={publishUrl}
               className="inline-flex items-center gap-2 rounded-lg bg-[var(--pf-red)] px-4 py-2.5 text-sm font-semibold text-white shadow-[var(--pf-shadow-sm)] transition-colors hover:bg-[var(--pf-red-hover)]"
@@ -159,12 +160,18 @@ export function WatchlistJournalWorkspace({
               <Megaphone className="h-4 w-4" strokeWidth={2.25} />
               {COPY.publishFromJournal}
             </Link>
+          ) : (
+            <div className="inline-flex items-center gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-2.5 text-sm font-semibold text-[var(--pf-gray-500)]">
+              <Megaphone className="h-4 w-4 shrink-0 opacity-50" strokeWidth={2.25} />
+              Finish checklist to publish
+            </div>
           )}
         </div>
       </header>
 
       <div id="journal-checklist">
         <JournalResearchChecklistStrip
+          symbol={journal.symbol}
           checklist={checklist}
           publishUrl={publishUrl}
           setupMode={setupMode}

@@ -28,14 +28,16 @@ function journalRowHref(item: WatchlistEntry): string {
 export function JournalIdeasPanel({
   demoMode,
   initialItems,
+  initialFilter,
 }: {
   demoMode: boolean;
   initialItems?: WatchlistEntry[];
+  initialFilter?: FilterMode;
 }) {
   const [items, setItems] = useState<WatchlistEntry[]>(initialItems ?? []);
   const [loading, setLoading] = useState(initialItems == null);
   const [error, setError] = useState("");
-  const [filter, setFilter] = useState<FilterMode>("all");
+  const [filter, setFilter] = useState<FilterMode>(initialFilter ?? "all");
   const [catalystFilter, setCatalystFilter] = useState<JournalCatalyst | null>(null);
 
   const load = useCallback(async () => {
@@ -86,7 +88,11 @@ export function JournalIdeasPanel({
   const readyCount = items.filter((i) => i.journal_progress?.ready_to_publish).length;
 
   return (
-    <section className="pf-workspace-panel p-4 sm:p-5" aria-label="Journal ideas">
+    <section
+      id="journal-ideas"
+      className="pf-workspace-panel p-4 sm:p-5 scroll-mt-24"
+      aria-label="Journal ideas"
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">

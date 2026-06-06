@@ -45,11 +45,14 @@ const STEPS: {
 export function ResearchPipeline({
   current,
   logHref,
+  publishHref,
   className,
 }: {
   current: ResearchPipelineStep;
   /** Override log step when a specific symbol journal is open */
   logHref?: string;
+  /** Override publish step when a journal is ready to publish */
+  publishHref?: string;
   className?: string;
 }) {
   return (
@@ -63,7 +66,12 @@ export function ResearchPipeline({
       {STEPS.map((step, index) => {
         const Icon = step.icon;
         const active = step.id === current;
-        const href = step.id === "log" && logHref ? logHref : step.href;
+        const href =
+          step.id === "log" && logHref
+            ? logHref
+            : step.id === "publish" && publishHref
+              ? publishHref
+              : step.href;
         const isPublish = step.id === "publish";
 
         return (

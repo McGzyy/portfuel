@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TradeSetupPreview } from "@/components/calls/TradeSetupPreview";
 import { ThesisCoachPanel } from "@/components/ai/ThesisCoachPanel";
+import { JournalPublishPreview } from "@/components/journal/JournalPublishPreview";
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
 import { ModerationBanner } from "@/components/member/ModerationBanner";
 import type { SessionPayload } from "@/lib/auth/session-types";
@@ -39,6 +40,11 @@ function readPublishQuery(sp: URLSearchParams) {
     timeframeTag: sp.get("timeframe") ?? "",
     sourceTweetUrl: sp.get("sourceTweet") ?? "",
     contextNotes: sp.get("notes") ?? "",
+    conviction: sp.get("conviction") ?? "",
+    catalysts: (sp.get("catalysts") ?? "")
+      .split(",")
+      .map((c) => c.trim())
+      .filter(Boolean),
   };
 }
 
@@ -287,10 +293,23 @@ export function NewCallForm({
         </div>
       ) : null}
 
-      {queryDraft.fromJournal ? (
+      {queryDraft.fromJournal && thesis.trim() ? (
+        <JournalPublishPreview
+          symbol={symbol}
+          direction={direction}
+          thesis={thesis}
+          entryPrice={entryPrice}
+          targetPrice={targetPrice}
+          stopPrice={stopPrice}
+          timeframeTag={timeframeTag}
+          conviction={queryDraft.conviction}
+          catalysts={queryDraft.catalysts}
+          contextNotes={aiNotes}
+        />
+      ) : queryDraft.fromJournal ? (
         <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
-          Prefilled from your private watchlist journal — review levels and thesis before publishing
-          to the community.
+          Prefilled from your private watchlist journal — add your thesis and levels below before
+          publishing to the community.
         </div>
       ) : null}
 

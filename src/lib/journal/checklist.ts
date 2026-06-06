@@ -1,4 +1,21 @@
+import type { JournalSection } from "@/lib/journal/paths";
 import type { WatchlistJournal, WatchlistJournalEntry } from "@/lib/watchlist/journal-types";
+
+/** Checklist row → journal section anchor for incomplete-step links. */
+export function journalChecklistItemSection(itemId: string): JournalSection | null {
+  switch (itemId) {
+    case "thesis":
+    case "catalysts":
+    case "plan":
+      return "plan";
+    case "entries":
+      return "entries";
+    case "ai_research":
+      return "research";
+    default:
+      return null;
+  }
+}
 
 export type JournalChecklistItem = {
   id: string;

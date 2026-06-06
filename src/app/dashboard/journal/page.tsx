@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JournalCommandHeader } from "@/components/journal/JournalCommandHeader";
 import { JournalContinueCard } from "@/components/journal/JournalContinueCard";
 import { JournalIdeasPanel } from "@/components/journal/JournalIdeasPanel";
+import { JournalReadyToPublishBanner } from "@/components/journal/JournalReadyToPublishBanner";
 import { ResearchPipeline } from "@/components/journal/ResearchPipeline";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { WatchlistJournalReviewPanel } from "@/components/watchlist/WatchlistJournalReviewPanel";
@@ -11,6 +12,7 @@ import { attachJournalHubProgress, fetchJournalEntryStats } from "@/lib/journal/
 import { pickJournalNextUp } from "@/lib/journal/next-up";
 import { fetchJournalReview } from "@/lib/watchlist/journal-review";
 import { fetchWatchlist } from "@/lib/watchlist/service";
+import { buildPublishUrlFromHubEntry } from "@/lib/watchlist/journal-call-url";
 import {
   canAccessProIntelligence,
   sessionToProContext,
@@ -20,8 +22,14 @@ export const metadata: Metadata = {
   title: "Journal",
 };
 
-export default async function DashboardJournalPage() {
+export default async function DashboardJournalPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string }>;
+}) {
   const session = await requireDashboardSession();
+  const sp = await searchParams;
+  const initialFilter = sp.filter === "ready" ? ("ready" as const) : undefined;
   const proUnlocked = canAccessProIntelligence(sessionToProContext(session));
 
   let items: Awaited<ReturnType<typeof fetchWatchlist>> = [];
@@ -43,6 +51,10 @@ export default async function DashboardJournalPage() {
     (i) => i.outcome === "watching" || i.outcome === "developing" || !i.outcome
   ).length;
   const nextUp = pickJournalNextUp(items);
+  const readyItems = items.filter((i) => i.journal_progress?.ready_to_publish);
+  const pipelineCurrent = readyItems.length > 0 ? ("publish" as const) : ("research" as const);
+  const publishHref =
+    readyItems.length > 0 ? buildPublishUrlFromHubEntry(readyItems[0]!) : undefined;
 
   return (
     <div className="space-y-6">
@@ -53,7 +65,18 @@ export default async function DashboardJournalPage() {
         nextUp={nextUp}
       />
 
-      <ResearchPipeline current="research" logHref={nextUp?.href} />
+      {readyItems.length > 0 ? (
+        <JournalReadyToPublishBanner
+          readyItems={readyItems}
+          viewAllHref="/dashboard/journal?filter=ready#journal-ideas"
+        />
+      ) : null}
+
+      <ResearchPipeline
+        current={pipelineCurrent}
+        logHref={nextUp?.href}
+        publishHref={publishHref}
+      />
 
       {nextUp ? <JournalContinueCard nextUp={nextUp} /> : null}
 
@@ -61,7 +84,11 @@ export default async function DashboardJournalPage() {
 
       {journalReview ? <WatchlistJournalReviewPanel review={journalReview} /> : null}
 
-      <JournalIdeasPanel demoMode={isDemoMode()} initialItems={items} />
+      <JournalIdeasPanel
+        demoMode={isDemoMode()}
+        initialItems={items}
+        initialFilter={initialFilter}
+      />
     </div>
   );
 }
