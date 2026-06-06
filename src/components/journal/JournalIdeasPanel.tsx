@@ -10,9 +10,15 @@ import { formatPct, formatPrice } from "@/lib/utils";
 
 type FilterMode = "all" | "high" | "broken" | "needs_thesis";
 
-export function JournalIdeasPanel({ demoMode }: { demoMode: boolean }) {
-  const [items, setItems] = useState<WatchlistEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+export function JournalIdeasPanel({
+  demoMode,
+  initialItems,
+}: {
+  demoMode: boolean;
+  initialItems?: WatchlistEntry[];
+}) {
+  const [items, setItems] = useState<WatchlistEntry[]>(initialItems ?? []);
+  const [loading, setLoading] = useState(initialItems == null);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<FilterMode>("all");
   const [catalystFilter, setCatalystFilter] = useState<JournalCatalyst | null>(null);
@@ -36,8 +42,13 @@ export function JournalIdeasPanel({ demoMode }: { demoMode: boolean }) {
   }, []);
 
   useEffect(() => {
+    if (initialItems != null) {
+      setItems(initialItems);
+      setLoading(false);
+      return;
+    }
     void load();
-  }, [load]);
+  }, [load, initialItems]);
 
   const usedCatalysts = [...new Set(items.flatMap((i) => i.catalysts ?? []))].sort();
 

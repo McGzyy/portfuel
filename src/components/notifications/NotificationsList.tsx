@@ -16,7 +16,6 @@ import {
   UserPlus,
 } from "lucide-react";
 import { NotificationsCommandHeader } from "@/components/notifications/NotificationsCommandHeader";
-import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { Button } from "@/components/ui/button";
 import { cn, timeAgo } from "@/lib/utils";
@@ -113,7 +112,6 @@ export function NotificationsList({ proUnlocked = false }: { proUnlocked?: boole
                 Mark all read
               </Button>
             ) : null}
-            <WorkspaceNewCallAction />
           </div>
         </div>
       </header>

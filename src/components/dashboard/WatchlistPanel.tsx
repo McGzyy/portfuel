@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell, BookOpen, LineChart, Plus, X } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { WatchlistMoveAlerts } from "@/components/dashboard/WatchlistMoveAlerts";
@@ -57,17 +56,17 @@ function mergeDemoItems(serverItems: WatchlistEntry[]): WatchlistEntry[] {
 export function WatchlistPanel({
   demoMode,
   proUnlocked = false,
+  initialItems,
 }: {
   demoMode: boolean;
   proUnlocked?: boolean;
+  initialItems?: WatchlistEntry[];
 }) {
-  const [items, setItems] = useState<WatchlistEntry[]>([]);
+  const [items, setItems] = useState<WatchlistEntry[]>(initialItems ?? []);
   const [sparklines, setSparklines] = useState<Record<string, LinePoint[]>>({});
   const router = useRouter();
   const [symbol, setSymbol] = useState("");
-  const [thesis, setThesis] = useState("");
-  const [showThesis, setShowThesis] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialItems == null);
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(false);
 
@@ -92,8 +91,15 @@ export function WatchlistPanel({
   }, [demoMode]);
 
   useEffect(() => {
+    if (initialItems != null) {
+      let list = initialItems;
+      if (demoMode) list = mergeDemoItems(list);
+      setItems(list);
+      setLoading(false);
+      return;
+    }
     load();
-  }, [load]);
+  }, [load, initialItems, demoMode]);
 
   useEffect(() => {
     if (items.length === 0) return;
@@ -124,6 +130,7 @@ export function WatchlistPanel({
       }
       setSymbol("");
       await load();
+      router.push(journalSymbolPath(sym, { setup: true }));
       return;
     }
 
@@ -133,11 +140,7 @@ export function WatchlistPanel({
       const res = await fetch("/api/watchlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          symbol: sym,
-          thesis: thesis.trim() || undefined,
-          conviction: thesis.trim() ? 5 : undefined,
-        }),
+        body: JSON.stringify({ symbol: sym }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -150,13 +153,7 @@ export function WatchlistPanel({
       }
       setItems(data.items ?? []);
       setSymbol("");
-      setThesis("");
-      setShowThesis(false);
-      if (!thesis.trim()) {
-        router.push(journalSymbolPath(sym, { setup: true }));
-      } else {
-        router.push(journalSymbolPath(sym));
-      }
+      router.push(journalSymbolPath(sym, { setup: true }));
     } catch {
       setError("Could not add symbol.");
     } finally {
@@ -198,14 +195,10 @@ export function WatchlistPanel({
         Your symbols
       </p>
       <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-        Track tickers for alerts and quick intel. Research lives in{" "}
-        <Link href="/dashboard/journal" className="font-semibold text-[var(--pf-red)] hover:underline">
-          Journal
-        </Link>
-        .
+        Track tickers for alerts and quick intel — you&apos;ll land in Journal to draft your thesis.
       </p>
 
-      <form onSubmit={addSymbol} className="mt-3 space-y-2">
+      <form onSubmit={addSymbol} className="mt-3">
         <div className="flex gap-2">
           <Input
             value={symbol}
@@ -222,23 +215,6 @@ export function WatchlistPanel({
             </span>
           </Button>
         </div>
-        {showThesis ? (
-          <Textarea
-            value={thesis}
-            onChange={(e) => setThesis(e.target.value)}
-            placeholder="Why are you watching this? (optional — you can add on the journal page)"
-            className="min-h-[72px] text-sm"
-            maxLength={4000}
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowThesis(true)}
-            className="text-[10px] font-semibold text-[var(--pf-red)] hover:underline"
-          >
-            + Add why you&apos;re watching (optional)
-          </button>
-        )}
       </form>
 
       {demoMode ? (

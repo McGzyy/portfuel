@@ -4,8 +4,9 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, LineChart, Megaphone, NotebookPen } from "lucide-react";
 import { JournalResearchPanel } from "@/components/journal/JournalResearchPanel";
+import { ResearchPipeline } from "@/components/journal/ResearchPipeline";
 import { COPY } from "@/lib/copy";
-import { journalHubPath } from "@/lib/journal/paths";
+import { journalHubPath, journalSymbolPath } from "@/lib/journal/paths";
 import { TickerChartSection } from "@/components/charts/TickerChartSection";
 import { WatchlistJournalPlanForm } from "@/components/watchlist/WatchlistJournalPlanForm";
 import { WatchlistJournalStats } from "@/components/watchlist/WatchlistJournalStats";
@@ -67,6 +68,11 @@ export function WatchlistJournalWorkspace({
 
   return (
     <div className="space-y-6">
+      <ResearchPipeline
+        current={setupMode ? "research" : "log"}
+        logHref={`${journalSymbolPath(journal.symbol)}#journal-entries`}
+      />
+
       <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
@@ -128,7 +134,32 @@ export function WatchlistJournalWorkspace({
         </div>
       </header>
 
+      {setupMode ? (
+        <WatchlistJournalPlanForm
+          symbol={journal.symbol}
+          initial={journal}
+          onSaved={(next) => setJournal(next)}
+        />
+      ) : null}
+
       <WatchlistJournalStats intel={intel} />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {!setupMode ? (
+          <WatchlistJournalPlanForm
+            symbol={journal.symbol}
+            initial={journal}
+            onSaved={(next) => setJournal(next)}
+          />
+        ) : null}
+        <div className={setupMode ? "lg:col-span-2" : undefined} id="journal-entries">
+          <WatchlistJournalTimeline
+            symbol={journal.symbol}
+            entries={entries}
+            onEntryAdded={(entry) => setEntries((prev) => [...prev, entry])}
+          />
+        </div>
+      </div>
 
       <JournalResearchPanel symbol={journal.symbol} />
 
@@ -144,19 +175,6 @@ export function WatchlistJournalWorkspace({
         subtitle="Indigo dots mark each journal entry at that day's price — click a dot to jump to the note."
         journalMarkerCount={journalMarkerCount}
       />
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <WatchlistJournalPlanForm
-          symbol={journal.symbol}
-          initial={journal}
-          onSaved={(next) => setJournal(next)}
-        />
-        <WatchlistJournalTimeline
-          symbol={journal.symbol}
-          entries={entries}
-          onEntryAdded={(entry) => setEntries((prev) => [...prev, entry])}
-        />
-      </div>
     </div>
   );
 }

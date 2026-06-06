@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
 import type { EarningsBattleboardSummary } from "@/lib/earnings/battleboard";
 
 function fmtDate(iso: string): string {
@@ -48,7 +47,6 @@ export function EarningsBattleboardCommandHeader({
             Watchlist calendar (your symbols only) →
           </Link>
         </div>
-        <WorkspaceNewCallAction />
       </div>
     </header>
   );

@@ -7,7 +7,7 @@ export const COPY = {
   ctaSignIn: "Sign in",
   membersOnly: "Members only",
   memberFeed: "Member feed",
-  /** Nav / header CTA — community call publish flow */
+  /** Nav / sidebar CTA — community call publish flow (not page-local actions) */
   newCall: "New call",
   newCallHref: "/calls/new",
   /** Watchlist row when a new community call landed on a symbol */

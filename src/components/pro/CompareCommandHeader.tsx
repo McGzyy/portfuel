@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
 
 export function CompareCommandHeader({
   symbolCount,
@@ -33,7 +32,6 @@ export function CompareCommandHeader({
             ← Watchlist
           </Link>
         </div>
-        <WorkspaceNewCallAction />
       </div>
     </header>
   );

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
 
 export function MessagesCommandHeader({
   threadCount,
@@ -45,7 +44,6 @@ export function MessagesCommandHeader({
           Find members to follow →
         </Link>
       </div>
-      <WorkspaceNewCallAction />
       </div>
     </header>
   );

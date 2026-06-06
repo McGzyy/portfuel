@@ -64,7 +64,7 @@ export function WorkspaceHeaderAction({
   );
 }
 
-/** Primary workspace CTA → publish flow */
+/** Primary CTA for feed, desk, and overview — publish a community call */
 export function WorkspaceNewCallAction() {
-  return <WorkspaceHeaderAction href={COPY.newCallHref} />;
+  return <WorkspaceHeaderAction href={COPY.newCallHref} label={COPY.publishCallCta} />;
 }

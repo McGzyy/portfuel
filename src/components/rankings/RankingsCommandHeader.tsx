@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
 import type { RankingsSummary } from "@/lib/calls/rankings-summary";
 import type { LeaderboardEntry } from "@/lib/calls/leaderboard";
 
@@ -40,7 +39,6 @@ export function RankingsCommandHeader({
             </Link>
           ) : null}
         </div>
-        {loggedIn ? <WorkspaceNewCallAction /> : null}
       </div>
     </header>
   );

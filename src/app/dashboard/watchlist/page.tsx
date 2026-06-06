@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import { WatchlistCommandHeader } from "@/components/dashboard/WatchlistCommandHeader";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { TickerLookupBar } from "@/components/dashboard/TickerLookupBar";
-import { WatchlistIntelHint } from "@/components/dashboard/WatchlistIntelHint";
 import { WatchlistPanel } from "@/components/dashboard/WatchlistPanel";
 import { WatchlistQuickAddChips } from "@/components/dashboard/WatchlistQuickAddChips";
 import { FeedRefreshButton } from "@/components/dashboard/FeedRefreshButton";
 import { EarningsCalendarPanel } from "@/components/pro/EarningsCalendarPanel";
 import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
+import { ResearchPipeline } from "@/components/journal/ResearchPipeline";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { isDemoMode } from "@/lib/demo/config";
+import { pickJournalNextUp } from "@/lib/journal/next-up";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import {
   canAccessProIntelligence,
@@ -38,6 +39,12 @@ export default async function DashboardWatchlistPage() {
 
   const unreadAlerts = items.filter((i) => i.has_unread_call_alert).length;
   const callsLast7d = items.reduce((sum, i) => sum + (i.community_calls_7d ?? 0), 0);
+  const nextUp = pickJournalNextUp(items);
+  const logHref = nextUp
+    ? nextUp.reason === "draft_thesis"
+      ? nextUp.href
+      : `${nextUp.href}#journal-entries`
+    : undefined;
 
   return (
     <div className="space-y-6">
@@ -45,7 +52,10 @@ export default async function DashboardWatchlistPage() {
         symbolCount={items.length}
         unreadAlerts={unreadAlerts}
         callsLast7d={callsLast7d}
+        nextUp={nextUp}
       />
+
+      <ResearchPipeline current="track" logHref={logHref} />
 
       <WorkspaceQuickActions proUnlocked={proUnlocked} />
 
@@ -71,10 +81,8 @@ export default async function DashboardWatchlistPage() {
         ) : null}
       </div>
 
-      <WatchlistIntelHint />
-
       <div className="grid gap-6 lg:grid-cols-2">
-        <WatchlistPanel demoMode={isDemoMode()} proUnlocked={proUnlocked} />
+        <WatchlistPanel demoMode={isDemoMode()} proUnlocked={proUnlocked} initialItems={items} />
         <EarningsCalendarPanel locked={proLocked} proGateCta={proGateCta} />
       </div>
     </div>

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
 import type { CommunityScreenerData } from "@/lib/screener/community";
 
 export function ScreenerCommandHeader({ data }: { data: CommunityScreenerData }) {
@@ -34,7 +33,6 @@ export function ScreenerCommandHeader({ data }: { data: CommunityScreenerData })
             Open member feed →
           </Link>
         </div>
-        <WorkspaceNewCallAction />
       </div>
     </header>
   );

@@ -1,15 +1,17 @@
 import Link from "next/link";
-import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
-import { journalHubPath } from "@/lib/journal/paths";
+import { JournalHeaderAction } from "@/components/journal/JournalHeaderAction";
+import type { JournalNextUp } from "@/lib/journal/next-up";
 
 export function JournalCommandHeader({
   ideaCount,
   withThesis,
   activeCount,
+  nextUp,
 }: {
   ideaCount: number;
   withThesis: number;
   activeCount: number;
+  nextUp?: JournalNextUp | null;
 }) {
   return (
     <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
@@ -22,8 +24,9 @@ export function JournalCommandHeader({
             Journal
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
-            {ideaCount} idea{ideaCount === 1 ? "" : "s"} on your watchlist — thesis, catalysts, plan
-            levels, and research entries stay private until you publish a call.
+            {ideaCount === 0
+              ? "Add symbols on your watchlist — each gets a private research notebook."
+              : `${ideaCount} idea${ideaCount === 1 ? "" : "s"} — thesis, catalysts, plan levels, and entries stay private until you publish.`}
             {withThesis > 0 ? (
               <span className="text-[var(--pf-gray-400)]">
                 {" "}
@@ -40,16 +43,14 @@ export function JournalCommandHeader({
             </Link>
             <Link
               href="/dashboard/watchlist"
-              className="text-[var(--pf-red)] hover:underline"
+              className="text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] hover:underline"
             >
-              Watchlist & alerts →
+              Watchlist & alerts
             </Link>
           </div>
         </div>
-        <WorkspaceNewCallAction />
+        {nextUp ? <JournalHeaderAction nextUp={nextUp} /> : null}
       </div>
     </header>
   );
 }
-
-export { journalHubPath };

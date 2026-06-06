@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { WatchlistJournalWorkspace } from "@/components/watchlist/WatchlistJournalWorkspace";
 import {
   canAccessProIntelligence,
@@ -73,7 +72,6 @@ export default async function DashboardJournalSymbolPage({
 
   return (
     <div className="space-y-6">
-      <WorkspaceQuickActions proUnlocked={proUnlocked} />
       <WatchlistJournalWorkspace
         journal={journal}
         entries={entries}

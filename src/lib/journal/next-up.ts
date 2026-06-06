@@ -1,0 +1,67 @@
+import { journalSymbolPath } from "@/lib/journal/paths";
+import type { WatchlistEntry } from "@/lib/watchlist/types";
+
+export type JournalNextUp = {
+  symbol: string;
+  reason: "draft_thesis" | "continue_research" | "revisit_broken";
+  title: string;
+  detail: string;
+  href: string;
+  cta: string;
+};
+
+const ACTIVE = new Set(["watching", "developing"]);
+const BROKEN = new Set(["invalidated", "closed_incorrect"]);
+
+/** Best symbol to nudge the user toward next — thesis first, then active ideas, then broken. */
+export function pickJournalNextUp(items: WatchlistEntry[]): JournalNextUp | null {
+  if (items.length === 0) return null;
+
+  const noThesis = items.filter((i) => !i.has_thesis);
+  if (noThesis.length > 0) {
+    const row = noThesis[0]!;
+    return {
+      symbol: row.symbol,
+      reason: "draft_thesis",
+      title: `$${row.symbol} needs a thesis`,
+      detail: "Start with why you're watching — catalysts and plan levels come next.",
+      href: journalSymbolPath(row.symbol, { setup: true }),
+      cta: "Draft thesis",
+    };
+  }
+
+  const active = items.filter((i) => !i.outcome || ACTIVE.has(i.outcome));
+  if (active.length > 0) {
+    const row = [...active].sort((a, b) => (b.conviction ?? 0) - (a.conviction ?? 0))[0]!;
+    return {
+      symbol: row.symbol,
+      reason: "continue_research",
+      title: `Continue $${row.symbol}`,
+      detail:
+        row.conviction != null
+          ? `${row.conviction}/10 conviction · add entries or run AI research review`
+          : "Run AI research review or log a price-action entry",
+      href: journalSymbolPath(row.symbol),
+      cta: "Open journal",
+    };
+  }
+
+  const broken = items.filter((i) => i.outcome && BROKEN.has(i.outcome));
+  if (broken.length > 0) {
+    const row = broken[0]!;
+    return {
+      symbol: row.symbol,
+      reason: "revisit_broken",
+      title: `Revisit $${row.symbol}`,
+      detail: "Marked broken — update outcome or archive the idea.",
+      href: journalSymbolPath(row.symbol),
+      cta: "Review idea",
+    };
+  }
+
+  return null;
+}
+
+export function countNeedsThesis(items: WatchlistEntry[]): number {
+  return items.filter((i) => !i.has_thesis).length;
+}

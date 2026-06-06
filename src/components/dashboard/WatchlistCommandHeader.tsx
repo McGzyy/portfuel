@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
+import { JournalHeaderAction } from "@/components/journal/JournalHeaderAction";
+import type { JournalNextUp } from "@/lib/journal/next-up";
 
 const MAX_WATCHLIST = 24;
 
@@ -7,10 +8,12 @@ export function WatchlistCommandHeader({
   symbolCount,
   unreadAlerts,
   callsLast7d,
+  nextUp,
 }: {
   symbolCount: number;
   unreadAlerts: number;
   callsLast7d: number;
+  nextUp?: JournalNextUp | null;
 }) {
   return (
     <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
@@ -47,7 +50,7 @@ export function WatchlistCommandHeader({
             ← Workspace overview
           </Link>
         </div>
-        <WorkspaceNewCallAction />
+        {nextUp && symbolCount > 0 ? <JournalHeaderAction nextUp={nextUp} /> : null}
       </div>
     </header>
   );
