@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Bell, BookOpen, LineChart, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { JournalProgressMini } from "@/components/journal/JournalProgressMini";
 import { WatchlistMoveAlerts } from "@/components/dashboard/WatchlistMoveAlerts";
 import { MiniSparkline } from "@/components/charts/MiniSparkline";
 import type { LinePoint } from "@/lib/charts/types";
@@ -259,6 +260,10 @@ export function WatchlistPanel({
                       <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
                         Needs thesis
                       </span>
+                    ) : item.journal_progress?.ready_to_publish ? (
+                      <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+                        Ready
+                      </span>
                     ) : null}
                   </span>
                   <span className="flex flex-col items-end gap-0.5">
@@ -307,6 +312,9 @@ export function WatchlistPanel({
                       </span>
                     ) : null}
                   </p>
+                ) : null}
+                {item.journal_progress ? (
+                  <JournalProgressMini progress={item.journal_progress} className="mt-1.5" />
                 ) : null}
               </Link>
               <Link

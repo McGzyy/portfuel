@@ -8,7 +8,6 @@ import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActi
 import { WatchlistJournalReviewPanel } from "@/components/watchlist/WatchlistJournalReviewPanel";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { isDemoMode } from "@/lib/demo/config";
-import { attachJournalHubProgress, fetchJournalEntryStats } from "@/lib/journal/hub-summary";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
 import { fetchJournalReview } from "@/lib/watchlist/journal-review";
 import { fetchWatchlist } from "@/lib/watchlist/service";
@@ -34,14 +33,11 @@ export default async function DashboardJournalPage({
 
   let items: Awaited<ReturnType<typeof fetchWatchlist>> = [];
   let journalReview: Awaited<ReturnType<typeof fetchJournalReview>> | null = null;
-  let entryStats: Awaited<ReturnType<typeof fetchJournalEntryStats>> = {};
   try {
-    [items, journalReview, entryStats] = await Promise.all([
+    [items, journalReview] = await Promise.all([
       fetchWatchlist(session.userId),
       fetchJournalReview(session.userId),
-      fetchJournalEntryStats(session.userId),
     ]);
-    items = attachJournalHubProgress(items, entryStats);
   } catch (e) {
     console.error("[journal/page]", e);
   }

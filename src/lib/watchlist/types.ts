@@ -21,7 +21,7 @@ export type WatchlistEntry = {
   catalyst_count?: number;
   /** Preset catalyst tags from journal */
   catalysts?: string[];
-  /** Hub summary — populated on journal page */
+  /** Journal research checklist progress (watchlist + journal surfaces) */
   journal_progress?: {
     required_completed: number;
     required_total: number;

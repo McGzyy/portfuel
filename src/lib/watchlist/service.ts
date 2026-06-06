@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import { attachJournalHubProgress, fetchJournalEntryStats } from "@/lib/journal/hub-summary";
 import { getQuote } from "@/lib/market/finnhub";
 import { getDemoWatchlist } from "@/lib/watchlist/demo";
 import { detectAssetClassForSymbol } from "@/lib/watchlist/symbol-detect";
@@ -28,7 +29,11 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
 
   const entries = (data ?? []) as WatchlistEntry[];
   const withQuotes = await enrichWatchlistQuotes(entries);
-  return enrichWatchlistActivity(userId, withQuotes);
+  const [withActivity, entryStats] = await Promise.all([
+    enrichWatchlistActivity(userId, withQuotes),
+    fetchJournalEntryStats(userId),
+  ]);
+  return attachJournalHubProgress(withActivity, entryStats);
 }
 
 export async function addToWatchlist(
