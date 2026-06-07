@@ -8,6 +8,43 @@ export type WorkspaceNavRailItem = {
   badge?: "notifications" | "messages";
 };
 
+/** Primary mobile bottom bar — five tabs max; overflow lives in the More drawer. */
+export const WORKSPACE_BOTTOM_NAV: WorkspaceNavRailItem[] = [
+  {
+    href: "/dashboard",
+    label: "Home",
+    icon: "layout-dashboard",
+    exact: true,
+  },
+  {
+    href: "/dashboard/feed",
+    label: "Feed",
+    icon: "rows",
+  },
+  {
+    href: "/dashboard/desk",
+    label: "Desk",
+    icon: "flame",
+  },
+  {
+    href: "/dashboard/watchlist",
+    label: "Watchlist",
+    icon: "bookmark",
+  },
+];
+
+/** Paths that highlight the More tab on mobile. */
+export const WORKSPACE_MORE_PATH_PREFIXES = [
+  "/dashboard/journal",
+  "/dashboard/research",
+  "/dashboard/rankings",
+  "/dashboard/messages",
+  "/dashboard/notifications",
+  "/dashboard/book",
+  "/settings",
+  "/admin",
+] as const;
+
 /** Cross-page workspace navigation — publish lives in page headers / sidebar. */
 export const WORKSPACE_NAV_RAIL: WorkspaceNavRailItem[] = [
   {

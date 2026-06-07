@@ -1,5 +1,6 @@
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { DemoWorkspaceBannerClient } from "@/components/demo/DemoWorkspaceBannerClient";
+import { DemoWorkspaceBottomNav } from "@/components/demo/DemoWorkspaceBottomNav";
 import { DemoWorkspaceSidebar } from "@/components/demo/DemoWorkspaceSidebar";
 import { WorkspaceContent } from "@/components/dashboard/WorkspaceContent";
 import { getSession } from "@/lib/auth/session";
@@ -37,6 +38,7 @@ export default async function DemoWorkspaceLayout({
           </div>
         </div>
       </div>
+      <DemoWorkspaceBottomNav />
     </div>
   );
 }

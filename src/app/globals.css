@@ -3,6 +3,7 @@
 :root {
   --pf-safe-top: env(safe-area-inset-top, 0px);
   --pf-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --pf-bottom-nav-height: calc(3.75rem + var(--pf-safe-bottom));
   --pf-red: #e31b23;
   --pf-red-hover: #c41820;
   --pf-red-muted: #fef2f2;
@@ -182,6 +183,57 @@ body {
   flex: 1;
   min-width: 0;
   background: var(--pf-gray-50);
+}
+
+@media (max-width: 1023px) {
+  .pf-workspace-main {
+    padding-bottom: var(--pf-bottom-nav-height);
+  }
+}
+
+.pf-workspace-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 55;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 0.125rem;
+  border-top: 1px solid var(--pf-border);
+  background: rgba(255, 255, 255, 0.96);
+  padding-bottom: var(--pf-safe-bottom);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -4px 24px rgba(15, 20, 25, 0.06);
+}
+
+.pf-workspace-bottom-nav-item {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: 0.5rem 0.25rem 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--pf-gray-500);
+  transition: color 0.15s ease;
+}
+
+.pf-workspace-bottom-nav-item:hover {
+  color: var(--pf-gray-700);
+}
+
+.pf-workspace-bottom-nav-item-active {
+  color: var(--pf-black);
+}
+
+.pf-workspace-bottom-nav-item-active svg {
+  color: var(--pf-red);
 }
 
 .pf-workspace-content {

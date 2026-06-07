@@ -20,6 +20,10 @@ import {
   X,
 } from "lucide-react";
 import { COPY } from "@/lib/copy";
+import {
+  WORKSPACE_BOTTOM_NAV,
+  WORKSPACE_MORE_PATH_PREFIXES,
+} from "@/lib/dashboard/quick-actions";
 import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
 import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
@@ -46,7 +50,13 @@ function isNavActive(pathname: string, href: string, exact?: boolean) {
     : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-/** Mobile / tablet workspace nav — menu button opens a drawer instead of horizontal scroll. */
+function isMoreActive(pathname: string): boolean {
+  return WORKSPACE_MORE_PATH_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`)
+  );
+}
+
+/** Mobile workspace nav — fixed bottom tabs + More drawer (desktop uses sidebar). */
 export function MemberNav({
   dmUnread = 0,
   notifUnread = 0,
@@ -61,82 +71,49 @@ export function MemberNav({
   isAdmin?: boolean;
 }) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const moreUnread = dmUnread + notifUnread;
 
   useEffect(() => {
-    setOpen(false);
+    setDrawerOpen(false);
   }, [pathname]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!drawerOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") setDrawerOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
-  }, [open]);
+  }, [drawerOpen]);
+
+  const moreActive = isMoreActive(pathname);
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 border-b border-[var(--pf-border)] bg-white px-3 py-2 lg:hidden">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] text-[var(--pf-black)]"
-          aria-expanded={open}
-          aria-controls="workspace-mobile-nav"
-          aria-label="Open workspace menu"
-        >
-          <Menu className="h-5 w-5" strokeWidth={2.25} />
-        </button>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <Link
-            href="/dashboard/notifications"
-            className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
-            aria-label="Notifications"
-          >
-            <Bell className="h-5 w-5" strokeWidth={2} />
-            <NotificationUnreadBadge
-              initial={notifUnread}
-              className="absolute -right-0.5 -top-0.5 min-w-[1rem] px-1"
-            />
-          </Link>
-          <Link
-            href="/dashboard/messages"
-            className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
-            aria-label="Messages"
-          >
-            <MessageCircle className="h-5 w-5" strokeWidth={2} />
-            <DmUnreadBadge
-              initial={dmUnread}
-              className="absolute -right-0.5 -top-0.5 min-w-[1rem] px-1"
-            />
-          </Link>
-        </div>
-      </div>
-
-      {open ? (
+      {drawerOpen ? (
         <button
           type="button"
           className="fixed inset-x-0 bottom-0 top-[var(--pf-safe-top)] z-[60] bg-black/40 lg:hidden"
+          style={{ paddingBottom: "var(--pf-bottom-nav-height)" }}
           aria-label="Close workspace menu"
-          onClick={() => setOpen(false)}
+          onClick={() => setDrawerOpen(false)}
         />
       ) : null}
 
       <aside
         id="workspace-mobile-nav"
         className={cn(
-          "fixed bottom-0 left-0 top-[var(--pf-safe-top)] z-[70] flex w-[min(18.5rem,88vw)] flex-col border-r border-[var(--pf-border)] bg-white shadow-xl transition-transform duration-200 ease-out lg:hidden",
-          open ? "translate-x-0" : "-translate-x-full pointer-events-none"
+          "fixed bottom-[var(--pf-bottom-nav-height)] left-0 top-[var(--pf-safe-top)] z-[70] flex w-[min(18.5rem,88vw)] flex-col border-r border-[var(--pf-border)] bg-white shadow-xl transition-transform duration-200 ease-out lg:hidden",
+          drawerOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
         )}
-        aria-hidden={!open}
-        inert={open ? undefined : true}
+        aria-hidden={!drawerOpen}
+        inert={drawerOpen ? undefined : true}
       >
         <div className="flex items-center justify-between border-b border-[var(--pf-border)] px-4 py-3">
           <div className="min-w-0">
@@ -145,7 +122,7 @@ export function MemberNav({
           </div>
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={() => setDrawerOpen(false)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-100)]"
             aria-label="Close menu"
           >
@@ -167,7 +144,7 @@ export function MemberNav({
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={() => setOpen(false)}
+                      onClick={() => setDrawerOpen(false)}
                       className={cn(
                         "flex items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-sm font-semibold transition-colors",
                         active
@@ -202,7 +179,7 @@ export function MemberNav({
         <div className="shrink-0 space-y-2 border-t border-[var(--pf-border)] p-3">
           <Link
             href={COPY.newCallHref}
-            onClick={() => setOpen(false)}
+            onClick={() => setDrawerOpen(false)}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--pf-red)] px-3 py-2.5 text-sm font-semibold text-white"
           >
             <Megaphone className="h-4 w-4" strokeWidth={2.25} />
@@ -214,7 +191,7 @@ export function MemberNav({
               {isAdmin ? (
                 <Link
                   href="/admin"
-                  onClick={() => setOpen(false)}
+                  onClick={() => setDrawerOpen(false)}
                   className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
                 >
                   Administration
@@ -222,14 +199,14 @@ export function MemberNav({
               ) : null}
               <Link
                 href={`/member/${username}`}
-                onClick={() => setOpen(false)}
+                onClick={() => setDrawerOpen(false)}
                 className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
               >
                 Profile
               </Link>
               <Link
                 href="/settings"
-                onClick={() => setOpen(false)}
+                onClick={() => setDrawerOpen(false)}
                 className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
               >
                 Settings
@@ -238,6 +215,48 @@ export function MemberNav({
           </div>
         </div>
       </aside>
+
+      <nav
+        className="pf-workspace-bottom-nav lg:hidden"
+        aria-label="Primary workspace navigation"
+      >
+        {WORKSPACE_BOTTOM_NAV.map((item) => {
+          const Icon = ICONS[item.icon];
+          const active = isNavActive(pathname, item.href, item.exact);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "pf-workspace-bottom-nav-item",
+                active && "pf-workspace-bottom-nav-item-active"
+              )}
+            >
+              <Icon className="h-5 w-5 shrink-0" strokeWidth={active ? 2.5 : 2} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => setDrawerOpen(true)}
+          aria-expanded={drawerOpen}
+          aria-controls="workspace-mobile-nav"
+          className={cn(
+            "pf-workspace-bottom-nav-item",
+            (moreActive || drawerOpen) && "pf-workspace-bottom-nav-item-active"
+          )}
+        >
+          <span className="relative">
+            <Menu className="h-5 w-5 shrink-0" strokeWidth={moreActive || drawerOpen ? 2.5 : 2} />
+            {moreUnread > 0 ? (
+              <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-[var(--pf-red)] ring-2 ring-white" />
+            ) : null}
+          </span>
+          <span>More</span>
+        </button>
+      </nav>
     </>
   );
 }
