@@ -23,7 +23,7 @@ Use this after deploys or when validating Pro / feed behavior in production.
 ## Workspace UX smoke test
 
 1. **Overview** — quick actions one horizontal row; open calls show price line when set.
-2. **Feed** — Fueled desk strip shows Entry / Target / Stop / Last; **Fueled** filter lists desk calls.
+2. **Feed** — Fueled desk strip shows Entry / Target / Stop / Last; **Fueled** filter lists desk calls; Members see Pro research strip with screener / earnings / compare links.
 3. **Publish** — after submit, green banner on ticker; checklist updates.
 4. **Ticker (free)** — Pro Intelligence strip with Compare / Screener links.
 5. First visit — **Workspace map** modal once (sidebar **Help** reopens it).
@@ -38,7 +38,7 @@ Use this after deploys or when validating Pro / feed behavior in production.
 - [ ] **Admin → Vouchers** — inventory strip; create/assign panels use `pf-workspace-panel`.
 - [ ] **Admin → Social** — X status strip on one row; queue snapshot before publish tabs.
 - [ ] **Settings → Sharing** — referral stats on one row; Discord shows linked tier inline.
-- [ ] **Mobile nav** — notifications bell shows unread badge; sidebar includes Notifications link.
+- [ ] **Mobile nav** — bottom tabs on phone; **More** drawer full-height with footer above tabs; unread badges on **Messages** / **Alerts** in drawer.
 
 ## Marketing (process)
 
