@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   BookOpen,
   Calendar,
+  Coins,
   Flame,
   ScanSearch,
   Sparkles,
@@ -25,6 +26,8 @@ function rowIcon(accent: ProTodayBriefRow["accent"]) {
       return TrendingUp;
     case "journal":
       return BookOpen;
+    case "crypto":
+      return Coins;
     default:
       return Sparkles;
   }

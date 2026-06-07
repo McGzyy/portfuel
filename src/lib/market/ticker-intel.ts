@@ -17,10 +17,13 @@ import {
 } from "@/lib/market/finnhub";
 import { getCryptoCandlesForSymbol } from "@/lib/market/crypto-candles";
 import { getEquityCandles } from "@/lib/market/equity-candles";
+import { computeCandleReturnWindows } from "@/lib/market/candle-returns";
 import type { CallWithUser } from "@/lib/db/supabase";
 import type { AssetClass } from "@/lib/market/validate-symbol";
 import { isDemoMode } from "@/lib/demo/config";
 import { getDemoHypeScore } from "@/lib/demo/fixtures";
+
+import type { CandleReturnWindows } from "@/lib/market/candle-returns";
 
 export type TickerIntel = {
   symbol: string;
@@ -47,6 +50,8 @@ export type TickerIntel = {
     exchange: string;
     displayName: string;
   };
+  /** BTC period returns when viewing a non-BTC crypto ticker. */
+  btcBenchmark?: CandleReturnWindows | null;
 };
 
 function dailyChangePctFromCandles(candles: {
@@ -125,6 +130,7 @@ export async function loadTickerIntel(
   let earnings: EarningsItem[] = [];
   let filings: FilingItem[] = [];
   let cryptoMeta: TickerIntel["cryptoMeta"];
+  let btcBenchmark: CandleReturnWindows | null = null;
 
   if (assetClass === "crypto") {
     const cryptoAsset = await resolveCryptoAsset(sym);
@@ -146,6 +152,24 @@ export async function loadTickerIntel(
     news = cryptoNews;
     const changePct = dailyChangePctFromCandles(c);
     if (price != null) quote = { price, changePct };
+
+    if (sym !== "BTC") {
+      try {
+        const btcCandles = await getCryptoCandlesForSymbol("BTC", from, to, "D");
+        if (btcCandles?.t?.length) {
+          const btcPoints = btcCandles.t.map((t, i) => ({
+            time: t,
+            open: btcCandles.o[i]!,
+            high: btcCandles.h[i]!,
+            low: btcCandles.l[i]!,
+            close: btcCandles.c[i]!,
+          }));
+          btcBenchmark = computeCandleReturnWindows(btcPoints);
+        }
+      } catch (e) {
+        console.error("[ticker-intel btc benchmark]", sym, e);
+      }
+    }
   } else {
     const [c, q, p] = await Promise.all([
       getEquityCandles(sym, from, to, "D"),
@@ -226,5 +250,6 @@ export async function loadTickerIntel(
     filings,
     profile,
     cryptoMeta,
+    btcBenchmark: assetClass === "crypto" ? btcBenchmark : undefined,
   };
 }

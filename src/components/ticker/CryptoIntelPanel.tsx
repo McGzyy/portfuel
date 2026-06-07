@@ -1,6 +1,9 @@
 import { summarizeTickerCommunity } from "@/lib/calls/ticker-community-stats";
 import type { TickerIntel } from "@/lib/market/ticker-intel";
-import { computeCandleReturnWindows } from "@/lib/market/candle-returns";
+import {
+  computeCandleReturnWindows,
+  relativeReturnWindows,
+} from "@/lib/market/candle-returns";
 import { formatPct, formatPrice } from "@/lib/utils";
 
 function StatRow({ label, value }: { label: string; value: string }) {
@@ -30,6 +33,10 @@ function ReturnRow({ label, value }: { label: string; value: number | null }) {
 export function CryptoIntelPanel({ intel }: { intel: TickerIntel }) {
   const exchange = intel.cryptoMeta?.exchange ?? "coinbase";
   const returns = computeCandleReturnWindows(intel.candles);
+  const vsBtc =
+    intel.btcBenchmark && intel.symbol !== "BTC"
+      ? relativeReturnWindows(returns, intel.btcBenchmark)
+      : null;
   const community = summarizeTickerCommunity(intel.calls);
 
   return (
@@ -85,6 +92,20 @@ export function CryptoIntelPanel({ intel }: { intel: TickerIntel }) {
           <StatRow label="52w low" value={formatPrice(returns.low52w)} />
         </div>
       </IntelCard>
+
+      {vsBtc ? (
+        <IntelCard title="vs BTC" subtitle="Relative performance vs Bitcoin (same windows)">
+          <div className="space-y-2 text-sm">
+            <ReturnRow label="7 day" value={vsBtc.d7} />
+            <ReturnRow label="30 day" value={vsBtc.d30} />
+            <ReturnRow label="90 day" value={vsBtc.d90} />
+            <ReturnRow label="YTD" value={vsBtc.ytd} />
+          </div>
+          <p className="mt-3 text-[10px] leading-relaxed text-[var(--pf-gray-400)]">
+            Positive = outperforming BTC over the window. Useful for alt beta context.
+          </p>
+        </IntelCard>
+      ) : null}
 
       {community.callCount > 0 ? (
         <IntelCard title="Community conviction" subtitle="Published calls on this symbol">

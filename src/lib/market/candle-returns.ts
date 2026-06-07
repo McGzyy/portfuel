@@ -54,3 +54,23 @@ export function computeCandleReturnWindows(candles: CandlePoint[]): CandleReturn
 
   return { d7, d30, d90, ytd, high52w, low52w };
 }
+
+export type RelativeReturnWindows = Pick<CandleReturnWindows, "d7" | "d30" | "d90" | "ytd">;
+
+function rel(a: number | null, b: number | null): number | null {
+  if (a == null || b == null) return null;
+  return a - b;
+}
+
+/** Symbol return minus benchmark (e.g. alt vs BTC). */
+export function relativeReturnWindows(
+  asset: CandleReturnWindows,
+  benchmark: CandleReturnWindows
+): RelativeReturnWindows {
+  return {
+    d7: rel(asset.d7, benchmark.d7),
+    d30: rel(asset.d30, benchmark.d30),
+    d90: rel(asset.d90, benchmark.d90),
+    ytd: rel(asset.ytd, benchmark.ytd),
+  };
+}

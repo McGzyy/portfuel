@@ -4,6 +4,7 @@ import { loadFeedCalls } from "@/lib/dashboard/data";
 
 export type MostCalledRow = {
   symbol: string;
+  asset_class: "equity" | "crypto";
   callCount: number;
   latestDirection: string;
   bestReturnPct: number | null;
@@ -11,6 +12,7 @@ export type MostCalledRow = {
 
 export type TopReturnRow = {
   symbol: string;
+  asset_class: "equity" | "crypto";
   direction: string;
   return_pct: number;
   called_at: string;
@@ -20,6 +22,7 @@ export type TopReturnRow = {
 
 export type TargetProgressRow = {
   symbol: string;
+  asset_class: "equity" | "crypto";
   direction: string;
   target_progress: number;
   return_pct: number | null;
@@ -29,6 +32,7 @@ export type TargetProgressRow = {
 
 export type DeskVsCrowdRow = {
   symbol: string;
+  asset_class: "equity" | "crypto";
   communityLongPct: number;
   communityCalls: number;
   deskDirection: "long" | "short" | null;
@@ -38,6 +42,7 @@ export type DeskVsCrowdRow = {
 
 export type ConvictionRow = {
   symbol: string;
+  asset_class: "equity" | "crypto";
   voteScore: number;
   callCount: number;
   latestDirection: string;
@@ -52,8 +57,26 @@ export type CommunityScreenerData = {
   highConviction: ConvictionRow[];
 };
 
+export type ScreenerAssetFilter = "all" | "equity" | "crypto";
+
+export function filterScreenerByAsset(
+  data: CommunityScreenerData,
+  filter: ScreenerAssetFilter
+): CommunityScreenerData {
+  if (filter === "all") return data;
+  const match = (row: { asset_class: "equity" | "crypto" }) => row.asset_class === filter;
+  return {
+    mostCalled: data.mostCalled.filter(match),
+    topReturns: data.topReturns.filter(match),
+    targetProgress: data.targetProgress.filter(match),
+    deskVsCrowd: data.deskVsCrowd.filter(match),
+    highConviction: data.highConviction.filter(match),
+  };
+}
+
 type RawCall = {
   symbol: string;
+  asset_class?: string | null;
   direction: string;
   return_pct: number | null;
   called_at: string;
@@ -63,24 +86,42 @@ type RawCall = {
   users?: { username: string; display_name: string | null; subscription_status?: string } | { username: string; display_name: string | null; subscription_status?: string }[];
 };
 
+function assetClassOf(c: RawCall): "equity" | "crypto" {
+  return c.asset_class === "crypto" ? "crypto" : "equity";
+}
+
 function aggregateMostCalled(
-  calls: { symbol: string; direction: string; return_pct: number | null; called_at: string }[]
+  calls: {
+    symbol: string;
+    asset_class?: string | null;
+    direction: string;
+    return_pct: number | null;
+    called_at: string;
+  }[]
 ): MostCalledRow[] {
   const bySymbol = new Map<
     string,
-    { count: number; latestDirection: string; bestReturn: number | null; latestAt: string }
+    {
+      count: number;
+      latestDirection: string;
+      bestReturn: number | null;
+      latestAt: string;
+      asset_class: "equity" | "crypto";
+    }
   >();
 
   for (const c of calls) {
     const sym = c.symbol.toUpperCase();
     const prev = bySymbol.get(sym);
     const ret = c.return_pct != null ? Number(c.return_pct) : null;
+    const ac = assetClassOf(c);
     if (!prev) {
       bySymbol.set(sym, {
         count: 1,
         latestDirection: c.direction,
         bestReturn: ret,
         latestAt: c.called_at,
+        asset_class: ac,
       });
       continue;
     }
@@ -88,6 +129,7 @@ function aggregateMostCalled(
     if (c.called_at > prev.latestAt) {
       prev.latestAt = c.called_at;
       prev.latestDirection = c.direction;
+      prev.asset_class = ac;
     }
     if (ret != null && (prev.bestReturn == null || ret > prev.bestReturn)) {
       prev.bestReturn = ret;
@@ -97,6 +139,7 @@ function aggregateMostCalled(
   return [...bySymbol.entries()]
     .map(([symbol, v]) => ({
       symbol,
+      asset_class: v.asset_class,
       callCount: v.count,
       latestDirection: v.latestDirection,
       bestReturnPct: v.bestReturn,
@@ -106,11 +149,18 @@ function aggregateMostCalled(
 }
 
 function aggregateConviction(
-  calls: { symbol: string; direction: string; return_pct: number | null; called_at: string; vote_score?: number | null }[]
+  calls: RawCall[]
 ): ConvictionRow[] {
   const bySymbol = new Map<
     string,
-    { votes: number; count: number; latestDirection: string; bestReturn: number | null; latestAt: string }
+    {
+      votes: number;
+      count: number;
+      latestDirection: string;
+      bestReturn: number | null;
+      latestAt: string;
+      asset_class: "equity" | "crypto";
+    }
   >();
 
   for (const c of calls) {
@@ -118,6 +168,7 @@ function aggregateConviction(
     const prev = bySymbol.get(sym);
     const votes = Number(c.vote_score ?? 0);
     const ret = c.return_pct != null ? Number(c.return_pct) : null;
+    const ac = assetClassOf(c);
     if (!prev) {
       bySymbol.set(sym, {
         votes,
@@ -125,18 +176,23 @@ function aggregateConviction(
         latestDirection: c.direction,
         bestReturn: ret,
         latestAt: c.called_at,
+        asset_class: ac,
       });
       continue;
     }
     prev.votes += votes;
     prev.count += 1;
-    if (c.called_at > prev.latestAt) prev.latestDirection = c.direction;
+    if (c.called_at > prev.latestAt) {
+      prev.latestDirection = c.direction;
+      prev.asset_class = ac;
+    }
     if (ret != null && (prev.bestReturn == null || ret > prev.bestReturn)) prev.bestReturn = ret;
   }
 
   return [...bySymbol.entries()]
     .map(([symbol, v]) => ({
       symbol,
+      asset_class: v.asset_class,
       voteScore: v.votes,
       callCount: v.count,
       latestDirection: v.latestDirection,
@@ -146,9 +202,7 @@ function aggregateConviction(
     .slice(0, 12);
 }
 
-function aggregateDeskVsCrowd(
-  calls: { symbol: string; direction: string; return_pct: number | null; called_at: string; is_fueled?: boolean }[]
-): DeskVsCrowdRow[] {
+function aggregateDeskVsCrowd(calls: RawCall[]): DeskVsCrowdRow[] {
   const bySymbol = new Map<
     string,
     {
@@ -158,6 +212,7 @@ function aggregateDeskVsCrowd(
       deskDirection: "long" | "short" | null;
       deskAt: string;
       bestReturn: number | null;
+      asset_class: "equity" | "crypto";
     }
   >();
 
@@ -170,6 +225,7 @@ function aggregateDeskVsCrowd(
       deskDirection: null,
       deskAt: "",
       bestReturn: null,
+      asset_class: assetClassOf(c),
     };
     const ret = c.return_pct != null ? Number(c.return_pct) : null;
 
@@ -182,6 +238,7 @@ function aggregateDeskVsCrowd(
       prev.memberTotal += 1;
       if (c.direction === "long") prev.memberLong += 1;
       else prev.memberShort += 1;
+      prev.asset_class = assetClassOf(c);
     }
 
     if (ret != null && (prev.bestReturn == null || ret > prev.bestReturn)) {
@@ -199,6 +256,7 @@ function aggregateDeskVsCrowd(
         communityLongPct >= 50 ? "long" : "short";
       return {
         symbol,
+        asset_class: v.asset_class,
         communityLongPct,
         communityCalls: v.memberTotal,
         deskDirection: v.deskDirection,
@@ -217,6 +275,7 @@ function mapTargetProgress(rows: RawCall[]): TargetProgressRow[] {
       const u = Array.isArray(c.users) ? c.users[0] : c.users;
       return {
         symbol: c.symbol.toUpperCase(),
+        asset_class: assetClassOf(c),
         direction: c.direction,
         target_progress: Number(c.target_progress),
         return_pct: c.return_pct != null ? Number(c.return_pct) : null,
@@ -234,6 +293,7 @@ async function buildDemoData(): Promise<CommunityScreenerData> {
     .filter((c) => !c.is_fueled)
     .map((c) => ({
       symbol: c.symbol,
+      asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
       direction: c.direction,
       return_pct: c.return_pct,
       called_at: c.called_at,
@@ -245,6 +305,7 @@ async function buildDemoData(): Promise<CommunityScreenerData> {
 
   const all30d = latest.map((c) => ({
     symbol: c.symbol,
+    asset_class: c.asset_class,
     direction: c.direction,
     return_pct: c.return_pct,
     called_at: c.called_at,
@@ -258,6 +319,7 @@ async function buildDemoData(): Promise<CommunityScreenerData> {
     ...weekCalls,
     ...fueled.map((c) => ({
       symbol: c.symbol,
+      asset_class: c.asset_class,
       direction: c.direction,
       return_pct: c.return_pct,
       called_at: c.called_at,
@@ -274,6 +336,7 @@ async function buildDemoData(): Promise<CommunityScreenerData> {
       .slice(0, 12)
       .map((c) => ({
         symbol: c.symbol,
+        asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
         direction: c.direction,
         return_pct: Number(c.return_pct),
         called_at: c.called_at,
@@ -284,6 +347,7 @@ async function buildDemoData(): Promise<CommunityScreenerData> {
       .filter((c) => c.target_progress != null)
       .map((c) => ({
         symbol: c.symbol,
+        asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
         direction: c.direction,
         target_progress: Number(c.target_progress),
         return_pct: c.return_pct != null ? Number(c.return_pct) : null,
@@ -309,13 +373,13 @@ export async function fetchCommunityScreener(): Promise<CommunityScreenerData> {
   const [weekRes, topRes, progressRes, crowdRes] = await Promise.all([
     db
       .from("calls")
-      .select("symbol, direction, return_pct, called_at, vote_score")
+      .select("symbol, asset_class, direction, return_pct, called_at, vote_score")
       .eq("is_fueled", false)
       .gte("called_at", sinceWeek),
     db
       .from("calls")
       .select(
-        "symbol, direction, return_pct, called_at, users!inner(username, display_name, subscription_status)"
+        "symbol, asset_class, direction, return_pct, called_at, users!inner(username, display_name, subscription_status)"
       )
       .eq("is_fueled", false)
       .eq("users.subscription_status", "active")
@@ -326,7 +390,7 @@ export async function fetchCommunityScreener(): Promise<CommunityScreenerData> {
     db
       .from("calls")
       .select(
-        "symbol, direction, return_pct, called_at, target_progress, users!inner(username, display_name, subscription_status)"
+        "symbol, asset_class, direction, return_pct, called_at, target_progress, users!inner(username, display_name, subscription_status)"
       )
       .eq("is_fueled", false)
       .eq("users.subscription_status", "active")
@@ -336,7 +400,7 @@ export async function fetchCommunityScreener(): Promise<CommunityScreenerData> {
       .limit(15),
     db
       .from("calls")
-      .select("symbol, direction, return_pct, called_at, is_fueled")
+      .select("symbol, asset_class, direction, return_pct, called_at, is_fueled")
       .gte("called_at", since30d),
   ]);
 
@@ -353,6 +417,7 @@ export async function fetchCommunityScreener(): Promise<CommunityScreenerData> {
     const u = Array.isArray(c.users) ? c.users[0] : c.users;
     return {
       symbol: c.symbol,
+      asset_class: assetClassOf(c),
       direction: c.direction,
       return_pct: Number(c.return_pct),
       called_at: c.called_at,

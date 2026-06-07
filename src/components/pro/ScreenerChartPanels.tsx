@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ChartFrame } from "@/components/charts/ChartFrame";
 import { HorizontalBarChart } from "@/components/charts/HorizontalBarChart";
-import type { CommunityScreenerData } from "@/lib/screener/community";
+import type { CommunityScreenerData, ScreenerAssetFilter } from "@/lib/screener/community";
+import { filterScreenerByAsset } from "@/lib/screener/community";
 import { cn, formatPct } from "@/lib/utils";
 
 type ScreenerView = "activity" | "progress" | "desk" | "conviction";
@@ -17,8 +18,14 @@ const TABS: { id: ScreenerView; label: string; hint: string }[] = [
 
 export function ScreenerChartPanels({ data }: { data: CommunityScreenerData }) {
   const [view, setView] = useState<ScreenerView>("activity");
+  const [assetFilter, setAssetFilter] = useState<ScreenerAssetFilter>("all");
 
-  const mostCalledBars = data.mostCalled.map((r) => ({
+  const filtered = useMemo(
+    () => filterScreenerByAsset(data, assetFilter),
+    [data, assetFilter]
+  );
+
+  const mostCalledBars = filtered.mostCalled.map((r) => ({
     id: r.symbol,
     label: r.symbol,
     value: r.callCount,
@@ -27,7 +34,7 @@ export function ScreenerChartPanels({ data }: { data: CommunityScreenerData }) {
     valueLabel: `${r.callCount} call${r.callCount === 1 ? "" : "s"}`,
   }));
 
-  const topReturnBars = data.topReturns.map((r, i) => ({
+  const topReturnBars = filtered.topReturns.map((r, i) => ({
     id: `${r.symbol}-${i}`,
     label: r.symbol,
     value: Math.max(0, r.return_pct),
@@ -36,7 +43,7 @@ export function ScreenerChartPanels({ data }: { data: CommunityScreenerData }) {
     valueLabel: formatPct(r.return_pct),
   }));
 
-  const progressBars = data.targetProgress.map((r, i) => ({
+  const progressBars = filtered.targetProgress.map((r, i) => ({
     id: `${r.symbol}-${i}`,
     label: r.symbol,
     value: Math.min(100, Math.max(0, r.target_progress)),
@@ -45,7 +52,7 @@ export function ScreenerChartPanels({ data }: { data: CommunityScreenerData }) {
     valueLabel: `${Math.round(r.target_progress)}%`,
   }));
 
-  const deskBars = data.deskVsCrowd.map((r) => ({
+  const deskBars = filtered.deskVsCrowd.map((r) => ({
     id: r.symbol,
     label: r.symbol,
     value: r.communityCalls,
@@ -56,7 +63,7 @@ export function ScreenerChartPanels({ data }: { data: CommunityScreenerData }) {
     valueLabel: r.diverges ? "Diverges" : "Aligned",
   }));
 
-  const convictionBars = data.highConviction.map((r) => ({
+  const convictionBars = filtered.highConviction.map((r) => ({
     id: r.symbol,
     label: r.symbol,
     value: Math.max(0, r.voteScore),
@@ -67,6 +74,23 @@ export function ScreenerChartPanels({ data }: { data: CommunityScreenerData }) {
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        {(["all", "equity", "crypto"] as const).map((key) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setAssetFilter(key)}
+            className={cn(
+              "rounded-full border px-3 py-1 text-xs font-semibold capitalize transition-colors",
+              assetFilter === key
+                ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white"
+                : "border-[var(--pf-border)] bg-white text-[var(--pf-gray-600)] hover:border-[var(--pf-gray-300)]"
+            )}
+          >
+            {key === "all" ? "All assets" : key}
+          </button>
+        ))}
+      </div>
       <div className="flex gap-1 overflow-x-auto border-b border-[var(--pf-border)] pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {TABS.map((tab) => (
           <button

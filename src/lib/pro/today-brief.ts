@@ -13,7 +13,7 @@ export type ProTodayBriefRow = {
   title: string;
   detail: string;
   href: string;
-  accent?: "desk" | "earnings" | "screener" | "book" | "journal";
+  accent?: "desk" | "earnings" | "screener" | "book" | "journal" | "crypto";
 };
 
 export type ProTodayBrief = {
@@ -112,6 +112,19 @@ export function buildProTodayBrief(input: {
       detail: `${top.symbol} · ${top.callCount} community call${top.callCount === 1 ? "" : "s"} this week`,
       href: buildResearchHubHref("screener"),
       accent: "screener",
+    });
+  }
+
+  const cryptoReturns = input.screener.topReturns.filter((r) => r.asset_class === "crypto").slice(0, 3);
+  if (cryptoReturns.length > 0) {
+    rows.push({
+      id: "crypto-movers",
+      title: "Crypto movers",
+      detail: cryptoReturns
+        .map((r) => `${r.symbol} ${formatPct(r.return_pct)} · @${r.username}`)
+        .join(" · "),
+      href: buildResearchHubHref("screener"),
+      accent: "crypto",
     });
   }
 
