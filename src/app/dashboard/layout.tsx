@@ -5,7 +5,9 @@ import { WorkspaceAnnouncementStack } from "@/components/announcements/Workspace
 import { fetchActiveAnnouncementsForUser } from "@/lib/announcements/service";
 import { WorkspaceSidebar } from "@/components/dashboard/WorkspaceSidebar";
 import { WorkspaceContent } from "@/components/dashboard/WorkspaceContent";
+import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
 import { requireDashboardSession } from "@/lib/dashboard/data";
+import { shouldAutoShowWorkspaceGuide } from "@/lib/onboarding/workspace-guide";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import { countUnreadDmThreads } from "@/lib/messages/service";
 import { fetchUnreadCount } from "@/lib/notifications/service";
@@ -33,6 +35,13 @@ export default async function DashboardLayout({
   let announcements: Awaited<ReturnType<typeof fetchActiveAnnouncementsForUser>> = [];
   try {
     announcements = await fetchActiveAnnouncementsForUser(session.userId, session);
+  } catch {
+    /* migration may be pending */
+  }
+
+  let showWorkspaceGuide = false;
+  try {
+    showWorkspaceGuide = await shouldAutoShowWorkspaceGuide(session.userId, session.role);
   } catch {
     /* migration may be pending */
   }
@@ -73,6 +82,11 @@ export default async function DashboardLayout({
           <WorkspaceContent>{children}</WorkspaceContent>
         </div>
       </div>
+      <WorkspaceGuide
+        username={session.username}
+        userId={session.userId}
+        autoShow={showWorkspaceGuide}
+      />
     </AppShell>
   );
 }

@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { COPY } from "@/lib/copy";
 import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
-import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
+import { WorkspaceGuideTrigger } from "@/components/dashboard/WorkspaceGuideTrigger";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
 import { cn } from "@/lib/utils";
@@ -122,7 +122,7 @@ export function WorkspaceSidebar({
           {COPY.publishCallCta}
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
-          <WorkspaceGuide username={username} autoShow />
+          <WorkspaceGuideTrigger />
           <div className="flex items-center gap-3">
             {isAdmin ? (
               <Link

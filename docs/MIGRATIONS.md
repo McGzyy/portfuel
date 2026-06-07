@@ -2,7 +2,7 @@
 
 Apply **every** file in `supabase/migrations/` in filename order (oldest first). Use the Supabase SQL Editor, CLI (`supabase db push`), or your deployment pipeline.
 
-**49 migrations** as of membership tenure tracking.
+**50 migrations** as of workspace guide persistence.
 
 Verify locally:
 
@@ -72,6 +72,7 @@ After applying migrations:
 | 47 | `20260614100000_site_announcements.sql` | Admin workspace broadcast banners + dismissals |
 | 48 | `20260615100000_subscription_cancellation_feedback.sql` | Cancellation feedback + admin churn alerts |
 | 49 | `20260616100000_membership_tenure.sql` | Subscription / tier start timestamps for billing overview |
+| 50 | `20260617100000_workspace_guide_seen.sql` | Persist workspace map dismissal per user |
 
 > **Note:** `20260607095000_referral_program.sql` was renamed from a duplicate `20260607100000` timestamp so journal migrations apply in a deterministic order on fresh databases.
 

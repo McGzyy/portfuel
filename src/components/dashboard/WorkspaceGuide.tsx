@@ -1,135 +1,227 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Map, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import {
+  ArrowRight,
+  Bookmark,
+  Bell,
+  Flame,
+  LayoutDashboard,
+  Map,
+  Megaphone,
+  MessageCircle,
+  Notebook,
+  Rows3,
+  ScanSearch,
+  Trophy,
+  User,
+  X,
+} from "lucide-react";
+import { COPY } from "@/lib/copy";
 import { buildWorkspaceGuideSections } from "@/lib/dashboard/nav";
+import {
+  WORKSPACE_GUIDE_OPEN_EVENT,
+  workspaceGuideStorageKey,
+} from "@/lib/onboarding/workspace-guide";
+import { cn } from "@/lib/utils";
 
-const GUIDE_SEEN_KEY = "pf_workspace_guide_seen";
+const HREF_ICON: Record<string, typeof LayoutDashboard> = {
+  "/dashboard": LayoutDashboard,
+  "/dashboard/feed": Rows3,
+  "/dashboard/desk": Flame,
+  "/dashboard/watchlist": Bookmark,
+  "/dashboard/journal": Notebook,
+  "/dashboard/messages": MessageCircle,
+  "/dashboard/notifications": Bell,
+  "/dashboard/rankings": Trophy,
+  "/dashboard/research": ScanSearch,
+  "/dashboard/settings": LayoutDashboard,
+};
+
+function GuideItemIcon({ href }: { href: string }) {
+  if (href === COPY.newCallHref || href.startsWith("/calls/new")) {
+    return <Megaphone className="h-4 w-4" strokeWidth={2.25} />;
+  }
+  if (href.startsWith("/member/")) {
+    return <User className="h-4 w-4" strokeWidth={2.25} />;
+  }
+  const Icon = HREF_ICON[href] ?? Map;
+  return <Icon className="h-4 w-4" strokeWidth={2.25} />;
+}
 
 export function WorkspaceGuide({
   username,
+  userId,
   autoShow = false,
-  onOpen,
 }: {
   username: string;
-  /** First-visit tour — desktop sidebar only; mobile uses Help in the More drawer. */
+  userId: string;
+  /** First workspace visit after onboarding — server + DB backed. */
   autoShow?: boolean;
-  onOpen?: () => void;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [dismissing, setDismissing] = useState(false);
   const sections = buildWorkspaceGuideSections(username);
+  const storageKey = workspaceGuideStorageKey(userId);
+
+  const openGuide = useCallback(() => setOpen(true), []);
+
+  useEffect(() => {
+    const onOpen = () => openGuide();
+    window.addEventListener(WORKSPACE_GUIDE_OPEN_EVENT, onOpen);
+    return () => window.removeEventListener(WORKSPACE_GUIDE_OPEN_EVENT, onOpen);
+  }, [openGuide]);
 
   useEffect(() => {
     if (!autoShow) return;
+
     try {
-      const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
-      if (isDesktop && localStorage.getItem(GUIDE_SEEN_KEY) !== "1") {
-        setOpen(true);
-      }
+      if (localStorage.getItem(storageKey) === "1") return;
     } catch {
       /* ignore */
     }
-  }, [autoShow]);
 
-  function openGuide() {
-    onOpen?.();
-    setOpen(true);
-  }
+    const t = window.setTimeout(() => setOpen(true), 400);
+    return () => window.clearTimeout(t);
+  }, [autoShow, storageKey]);
 
-  function dismissGuide() {
+  async function dismissGuide() {
+    setDismissing(true);
     try {
-      localStorage.setItem(GUIDE_SEEN_KEY, "1");
+      localStorage.setItem(storageKey, "1");
     } catch {
       /* ignore */
+    }
+    try {
+      await fetch("/api/workspace-guide", { method: "POST" });
+    } catch {
+      /* best effort */
     }
     setOpen(false);
+    setDismissing(false);
+    router.refresh();
   }
 
-  return (
-    <>
-      <button
-        type="button"
-        onClick={openGuide}
-        className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-black)]"
-      >
-        <Map className="h-3.5 w-3.5" />
-        Help
-      </button>
+  if (!open) return null;
 
-      {open ? (
-        <div
-          className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 px-4 pt-[var(--pf-safe-top)] pb-[calc(var(--pf-bottom-nav-height)+1rem)] sm:items-center sm:p-4 sm:pb-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="workspace-guide-title"
-        >
-          <div className="flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-lg)] sm:max-h-[85vh]">
-            <div className="flex items-start justify-between gap-3 border-b border-[var(--pf-border)] px-5 py-4">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                  Workspace map
-                </p>
-                <h2 id="workspace-guide-title" className="mt-1 text-lg font-bold text-[var(--pf-black)]">
-                  Find your way around
-                </h2>
+  return (
+    <div
+      className="fixed inset-0 z-[90] flex items-end justify-center bg-[var(--pf-black)]/50 p-0 backdrop-blur-[2px] sm:items-center sm:p-4 sm:pb-4"
+      style={{
+        paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+        paddingTop: "var(--pf-safe-top)",
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="workspace-guide-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) void dismissGuide();
+      }}
+    >
+      <div className="flex max-h-[min(92dvh,720px)] w-full max-w-2xl flex-col overflow-hidden rounded-t-[1.25rem] border border-[var(--pf-border)] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.18)] sm:max-h-[88vh] sm:rounded-[var(--pf-radius-lg)]">
+        <div className="relative shrink-0 overflow-hidden border-b border-[var(--pf-border)] px-5 pb-5 pt-6 sm:px-6 sm:pt-7">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.07]"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 20% 20%, var(--pf-red) 0%, transparent 45%), radial-gradient(circle at 80% 0%, var(--pf-navy) 0%, transparent 40%)",
+            }}
+          />
+          <div className="relative flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--pf-border)] bg-white/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--pf-gray-500)] backdrop-blur-sm">
+                <Map className="h-3 w-3 text-[var(--pf-red)]" />
+                Workspace map
               </div>
-              <button
-                type="button"
-                onClick={dismissGuide}
-                className="rounded-lg p-1 text-[var(--pf-gray-500)] hover:bg-[var(--pf-gray-100)]"
-                aria-label="Close"
+              <h2
+                id="workspace-guide-title"
+                className="mt-3 text-xl font-bold tracking-tight text-[var(--pf-black)] sm:text-2xl"
               >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-5">
-              {sections.map((section) => (
-                <div key={section.title}>
-                  <p className="text-xs font-bold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                    {section.title}
-                  </p>
-                  <ul className="mt-2 space-y-2">
-                    {section.items.map((item) => (
-                      <li key={item.href}>
-                        <Link
-                          href={item.href}
-                          onClick={dismissGuide}
-                          className="block rounded-lg border border-[var(--pf-border)] px-3 py-2.5 transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
-                        >
-                          <span className="text-sm font-semibold text-[var(--pf-black)]">
-                            {item.label}
-                          </span>
-                          <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
-                            {item.description}
-                          </p>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-            <div className="shrink-0 border-t border-[var(--pf-border)] px-5 py-4 space-y-3">
-              <p className="text-center text-xs text-[var(--pf-gray-500)]">
-                New here? Finish the launch checklist on{" "}
-                <Link
-                  href="/dashboard"
-                  className="font-semibold text-[var(--pf-red)] hover:underline"
-                  onClick={dismissGuide}
-                >
-                  Overview
-                </Link>
-                .
+                Welcome to PortFuel
+              </h2>
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-[var(--pf-gray-600)]">
+                Your trading workspace in one place — community calls, desk research, watchlist
+                alerts, and your public track record.
               </p>
-              <Button className="w-full" size="sm" onClick={dismissGuide}>
-                Got it
-              </Button>
             </div>
+            <button
+              type="button"
+              onClick={() => void dismissGuide()}
+              disabled={dismissing}
+              className="shrink-0 rounded-lg p-2 text-[var(--pf-gray-500)] transition-colors hover:bg-[var(--pf-gray-100)] hover:text-[var(--pf-black)]"
+              aria-label="Close workspace map"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
         </div>
-      ) : null}
-    </>
+
+        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
+          {sections.map((section) => (
+            <section key={section.title}>
+              <div className="mb-3 flex items-center gap-2">
+                <span className="h-px flex-1 bg-[var(--pf-border)]" />
+                <h3 className="shrink-0 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--pf-gray-400)]">
+                  {section.title}
+                </h3>
+                <span className="h-px flex-1 bg-[var(--pf-border)]" />
+              </div>
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {section.items.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={() => void dismissGuide()}
+                      className="group flex h-full items-start gap-3 rounded-xl border border-[var(--pf-border)] bg-[var(--pf-gray-50)]/40 p-3.5 transition-all hover:border-[var(--pf-gray-300)] hover:bg-white hover:shadow-[var(--pf-shadow-sm)]"
+                    >
+                      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[var(--pf-gray-600)] shadow-sm ring-1 ring-[var(--pf-border)] transition-colors group-hover:text-[var(--pf-red)]">
+                        <GuideItemIcon href={item.href} />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center gap-1 text-sm font-semibold text-[var(--pf-black)]">
+                          {item.label}
+                          <ArrowRight className="h-3.5 w-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
+                        </span>
+                        <span className="mt-1 block text-xs leading-relaxed text-[var(--pf-gray-500)]">
+                          {item.description}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+
+        <div className="shrink-0 space-y-3 border-t border-[var(--pf-border)] bg-[var(--pf-gray-50)]/60 px-5 py-4 sm:px-6">
+          <p className="text-center text-xs leading-relaxed text-[var(--pf-gray-500)]">
+            New here? Work through the launch checklist on{" "}
+            <Link
+              href="/dashboard"
+              className="font-semibold text-[var(--pf-red)] hover:underline"
+              onClick={() => void dismissGuide()}
+            >
+              Overview
+            </Link>
+            .
+          </p>
+          <button
+            type="button"
+            onClick={() => void dismissGuide()}
+            disabled={dismissing}
+            className={cn(
+              "w-full rounded-lg bg-[var(--pf-black)] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--pf-gray-800)] disabled:opacity-60",
+              "sm:py-2.5"
+            )}
+          >
+            {dismissing ? "Saving…" : "Got it — start exploring"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
