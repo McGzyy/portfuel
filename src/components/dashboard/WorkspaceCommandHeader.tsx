@@ -45,10 +45,10 @@ export function WorkspaceCommandHeader({
           <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">{subtitle}</p>
           {openCallsCount > 0 ? (
             <Link
-              href={`/member/${username}`}
+              href="/dashboard/book"
               className="mt-3 inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
             >
-              Full track record →
+              Open book →
             </Link>
           ) : null}
         </div>

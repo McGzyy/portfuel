@@ -28,10 +28,10 @@ export function YourPositionsStrip({
             </p>
           </div>
           <Link
-            href={`/member/${username}`}
+            href="/dashboard/book"
             className="shrink-0 text-xs font-semibold text-[var(--pf-red)] hover:underline"
           >
-            Profile →
+            Open book →
           </Link>
         </div>
         <ul className="flex gap-3 overflow-x-auto p-4 pb-5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

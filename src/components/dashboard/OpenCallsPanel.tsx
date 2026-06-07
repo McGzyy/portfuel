@@ -37,10 +37,10 @@ export function OpenCallsPanel({
           </p>
         </div>
         <Link
-          href={`/member/${username}`}
+          href="/dashboard/book"
           className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
         >
-          Profile →
+          Open book →
         </Link>
       </div>
       <SparklineProvider symbols={symbols}>
@@ -63,9 +63,9 @@ export function OpenCallsPanel({
       </SparklineProvider>
       {calls.length > 4 ? (
         <div className="border-t border-[var(--pf-border)] px-5 py-3 text-center">
-          <Link href={`/member/${username}`}>
+          <Link href="/dashboard/book">
             <Button variant="secondary" size="sm">
-              View all {calls.length} calls
+              View open book ({calls.length})
             </Button>
           </Link>
         </div>
