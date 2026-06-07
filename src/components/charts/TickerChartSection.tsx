@@ -14,6 +14,7 @@ import type {
   ChartRangeKey,
   PriceLine,
 } from "@/lib/charts/types";
+import type { AssetClass } from "@/lib/market/validate-symbol";
 import { filterCandlesByRange, filterMarkersByRange } from "@/lib/charts/range";
 import { computeSma, computeVwap, hasVolumeData } from "@/lib/charts/indicators";
 import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
@@ -29,6 +30,7 @@ const TickerChart = dynamic(
 export function TickerChartSection({
   symbol,
   initialCandles,
+  assetClass,
   markers,
   priceLines = [],
   proUnlocked = false,
@@ -39,6 +41,8 @@ export function TickerChartSection({
 }: {
   symbol: string;
   initialCandles: CandlePoint[];
+  /** Ensures crypto symbols use the crypto candle path (Twelve Data BTC/USD, etc.). */
+  assetClass?: AssetClass;
   markers: ChartMarker[];
   priceLines?: PriceLine[];
   proUnlocked?: boolean;
@@ -50,8 +54,9 @@ export function TickerChartSection({
   const [range, setRange] = useState<ChartRangeKey>("1y");
   const [resolution, setResolution] = useState<ChartCandleResolution>("D");
   const [candles, setCandles] = useState<CandlePoint[]>(initialCandles);
-  const [loadingCandles, setLoadingCandles] = useState(false);
+  const [loadingCandles, setLoadingCandles] = useState(initialCandles.length === 0);
   const [candleError, setCandleError] = useState<string | null>(null);
+  const [fetchAttempted, setFetchAttempted] = useState(initialCandles.length > 0);
   const [showVolume, setShowVolume] = useState(true);
   const [showSma, setShowSma] = useState(false);
   const [showVwap, setShowVwap] = useState(false);
@@ -61,8 +66,10 @@ export function TickerChartSection({
       setLoadingCandles(true);
       setCandleError(null);
       try {
+        const params = new URLSearchParams({ resolution: res });
+        if (assetClass === "crypto") params.set("asset", "crypto");
         const response = await fetch(
-          `/api/tickers/${encodeURIComponent(symbol)}/candles?resolution=${res}`
+          `/api/tickers/${encodeURIComponent(symbol)}/candles?${params}`
         );
         if (response.status === 403) {
           setCandleError("Intraday intervals require Pro Intelligence.");
@@ -76,17 +83,24 @@ export function TickerChartSection({
         setCandleError("Could not load chart data for this interval.");
       } finally {
         setLoadingCandles(false);
+        setFetchAttempted(true);
       }
     },
-    [symbol]
+    [symbol, assetClass]
   );
 
   useEffect(() => {
-    if (resolution === "D") {
-      setCandles(initialCandles);
+    if (resolution !== "D") {
+      void loadCandles(resolution);
       return;
     }
-    void loadCandles(resolution);
+    if (initialCandles.length > 0) {
+      setCandles(initialCandles);
+      setFetchAttempted(true);
+      setLoadingCandles(false);
+      return;
+    }
+    void loadCandles("D");
   }, [resolution, initialCandles, loadCandles]);
 
   const filteredCandles = useMemo(
@@ -170,12 +184,14 @@ export function TickerChartSection({
             </div>
           )}
         </div>
+      ) : loadingCandles || !fetchAttempted ? (
+        <ChartLoadingSkeleton height={400} />
       ) : (
         <div className="flex h-[400px] flex-col items-center justify-center gap-2 px-6 text-center text-sm text-[var(--pf-gray-500)]">
           <p className="font-medium text-[var(--pf-gray-600)]">Chart unavailable</p>
           <p className="max-w-sm text-xs">
-            Add <code className="font-mono">TWELVEDATA_API_KEY</code> on the server (free at twelvedata.com).
-            Finnhub free tier covers quotes but not candle history.
+            {candleError ??
+              "Daily candles need TWELVEDATA_API_KEY on the server (free at twelvedata.com). After adding it on Vercel, redeploy so the runtime picks it up."}
           </p>
         </div>
       )}

@@ -67,7 +67,7 @@ export default async function DashboardJournalSymbolPage({
   const [entries, revisions, intel] = await Promise.all([
     fetchJournalEntries(session.userId, symbol),
     fetchJournalPlanRevisions(session.userId, symbol),
-    loadTickerIntel(symbol).catch(() => null),
+    loadTickerIntel(symbol, { assetClass: journal.asset_class }).catch(() => null),
   ]);
 
   const intelData =

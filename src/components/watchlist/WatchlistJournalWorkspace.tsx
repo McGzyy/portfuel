@@ -257,6 +257,7 @@ export function WatchlistJournalWorkspace({
         <TickerChartSection
         symbol={journal.symbol}
         initialCandles={candles}
+        assetClass={journal.asset_class}
         markers={markers}
         priceLines={priceLines}
         proUnlocked={proUnlocked}

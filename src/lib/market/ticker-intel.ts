@@ -6,7 +6,6 @@ import { resolveCryptoAsset } from "@/lib/market/crypto-allowlist";
 import {
   getCompanyNews,
   getCompanyProfile,
-  getCryptoCandles,
   getEarnings,
   getFilings,
   getQuote,
@@ -16,6 +15,7 @@ import {
   type EarningsItem,
   type FilingItem,
 } from "@/lib/market/finnhub";
+import { getCryptoCandlesForSymbol } from "@/lib/market/crypto-candles";
 import { getEquityCandles } from "@/lib/market/equity-candles";
 import type { CallWithUser } from "@/lib/db/supabase";
 import type { AssetClass } from "@/lib/market/validate-symbol";
@@ -75,9 +75,18 @@ async function detectAssetClass(symbol: string): Promise<{
   return { assetClass: "equity" };
 }
 
-export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
+export type LoadTickerIntelOptions = {
+  /** Watchlist / caller knows the asset class — avoids equity vs crypto misreads (e.g. BTC). */
+  assetClass?: AssetClass;
+};
+
+export async function loadTickerIntel(
+  symbol: string,
+  opts?: LoadTickerIntelOptions
+): Promise<TickerIntel> {
   const sym = symbol.toUpperCase();
   const db = createServiceClient();
+  const detected = await detectAssetClass(sym);
 
   const { data: snapshot } = await db
     .from("ticker_snapshots")
@@ -85,10 +94,13 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
     .eq("symbol", sym)
     .maybeSingle();
 
+  const assetClassLocked = opts?.assetClass != null;
   let assetClass: AssetClass =
-    (snapshot?.asset_class as AssetClass) ?? (await detectAssetClass(sym)).assetClass;
+    opts?.assetClass ??
+    (snapshot?.asset_class as AssetClass | undefined) ??
+    detected.assetClass;
   let finnhubSymbol: string | undefined =
-    snapshot?.finnhub_symbol ?? (await detectAssetClass(sym)).finnhubSymbol;
+    snapshot?.finnhub_symbol ?? detected.finnhubSymbol;
 
   const to = Math.floor(Date.now() / 1000);
   const from = to - 365 * 86400;
@@ -102,7 +114,7 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
   }
 
   let calls = await fetchCallsBySymbol(sym);
-  if (calls.length > 0 && calls[0].asset_class) {
+  if (!assetClassLocked && calls.length > 0 && calls[0].asset_class) {
     assetClass = calls[0].asset_class as AssetClass;
   }
 
@@ -114,17 +126,20 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
   let filings: FilingItem[] = [];
   let cryptoMeta: TickerIntel["cryptoMeta"];
 
-  if (assetClass === "crypto" && finnhubSymbol) {
+  if (assetClass === "crypto") {
     const cryptoAsset = await resolveCryptoAsset(sym);
     if (cryptoAsset) {
+      finnhubSymbol = cryptoAsset.finnhub_symbol;
       cryptoMeta = {
         exchange: cryptoAsset.exchange,
         displayName: cryptoAsset.display_name ?? sym,
       };
     }
     const [c, price, cryptoNews] = await Promise.all([
-      getCryptoCandles(finnhubSymbol, from, to),
-      getCryptoLastPrice(finnhubSymbol),
+      getCryptoCandlesForSymbol(sym, from, to, "D"),
+      finnhubSymbol
+        ? getCryptoLastPrice(finnhubSymbol)
+        : Promise.resolve(null),
       getCryptoNewsForSymbol(sym),
     ]);
     candlesRaw = c;
