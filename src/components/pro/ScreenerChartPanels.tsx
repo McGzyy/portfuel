@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { ChartFrame } from "@/components/charts/ChartFrame";
 import { HorizontalBarChart } from "@/components/charts/HorizontalBarChart";
-import type { CommunityScreenerData, ScreenerAssetFilter } from "@/lib/screener/community";
-import { filterScreenerByAsset } from "@/lib/screener/community";
+import type { CommunityScreenerData, ScreenerAssetFilter } from "@/lib/screener/community-shared";
+import { filterScreenerByAsset } from "@/lib/screener/community-shared";
 import { cn, formatPct } from "@/lib/utils";
 
 type ScreenerView = "activity" | "progress" | "desk" | "conviction";
