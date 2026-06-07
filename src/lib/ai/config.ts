@@ -40,6 +40,16 @@ export const AI_JOURNAL_RESEARCH_MONTHLY_LIMIT: Record<MembershipTier | "admin",
 export const AI_JOURNAL_RESEARCH_DISCLAIMER =
   "Educational research prompts for your private journal only — not investment advice.";
 
+/** On-demand AI watchlist digest — Pro only in app. */
+export const AI_WATCHLIST_DIGEST_MONTHLY_LIMIT: Record<MembershipTier | "admin", number> = {
+  member: 0,
+  pro: 8,
+  admin: 100,
+};
+
+export const AI_WATCHLIST_DIGEST_DISCLAIMER =
+  "Educational summary of your watchlist context — not investment advice. AI can be wrong.";
+
 export function isAiCoachConfigured(): boolean {
   const key = process.env.OPENAI_API_KEY?.trim();
   return Boolean(key?.startsWith("sk-"));
@@ -91,4 +101,12 @@ export function journalResearchLimitForRole(
 ): number {
   if (role === "admin") return AI_JOURNAL_RESEARCH_MONTHLY_LIMIT.admin;
   return AI_JOURNAL_RESEARCH_MONTHLY_LIMIT[tier === "pro" ? "pro" : "member"];
+}
+
+export function watchlistDigestLimitForRole(
+  tier: MembershipTier | null,
+  role: "member" | "admin"
+): number {
+  if (role === "admin") return AI_WATCHLIST_DIGEST_MONTHLY_LIMIT.admin;
+  return AI_WATCHLIST_DIGEST_MONTHLY_LIMIT[tier === "pro" ? "pro" : "member"];
 }

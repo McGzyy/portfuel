@@ -67,6 +67,7 @@ After applying migrations:
 | 42 | `20260609100000_journal_research_ai.sql` | AI journal research usage |
 | 43 | `20260610100000_journal_entries_phase4.sql` | Entry types + metadata |
 | 44 | `20260611100000_watchlist_symbol_price_alerts.sql` | Per-symbol price alert % (Pro) |
+| 45 | `20260612100000_watchlist_digest_ai.sql` | AI watchlist digest usage counter |
 
 > **Note:** `20260607095000_referral_program.sql` was renamed from a duplicate `20260607100000` timestamp so journal migrations apply in a deterministic order on fresh databases.
 
@@ -81,6 +82,7 @@ If journal features fail or symbol pages 404 in production, confirm these are ap
 - `20260609100000_journal_research_ai.sql`
 - `20260610100000_journal_entries_phase4.sql`
 - `20260611100000_watchlist_symbol_price_alerts.sql`
+- `20260612100000_watchlist_digest_ai.sql`
 
 ## Staging validation
 

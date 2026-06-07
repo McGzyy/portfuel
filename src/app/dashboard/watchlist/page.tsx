@@ -6,6 +6,7 @@ import { WatchlistPanel } from "@/components/dashboard/WatchlistPanel";
 import { WatchlistQuickAddChips } from "@/components/dashboard/WatchlistQuickAddChips";
 import { FeedRefreshButton } from "@/components/dashboard/FeedRefreshButton";
 import { EarningsCalendarPanel } from "@/components/pro/EarningsCalendarPanel";
+import { WatchlistAiDigestPanel } from "@/components/pro/WatchlistAiDigestPanel";
 import { ResearchPipeline } from "@/components/journal/ResearchPipeline";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { isDemoMode } from "@/lib/demo/config";
@@ -63,6 +64,12 @@ export default async function DashboardWatchlistPage() {
       <ResearchPipeline current="track" logHref={nextUp?.href} />
 
       <WorkspaceQuickActions proUnlocked={proUnlocked} />
+
+      <WatchlistAiDigestPanel
+        locked={proLocked}
+        proGateCta={proGateCta}
+        symbolCount={items.length}
+      />
 
       <div className="pf-workspace-panel p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
