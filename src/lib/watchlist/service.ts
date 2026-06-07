@@ -3,8 +3,7 @@ import { isDemoMode } from "@/lib/demo/config";
 import { attachJournalHubProgress, fetchJournalEntryStats } from "@/lib/journal/hub-summary";
 import { getQuote } from "@/lib/market/finnhub";
 import { getDemoWatchlist } from "@/lib/watchlist/demo";
-import { detectAssetClassForSymbol } from "@/lib/watchlist/symbol-detect";
-import { validateSymbol } from "@/lib/market/validate-symbol";
+import { resolveWatchlistSymbol } from "@/lib/market/validate-symbol";
 import { enrichWatchlistActivity } from "@/lib/watchlist/activity";
 import { normalizeCatalysts } from "@/lib/watchlist/journal-meta";
 import { addJournalEntry, resolveBaselinePrice } from "@/lib/watchlist/journal";
@@ -57,14 +56,9 @@ export async function addToWatchlist(
 
   if ((count ?? 0) >= MAX_WATCHLIST) return { error: "watchlist_full" };
 
-  const asset_class = await detectAssetClassForSymbol(sym);
-  let validated = await validateSymbol(sym, asset_class);
-  if (!validated.ok && asset_class === "equity") {
-    const cryptoRetry = await validateSymbol(sym, "crypto");
-    if (cryptoRetry.ok) validated = cryptoRetry;
-  }
+  const validated = await resolveWatchlistSymbol(sym);
   if (!validated.ok) {
-    if (validated.error.includes("major-exchange") || asset_class === "crypto") {
+    if (validated.error.includes("major-exchange")) {
       return { error: "crypto_not_supported" };
     }
     return { error: "unknown_symbol" };

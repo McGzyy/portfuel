@@ -43,9 +43,31 @@ export async function validateSymbol(
   }
 
   const quote = await getQuote(sym);
-  if (!quote?.c) {
+  const price = quote?.c;
+  if (price == null || !Number.isFinite(price) || price <= 0) {
     return { ok: false, error: "Unknown stock ticker. Check the symbol (e.g. AAPL, NVDA)." };
   }
 
-  return { ok: true, assetClass: "equity", symbol: sym, lastPrice: quote.c };
+  return { ok: true, assetClass: "equity", symbol: sym, lastPrice: price };
+}
+
+/** Resolve a symbol for watchlist add — crypto majors first, then equities. */
+export async function resolveWatchlistSymbol(symbol: string): Promise<SymbolValidation> {
+  const sym = symbol.toUpperCase().trim();
+  if (!sym) return { ok: false, error: "Symbol required" };
+
+  const cryptoAsset = await resolveCryptoAsset(sym);
+  if (cryptoAsset) {
+    const lastPrice = await getCryptoLastPrice(cryptoAsset.finnhub_symbol);
+    return {
+      ok: true,
+      assetClass: "crypto",
+      symbol: cryptoAsset.symbol,
+      finnhubSymbol: cryptoAsset.finnhub_symbol,
+      name: cryptoAsset.display_name ?? cryptoAsset.symbol,
+      lastPrice: lastPrice ?? undefined,
+    };
+  }
+
+  return validateSymbol(sym, "equity");
 }

@@ -8,7 +8,7 @@ export function watchlistAddErrorMessage(code: string | undefined): string {
     case "invalid_symbol":
       return "Enter a valid ticker symbol.";
     case "unknown_symbol":
-      return "Unknown stock ticker. Check the symbol (e.g. AAPL, NVDA).";
+      return "Unknown symbol. Use a US stock (AAPL, NVDA) or major-exchange crypto (BTC, ETH, SOL).";
     case "crypto_not_supported":
       return "That crypto is not on the major-exchange list (Coinbase/Kraken).";
     case "db_error":
