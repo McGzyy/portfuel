@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   CompleteCheckoutButton,
-  ManageBillingButton,
 } from "@/components/billing/BillingActions";
 import { BillingIntervalPicker } from "@/components/billing/BillingIntervalPicker";
 import { UpgradeToProButton } from "@/components/billing/UpgradeToProButton";
@@ -125,10 +124,6 @@ export function ProfileBillingSection({
               billingInterval={checkoutInterval}
             />
           </>
-        ) : null}
-        {stripeCustomerId &&
-        (subscriptionStatus === "active" || subscriptionStatus === "cancelled") ? (
-          <ManageBillingButton />
         ) : null}
       </div>
     </section>

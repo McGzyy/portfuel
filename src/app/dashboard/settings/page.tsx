@@ -10,6 +10,7 @@ import { ProfileSocialHighlightSection } from "@/components/profile/ProfileSocia
 import { ProfileVouchersSection } from "@/components/profile/ProfileVouchersSection";
 import { ProfileDiscordSection } from "@/components/profile/ProfileDiscordSection";
 import { SettingsAccountSummary } from "@/components/settings/SettingsAccountSummary";
+import { SettingsDangerZone } from "@/components/settings/SettingsDangerZone";
 import {
   parseSettingsSection,
   SettingsNav,
@@ -105,6 +106,10 @@ export default async function DashboardSettingsPage({
                   subscriptionStatus={profile.subscriptionStatus}
                   storedMembershipTier={profile.membershipTier}
                   proGrantedUntil={profile.proGrantedUntil ?? session.proGrantedUntil ?? null}
+                />
+                <SettingsDangerZone
+                  subscriptionStatus={profile.subscriptionStatus}
+                  stripeCustomerId={profile.stripeCustomerId}
                 />
               </section>
             ) : null}
