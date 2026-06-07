@@ -80,7 +80,7 @@ export function SettingsNav({ active }: { active: SettingsSection }) {
               "rounded-lg border px-3 py-2.5 transition-colors",
               isActive
                 ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white"
-                : "border-[var(--pf-border)] bg-white text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
+                : "border-[var(--pf-border)] bg-[var(--pf-surface)] text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
             )}
           >
             <span className="block text-sm font-semibold">{item.label}</span>

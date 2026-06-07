@@ -12,8 +12,9 @@ import {
   type Time,
 } from "lightweight-charts";
 import type { LinePoint, PriceLine } from "@/lib/charts/types";
+import { useIsDarkMode } from "@/components/appearance/AppearanceProvider";
 import {
-  PF_CHART,
+  activeChartTheme,
   chartGridOptions,
   chartLayoutOptions,
 } from "@/lib/charts/theme";
@@ -37,31 +38,40 @@ export function CompareMultiLineChart({
   const chartRef = useRef<IChartApi | null>(null);
   const lineRefs = useRef<ISeriesApi<"Line">[]>([]);
 
+  const isDark = useIsDarkMode();
+  const chartTheme = activeChartTheme(isDark);
+
   useEffect(() => {
     if (!containerRef.current) return;
 
     const chart = createChart(containerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: PF_CHART.layout.background },
-        textColor: PF_CHART.layout.text,
-        fontFamily: chartLayoutOptions().fontFamily,
-        fontSize: chartLayoutOptions().fontSize,
+        background: { type: ColorType.Solid, color: chartTheme.layout.background },
+        textColor: chartTheme.layout.text,
+        fontFamily: chartLayoutOptions(chartTheme).fontFamily,
+        fontSize: chartLayoutOptions(chartTheme).fontSize,
       },
-      grid: chartGridOptions(),
+      grid: chartGridOptions(chartTheme),
       width: containerRef.current.clientWidth,
       height,
       timeScale: {
-        borderColor: PF_CHART.border,
+        borderColor: chartTheme.border,
         timeVisible: true,
         secondsVisible: false,
       },
       rightPriceScale: {
-        borderColor: PF_CHART.border,
+        borderColor: chartTheme.border,
         scaleMargins: { top: 0.1, bottom: 0.1 },
       },
       crosshair: {
-        vertLine: { color: "rgba(15, 20, 25, 0.15)", labelBackgroundColor: "#0f1419" },
-        horzLine: { color: "rgba(15, 20, 25, 0.15)", labelBackgroundColor: "#0f1419" },
+        vertLine: {
+          color: isDark ? "rgba(148, 163, 184, 0.2)" : "rgba(15, 20, 25, 0.15)",
+          labelBackgroundColor: isDark ? "#334155" : "#0f1419",
+        },
+        horzLine: {
+          color: isDark ? "rgba(148, 163, 184, 0.2)" : "rgba(15, 20, 25, 0.15)",
+          labelBackgroundColor: isDark ? "#334155" : "#0f1419",
+        },
       },
     });
 
@@ -81,7 +91,7 @@ export function CompareMultiLineChart({
       chartRef.current = null;
       lineRefs.current = [];
     };
-  }, [height]);
+  }, [height, isDark]);
 
   useEffect(() => {
     const chart = chartRef.current;

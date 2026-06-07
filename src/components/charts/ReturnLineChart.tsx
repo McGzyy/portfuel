@@ -15,13 +15,15 @@ import {
   type MouseEventParams,
 } from "lightweight-charts";
 import type { ReturnChartPoint } from "@/lib/charts/types";
+import { useIsDarkMode } from "@/components/appearance/AppearanceProvider";
 import {
-  PF_CHART,
+  activeChartTheme,
   chartGridOptions,
   chartLayoutOptions,
+  type PfChartTheme,
 } from "@/lib/charts/theme";
 
-function markerForPoint(p: ReturnChartPoint): SeriesMarker<Time> | null {
+function markerForPoint(p: ReturnChartPoint, theme: PfChartTheme): SeriesMarker<Time> | null {
   if (!p.outcome) return null;
   return {
     time: p.time as Time,
@@ -30,10 +32,10 @@ function markerForPoint(p: ReturnChartPoint): SeriesMarker<Time> | null {
     shape: p.outcome === "win" ? "arrowUp" : p.outcome === "loss" ? "arrowDown" : "circle",
     color:
       p.outcome === "win"
-        ? PF_CHART.marker.long
+        ? theme.marker.long
         : p.outcome === "loss"
-          ? PF_CHART.marker.short
-          : PF_CHART.marker.default,
+          ? theme.marker.short
+          : theme.marker.default,
     text: p.symbol ?? p.label,
   };
 }
@@ -63,32 +65,35 @@ export function ReturnLineChart({
     pointDataRef.current = points;
   }, [points]);
 
+  const isDark = useIsDarkMode();
+  const chartTheme = activeChartTheme(isDark);
+
   useEffect(() => {
     if (!containerRef.current) return;
 
     const chart = createChart(containerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: PF_CHART.layout.background },
-        textColor: PF_CHART.layout.text,
-        fontFamily: chartLayoutOptions().fontFamily,
-        fontSize: compact ? 10 : chartLayoutOptions().fontSize,
+        background: { type: ColorType.Solid, color: chartTheme.layout.background },
+        textColor: chartTheme.layout.text,
+        fontFamily: chartLayoutOptions(chartTheme).fontFamily,
+        fontSize: compact ? 10 : chartLayoutOptions(chartTheme).fontSize,
       },
-      grid: chartGridOptions(),
+      grid: chartGridOptions(chartTheme),
       width: containerRef.current.clientWidth,
       height,
       timeScale: {
-        borderColor: PF_CHART.border,
+        borderColor: chartTheme.border,
         timeVisible: !compact,
         visible: !compact,
       },
       rightPriceScale: {
-        borderColor: PF_CHART.border,
+        borderColor: chartTheme.border,
         scaleMargins: { top: 0.1, bottom: 0.1 },
       },
     });
 
     const series = chart.addSeries(LineSeries, {
-      color: PF_CHART.candle.up,
+      color: chartTheme.candle.up,
       lineWidth: compact ? 2 : 2,
       priceLineVisible: !compact,
       lastValueVisible: true,
@@ -123,7 +128,7 @@ export function ReturnLineChart({
       seriesRef.current = null;
       markersRef.current = null;
     };
-  }, [height, compact, interactive, router]);
+  }, [height, compact, interactive, router, isDark, chartTheme]);
 
   useEffect(() => {
     if (!seriesRef.current || points.length === 0) return;
@@ -135,7 +140,7 @@ export function ReturnLineChart({
 
     if (showMarkers) {
       const seriesMarkers = points
-        .map(markerForPoint)
+        .map((p) => markerForPoint(p, chartTheme))
         .filter((m): m is SeriesMarker<Time> => m != null);
       markersRef.current?.setMarkers(seriesMarkers);
     } else {
@@ -143,7 +148,7 @@ export function ReturnLineChart({
     }
 
     chartRef.current?.timeScale().fitContent();
-  }, [points, showMarkers]);
+  }, [points, showMarkers, chartTheme]);
 
   return (
     <div

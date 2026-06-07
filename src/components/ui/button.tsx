@@ -9,7 +9,7 @@ const buttonVariants = cva(
         default:
           "bg-[var(--pf-red)] text-white shadow-[var(--pf-shadow-sm)] hover:bg-[var(--pf-red-hover)]",
         secondary:
-          "border border-[var(--pf-border)] bg-white text-[var(--pf-black)] shadow-[var(--pf-shadow-sm)] hover:bg-[var(--pf-gray-50)]",
+          "border border-[var(--pf-border)] bg-[var(--pf-surface)] text-[var(--pf-black)] shadow-[var(--pf-shadow-sm)] hover:bg-[var(--pf-gray-50)]",
         ghost: "text-[var(--pf-gray-700)] hover:bg-[var(--pf-gray-100)]",
         outline:
           "border border-[var(--pf-red)] text-[var(--pf-red)] hover:bg-[var(--pf-red)] hover:text-white",

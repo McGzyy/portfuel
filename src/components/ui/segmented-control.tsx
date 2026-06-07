@@ -29,7 +29,7 @@ export function SegmentedControl<T extends string>({
           className={cn(
             "flex-1 rounded-md px-3 py-2 text-sm font-semibold transition-all",
             value === opt.value
-              ? "bg-white text-[var(--pf-black)] shadow-[var(--pf-shadow-sm)]"
+              ? "bg-[var(--pf-surface)] text-[var(--pf-black)] shadow-[var(--pf-shadow-sm)]"
               : "text-[var(--pf-gray-500)] hover:text-[var(--pf-gray-700)]"
           )}
         >

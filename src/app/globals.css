@@ -1247,3 +1247,65 @@ body {
   background: rgba(227, 27, 35, 0.35);
   color: #fff;
 }
+
+/* Dark theme — common hardcoded light utilities */
+[data-theme="dark"] .pf-overview-command,
+[data-theme="dark"] #workspace-mobile-nav,
+[data-theme="dark"] .pf-live-bar {
+  background-color: var(--pf-surface);
+}
+
+[data-theme="dark"] .bg-white\/80 {
+  background-color: color-mix(in srgb, var(--pf-surface) 80%, transparent);
+}
+
+[data-theme="dark"] .bg-white\/95 {
+  background-color: color-mix(in srgb, var(--pf-surface) 95%, transparent);
+}
+
+[data-theme="dark"] .bg-white\/70 {
+  background-color: color-mix(in srgb, var(--pf-surface) 70%, transparent);
+}
+
+[data-theme="dark"] .bg-white\/60 {
+  background-color: color-mix(in srgb, var(--pf-surface) 60%, transparent);
+}
+
+[data-theme="dark"] .hover\:bg-white:hover,
+[data-theme="dark"] .hover\:bg-white\/60:hover {
+  background-color: var(--pf-gray-100);
+}
+
+[data-theme="dark"] .border-\[var\(--pf-gray-300\)\] {
+  border-color: var(--pf-border);
+}
+
+[data-theme="dark"] .hover\:border-\[var\(--pf-gray-300\)\]:hover {
+  border-color: var(--pf-gray-200);
+}
+
+[data-theme="dark"] .text-amber-950 {
+  color: #fde68a;
+}
+
+[data-theme="dark"] .text-emerald-800,
+[data-theme="dark"] .text-emerald-800\/70 {
+  color: #6ee7b7;
+}
+
+[data-theme="dark"] .hover\:text-emerald-950:hover {
+  color: #a7f3d0;
+}
+
+[data-theme="dark"] .border-amber-200\/80,
+[data-theme="dark"] .border-amber-300\/60 {
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+[data-theme="dark"] .shadow-2xl {
+  box-shadow: var(--pf-shadow-lg);
+}
+
+[data-theme="dark"] .ring-1 {
+  --tw-ring-color: var(--pf-border);
+}
