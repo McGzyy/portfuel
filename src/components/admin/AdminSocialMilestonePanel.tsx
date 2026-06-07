@@ -187,6 +187,7 @@ export function AdminSocialMilestonePanel() {
   }
 
   const demoChartUrl = `/api/admin/social/demo-chart?milestone=${demoMilestone}&format=png&k=${demoChartKey}`;
+  const demoSvgUrl = `/api/admin/social/demo-chart?milestone=${demoMilestone}&format=svg&k=${demoChartKey}`;
 
   return (
     <section className="pf-workspace-panel p-6">
@@ -196,10 +197,11 @@ export function AdminSocialMilestonePanel() {
       <h2 className="mt-1 text-lg font-bold text-[var(--pf-black)]">
         Fueled desk milestone posts with chart image
       </h2>
-      <p className="mt-2 max-w-2xl text-sm text-[var(--pf-gray-600)]">
-        Edit the text that appears above the chart on X, preview the full post layout, then publish
-        when live milestones hit.
-      </p>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--pf-gray-600)]">
+          Dark branded chart with Fueled entry marker, community call dots, and target guide.
+          Run <code className="rounded bg-[var(--pf-gray-100)] px-1 py-0.5 text-xs">npm run social-chart:preview</code>{" "}
+          locally to export a PNG without the admin session.
+        </p>
 
       <div className="mt-6 rounded-xl border-2 border-dashed border-[var(--pf-red)]/30 bg-[var(--pf-gray-50)] p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -211,15 +213,26 @@ export function AdminSocialMilestonePanel() {
               Sample NVDA milestone post
             </h3>
           </div>
-          <Link
-            href={demoChartUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-red)] hover:underline"
-          >
-            Open chart full size
-            <ExternalLink className="h-3 w-3" />
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={demoChartUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-red)] hover:underline"
+            >
+              Open PNG
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+            <Link
+              href={demoSvgUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-gray-600)] hover:underline"
+            >
+              Open SVG
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+          </div>
         </div>
 
         <div className="mt-4">

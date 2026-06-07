@@ -16,5 +16,5 @@ export function directionMeta(direction: "long" | "short"): { label: string; col
 }
 
 export function showTargetGuide(milestone: CallMilestoneKey | null): boolean {
-  return milestone === "target_reached";
+  return milestone === "target_reached" || milestone === "return_25";
 }

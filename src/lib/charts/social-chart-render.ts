@@ -1,4 +1,5 @@
 import type { SocialChartPayload } from "@/lib/charts/social-chart-data";
+import { compositeSocialChartLogo } from "@/lib/charts/social-chart-logo";
 import { renderSocialChartOgPng } from "@/lib/charts/social-chart-og";
 import { renderSocialChartSvg } from "@/lib/charts/social-chart";
 import { Resvg } from "@resvg/resvg-js";
@@ -18,13 +19,15 @@ function renderSvgToPng(svg: string): Buffer {
   return resvg.render().asPng();
 }
 
-/** PNG via next/og (Inter + line plot). */
+/** PNG via next/og (Inter + line plot), with light logo composited on the footer. */
 export async function renderSocialChartPng(payload: SocialChartPayload): Promise<Buffer> {
   try {
-    return await renderSocialChartOgPng(payload);
+    const png = await renderSocialChartOgPng(payload);
+    return compositeSocialChartLogo(png);
   } catch (e) {
     console.error("[social-chart] OG render failed, using SVG line fallback:", e);
     const svg = renderSocialChartSvg(payload);
-    return renderSvgToPng(svg);
+    const png = renderSvgToPng(svg);
+    return compositeSocialChartLogo(png);
   }
 }

@@ -11,6 +11,7 @@
     "migrations:list": "node scripts/list-migrations.mjs",
     "brand-assets": "node scripts/optimize-brand-assets.mjs",
     "marketing:export": "npx tsx scripts/export-marketing-assets.mjs",
+    "social-chart:preview": "npx tsx scripts/preview-social-chart.ts",
     "clear-auth-attempts": "node --env-file=.env.local scripts/clear-auth-attempts.mjs",
     "admin:sync": "node --env-file=.env.local scripts/set-admin-password.mjs && node --env-file=.env.local scripts/reset-admin-totp.mjs"
   },

@@ -50,7 +50,7 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
           height: H,
           display: "flex",
           flexDirection: "column",
-          background: T.bg,
+          background: "linear-gradient(145deg, #0a0c10 0%, #0f1419 52%, #15101a 100%)",
           fontFamily: "Inter",
         }}
       >
@@ -218,17 +218,6 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             <div style={{ display: "flex", fontSize: 10, fontWeight: 500, color: T.textDim }}>
               {`As of ${asOf}`}
             </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 0 }}>
-            <span style={{ display: "flex", fontSize: 22, fontWeight: 700, color: T.textBright, letterSpacing: -0.6 }}>
-              Port
-            </span>
-            <span style={{ display: "flex", fontSize: 22, fontWeight: 700, color: T.accent, letterSpacing: -0.6 }}>
-              Fuel
-            </span>
-            <span style={{ display: "flex", fontSize: 10, fontWeight: 700, color: T.textDim, letterSpacing: 1.2, marginLeft: 8 }}>
-              PRO
-            </span>
           </div>
         </div>
       </div>

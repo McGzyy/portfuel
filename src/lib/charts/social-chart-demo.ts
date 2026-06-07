@@ -61,6 +61,10 @@ export async function loadDemoSocialChartPayload(
   });
 
   const fueledBar = candles[callBarIndex] ?? candles[Math.floor(candles.length / 2)]!;
+  const memberCall =
+    getDemoCallsFeed("latest").find((c) => c.id === "demo-call-002" && c.symbol === symbol) ??
+    getDemoCallsFeed("latest").find((c) => c.symbol === symbol && !c.is_fueled);
+
   const markers: ChartMarker[] = [
     {
       time: fueledBar.time,
@@ -71,6 +75,19 @@ export async function loadDemoSocialChartPayload(
       callId: fueled.id,
     },
   ];
+
+  if (memberCall) {
+    const memberIdx = Math.max(0, callBarIndex - 3);
+    const memberBar = candles[memberIdx] ?? fueledBar;
+    markers.push({
+      time: memberBar.time,
+      price: Number(memberCall.entry_price ?? memberCall.price_at_call ?? entry),
+      label: "Community",
+      color: "#34d399",
+      kind: memberCall.direction === "short" ? "short" : "long",
+      callId: memberCall.id,
+    });
+  }
 
   const priceLines = buildFeaturedCallPriceLines(fueled);
 

@@ -139,14 +139,32 @@ export function renderSocialChartPlotSvg(payload: SocialChartPayload): string {
     )} L ${(x + 20).toFixed(1)} ${notchY.toFixed(1)} Z`;
 
     return `<g>
-      <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="#ffffff" stroke="${color}" stroke-width="2.5"/>
+      <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="${T.chipBg}" stroke="${color}" stroke-width="2.5"/>
       <g filter="url(#chipShadow)">
-        <path d="${notch}" fill="#ffffff" stroke="${T.rule}" stroke-width="0.8"/>
-        <rect x="${boxX.toFixed(1)}" y="${boxY.toFixed(1)}" width="${w.toFixed(1)}" height="${h}" rx="10" fill="#ffffff" stroke="${T.rule}" stroke-width="0.8"/>
+        <path d="${notch}" fill="${T.chipBg}" stroke="${T.chipBorder}" stroke-width="0.8"/>
+        <rect x="${boxX.toFixed(1)}" y="${boxY.toFixed(1)}" width="${w.toFixed(1)}" height="${h}" rx="10" fill="${T.chipBg}" stroke="${T.chipBorder}" stroke-width="0.8"/>
       </g>
-      <text x="${(boxX + 12).toFixed(1)}" y="${(boxY + 14).toFixed(1)}" fill="${T.text}" font-size="9" font-weight="700" font-family="${FONT_SANS}" letter-spacing="0.28">${text}</text>
+      <text x="${(boxX + 12).toFixed(1)}" y="${(boxY + 14).toFixed(1)}" fill="${T.chipText}" font-size="9" font-weight="700" font-family="${FONT_SANS}" letter-spacing="0.28">${text}</text>
     </g>`;
   }
+
+  const communityMarkers = payload.markers.filter(
+    (m) => m.callId !== payload.featuredCallId && m.kind !== "fueled"
+  );
+  let communityDots = "";
+  for (const m of communityMarkers.slice(0, 5)) {
+    const idx = candleIdx(candles, m.time);
+    if (idx < 0 || idx >= n) continue;
+    const mx = xAt(idx);
+    const my = yAt(m.price ?? candles[idx]!.close);
+    const color = m.color ?? T.memberDot;
+    communityDots += `<circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="3.5" fill="${color}" stroke="${T.chipBg}" stroke-width="1.5" opacity="0.95"/>`;
+  }
+
+  const legend =
+    communityMarkers.length > 0
+      ? `<text x="${chartX + 6}" y="${chartY + chartH - 8}" fill="${T.textDim}" font-size="9" font-weight="600" font-family="${FONT_SANS}" letter-spacing="0.4">● Fueled desk · ○ ${communityMarkers.length} community call${communityMarkers.length === 1 ? "" : "s"}</text>`
+      : "";
 
   const entryLabel = marker
     ? chip(callX, callY, T.callDot, "ENTRY", `$${fmtPrice(entry ?? candles[callIdx]!.close)}`)
@@ -182,10 +200,12 @@ export function renderSocialChartPlotSvg(payload: SocialChartPayload): string {
     <polygon points="${areaPts}" fill="url(#areaFill)"/>
     <polyline points="${linePts}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
     ${entryLabel}
+    ${communityDots}
     ${targetHit}
-    <circle cx="${lastX}" cy="${endY}" r="4" fill="#ffffff" stroke="${lineColor}" stroke-width="2"/>
+    <circle cx="${lastX}" cy="${endY}" r="4" fill="${T.chipBg}" stroke="${lineColor}" stroke-width="2"/>
   </g>
   ${guides}
+  ${legend}
 </svg>`;
 }
 

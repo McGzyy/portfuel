@@ -1,5 +1,5 @@
 /**
- * Full-card SVG fallback — white layout + embedded line plot (no candles).
+ * Full-card SVG fallback — dark layout + embedded line plot.
  */
 import { PF_CHART_SOCIAL as C } from "@/lib/charts/theme";
 import type { SocialChartPayload } from "@/lib/charts/social-chart-data";
@@ -81,18 +81,16 @@ ${txt(PAD + w + 16, y, eyebrow, { size: 10, weight: 600, fill: C.textDim })}`;
     y += 20;
   }
 
-  const wordmarkX = W - PAD;
-  const wordmarkY = footerTop + 34;
-  const wordmark = `
-  <text x="${wordmarkX}" y="${wordmarkY}" font-family="${FONT_SANS}" text-anchor="end">
-    <tspan font-size="20" font-weight="700" fill="${C.textBright}">Port</tspan>
-    <tspan font-size="20" font-weight="700" fill="${C.accent}">Fuel</tspan>
-    <tspan dx="8" font-size="9" font-weight="700" fill="${C.textDim}" letter-spacing="1.2">PRO</tspan>
-  </text>`;
-
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-  <rect width="${W}" height="${H}" fill="${C.bg}"/>
+  <defs>
+    <linearGradient id="cardBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${C.panelGradient[0]}"/>
+      <stop offset="52%" stop-color="${C.panelGradient[1]}"/>
+      <stop offset="100%" stop-color="${C.panelGradient[2]}"/>
+    </linearGradient>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#cardBg)"/>
   ${mileBadge}
   ${txt(PAD, y + 8, payload.symbol, { size: 56, weight: 700, fill: C.textBright })}
   ${txt(PAD, y + 38, payload.companyName, { size: 22, weight: 500, fill: C.text })}
@@ -108,6 +106,5 @@ ${txt(PAD + w + 16, y, eyebrow, { size: 10, weight: 600, fill: C.textDim })}`;
   <line x1="${PAD}" y1="${footerTop}" x2="${W - PAD}" y2="${footerTop}" stroke="${C.rule}"/>
   ${txt(PAD, footerTop + 24, "Not investment advice  ·  portfuel.pro", { size: 10, weight: 500, fill: C.textDim })}
   ${txt(PAD, footerTop + 40, `As of ${asOf}`, { size: 10, weight: 500, fill: C.textDim })}
-  ${wordmark}
 </svg>`;
 }
