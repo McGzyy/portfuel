@@ -77,11 +77,26 @@ export async function DELETE(request: Request) {
     const symbol = new URL(request.url).searchParams.get("symbol") ?? "";
     const result = await removeFromWatchlist(session.userId, symbol);
     if ("error" in result) {
-      const status = result.error === "demo_readonly" ? 403 : 400;
+      const status =
+        result.error === "demo_readonly"
+          ? 403
+          : result.error === "archive_failed"
+            ? 503
+            : 400;
       return NextResponse.json({ error: result.error }, { status });
     }
-    const items = await fetchWatchlist(session.userId);
-    return NextResponse.json({ ok: true, items });
+    try {
+      const items = await fetchWatchlist(session.userId);
+      return NextResponse.json({ ok: true, items, archived: result.archived });
+    } catch (fetchErr) {
+      console.error("[watchlist DELETE fetch after remove]", fetchErr);
+      return NextResponse.json({
+        ok: true,
+        items: [],
+        partial: true,
+        archived: result.archived,
+      });
+    }
   } catch (e) {
     if (e instanceof Error && e.message === "unauthorized") {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });

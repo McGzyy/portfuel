@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell, BookOpen, LineChart, Plus, X } from "lucide-react";
+import { RemoveFromWatchlistButton } from "@/components/watchlist/RemoveFromWatchlistButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { JournalProgressMini } from "@/components/journal/JournalProgressMini";
@@ -87,6 +88,10 @@ export function WatchlistPanel({
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(false);
   const globalPrefs = alertPrefs ?? DEFAULT_WATCHLIST_ALERT_PREFS;
+  const initialKey = useMemo(
+    () => (initialItems ?? []).map((i) => i.symbol).join(","),
+    [initialItems]
+  );
 
   function patchItemPriceAlert(symbol: string, priceAlertPct: number | null) {
     setItems((prev) => {
@@ -121,19 +126,21 @@ export function WatchlistPanel({
     } finally {
       setLoading(false);
     }
-  }, [demoMode, watchlistCtx]);
+  }, [demoMode]);
 
   useEffect(() => {
-    if (initialItems != null) {
-      let list = initialItems;
-      if (demoMode) list = mergeDemoItems(list);
-      setItems(list);
-      watchlistCtx?.setItems(list);
-      setLoading(false);
+    if (initialItems == null) {
+      void load();
       return;
     }
-    load();
-  }, [load, initialItems, demoMode, watchlistCtx]);
+    let list = initialItems;
+    if (demoMode) list = mergeDemoItems(list);
+    setItems(list);
+    watchlistCtx?.setItems(list);
+    setLoading(false);
+    // Sync from server only when the symbol set changes — not when client removes a row.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- watchlistCtx.setItems is stable enough
+  }, [load, initialKey, demoMode]);
 
   useEffect(() => {
     if (items.length === 0) return;
@@ -221,29 +228,14 @@ export function WatchlistPanel({
     }
   }
 
-  async function remove(sym: string) {
-    if (demoMode) {
-      const local = loadDemoLocal().filter((s) => s !== sym);
-      saveDemoLocal(local);
-      const seed = getDemoWatchlistSeed().map((s) => s.symbol);
-      if (seed.includes(sym)) {
-        setError("Demo seed symbols reset on refresh — remove custom adds only.");
-        await load();
-        return;
-      }
-      await load();
-      return;
+  async function removeDemo(sym: string) {
+    const local = loadDemoLocal().filter((s) => s !== sym);
+    saveDemoLocal(local);
+    const seed = getDemoWatchlistSeed().map((s) => s.symbol);
+    if (seed.includes(sym)) {
+      setError("Demo seed symbols reset on refresh — remove custom adds only.");
     }
-
-    try {
-      const res = await fetch(`/api/watchlist?symbol=${encodeURIComponent(sym)}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
-      if (res.ok) applyItems((data.items ?? []) as WatchlistEntry[]);
-    } catch {
-      setError("Could not remove.");
-    }
+    await load();
   }
 
   return (
@@ -434,14 +426,22 @@ export function WatchlistPanel({
                         <LineChart className="h-3 w-3" aria-hidden />
                         Intel
                       </Link>
-                      <button
-                        type="button"
-                        onClick={() => remove(item.symbol)}
-                        className="rounded-full p-1.5 text-[var(--pf-gray-400)] transition-colors hover:bg-[var(--pf-gray-100)] hover:text-[var(--pf-gray-700)]"
-                        aria-label={`Remove ${item.symbol}`}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
+                      {demoMode ? (
+                        <button
+                          type="button"
+                          onClick={() => void removeDemo(item.symbol)}
+                          className="rounded-full p-1.5 text-[var(--pf-gray-400)] transition-colors hover:bg-rose-50 hover:text-rose-700"
+                          aria-label={`Remove ${item.symbol} from watchlist`}
+                          title="Remove from watchlist"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      ) : (
+                        <RemoveFromWatchlistButton
+                          symbol={item.symbol}
+                          onRemoved={(list) => applyItems(list)}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>

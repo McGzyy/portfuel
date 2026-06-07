@@ -9,6 +9,10 @@ import { enrichWatchlistActivity } from "@/lib/watchlist/activity";
 import { normalizeCatalysts } from "@/lib/watchlist/journal-meta";
 import { addJournalEntry, resolveBaselinePrice } from "@/lib/watchlist/journal";
 import {
+  restoreWatchlistJournalArchive,
+  archiveAndRemoveFromWatchlist,
+} from "@/lib/watchlist/journal-archive";
+import {
   isSchemaDriftError,
   WATCHLIST_BASIC_SELECT,
   WATCHLIST_FULL_SELECT,
@@ -154,16 +158,19 @@ export async function addToWatchlist(
   }
 
   try {
-    const entryResult = await addJournalEntry(userId, sym, {
-      body:
-        thesis && thesis.length > 0
-          ? "Added to watchlist."
-          : "Added to watchlist — add your thesis on the journal page.",
-      conviction_after: conviction,
-      entry_type: "system",
-    });
-    if ("error" in entryResult) {
-      console.warn("[watchlist/add/journal-entry]", entryResult.error);
+    const restored = await restoreWatchlistJournalArchive(userId, sym);
+    if (!restored) {
+      const entryResult = await addJournalEntry(userId, sym, {
+        body:
+          thesis && thesis.length > 0
+            ? "Added to watchlist."
+            : "Added to watchlist — add your thesis on the journal page.",
+        conviction_after: conviction,
+        entry_type: "system",
+      });
+      if ("error" in entryResult) {
+        console.warn("[watchlist/add/journal-entry]", entryResult.error);
+      }
     }
   } catch (e) {
     console.error("[watchlist/add/journal-entry]", e);
@@ -238,28 +245,8 @@ export async function isSymbolOnWatchlist(userId: string, symbol: string): Promi
 export async function removeFromWatchlist(
   userId: string,
   symbol: string
-): Promise<{ ok: true } | { error: string }> {
-  if (isDemoMode()) return { error: "demo_readonly" };
-
-  const db = createServiceClient();
-  const sym = symbol.toUpperCase();
-  await db
-    .from("watchlist_journal_entries")
-    .delete()
-    .eq("user_id", userId)
-    .eq("symbol", sym);
-
-  const { error } = await db
-    .from("user_watchlist")
-    .delete()
-    .eq("user_id", userId)
-    .eq("symbol", sym);
-
-  if (error) {
-    console.error("[watchlist/remove]", error);
-    return { error: "db_error" };
-  }
-  return { ok: true };
+): Promise<{ ok: true; archived: boolean } | { error: string }> {
+  return archiveAndRemoveFromWatchlist(userId, symbol);
 }
 
 export async function updateWatchlistPriceAlert(

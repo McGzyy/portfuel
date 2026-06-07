@@ -5,10 +5,15 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
+
+function watchlistKey(items: WatchlistEntry[]): string {
+  return items.map((i) => i.symbol).join(",");
+}
 
 type WatchlistItemsContextValue = {
   items: WatchlistEntry[];
@@ -25,8 +30,12 @@ export function WatchlistItemsProvider({
   children: ReactNode;
 }) {
   const [items, setItems] = useState(initialItems);
+  const syncedKey = useRef(watchlistKey(initialItems));
 
   useEffect(() => {
+    const nextKey = watchlistKey(initialItems);
+    if (nextKey === syncedKey.current) return;
+    syncedKey.current = nextKey;
     setItems(initialItems);
   }, [initialItems]);
 

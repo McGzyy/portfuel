@@ -9,6 +9,7 @@ import { JournalResearchPanel } from "@/components/journal/JournalResearchPanel"
 import { ResearchPipeline } from "@/components/journal/ResearchPipeline";
 import { COPY } from "@/lib/copy";
 import { buildJournalResearchChecklist } from "@/lib/journal/checklist";
+import { RemoveFromWatchlistButton } from "@/components/watchlist/RemoveFromWatchlistButton";
 import { journalHubPath, journalSymbolPath } from "@/lib/journal/paths";
 import { TickerChartSection } from "@/components/charts/TickerChartSection";
 import { WatchlistJournalPlanForm } from "@/components/watchlist/WatchlistJournalPlanForm";
@@ -173,6 +174,11 @@ export function WatchlistJournalWorkspace({
           </div>
           <div className="flex flex-col items-end gap-2">
             <JournalExportButton symbol={journal.symbol} proUnlocked={proUnlocked} />
+            <RemoveFromWatchlistButton
+              symbol={journal.symbol}
+              variant="button"
+              redirectTo={journalHubPath()}
+            />
           {setupMode ? (
             <div className="inline-flex items-center gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-2.5 text-sm font-semibold text-[var(--pf-gray-600)]">
               <NotebookPen className="h-4 w-4 shrink-0" strokeWidth={2.25} />
