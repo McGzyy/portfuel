@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getAppOrigin } from "@/lib/social/app-url";
-import { pwaIconUrl } from "@/lib/pwa/icons";
+import { PWA_ICONS, pwaIconUrl } from "@/lib/pwa/icons";
 
 /** Browser tab / OG branding — avoid generic “stock calls dashboard” copy */
 export const SITE_NAME = "PortFuel";
@@ -26,7 +26,7 @@ export const rootMetadata: Metadata = {
   icons: {
     // Transparent gauge for browser tabs — not the red-tile PWA home-screen icons.
     icon: [{ url: "/icons/favicon.png", sizes: "48x48", type: "image/png" }],
-    apple: [{ url: pwaIconUrl("/icons/apple-touch-icon.png"), sizes: "180x180", type: "image/png" }],
+    apple: [{ url: pwaIconUrl(PWA_ICONS.apple180), sizes: "180x180", type: "image/png" }],
   },
   appleWebApp: {
     capable: true,

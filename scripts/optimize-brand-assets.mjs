@@ -20,11 +20,11 @@ const iconsDir = join(root, "public/icons");
 const GAUGE_WIDTH_RATIO = 185 / 737;
 const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
 const MASTER_SIDE = 1024;
-/** Home-screen tile fill — full-bleed brand red (iOS/Android add their own mask). */
+/** Home-screen tile — dark PortFuel (matches social charts / desk UI). */
 const TILE_GRADIENT = {
-  top: "#f0434f",
-  mid: "#e31b23",
-  bottom: "#b81218",
+  top: "#161a22",
+  mid: "#0a0c10",
+  bottom: "#050608",
 };
 
 async function buildIconTileBackground(size) {
@@ -35,9 +35,9 @@ async function buildIconTileBackground(size) {
       <stop offset="50%" stop-color="${TILE_GRADIENT.mid}"/>
       <stop offset="100%" stop-color="${TILE_GRADIENT.bottom}"/>
     </linearGradient>
-    <radialGradient id="glow" cx="50%" cy="44%" r="58%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    <radialGradient id="glow" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#e31b23" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#e31b23" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="${size}" height="${size}" fill="url(#bg)"/>
@@ -53,8 +53,8 @@ async function prepareGaugeMark(gaugeMaster, targetPx) {
       background: TRANSPARENT,
       kernel: sharp.kernel.lanczos3,
     })
-    .modulate({ brightness: 1.06, saturation: 1.1 })
-    .sharpen({ sigma: 0.55, m1: 0.5, m2: 0.25 })
+    .modulate({ brightness: 1.1, saturation: 1.08 })
+    .sharpen({ sigma: 0.5, m1: 0.45, m2: 0.22 })
     .png()
     .toBuffer();
 }
@@ -149,7 +149,7 @@ async function ensureGaugeMaster(gaugeFromLogo) {
   return sharp(gaugeMarkPath).png().toBuffer();
 }
 
-/** Full-bleed PortFuel red tile + large gauge mark (home screen / Add to Home). */
+/** Dark tile + gauge — home screen / Add to Home (never write src/app/apple-icon.png). */
 async function buildHomeScreenIcon(gaugeMaster, size) {
   const gaugeTarget = Math.round(size * 0.76);
   const gauge = await prepareGaugeMark(gaugeMaster, gaugeTarget);
@@ -222,15 +222,14 @@ const maskable512 = await (await buildMaskableIcon(gaugeMaster, 512))
 
 await sharp(tabIcon).toFile(join(root, "src/app/icon.png"));
 await sharp(tabIcon).toFile(join(root, "public/icons/favicon.png"));
-await sharp(appleIcon).toFile(join(root, "src/app/apple-icon.png"));
-await sharp(appleIcon).toFile(join(iconsDir, "apple-touch-icon.png"));
+await sharp(appleIcon).toFile(join(iconsDir, "pwa-apple-180.png"));
 await sharp(appleIcon).toFile(join(root, "public/apple-touch-icon.png"));
-await sharp(icon192).toFile(join(iconsDir, "icon-192.png"));
-await sharp(icon512).toFile(join(iconsDir, "icon-512.png"));
-await sharp(maskable512).toFile(join(iconsDir, "icon-512-maskable.png"));
+await sharp(icon192).toFile(join(iconsDir, "pwa-192.png"));
+await sharp(icon512).toFile(join(iconsDir, "pwa-512.png"));
+await sharp(maskable512).toFile(join(iconsDir, "pwa-512-maskable.png"));
 
 const gm = await sharp(gaugeMaster).metadata();
 console.log("Brand assets ready (logo gauge, not redrawn):");
 console.log(`  public/logo.png (${logoMeta.width ?? "?"}×${logoMeta.height ?? "?"})`);
 console.log(`  public/brand/gauge-mark.png (${gm.width}×${gm.height})`);
-console.log("  Home-screen icons: full-bleed red tile + 76% gauge (1024 → downscale)");
+console.log("  PWA icons: dark tile + gauge → public/icons/pwa-*.png (no src/app/apple-icon.png)");
