@@ -6,12 +6,28 @@ const YOUR_ENTRY = "#475569";
 const YOUR_TARGET = PF_CHART.marker.long;
 const YOUR_STOP = PF_CHART.candle.down;
 const DESK = "#E31B23";
+const COMMUNITY_ENTRY = "#7c3aed";
+const COMMUNITY_TARGET = "#a78bfa";
+const COMMUNITY_STOP = "#c4b5fd";
+
+type LevelPrefix = "Desk" | "Your" | "Community";
+
+function levelColors(prefix: LevelPrefix): { entry: string; target: string; stop: string } {
+  if (prefix === "Desk") {
+    return { entry: DESK, target: DESK, stop: DESK };
+  }
+  if (prefix === "Community") {
+    return { entry: COMMUNITY_ENTRY, target: COMMUNITY_TARGET, stop: COMMUNITY_STOP };
+  }
+  return { entry: YOUR_ENTRY, target: YOUR_TARGET, stop: YOUR_STOP };
+}
 
 function pushCallLevels(
   lines: PriceLine[],
   call: CallWithUser,
-  prefix: string
+  prefix: LevelPrefix
 ): void {
+  const colors = levelColors(prefix);
   const entry = call.entry_price != null ? Number(call.entry_price) : null;
   const target = call.target_price != null ? Number(call.target_price) : null;
   const stop = call.stop_price != null ? Number(call.stop_price) : null;
@@ -20,7 +36,7 @@ function pushCallLevels(
     lines.push({
       price: entry,
       label: `${prefix} entry`,
-      color: prefix === "Desk" ? DESK : YOUR_ENTRY,
+      color: colors.entry,
       style: "solid",
     });
   }
@@ -28,7 +44,7 @@ function pushCallLevels(
     lines.push({
       price: target,
       label: `${prefix} target`,
-      color: prefix === "Desk" ? DESK : YOUR_TARGET,
+      color: colors.target,
       style: "dashed",
     });
   }
@@ -36,7 +52,7 @@ function pushCallLevels(
     lines.push({
       price: stop,
       label: `${prefix} stop`,
-      color: prefix === "Desk" ? DESK : YOUR_STOP,
+      color: colors.stop,
       style: "dashed",
     });
   }
@@ -61,7 +77,8 @@ export function buildFeaturedCallPriceLines(
   prefix: "Desk" | "Member" = "Desk"
 ): PriceLine[] {
   const lines: PriceLine[] = [];
-  pushCallLevels(lines, call as CallWithUser, prefix);
+  const levelPrefix: LevelPrefix = prefix === "Member" ? "Your" : "Desk";
+  pushCallLevels(lines, call as CallWithUser, levelPrefix);
   return lines;
 }
 
@@ -86,6 +103,41 @@ export function buildTickerPriceLines(opts: {
   const desk = newestCall(opts.calls.filter((c) => c.is_fueled));
   if (desk && desk.id !== own?.id) {
     pushCallLevels(lines, desk, "Desk");
+  }
+
+  return lines;
+}
+
+/**
+ * Desk + your levels + newest community call for Pro compare overlays.
+ */
+export function buildCompareCallPriceLines(opts: {
+  calls: CallWithUser[];
+  viewerUserId?: string | null;
+}): PriceLine[] {
+  const lines: PriceLine[] = [];
+
+  const own =
+    opts.viewerUserId != null
+      ? newestCall(opts.calls.filter((c) => c.user_id === opts.viewerUserId))
+      : undefined;
+
+  if (own) {
+    pushCallLevels(lines, own, "Your");
+  }
+
+  const desk = newestCall(opts.calls.filter((c) => c.is_fueled));
+  if (desk && desk.id !== own?.id) {
+    pushCallLevels(lines, desk, "Desk");
+  }
+
+  const community = newestCall(
+    opts.calls.filter(
+      (c) => !c.is_fueled && c.user_id !== opts.viewerUserId && c.id !== desk?.id
+    )
+  );
+  if (community && community.id !== own?.id) {
+    pushCallLevels(lines, community, "Community");
   }
 
   return lines;

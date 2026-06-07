@@ -22,7 +22,7 @@ export async function fetchLeaderboard(limit = 25): Promise<LeaderboardEntry[]> 
   const foundingIds = await fetchFoundingMemberIds();
   const { data, error } = await db
     .from("users")
-    .select("id, display_name, calls_count, win_rate, rank_score, trusted_at")
+    .select("id, username, display_name, calls_count, win_rate, rank_score, trusted_at")
     .eq("subscription_status", "active")
     .gt("calls_count", 0)
     .order("rank_score", { ascending: false })

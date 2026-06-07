@@ -9,12 +9,15 @@ export function FollowMemberButton({
   memberUsername,
   initialFollowing,
   variant = "light",
+  compact = false,
 }: {
   memberId: string;
   memberUsername: string;
   initialFollowing: boolean;
   /** Light = white workspace panels; dark = hero bands with light text */
   variant?: "light" | "dark";
+  /** Table / inline — shorter label without @handle */
+  compact?: boolean;
 }) {
   const router = useRouter();
   const [following, setFollowing] = useState(initialFollowing);
@@ -60,13 +63,14 @@ export function FollowMemberButton({
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className={cn("flex flex-col gap-1", compact ? "items-center" : "items-end")}>
       <button
         type="button"
         onClick={() => void toggle()}
         disabled={busy}
         className={cn(
-          "rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60",
+          "rounded-lg font-semibold transition-colors disabled:opacity-60",
+          compact ? "px-2.5 py-1 text-xs" : "px-4 py-2 text-sm",
           following
             ? variant === "dark"
               ? "border border-white/20 bg-white/10 text-white hover:bg-white/15"
@@ -74,7 +78,7 @@ export function FollowMemberButton({
             : "bg-[var(--pf-red)] text-white hover:bg-[var(--pf-red-hover)]"
         )}
       >
-        {busy ? "…" : following ? "Following" : `Follow @${memberUsername}`}
+        {busy ? "…" : following ? "Following" : compact ? "Follow" : `Follow @${memberUsername}`}
       </button>
       {error ? (
         <p className={cn("text-xs", variant === "dark" ? "text-red-300" : "text-rose-600")}>

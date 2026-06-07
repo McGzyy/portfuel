@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 
 function compareDetail(symbolCount: number, watchlistCount: number): string {
   if (symbolCount >= 2) {
-    return `Comparing ${symbolCount} symbols on a normalized % scale (3-month window).`;
+    return `Comparing ${symbolCount} symbols on a normalized % scale with Fueled, community, and your call levels.`;
   }
   if (watchlistCount > 0) {
     return `Pick 2–3 symbols — your watchlist has ${watchlistCount} name${watchlistCount === 1 ? "" : "s"} ready.`;
@@ -124,6 +124,7 @@ export default async function DashboardResearchPage({
         proGateCta={proGateCta}
         watchlistSymbols={watchlistSymbols}
         initialSymbols={initialSymbols}
+        viewerUserId={session.userId}
         syncUrl
       />
     </div>

@@ -1,16 +1,23 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { RankScoreBar } from "@/components/rankings/RankScoreBar";
+import { RankingsFollowCell } from "@/components/rankings/RankingsFollowCell";
 import type { LeaderboardEntry } from "@/lib/calls/leaderboard";
 
 export function LeaderboardTable({
   rows,
   embedded,
+  viewerUserId,
+  followingIds = [],
 }: {
   rows: LeaderboardEntry[];
   embedded?: boolean;
+  viewerUserId?: string | null;
+  followingIds?: string[];
 }) {
   const maxScore = rows.length > 0 ? Math.max(...rows.map((r) => r.rank_score)) : 0;
+  const followingSet = new Set(followingIds);
+  const showFollow = Boolean(viewerUserId);
 
   if (rows.length === 0) {
     return (
@@ -39,6 +46,7 @@ export function LeaderboardTable({
             <th className="hidden px-4 py-3 text-right lg:table-cell">Momentum</th>
             <th className="hidden px-4 py-3 text-right sm:table-cell">Win rate</th>
             <th className="hidden px-4 py-3 text-right md:table-cell">Calls</th>
+            {showFollow ? <th className="px-4 py-3 text-right">Follow</th> : null}
           </tr>
         </thead>
         <tbody>
@@ -87,6 +95,16 @@ export function LeaderboardTable({
               <td className="hidden px-4 py-4 text-right tabular-nums text-[var(--pf-gray-600)] md:table-cell">
                 {row.calls_count}
               </td>
+              {showFollow ? (
+                <td className="px-4 py-4 text-right">
+                  <RankingsFollowCell
+                    memberId={row.id}
+                    memberUsername={row.username}
+                    initialFollowing={followingSet.has(row.id)}
+                    isSelf={row.id === viewerUserId}
+                  />
+                </td>
+              ) : null}
             </tr>
           ))}
         </tbody>

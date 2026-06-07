@@ -5,12 +5,13 @@ import {
   createChart,
   LineSeries,
   ColorType,
+  LineStyle,
   type IChartApi,
   type ISeriesApi,
   type LineData,
   type Time,
 } from "lightweight-charts";
-import type { LinePoint } from "@/lib/charts/types";
+import type { LinePoint, PriceLine } from "@/lib/charts/types";
 import {
   PF_CHART,
   chartGridOptions,
@@ -22,6 +23,7 @@ const SERIES_COLORS = ["#e31b23", "#059669", "#2563eb"] as const;
 export type CompareSeries = {
   symbol: string;
   points: LinePoint[];
+  priceLines?: PriceLine[];
 };
 
 export function CompareMultiLineChart({
@@ -105,6 +107,17 @@ export function CompareMultiLineChart({
       }));
       line.setData(data);
       lineRefs.current.push(line);
+
+      for (const level of slot.priceLines ?? []) {
+        line.createPriceLine({
+          price: level.price,
+          color: level.color ?? SERIES_COLORS[i % SERIES_COLORS.length],
+          lineWidth: 1,
+          lineStyle: level.style === "dashed" ? LineStyle.Dashed : LineStyle.Solid,
+          axisLabelVisible: true,
+          title: level.label,
+        });
+      }
     }
 
     chart.timeScale().fitContent();

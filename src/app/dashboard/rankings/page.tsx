@@ -10,6 +10,9 @@ import {
   sessionToProContext,
 } from "@/lib/features/pro-intelligence";
 import { requireDashboardSession } from "@/lib/dashboard/data";
+import { fetchFollowingIds } from "@/lib/follows/service";
+import { fetchSuggestedFollows } from "@/lib/follows/suggested";
+import { fetchWatchlist } from "@/lib/watchlist/service";
 
 export const metadata: Metadata = {
   title: "Rankings",
@@ -32,6 +35,22 @@ export default async function DashboardRankingsPage() {
 
   const summary = summarizeRankings(rows);
 
+  let followingIds: string[] = [];
+  let suggestedFollows: Awaited<ReturnType<typeof fetchSuggestedFollows>> = [];
+  try {
+    const [ids, watchlist] = await Promise.all([
+      fetchFollowingIds(session.userId),
+      fetchWatchlist(session.userId),
+    ]);
+    followingIds = ids;
+    suggestedFollows = await fetchSuggestedFollows(
+      session.userId,
+      watchlist.map((w) => w.symbol)
+    );
+  } catch (e) {
+    console.error("[dashboard/rankings follows]", e);
+  }
+
   return (
     <RankingsPageContent
       rows={rows}
@@ -39,6 +58,9 @@ export default async function DashboardRankingsPage() {
       proLocked={proLocked}
       proGateCta={proGateCta}
       loggedIn
+      viewerUserId={session.userId}
+      followingIds={followingIds}
+      suggestedFollows={suggestedFollows}
     />
   );
 }
