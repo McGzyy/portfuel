@@ -28,6 +28,8 @@ export type ChartMarker = {
   callId?: string;
   /** Scroll target on watchlist journal timeline */
   journalEntryId?: string;
+  /** When >1, multiple community calls share this day on the chart */
+  clusterCount?: number;
 };
 
 /** Horizontal levels on ticker charts (entry / target / stop) — Phase G1. */

@@ -54,3 +54,21 @@ export function sameDayCallIds(markers: ChartMarker[], time: number): string[] {
     .map((m) => m.callId)
     .filter((id): id is string => Boolean(id));
 }
+
+export function markerHudAtTime(
+  markers: ChartMarker[],
+  time: number,
+  price?: number | null
+): { label: string | null; callCount: number } {
+  const sameDay = callMarkersOnDay(markers, time);
+  if (sameDay.length > 0) {
+    const hit = markerNearCallOnDay(markers, time, price);
+    return {
+      label: hit?.label ?? null,
+      callCount: sameDay.length,
+    };
+  }
+
+  const hit = markerNearTime(markers, time);
+  return { label: hit?.label ?? null, callCount: 0 };
+}

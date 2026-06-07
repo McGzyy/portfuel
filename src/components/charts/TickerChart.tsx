@@ -20,7 +20,8 @@ import {
   type LineData,
 } from "lightweight-charts";
 import type { CandlePoint, ChartMarker, LinePoint, PriceLine } from "@/lib/charts/types";
-import { markerLabelAtTime, markerNearCallOnDay, markerNearTime, callMarkersOnDay, sameDayCallIds } from "@/lib/charts/marker-hit";
+import { markerHudAtTime, markerNearCallOnDay, markerNearTime, callMarkersOnDay, sameDayCallIds } from "@/lib/charts/marker-hit";
+import { collapseDayCallMarkers, isClusterMarker } from "@/lib/charts/marker-clusters";
 import {
   PF_CHART,
   chartGridOptions,
@@ -41,9 +42,11 @@ type CrosshairHud = {
   low: number;
   close: number;
   markerLabel: string | null;
+  callCount: number;
 };
 
 function markerShape(m: ChartMarker): SeriesMarker<Time>["shape"] {
+  if ((m.clusterCount ?? 0) > 1) return "circle";
   if (m.kind === "fueled") return "square";
   if (m.kind === "long") return "arrowUp";
   if (m.kind === "short") return "arrowDown";
@@ -58,14 +61,29 @@ function markerPosition(m: ChartMarker): SeriesMarker<Time>["position"] {
   return "aboveBar";
 }
 
-function hudFromCandle(candle: CandlePoint, markerLabel: string | null): CrosshairHud {
+function hudFromCandle(
+  candle: CandlePoint,
+  markerLabel: string | null,
+  callCount: number
+): CrosshairHud {
   return {
     open: candle.open,
     high: candle.high,
     low: candle.low,
     close: candle.close,
     markerLabel,
+    callCount,
   };
+}
+
+function hudForTime(
+  candle: CandlePoint,
+  markers: ChartMarker[],
+  time: number,
+  price?: number | null
+): CrosshairHud {
+  const { label, callCount } = markerHudAtTime(markers, time, price ?? candle.close);
+  return hudFromCandle(candle, label, callCount);
 }
 
 function OhlcStat({ label, value }: { label: string; value: number }) {
@@ -89,10 +107,19 @@ function ChartCrosshairBar({ hud }: { hud: CrosshairHud | null }) {
       <OhlcStat label="H" value={hud.high} />
       <OhlcStat label="L" value={hud.low} />
       <OhlcStat label="C" value={hud.close} />
-      {hud.markerLabel ? (
+      {hud.callCount > 0 || hud.markerLabel ? (
         <span className="inline-flex min-w-0 items-center gap-1 border-l border-[var(--pf-border)] pl-3 text-[var(--pf-gray-600)]">
           <span className="font-semibold text-[var(--pf-gray-400)]">Call</span>
-          <span className="truncate font-medium text-[var(--pf-black)]">{hud.markerLabel}</span>
+          {hud.callCount > 1 ? (
+            <span className="truncate font-medium text-[var(--pf-black)]">
+              {hud.callCount} calls
+              {hud.markerLabel ? (
+                <span className="text-[var(--pf-gray-500)]"> · {hud.markerLabel}</span>
+              ) : null}
+            </span>
+          ) : (
+            <span className="truncate font-medium text-[var(--pf-black)]">{hud.markerLabel}</span>
+          )}
         </span>
       ) : null}
     </div>
@@ -155,7 +182,7 @@ export function TickerChart({
     candlesRef.current = candles;
     const last = candles[candles.length - 1];
     if (last) {
-      setCrosshairHud(hudFromCandle(last, markerLabelAtTime(markers, last.time)));
+      setCrosshairHud(hudForTime(last, markers, last.time));
     } else {
       setCrosshairHud(null);
     }
@@ -267,9 +294,7 @@ export function TickerChart({
         setMarkerHover(null);
         const last = candlesRef.current[candlesRef.current.length - 1];
         if (last) {
-          setCrosshairHud(
-            hudFromCandle(last, markerLabelAtTime(markerDataRef.current, last.time))
-          );
+          setCrosshairHud(hudForTime(last, markerDataRef.current, last.time));
         }
         return;
       }
@@ -283,18 +308,20 @@ export function TickerChart({
         const fallback = candlesRef.current.find((c) => c.time === t);
         if (fallback) {
           setCrosshairHud(
-            hudFromCandle(fallback, markerLabelAtTime(markerDataRef.current, t))
+            hudForTime(fallback, markerDataRef.current, t, crosshairPrice)
           );
         }
         return;
       }
 
+      const { label, callCount } = markerHudAtTime(markerDataRef.current, t, crosshairPrice);
       setCrosshairHud({
         open: bar.open,
         high: bar.high,
         low: bar.low,
         close: bar.close,
-        markerLabel: markerLabelAtTime(markerDataRef.current, t),
+        markerLabel: label,
+        callCount,
       });
     };
 
@@ -385,13 +412,14 @@ export function TickerChart({
       vwapRef.current.applyOptions({ visible: vwapPoints.length > 0 });
     }
 
-    const seriesMarkers: SeriesMarker<Time>[] = markers.map((m) => ({
+    const displayMarkers = collapseDayCallMarkers(markers);
+    const seriesMarkers: SeriesMarker<Time>[] = displayMarkers.map((m) => ({
       time: m.time as Time,
       position: markerPosition(m),
       price: m.price,
       color: m.color ?? PF_CHART.marker.default,
       shape: markerShape(m),
-      text: m.label,
+      text: isClusterMarker(m) ? `${m.clusterCount} calls` : m.label,
     }));
     markersRef.current?.setMarkers(seriesMarkers);
 
