@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { JournalProgressMini } from "@/components/journal/JournalProgressMini";
 import { WatchlistMoveAlerts } from "@/components/dashboard/WatchlistMoveAlerts";
 import { WatchlistPriceAlertControl } from "@/components/watchlist/WatchlistPriceAlertControl";
+import { WatchlistIntelSnippet } from "@/components/watchlist/WatchlistIntelSnippet";
 import { MiniSparkline } from "@/components/charts/MiniSparkline";
 import type { LinePoint } from "@/lib/charts/types";
 import { formatPct, formatPrice } from "@/lib/utils";
@@ -333,13 +334,10 @@ export function WatchlistPanel({
                     ) : null}
                     {proUnlocked && showMoveHint ? (
                       <span className="ml-2 font-semibold text-amber-700">· Price alert</span>
-                    ) : !proUnlocked && item.asset_class === "equity" ? (
-                      <span className="ml-2 font-medium text-[var(--pf-red)]">
-                        · Pro: news & filings
-                      </span>
                     ) : null}
                   </p>
                 ) : null}
+                <WatchlistIntelSnippet item={item} proUnlocked={proUnlocked} />
                 {item.journal_progress ? (
                   <JournalProgressMini progress={item.journal_progress} className="mt-1.5" />
                 ) : null}

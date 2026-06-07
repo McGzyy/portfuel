@@ -10,6 +10,7 @@ import { ResearchPipeline } from "@/components/journal/ResearchPipeline";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { isDemoMode } from "@/lib/demo/config";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
+import { enrichWatchlistIntelSnippets } from "@/lib/watchlist/intel-snippets";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import {
   DEFAULT_WATCHLIST_ALERT_PREFS,
@@ -37,6 +38,9 @@ export default async function DashboardWatchlistPage() {
   let alertPrefs = DEFAULT_WATCHLIST_ALERT_PREFS;
   try {
     items = await fetchWatchlist(session.userId);
+    if (proUnlocked && items.length > 0) {
+      items = await enrichWatchlistIntelSnippets(items);
+    }
     const prefs = await fetchUserAlertPrefs(session.userId);
     if (prefs?.watchlist) alertPrefs = prefs.watchlist;
   } catch (e) {

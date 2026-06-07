@@ -36,4 +36,10 @@ export type WatchlistEntry = {
   thesis?: string | null;
   /** Pro: per-symbol ±% move threshold; null uses global alert prefs */
   price_alert_pct?: number | null;
+  /** Pro: earnings + headline counts for equity rows */
+  intel_snippet?: {
+    next_earnings_date: string | null;
+    next_earnings_hour: string | null;
+    news_headline_count_7d: number;
+  };
 };
