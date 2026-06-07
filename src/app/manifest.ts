@@ -1,7 +1,10 @@
 import type { MetadataRoute } from "next";
-import { PWA_ICONS, PWA_TILE_COLOR, pwaIconUrl } from "@/lib/pwa/icons";
+import { manifestFromAppearance, readManifestAppearance } from "@/lib/appearance/cookie";
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const prefs = await readManifestAppearance();
+  const { background_color, icons } = manifestFromAppearance(prefs);
+
   return {
     name: "PortFuel",
     short_name: "PortFuel",
@@ -11,27 +14,8 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: PWA_TILE_COLOR,
+    background_color,
     theme_color: "#e31b23",
-    icons: [
-      {
-        src: pwaIconUrl(PWA_ICONS.icon192),
-        sizes: "192x192",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: pwaIconUrl(PWA_ICONS.icon512),
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: pwaIconUrl(PWA_ICONS.maskable512),
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "maskable",
-      },
-    ],
+    icons,
   };
 }

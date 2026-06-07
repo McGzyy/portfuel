@@ -22,8 +22,9 @@ import {
 import type { CandlePoint, ChartMarker, LinePoint, PriceLine } from "@/lib/charts/types";
 import { markerHudAtTime, markerNearCallOnDay, markerNearTime, callMarkersOnDay, sameDayCallIds } from "@/lib/charts/marker-hit";
 import { collapseDayCallMarkers, isClusterMarker } from "@/lib/charts/marker-clusters";
+import { useIsDarkMode } from "@/components/appearance/AppearanceProvider";
 import {
-  PF_CHART,
+  activeChartTheme,
   chartGridOptions,
   chartLayoutOptions,
 } from "@/lib/charts/theme";
@@ -165,6 +166,8 @@ export function TickerChart({
     y: number;
     moreOnDay: number;
   } | null>(null);
+  const isDark = useIsDarkMode();
+  const chartTheme = activeChartTheme(isDark);
 
   useEffect(() => {
     onCallMarkerClickRef.current = onCallMarkerClick;
@@ -193,36 +196,42 @@ export function TickerChart({
 
     const chart = createChart(containerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: PF_CHART.layout.background },
-        textColor: PF_CHART.layout.text,
-        fontFamily: chartLayoutOptions().fontFamily,
-        fontSize: chartLayoutOptions().fontSize,
+        background: { type: ColorType.Solid, color: chartTheme.layout.background },
+        textColor: chartTheme.layout.text,
+        fontFamily: chartLayoutOptions(chartTheme).fontFamily,
+        fontSize: chartLayoutOptions(chartTheme).fontSize,
       },
-      grid: chartGridOptions(),
+      grid: chartGridOptions(chartTheme),
       width: containerRef.current.clientWidth,
-      height: showVolume ? 440 : PF_CHART.height,
+      height: showVolume ? 440 : chartTheme.height,
       timeScale: {
-        borderColor: PF_CHART.border,
+        borderColor: chartTheme.border,
         timeVisible: true,
         secondsVisible: false,
       },
       rightPriceScale: {
-        borderColor: PF_CHART.border,
+        borderColor: chartTheme.border,
         scaleMargins: showVolume ? { top: 0.06, bottom: 0.28 } : { top: 0.08, bottom: 0.12 },
       },
       crosshair: {
-        vertLine: { color: "rgba(15, 20, 25, 0.12)", labelBackgroundColor: "#0f1419" },
-        horzLine: { color: "rgba(15, 20, 25, 0.12)", labelBackgroundColor: "#0f1419" },
+        vertLine: {
+          color: isDark ? "rgba(148, 163, 184, 0.2)" : "rgba(15, 20, 25, 0.12)",
+          labelBackgroundColor: isDark ? "#334155" : "#0f1419",
+        },
+        horzLine: {
+          color: isDark ? "rgba(148, 163, 184, 0.2)" : "rgba(15, 20, 25, 0.12)",
+          labelBackgroundColor: isDark ? "#334155" : "#0f1419",
+        },
       },
     });
 
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: PF_CHART.candle.up,
-      downColor: PF_CHART.candle.down,
-      borderUpColor: PF_CHART.candle.up,
-      borderDownColor: PF_CHART.candle.down,
-      wickUpColor: PF_CHART.candle.wickUp,
-      wickDownColor: PF_CHART.candle.wickDown,
+      upColor: chartTheme.candle.up,
+      downColor: chartTheme.candle.down,
+      borderUpColor: chartTheme.candle.up,
+      borderDownColor: chartTheme.candle.down,
+      wickUpColor: chartTheme.candle.wickUp,
+      wickDownColor: chartTheme.candle.wickDown,
     });
 
     chartRef.current = chart;
@@ -370,7 +379,7 @@ export function TickerChart({
       markersRef.current = null;
       priceLinesRef.current = [];
     };
-  }, [showVolume]);
+  }, [showVolume, isDark]);
 
   useEffect(() => {
     if (!seriesRef.current || candles.length === 0) return;
@@ -417,7 +426,7 @@ export function TickerChart({
       time: m.time as Time,
       position: markerPosition(m),
       price: m.price,
-      color: m.color ?? PF_CHART.marker.default,
+      color: m.color ?? chartTheme.marker.default,
       shape: markerShape(m),
       text: isClusterMarker(m) ? `${m.clusterCount} calls` : m.label,
     }));
@@ -431,7 +440,7 @@ export function TickerChart({
     for (const line of priceLines) {
       const pl = seriesRef.current.createPriceLine({
         price: line.price,
-        color: line.color ?? PF_CHART.marker.default,
+        color: line.color ?? chartTheme.marker.default,
         lineWidth: 1,
         lineStyle: line.style === "dashed" ? LineStyle.Dashed : LineStyle.Solid,
         axisLabelVisible: true,
@@ -443,7 +452,7 @@ export function TickerChart({
     chartRef.current?.timeScale().fitContent();
   }, [candles, markers, priceLines, showVolume, smaPoints, vwapPoints]);
 
-  const h = showVolume ? 440 : PF_CHART.height;
+  const h = showVolume ? 440 : chartTheme.height;
   const hoverCall =
     markerHover && callPreviewsById ? callPreviewsById[markerHover.callId] : null;
 

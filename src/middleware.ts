@@ -8,6 +8,11 @@ import {
 } from "@/lib/auth/session-sync";
 import { memberHomePath } from "@/lib/auth/member-home";
 import type { SessionPayload } from "@/lib/auth/session-types";
+import { shouldApplyMemberAppearance } from "@/lib/appearance/routes";
+import {
+  APPEARANCE_COOKIE,
+  serializeAppearanceCookie,
+} from "@/lib/appearance/cookie";
 
 const COOKIE_NAME = "portfuel_session";
 
@@ -75,11 +80,44 @@ export async function middleware(request: NextRequest) {
     return { session, freshToken };
   }
 
-  function withFreshCookie(res: NextResponse, freshToken?: string) {
+  function withFreshCookie(res: NextResponse, freshToken?: string, session?: SessionPayload | null) {
     if (freshToken) {
       res.cookies.set(COOKIE_NAME, freshToken, sessionCookieOptions());
     }
+    if (session && shouldApplyMemberAppearance(pathname, true)) {
+      res.cookies.set(APPEARANCE_COOKIE, serializeAppearanceCookie(session), {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      });
+    }
     return res;
+  }
+
+  function withAppearanceRequest(
+    request: NextRequest,
+    session: SessionPayload | null
+  ): Headers {
+    const requestHeaders = new Headers(request.headers);
+    if (session && shouldApplyMemberAppearance(pathname, true)) {
+      requestHeaders.set("x-pf-appearance", "1");
+      requestHeaders.set("x-pf-theme-mode", session.themeMode);
+      requestHeaders.set("x-pf-icon-theme", session.iconTheme);
+    }
+    return requestHeaders;
+  }
+
+  function nextWithSession(
+    request: NextRequest,
+    session: SessionPayload | null,
+    freshToken?: string
+  ) {
+    return withFreshCookie(
+      NextResponse.next({ request: { headers: withAppearanceRequest(request, session) } }),
+      freshToken,
+      session
+    );
   }
 
   if (isProtected || isLifecycle) {
@@ -218,7 +256,7 @@ export async function middleware(request: NextRequest) {
       );
     }
 
-    return withFreshCookie(NextResponse.next(), freshToken);
+    return nextWithSession(request, session, freshToken);
   }
 
   if (pathname === "/" && token) {
@@ -286,6 +324,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  if (token && shouldApplyMemberAppearance(pathname, true)) {
+    const { session, freshToken } = await resolveSession();
+    if (session) {
+      return nextWithSession(request, session, freshToken);
+    }
+  }
+
   return NextResponse.next();
 }
 
@@ -311,6 +356,7 @@ export const config = {
     "/admin/:path*",
     "/security/:path*",
     "/notifications",
+    "/ticker/:path*",
     "/verify-email",
     "/verify-email/:path*",
     "/account/restricted",

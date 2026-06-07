@@ -20,24 +20,42 @@ const iconsDir = join(root, "public/icons");
 const GAUGE_WIDTH_RATIO = 185 / 737;
 const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
 const MASTER_SIDE = 1024;
-/** Home-screen tile — dark PortFuel (matches social charts / desk UI). */
-const TILE_GRADIENT = {
-  top: "#161a22",
-  mid: "#0a0c10",
-  bottom: "#050608",
+/** Tile presets for home-screen icons (appearance settings). */
+const TILE_PRESETS = {
+  dark: {
+    top: "#161a22",
+    mid: "#0a0c10",
+    bottom: "#050608",
+    glow: "#e31b23",
+    glowOpacity: 0.14,
+  },
+  red: {
+    top: "#f03540",
+    mid: "#e31b23",
+    bottom: "#9b1218",
+    glow: "#ffffff",
+    glowOpacity: 0.1,
+  },
+  light: {
+    top: "#ffffff",
+    mid: "#f8fafc",
+    bottom: "#e2e8f0",
+    glow: "#e31b23",
+    glowOpacity: 0.08,
+  },
 };
 
-async function buildIconTileBackground(size) {
+async function buildIconTileBackground(size, preset) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${TILE_GRADIENT.top}"/>
-      <stop offset="50%" stop-color="${TILE_GRADIENT.mid}"/>
-      <stop offset="100%" stop-color="${TILE_GRADIENT.bottom}"/>
+      <stop offset="0%" stop-color="${preset.top}"/>
+      <stop offset="50%" stop-color="${preset.mid}"/>
+      <stop offset="100%" stop-color="${preset.bottom}"/>
     </linearGradient>
     <radialGradient id="glow" cx="50%" cy="42%" r="55%">
-      <stop offset="0%" stop-color="#e31b23" stop-opacity="0.14"/>
-      <stop offset="100%" stop-color="#e31b23" stop-opacity="0"/>
+      <stop offset="0%" stop-color="${preset.glow}" stop-opacity="${preset.glowOpacity}"/>
+      <stop offset="100%" stop-color="${preset.glow}" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="${size}" height="${size}" fill="url(#bg)"/>
@@ -149,12 +167,12 @@ async function ensureGaugeMaster(gaugeFromLogo) {
   return sharp(gaugeMarkPath).png().toBuffer();
 }
 
-/** Dark tile + gauge — home screen / Add to Home (never write src/app/apple-icon.png). */
-async function buildHomeScreenIcon(gaugeMaster, size) {
+/** Tile + gauge — home screen / Add to Home (never write src/app/apple-icon.png). */
+async function buildHomeScreenIcon(gaugeMaster, size, preset) {
   const gaugeTarget = Math.round(size * 0.76);
   const gauge = await prepareGaugeMark(gaugeMaster, gaugeTarget);
   const g = await sharp(gauge).metadata();
-  const bg = await buildIconTileBackground(size);
+  const bg = await buildIconTileBackground(size, preset);
 
   const left = Math.floor((size - (g.width ?? 0)) / 2);
   const top = Math.floor((size - (g.height ?? 0)) / 2) - Math.round(size * 0.018);
@@ -185,11 +203,11 @@ async function faviconFromGauge(gaugeBuffer, size, scale) {
     .toBuffer();
 }
 
-async function buildMaskableIcon(gaugeMaster, size) {
+async function buildMaskableIcon(gaugeMaster, size, preset) {
   const gaugeTarget = Math.round(size * 0.58);
   const gauge = await prepareGaugeMark(gaugeMaster, gaugeTarget);
   const g = await sharp(gauge).metadata();
-  const bg = await buildIconTileBackground(size);
+  const bg = await buildIconTileBackground(size, preset);
   const left = Math.floor((size - (g.width ?? 0)) / 2);
   const top = Math.floor((size - (g.height ?? 0)) / 2);
   return sharp(bg).composite([{ input: gauge, left, top }]);
@@ -203,33 +221,50 @@ await sharp(gaugeMaster).toFile(join(root, "public/gauge-source.png"));
 await mkdir(iconsDir, { recursive: true });
 
 const tabIcon = await faviconFromGauge(gaugeFromLogo, 48, 0.92);
-const icon1024 = await buildHomeScreenIcon(gaugeMaster, 1024);
-const icon512 = await sharp(icon1024)
-  .resize(512, 512, { kernel: sharp.kernel.lanczos3 })
-  .png({ compressionLevel: 9, effort: 10 })
-  .toBuffer();
-const icon192 = await sharp(icon1024)
-  .resize(192, 192, { kernel: sharp.kernel.lanczos3 })
-  .png({ compressionLevel: 9, effort: 10 })
-  .toBuffer();
-const appleIcon = await sharp(icon1024)
-  .resize(180, 180, { kernel: sharp.kernel.lanczos3 })
-  .png({ compressionLevel: 9, effort: 10 })
-  .toBuffer();
-const maskable512 = await (await buildMaskableIcon(gaugeMaster, 512))
-  .png({ compressionLevel: 9 })
-  .toBuffer();
+
+  for (const [variant, preset] of Object.entries(TILE_PRESETS)) {
+  const icon1024 = await buildHomeScreenIcon(gaugeMaster, 1024, preset);
+  const icon512 = await sharp(icon1024)
+    .resize(512, 512, { kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 9, effort: 10 })
+    .toBuffer();
+  const icon192 = await sharp(icon1024)
+    .resize(192, 192, { kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 9, effort: 10 })
+    .toBuffer();
+  const appleIcon = await sharp(icon1024)
+    .resize(180, 180, { kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 9, effort: 10 })
+    .toBuffer();
+  const maskable512 = await (await buildMaskableIcon(gaugeMaster, 512, preset))
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+
+  await sharp(appleIcon).toFile(join(iconsDir, `pwa-${variant}-apple-180.png`));
+  await sharp(icon192).toFile(join(iconsDir, `pwa-${variant}-192.png`));
+  await sharp(icon512).toFile(join(iconsDir, `pwa-${variant}-512.png`));
+  await sharp(maskable512).toFile(join(iconsDir, `pwa-${variant}-512-maskable.png`));
+
+  if (variant === "dark") {
+    await sharp(appleIcon).toFile(join(iconsDir, "pwa-apple-180.png"));
+    await sharp(appleIcon).toFile(join(root, "public/apple-touch-icon.png"));
+    await sharp(icon192).toFile(join(iconsDir, "pwa-192.png"));
+    await sharp(icon512).toFile(join(iconsDir, "pwa-512.png"));
+    await sharp(maskable512).toFile(join(iconsDir, "pwa-512-maskable.png"));
+  }
+  if (variant === "red") {
+    await sharp(appleIcon).toFile(join(root, "public/apple-touch-icon-red.png"));
+  }
+  if (variant === "light") {
+    await sharp(appleIcon).toFile(join(root, "public/apple-touch-icon-light.png"));
+  }
+}
 
 await sharp(tabIcon).toFile(join(root, "src/app/icon.png"));
 await sharp(tabIcon).toFile(join(root, "public/icons/favicon.png"));
-await sharp(appleIcon).toFile(join(iconsDir, "pwa-apple-180.png"));
-await sharp(appleIcon).toFile(join(root, "public/apple-touch-icon.png"));
-await sharp(icon192).toFile(join(iconsDir, "pwa-192.png"));
-await sharp(icon512).toFile(join(iconsDir, "pwa-512.png"));
-await sharp(maskable512).toFile(join(iconsDir, "pwa-512-maskable.png"));
 
 const gm = await sharp(gaugeMaster).metadata();
 console.log("Brand assets ready (logo gauge, not redrawn):");
 console.log(`  public/logo.png (${logoMeta.width ?? "?"}×${logoMeta.height ?? "?"})`);
 console.log(`  public/brand/gauge-mark.png (${gm.width}×${gm.height})`);
-console.log("  PWA icons: dark tile + gauge → public/icons/pwa-*.png (no src/app/apple-icon.png)");
+console.log("  PWA icons: dark / red / light tiles → public/icons/pwa-{variant}-*.png");

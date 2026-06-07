@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import type { UserRow } from "@/lib/db/types";
+import { appearanceFromUserRow } from "@/lib/appearance/prefs";
 import { effectiveMembershipTier } from "@/lib/billing/effective-access";
 import type { SessionPayload } from "@/lib/auth/session-types";
 import { clearExpiredModeration, flagsFromRow } from "@/lib/member-lifecycle/moderation";
@@ -79,5 +80,8 @@ export async function buildSessionPayloadForUser(
     onboardingCompleted:
       opts?.onboardingCompleted ??
       (user.role === "admin" || Boolean(extended.onboarding_completed_at)),
+    ...appearanceFromUserRow(
+      user as UserRow & { theme_mode?: string | null; icon_theme?: string | null }
+    ),
   };
 }

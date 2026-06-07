@@ -8,6 +8,37 @@ export const PF_CHART = {
   marker: { default: "#e31b23", long: "#059669", short: "#e31b23" },
 } as const;
 
+export const PF_CHART_DARK = {
+  height: 400,
+  layout: { background: "#0f1419", text: "#94a3b8" },
+  grid: { vert: "#1e293b", horz: "#1e293b" },
+  border: "#334155",
+  candle: { up: "#34d399", down: "#fb7185", wickUp: "#34d399", wickDown: "#fb7185" },
+  marker: { default: "#f43f5e", long: "#34d399", short: "#fb7185" },
+} as const;
+
+export type PfChartTheme = typeof PF_CHART | typeof PF_CHART_DARK;
+
+export function activeChartTheme(isDark: boolean): PfChartTheme {
+  return isDark ? PF_CHART_DARK : PF_CHART;
+}
+
+export function chartLayoutOptions(theme: PfChartTheme = PF_CHART) {
+  return {
+    background: { type: "solid" as const, color: theme.layout.background },
+    textColor: theme.layout.text,
+    fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif",
+    fontSize: 12,
+  };
+}
+
+export function chartGridOptions(theme: PfChartTheme = PF_CHART) {
+  return {
+    vertLines: { color: theme.grid.vert },
+    horzLines: { color: theme.grid.horz },
+  };
+}
+
 export const SOCIAL_LOGO_ASPECT = 1024 / 682;
 
 /** Social milestone card — dark PortFuel brand (X / OG image). */
@@ -44,19 +75,3 @@ export const PF_CHART_SOCIAL = {
   panelGradient: ["#0a0c10", "#0f1419", "#15101a"] as const,
   panelBorder: "#1e293b",
 } as const;
-
-export function chartLayoutOptions() {
-  return {
-    background: { type: "solid" as const, color: PF_CHART.layout.background },
-    textColor: PF_CHART.layout.text,
-    fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif",
-    fontSize: 12,
-  };
-}
-
-export function chartGridOptions() {
-  return {
-    vertLines: { color: PF_CHART.grid.vert },
-    horzLines: { color: PF_CHART.grid.horz },
-  };
-}

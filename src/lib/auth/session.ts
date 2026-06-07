@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth/session-sync";
 import type { SessionPayload } from "@/lib/auth/session-types";
 import type { MembershipTier } from "@/lib/stripe/config";
+import { parseIconTheme, parseThemeMode } from "@/lib/appearance/types";
 
 const COOKIE_NAME = "portfuel_session";
 
@@ -99,6 +100,8 @@ export async function getSession(): Promise<SessionPayload | null> {
       canComment: payload.canComment !== false,
       totpVerified: Boolean(payload.totpVerified),
       onboardingCompleted: Boolean(payload.onboardingCompleted),
+      themeMode: parseThemeMode(payload.themeMode),
+      iconTheme: parseIconTheme(payload.iconTheme),
     };
 
     const { session: synced, token: freshToken } = await refreshSessionFromDatabase(base);

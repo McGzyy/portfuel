@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-export type SettingsSection = "billing" | "notifications" | "sharing" | "integrations";
+export type SettingsSection =
+  | "billing"
+  | "notifications"
+  | "sharing"
+  | "integrations"
+  | "appearance";
 
 export const SETTINGS_SECTIONS: {
   id: SettingsSection;
@@ -33,10 +38,21 @@ export const SETTINGS_SECTIONS: {
     mobileLabel: "Apps",
     description: "Discord and connected apps",
   },
+  {
+    id: "appearance",
+    label: "Appearance",
+    mobileLabel: "Theme",
+    description: "Dark mode and home-screen icon",
+  },
 ];
 
 export function parseSettingsSection(raw: string | undefined): SettingsSection {
-  if (raw === "notifications" || raw === "sharing" || raw === "integrations") {
+  if (
+    raw === "notifications" ||
+    raw === "sharing" ||
+    raw === "integrations" ||
+    raw === "appearance"
+  ) {
     return raw;
   }
   return "billing";

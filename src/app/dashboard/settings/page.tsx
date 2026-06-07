@@ -13,6 +13,7 @@ import { ProfileDiscordSection } from "@/components/profile/ProfileDiscordSectio
 import { SettingsAccountSummary } from "@/components/settings/SettingsAccountSummary";
 import { SettingsMembershipOverview } from "@/components/settings/SettingsMembershipOverview";
 import { SettingsDangerZone } from "@/components/settings/SettingsDangerZone";
+import { SettingsAppearanceSection } from "@/components/settings/SettingsAppearanceSection";
 import { BillingReturnFeedbackPrompt } from "@/components/settings/BillingReturnFeedbackPrompt";
 import {
   parseSettingsSection,
@@ -143,6 +144,8 @@ export default async function DashboardSettingsPage({
                 <ProfileDiscordSection />
               </section>
             ) : null}
+
+            {section === "appearance" ? <SettingsAppearanceSection /> : null}
           </div>
         </div>
       </div>

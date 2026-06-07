@@ -1101,3 +1101,149 @@ body {
   border-color: var(--pf-red);
   box-shadow: 0 0 0 3px var(--pf-red-ring);
 }
+
+/* ——— Dark theme (member workspace) ——— */
+[data-theme="dark"] {
+  --pf-red-muted: rgba(227, 27, 35, 0.12);
+  --pf-red-ring: rgba(227, 27, 35, 0.22);
+  --pf-positive-muted: rgba(5, 150, 105, 0.12);
+  --pf-negative-muted: rgba(225, 29, 72, 0.12);
+  --pf-warning-muted: rgba(217, 119, 6, 0.12);
+  --pf-chart-muted: #334155;
+  --pf-black: #f1f5f9;
+  --pf-navy: #cbd5e1;
+  --pf-gray-50: #141820;
+  --pf-gray-100: #1a2030;
+  --pf-gray-200: #334155;
+  --pf-gray-400: #64748b;
+  --pf-gray-500: #94a3b8;
+  --pf-gray-600: #cbd5e1;
+  --pf-gray-700: #e2e8f0;
+  --pf-border: #2a3140;
+  --pf-surface: #141820;
+  --pf-surface-muted: #0f1419;
+  --pf-app-bg: #0a0c10;
+  --background: #0a0c10;
+  --foreground: #f1f5f9;
+  --pf-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --pf-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.25);
+  --pf-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .bg-white {
+  background-color: var(--pf-surface);
+}
+
+[data-theme="dark"] .pf-site-header {
+  background-color: var(--pf-surface);
+  border-bottom: 1px solid var(--pf-border);
+}
+
+[data-theme="dark"] .pf-app-bg,
+[data-theme="dark"] .pf-workspace-shell,
+[data-theme="dark"] .pf-workspace-main {
+  background-color: var(--pf-app-bg);
+  background-image: none;
+}
+
+[data-theme="dark"] .pf-workspace-sidebar-wrap {
+  background: var(--pf-surface);
+}
+
+[data-theme="dark"] .pf-workspace-bottom-nav {
+  background: rgba(20, 24, 32, 0.96);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .pf-workspace-panel,
+[data-theme="dark"] .pf-stat-card,
+[data-theme="dark"] .pf-chart-frame,
+[data-theme="dark"] .pf-chart-frame-header,
+[data-theme="dark"] .pf-chart-frame-legend,
+[data-theme="dark"] .pf-ticker-shell,
+[data-theme="dark"] .pf-feed-toolbar,
+[data-theme="dark"] .pf-call-card-premium,
+[data-theme="dark"] .pf-profile-settings,
+[data-theme="dark"] .pf-card,
+[data-theme="dark"] .pf-card-elevated,
+[data-theme="dark"] .pf-stat-tile,
+[data-theme="dark"] .pf-elite-panel,
+[data-theme="dark"] .pf-step-card,
+[data-theme="dark"] .pf-mock-panel,
+[data-theme="dark"] .pf-pro-gate-card {
+  background: var(--pf-surface);
+}
+
+[data-theme="dark"] .pf-chart-frame,
+[data-theme="dark"] .pf-ticker-chart-frame,
+[data-theme="dark"] .pf-chart-frame-body {
+  background: linear-gradient(180deg, var(--pf-gray-50) 0%, var(--pf-surface) 100%);
+}
+
+[data-theme="dark"] .pf-workspace-rail {
+  background: linear-gradient(180deg, var(--pf-surface) 0%, var(--pf-gray-50) 100%);
+}
+
+[data-theme="dark"] .pf-workspace-rail-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .pf-workspace-rail-link-active {
+  background: var(--pf-gray-100);
+}
+
+[data-theme="dark"] .pf-metrics-strip {
+  background: linear-gradient(165deg, var(--pf-surface) 0%, var(--pf-gray-50) 100%);
+}
+
+[data-theme="dark"] .pf-feed-toolbar-premium {
+  background: linear-gradient(180deg, var(--pf-surface) 0%, var(--pf-gray-50) 100%);
+}
+
+[data-theme="dark"] .pf-pro-strip-active {
+  background: var(--pf-gray-50);
+}
+
+[data-theme="dark"] .pf-pro-strip-locked {
+  background: linear-gradient(120deg, rgba(227, 27, 35, 0.14) 0%, var(--pf-surface) 55%);
+}
+
+[data-theme="dark"] .pf-pro-gate-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(10, 12, 16, 0.72) 0%,
+    rgba(20, 24, 32, 0.92) 40%
+  );
+}
+
+[data-theme="dark"] .pf-pro-gate-overlay-preview {
+  background: linear-gradient(
+    180deg,
+    rgba(10, 12, 16, 0.15) 0%,
+    rgba(20, 24, 32, 0.75) 42%,
+    rgba(20, 24, 32, 0.96) 100%
+  );
+}
+
+[data-theme="dark"] .pf-settings-mobile-nav {
+  background: linear-gradient(
+    to bottom,
+    var(--pf-app-bg) 0%,
+    var(--pf-app-bg) 82%,
+    transparent 100%
+  );
+}
+
+[data-theme="dark"] .pf-empty {
+  background: linear-gradient(180deg, var(--pf-surface) 0%, var(--pf-gray-50) 100%);
+  border-color: var(--pf-border);
+}
+
+[data-theme="dark"] .pf-preview-row:hover {
+  background: var(--pf-gray-100);
+}
+
+[data-theme="dark"] ::selection {
+  background: rgba(227, 27, 35, 0.35);
+  color: #fff;
+}

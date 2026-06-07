@@ -16,4 +16,6 @@ export type SessionPayload = {
   canComment: boolean;
   totpVerified: boolean;
   onboardingCompleted: boolean;
+  themeMode: "light" | "dark";
+  iconTheme: "auto" | "dark" | "red" | "light";
 };

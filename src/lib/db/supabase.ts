@@ -32,6 +32,8 @@ export type Database = {
           referral_code: string | null;
           referred_by_user_id: string | null;
           last_active_at: string | null;
+          theme_mode: string;
+          icon_theme: string;
           created_at: string;
           updated_at: string;
         };

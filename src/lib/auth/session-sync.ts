@@ -4,6 +4,7 @@ import { effectiveMembershipTier } from "@/lib/billing/effective-access";
 import { fetchLifecycleSessionFields } from "@/lib/auth/session-lifecycle";
 import { expireProGrantIfNeeded } from "@/lib/billing/pro-grant";
 import { expireCompAccessIfNeeded } from "@/lib/billing/comp-access";
+import { parseIconTheme, parseThemeMode } from "@/lib/appearance/types";
 import type { MembershipTier } from "@/lib/stripe/config";
 import type { SessionPayload } from "@/lib/auth/session-types";
 
@@ -34,6 +35,8 @@ type DbBillingRow = {
   display_name: string | null;
   role: SessionPayload["role"];
   onboarding_completed_at: string | null;
+  theme_mode: string | null;
+  icon_theme: string | null;
 };
 
 async function fetchBillingRow(userId: string): Promise<DbBillingRow | null> {
@@ -41,7 +44,7 @@ async function fetchBillingRow(userId: string): Promise<DbBillingRow | null> {
   const { data } = await db
     .from("users")
     .select(
-      "subscription_status, membership_tier, pro_granted_until, totp_verified, display_name, role, onboarding_completed_at"
+      "subscription_status, membership_tier, pro_granted_until, totp_verified, display_name, role, onboarding_completed_at, theme_mode, icon_theme"
     )
     .eq("id", userId)
     .maybeSingle();
@@ -73,7 +76,9 @@ function sessionChanged(before: SessionPayload, after: SessionPayload): boolean 
     before.onboardingCompleted !== after.onboardingCompleted ||
     before.emailVerified !== after.emailVerified ||
     before.banned !== after.banned ||
-    before.canAccessWorkspace !== after.canAccessWorkspace
+    before.canAccessWorkspace !== after.canAccessWorkspace ||
+    before.themeMode !== after.themeMode ||
+    before.iconTheme !== after.iconTheme
   );
 }
 
@@ -114,6 +119,8 @@ export function jwtPayloadToSession(payload: Record<string, unknown>): SessionPa
     canComment: payload.canComment !== false,
     totpVerified: Boolean(payload.totpVerified),
     onboardingCompleted: Boolean(payload.onboardingCompleted),
+    themeMode: parseThemeMode(payload.themeMode),
+    iconTheme: parseIconTheme(payload.iconTheme),
   };
 }
 
@@ -145,6 +152,8 @@ export async function refreshSessionFromDatabase(
       displayName: row.display_name ?? session.displayName,
       role: row.role,
       onboardingCompleted: onboardingCompletedFromRow(row),
+      themeMode: parseThemeMode(row.theme_mode),
+      iconTheme: parseIconTheme(row.icon_theme),
     };
 
     if (!sessionChanged(session, merged)) {
