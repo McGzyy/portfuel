@@ -54,12 +54,12 @@ export default async function RootLayout({
     >
       <body
         className={cn(
-          "min-h-full font-sans text-[var(--pf-black)]",
+          "min-h-full font-sans text-[var(--foreground)]",
           isDark ? "bg-[var(--background)]" : "bg-white"
         )}
       >
         <AppearanceProvider enabled={appearanceEnabled} initial={initialAppearance}>
-          <div className="pf-app-shell flex min-h-full flex-col">
+          <div className="pf-app-shell flex min-h-full flex-col text-[var(--foreground)]">
             <DemoModeBanner />
             <InstallPrompt />
             <MobileViewportFix />

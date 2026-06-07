@@ -10,9 +10,9 @@ export const PF_CHART = {
 
 export const PF_CHART_DARK = {
   height: 400,
-  layout: { background: "#0f1419", text: "#94a3b8" },
-  grid: { vert: "#1e293b", horz: "#1e293b" },
-  border: "#334155",
+  layout: { background: "#111111", text: "#a3a3a3" },
+  grid: { vert: "#262626", horz: "#262626" },
+  border: "#333333",
   candle: { up: "#34d399", down: "#fb7185", wickUp: "#34d399", wickDown: "#fb7185" },
   marker: { default: "#f43f5e", long: "#34d399", short: "#fb7185" },
 } as const;

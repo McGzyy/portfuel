@@ -15,7 +15,7 @@ export function ChartRangeToolbar({
   return (
     <div
       className={cn(
-        "flex flex-wrap gap-1 rounded-lg border border-[var(--pf-border)] bg-white p-1",
+        "flex flex-wrap gap-1 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] p-1",
         className
       )}
       role="tablist"
@@ -31,8 +31,8 @@ export function ChartRangeToolbar({
           className={cn(
             "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
             value === key
-              ? "bg-[var(--pf-black)] text-white"
-              : "text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-100)]"
+              ? "pf-pill-active rounded-md px-3 py-1.5 text-xs font-semibold"
+              : "rounded-md px-3 py-1.5 text-xs font-semibold text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-100)]"
           )}
         >
           {label}

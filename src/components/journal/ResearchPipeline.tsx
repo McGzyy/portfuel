@@ -80,9 +80,7 @@ export function ResearchPipeline({
             href={href}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors sm:rounded-none sm:px-4 sm:py-3.5",
-              active
-                ? "bg-indigo-50 ring-1 ring-indigo-200 sm:bg-indigo-50/80 sm:ring-0"
-                : "hover:bg-[var(--pf-gray-50)]",
+              active ? "pf-pipeline-step-active" : "hover:bg-[var(--pf-gray-50)]",
               isPublish && !active && "sm:border-l-0"
             )}
             aria-current={active ? "step" : undefined}
@@ -91,19 +89,14 @@ export function ResearchPipeline({
               className={cn(
                 "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
                 active
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-[var(--pf-red)] text-white"
                   : "bg-[var(--pf-gray-100)] text-[var(--pf-gray-500)]"
               )}
             >
               {active ? <Icon className="h-3.5 w-3.5" strokeWidth={2.25} /> : index + 1}
             </span>
             <span className="min-w-0">
-              <span
-                className={cn(
-                  "block text-xs font-bold",
-                  active ? "text-indigo-900" : "text-[var(--pf-black)]"
-                )}
-              >
+              <span className="block text-xs font-bold text-[var(--foreground)]">
                 {step.label}
               </span>
               <span className="block truncate text-[10px] text-[var(--pf-gray-500)]">

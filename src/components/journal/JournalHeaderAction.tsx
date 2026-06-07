@@ -7,7 +7,7 @@ export function JournalHeaderAction({ nextUp }: { nextUp: JournalNextUp }) {
   return (
     <Link
       href={nextUp.href}
-      className="inline-flex h-10 items-center justify-center gap-2 rounded-[var(--pf-radius)] bg-indigo-600 px-4 text-sm font-semibold text-white shadow-[var(--pf-shadow-sm)] transition-colors hover:bg-indigo-700"
+      className="pf-accent-btn inline-flex h-10 items-center justify-center gap-2 rounded-[var(--pf-radius)] px-4 text-sm font-semibold shadow-[var(--pf-shadow-sm)] transition-colors"
     >
       <NotebookPen className="h-4 w-4 shrink-0" strokeWidth={2.25} />
       {nextUp.cta}

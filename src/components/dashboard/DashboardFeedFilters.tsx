@@ -64,8 +64,8 @@ export function DashboardFeedFilters({
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
               isActive
-                ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white"
-                : "border-[var(--pf-border)] bg-white text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-50)]"
+                ? "pf-pill-active rounded-full border px-3 py-1 text-xs font-semibold"
+                : "pf-pill-inactive rounded-full border px-3 py-1 text-xs font-semibold transition-colors hover:bg-[var(--pf-gray-50)]"
             )}
           >
             {f.label}

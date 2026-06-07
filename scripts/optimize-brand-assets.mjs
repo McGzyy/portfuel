@@ -23,11 +23,11 @@ const MASTER_SIDE = 1024;
 /** Tile presets for home-screen icons (appearance settings). */
 const TILE_PRESETS = {
   dark: {
-    top: "#161a22",
-    mid: "#0a0c10",
-    bottom: "#050608",
+    top: "#1a1a1a",
+    mid: "#0a0a0a",
+    bottom: "#050505",
     glow: "#e31b23",
-    glowOpacity: 0.14,
+    glowOpacity: 0.16,
   },
   red: {
     top: "#f03540",
@@ -213,7 +213,39 @@ async function buildMaskableIcon(gaugeMaster, size, preset) {
   return sharp(bg).composite([{ input: gauge, left, top }]);
 }
 
+async function buildLogoLight() {
+  const { data, info } = await sharp(logoPath)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const px = data;
+  for (let i = 0; i < px.length; i += 4) {
+    const r = px[i];
+    const g = px[i + 1];
+    const b = px[i + 2];
+    const a = px[i + 3];
+    if (a < 20) continue;
+    const isRed = r > 130 && r > g * 1.3 && r > b * 1.3;
+    if (isRed) continue;
+    if (r < 90 && g < 90 && b < 90) {
+      px[i] = 255;
+      px[i + 1] = 255;
+      px[i + 2] = 255;
+    } else if (r < 200 && g < 200 && b < 200) {
+      px[i] = 245;
+      px[i + 1] = 245;
+      px[i + 2] = 245;
+    }
+  }
+  await sharp(Buffer.from(px), {
+    raw: { width: info.width, height: info.height, channels: 4 },
+  })
+    .png({ compressionLevel: 9 })
+    .toFile(join(root, "public/logo-light.png"));
+}
+
 const logoMeta = await upscaleLogoIfNeeded();
+await buildLogoLight();
 const gaugeFromLogo = await extractLogoGauge();
 const gaugeMaster = await ensureGaugeMaster(gaugeFromLogo);
 await sharp(gaugeMaster).toFile(join(root, "public/gauge-source.png"));
@@ -267,4 +299,5 @@ const gm = await sharp(gaugeMaster).metadata();
 console.log("Brand assets ready (logo gauge, not redrawn):");
 console.log(`  public/logo.png (${logoMeta.width ?? "?"}×${logoMeta.height ?? "?"})`);
 console.log(`  public/brand/gauge-mark.png (${gm.width}×${gm.height})`);
+console.log(`  public/logo-light.png (dark-mode wordmark)`);
 console.log("  PWA icons: dark / red / light tiles → public/icons/pwa-{variant}-*.png");

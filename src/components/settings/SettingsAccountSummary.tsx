@@ -43,7 +43,7 @@ export function SettingsAccountSummary({
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
             Signed in as
           </p>
-          <h2 className="mt-1 text-lg font-bold tracking-tight text-[var(--pf-black)] sm:text-xl">
+          <h2 className="mt-1 text-lg font-bold tracking-tight text-[var(--foreground)] sm:text-xl">
             {displayName ?? username}
           </h2>
           <p className="mt-0.5 font-mono text-sm text-[var(--pf-gray-500)]">@{username}</p>
@@ -60,7 +60,7 @@ export function SettingsAccountSummary({
           <span className={cn("rounded-full px-2.5 py-1 text-center text-xs font-bold sm:text-left", statusTone)}>
             {subscriptionStatus === "active" ? "Active" : subscriptionStatus}
           </span>
-          <span className="rounded-full bg-[var(--pf-black)] px-2.5 py-1 text-center text-xs font-bold text-white sm:text-left">
+          <span className="rounded-full bg-[var(--pf-red)] px-2.5 py-1 text-center text-xs font-bold text-white sm:text-left">
             {tierLabel}
           </span>
           {billingInterval === "annual" ? (

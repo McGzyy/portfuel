@@ -35,8 +35,8 @@ export function AppearanceSegmented<T extends string>({
             className={cn(
               "rounded-lg border px-3 py-3 text-left transition-colors",
               active
-                ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white"
-                : "border-[var(--pf-border)] bg-[var(--pf-surface)] text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
+                ? "pf-pill-active rounded-lg border px-3 py-3 text-left"
+                : "rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-3 text-left text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
             )}
           >
             <span className="block text-sm font-semibold">{opt.label}</span>
@@ -63,7 +63,7 @@ export function SettingsAppearanceSection() {
   return (
     <section aria-label="Appearance" className="pf-workspace-panel p-4 sm:p-5">
       <div className="border-b border-[var(--pf-border)] pb-4">
-        <h2 className="text-base font-bold text-[var(--pf-black)]">Appearance</h2>
+        <h2 className="text-base font-bold text-[var(--foreground)]">Appearance</h2>
         <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
           Theme and home-screen icon preferences sync across devices.
         </p>
@@ -71,7 +71,7 @@ export function SettingsAppearanceSection() {
 
       <div className="space-y-6 pt-4">
         <div>
-          <p className="text-sm font-semibold text-[var(--pf-black)]">Theme</p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">Theme</p>
           <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
             Marketing and sign-in pages stay light. Your workspace follows this setting.
           </p>
@@ -90,7 +90,7 @@ export function SettingsAppearanceSection() {
         </div>
 
         <div>
-          <p className="text-sm font-semibold text-[var(--pf-black)]">Home screen icon</p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">Home screen icon</p>
           <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
             Auto follows your theme unless you pick a fixed tile. Safari updates the icon when you
             add PortFuel to your home screen again.

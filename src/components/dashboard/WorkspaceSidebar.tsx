@@ -55,7 +55,7 @@ export function WorkspaceSidebar({
   return (
     <aside className="pf-workspace-sidebar flex h-full min-h-0 w-full flex-col">
       <div className="shrink-0 border-b border-[var(--pf-border)] px-4 py-4">
-        <p className="truncate text-sm font-bold text-[var(--pf-black)]">{displayName}</p>
+        <p className="truncate text-sm font-bold text-[var(--foreground)]">{displayName}</p>
         <p className="mt-0.5 truncate font-mono text-[11px] text-[var(--pf-gray-500)]">
           @{username}
         </p>
@@ -85,8 +85,8 @@ export function WorkspaceSidebar({
                     className={cn(
                       "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-semibold transition-colors",
                       active
-                        ? "bg-[var(--pf-black)] text-white"
-                        : "text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-100)] hover:text-[var(--pf-black)]"
+                        ? "pf-nav-link-active bg-[var(--pf-black)] text-white"
+                        : "text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-100)] hover:text-[var(--foreground)]"
                     )}
                   >
                     <Icon

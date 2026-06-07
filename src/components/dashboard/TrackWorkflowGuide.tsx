@@ -61,12 +61,12 @@ export function TrackWorkflowGuide() {
               key={step.n}
               className="flex gap-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)]/60 px-3 py-3"
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--pf-red)] text-[11px] font-bold text-white">
                 {step.n}
               </span>
               <span className="min-w-0">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-[var(--pf-black)]">
-                  <Icon className="h-3.5 w-3.5 text-indigo-600" strokeWidth={2.25} aria-hidden />
+                <span className="flex items-center gap-1.5 text-xs font-bold text-[var(--foreground)]">
+                  <Icon className="h-3.5 w-3.5 text-[var(--pf-red)]" strokeWidth={2.25} aria-hidden />
                   {step.title}
                 </span>
                 <span className="mt-0.5 block text-[11px] leading-snug text-[var(--pf-gray-500)]">

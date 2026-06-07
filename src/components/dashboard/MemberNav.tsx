@@ -108,7 +108,7 @@ export function MemberNav({
       <aside
         id="workspace-mobile-nav"
         className={cn(
-          "fixed bottom-0 left-0 top-[var(--pf-safe-top)] z-[70] grid w-[min(18.5rem,88vw)] grid-rows-[auto_minmax(0,1fr)_auto] border-r border-[var(--pf-border)] bg-white shadow-xl transition-transform duration-200 ease-out lg:hidden",
+          "fixed bottom-0 left-0 top-[var(--pf-safe-top)] z-[70] grid w-[min(18.5rem,88vw)] grid-rows-[auto_minmax(0,1fr)_auto] border-r border-[var(--pf-border)] bg-[var(--pf-surface)] shadow-xl transition-transform duration-200 ease-out lg:hidden",
           drawerOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
         )}
         aria-hidden={!drawerOpen}
@@ -147,8 +147,8 @@ export function MemberNav({
                       className={cn(
                         "flex items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-sm font-semibold transition-colors",
                         active
-                          ? "bg-[var(--pf-black)] text-white"
-                          : "text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-100)]"
+                          ? "pf-nav-link-active bg-[var(--pf-black)] text-white"
+                          : "text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-100)] hover:text-[var(--foreground)]"
                       )}
                     >
                       <Icon

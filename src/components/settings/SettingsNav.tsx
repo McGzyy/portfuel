@@ -79,8 +79,8 @@ export function SettingsNav({ active }: { active: SettingsSection }) {
             className={cn(
               "rounded-lg border px-3 py-2.5 transition-colors",
               isActive
-                ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white"
-                : "border-[var(--pf-border)] bg-[var(--pf-surface)] text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
+                ? "pf-pill-active rounded-lg border px-3 py-2.5"
+                : "pf-pill-inactive rounded-lg border px-3 py-2.5 transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
             )}
           >
             <span className="block text-sm font-semibold">{item.label}</span>
@@ -118,8 +118,8 @@ export function SettingsNavMobile({ active }: { active: SettingsSection }) {
               className={cn(
                 "flex min-h-[4.25rem] flex-col justify-center rounded-lg border px-3 py-2.5 transition-colors",
                 isActive
-                  ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white shadow-[var(--pf-shadow-sm)]"
-                  : "border-transparent bg-[var(--pf-gray-50)] text-[var(--pf-gray-700)] active:bg-[var(--pf-gray-100)]"
+                  ? "pf-pill-active flex min-h-[4.25rem] flex-col justify-center rounded-lg border px-3 py-2.5 shadow-[var(--pf-shadow-sm)]"
+                  : "flex min-h-[4.25rem] flex-col justify-center rounded-lg border border-transparent bg-[var(--pf-gray-50)] px-3 py-2.5 text-[var(--pf-gray-700)] active:bg-[var(--pf-gray-100)]"
               )}
             >
               <span className="text-sm font-semibold leading-tight">{item.mobileLabel}</span>
@@ -137,7 +137,7 @@ export function SettingsNavMobile({ active }: { active: SettingsSection }) {
       </nav>
       {activeMeta ? (
         <div className="mt-3 px-0.5">
-          <h2 className="text-base font-bold text-[var(--pf-black)]">{activeMeta.label}</h2>
+          <h2 className="text-base font-bold text-[var(--foreground)]">{activeMeta.label}</h2>
           <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">{activeMeta.description}</p>
         </div>
       ) : null}
