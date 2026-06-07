@@ -3,18 +3,16 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
 import { composeXPost } from "@/lib/social/x-compose";
 import { postToX } from "@/lib/social/x-client";
-import { uploadXMedia } from "@/lib/social/x-media";
 import { xConfigSummary } from "@/lib/social/x-config";
 import { hasSocialPostBeenSent, recordSocialPost } from "@/lib/social/post-log";
-import { loadSocialChartPayload } from "@/lib/charts/social-chart-data";
-import { renderSocialChartPng } from "@/lib/charts/social-chart-render";
-import type { CallMilestoneKey } from "@/lib/notifications/milestones";
+import { postFueledMilestone } from "@/lib/social/x-milestone-post";
+import { socialCallIdSchema } from "@/lib/social/social-call-id";
 
 const schema = z.object({
   type: z.enum(["fueled", "leaderboard", "fueled_milestone", "member_win"]),
   dryRun: z.boolean().optional(),
   force: z.boolean().optional(),
-  callId: z.string().uuid().optional(),
+  callId: socialCallIdSchema.optional(),
   milestone: z.enum(["return_10", "return_25", "target_reached"]).optional(),
 });
 
@@ -22,6 +20,48 @@ export async function POST(request: Request) {
   try {
     await requireAdmin();
     const body = schema.parse(await request.json());
+
+    if (body.type === "fueled_milestone") {
+      if (!body.callId || !body.milestone) {
+        return NextResponse.json({ error: "call_id_and_milestone_required" }, { status: 400 });
+      }
+      const result = await postFueledMilestone({
+        callId: body.callId,
+        milestone: body.milestone,
+        dryRun: body.dryRun,
+        force: body.force,
+      });
+      if (!result.ok) {
+        const status =
+          result.error === "already_posted"
+            ? 409
+            : result.error === "no_content" || result.error === "disabled"
+              ? 404
+              : 502;
+        return NextResponse.json(
+          { error: result.error, text: result.text, config: result.config },
+          { status }
+        );
+      }
+      return NextResponse.json({
+        ok: true,
+        dryRun: result.dryRun,
+        tweetId: result.tweetId,
+        text: result.text,
+        lead: result.lead,
+        tail: result.tail,
+        refId: result.refId,
+        callId: result.callId,
+        milestone: result.milestone,
+        withChart: result.withChart,
+        chartUrl: result.chartUrl,
+        chartGenerated: result.chartGenerated,
+        chartSizeBytes: result.chartSizeBytes,
+        mediaAttached: result.mediaAttached,
+        config: result.config,
+      });
+    }
+
     if (body.type === "member_win") {
       if (!body.callId) {
         return NextResponse.json({ error: "call_id_required" }, { status: 400 });
@@ -72,36 +112,21 @@ export async function POST(request: Request) {
       }
     }
 
-    if (body.dryRun || config.dryRun || !config.configured) {
+    if (body.dryRun || config.dryRun || !config.livePostingReady) {
       console.info("[admin/social/post dry-run]", composed.text);
       return NextResponse.json({
         ok: true,
         dryRun: true,
         text: composed.text,
+        lead: composed.lead,
+        tail: composed.tail,
         refId: composed.refId,
         withChart: composed.withChart,
         config,
       });
     }
 
-    let mediaIds: string[] | undefined;
-    if (composed.withChart && composed.callId && composed.milestone) {
-      const payload = await loadSocialChartPayload(
-        composed.callId,
-        composed.milestone as CallMilestoneKey
-      );
-      if ("error" in payload) {
-        return NextResponse.json({ error: "chart_failed" }, { status: 502 });
-      }
-      const png = await renderSocialChartPng(payload);
-      const uploaded = await uploadXMedia(png);
-      if (!uploaded.ok) {
-        return NextResponse.json({ error: uploaded.error, text: composed.text }, { status: 502 });
-      }
-      mediaIds = [uploaded.mediaId];
-    }
-
-    const posted = await postToX(composed.text, mediaIds);
+    const posted = await postToX(composed.text);
     if (!posted.ok) {
       return NextResponse.json({ error: posted.error, text: composed.text }, { status: 502 });
     }

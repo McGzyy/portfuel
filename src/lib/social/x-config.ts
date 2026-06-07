@@ -63,6 +63,7 @@ export function xConfigSummary(): {
   memberWinPosts: boolean;
   weeklyDigestPosts: boolean;
   autopostFueledOnPublish: boolean;
+  autopostMilestones: boolean;
 } {
   const c = getXConfig();
   const bearerTokenSet = Boolean(c.bearerToken);
@@ -78,5 +79,6 @@ export function xConfigSummary(): {
     memberWinPosts: c.memberWinPosts,
     weeklyDigestPosts: c.weeklyDigestPosts,
     autopostFueledOnPublish: c.autopostFueledOnPublish,
+    autopostMilestones: c.autopostMilestones,
   };
 }

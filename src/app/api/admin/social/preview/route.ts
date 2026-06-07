@@ -3,6 +3,8 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
 import { composeXPost } from "@/lib/social/x-compose";
 import { xConfigSummary } from "@/lib/social/x-config";
+import { fueledMilestoneChartUrl } from "@/lib/social/x-milestone-post";
+import { socialCallIdSchema } from "@/lib/social/social-call-id";
 
 export async function GET() {
   try {
@@ -22,7 +24,7 @@ export async function GET() {
 
 const schema = z.object({
   type: z.enum(["fueled", "leaderboard", "fueled_milestone", "member_win"]),
-  callId: z.string().uuid().optional(),
+  callId: socialCallIdSchema.optional(),
   milestone: z.enum(["return_10", "return_25", "target_reached"]).optional(),
   force: z.boolean().optional(),
 });
@@ -57,7 +59,7 @@ export async function POST(request: Request) {
           ? body.type === "member_win"
             ? `/api/social/chart/${composed.callId}?format=png&memberWin=1`
             : composed.milestone
-              ? `/api/social/chart/${composed.callId}?milestone=${composed.milestone}&format=png`
+              ? fueledMilestoneChartUrl(composed.callId, composed.milestone)
               : null
           : null,
       config: xConfigSummary(),

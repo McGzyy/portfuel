@@ -6,6 +6,7 @@ import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import {
   COPY_PLACEHOLDER_HELP,
   composeMilestonePostText,
@@ -13,6 +14,14 @@ import {
 } from "@/lib/social/copy-templates";
 
 type MilestoneKey = "return_10" | "return_25" | "target_reached";
+
+type XConfigSummary = {
+  enabled: boolean;
+  dryRun: boolean;
+  bearerTokenSet: boolean;
+  livePostingReady: boolean;
+  autopostMilestones: boolean;
+};
 
 type MilestoneItem = {
   callId: string;
@@ -40,6 +49,64 @@ const DEMO_PREVIEW = {
 } as const;
 
 const DEMO_LINK = "https://portfuel.pro/ticker/NVDA?utm_source=x&utm_medium=social&utm_campaign=fueled_milestone";
+const DEMO_CALL_ID = "demo-call-001";
+
+type PostPreview = {
+  lead: string;
+  tail: string;
+  text: string;
+  chartUrl: string;
+  cacheKey: string;
+};
+
+function formatPostError(error: string): string {
+  switch (error) {
+    case "already_posted":
+      return "Already posted for this milestone.";
+    case "disabled":
+      return "X API is disabled — set X_API_ENABLED=true in env.";
+    case "chart_failed":
+      return "Chart render failed — check server logs.";
+    case "no_content":
+      return "Call not found or not a Fueled desk call.";
+    case "invalid_input":
+      return "Invalid request — check call id and milestone.";
+    default:
+      return error.startsWith("http_") || error === "no_token"
+        ? `X API error: ${error}`
+        : "Post failed.";
+  }
+}
+
+function XPostLayout({ preview }: { preview: PostPreview }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-[var(--pf-border)] bg-[#0a0a0a] shadow-lg">
+      <div className="border-b border-white/10 bg-[#111] px-4 py-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-white/40">
+          X post preview
+        </p>
+        <pre className="mt-2 text-sm leading-relaxed whitespace-pre-wrap text-white">{preview.lead}</pre>
+        <p className="mt-2 text-[10px] uppercase tracking-wide text-white/30">
+          ↓ chart image attached below ↓
+        </p>
+      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`${preview.chartUrl}&k=${preview.cacheKey}`}
+        alt="Milestone chart"
+        className="w-full"
+      />
+      {preview.tail ? (
+        <div className="border-t border-white/10 bg-[#111] px-4 py-3">
+          <pre className="text-xs leading-relaxed whitespace-pre-wrap text-white/70">{preview.tail}</pre>
+          <p className="mt-2 text-[10px] text-white/35">
+            Full tweet · {preview.text.length} / 280 chars
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 export function AdminSocialMilestonePanel() {
   const [demoMilestone, setDemoMilestone] = useState<MilestoneKey>("return_25");
@@ -56,12 +123,22 @@ export function AdminSocialMilestonePanel() {
   const [loading, setLoading] = useState(true);
   const [postLoading, setPostLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [xConfig, setXConfig] = useState<XConfigSummary | null>(null);
+  const [postPreview, setPostPreview] = useState<PostPreview | null>(null);
 
   const loadCopy = useCallback(async () => {
     const res = await fetch("/api/admin/social/copy");
     if (res.ok) {
       const json = (await res.json()) as { copy: SocialPostCopy };
       setCopyDraft(json.copy);
+    }
+  }, []);
+
+  const loadXConfig = useCallback(async () => {
+    const res = await fetch("/api/admin/social/preview");
+    if (res.ok) {
+      const json = (await res.json()) as { config: XConfigSummary };
+      setXConfig(json.config);
     }
   }, []);
 
@@ -83,8 +160,83 @@ export function AdminSocialMilestonePanel() {
 
   useEffect(() => {
     void loadCopy();
+    void loadXConfig();
     void load();
-  }, [loadCopy, load]);
+  }, [loadCopy, loadXConfig, load]);
+
+  function applyPostResponse(json: {
+    text: string;
+    lead?: string;
+    tail?: string;
+    chartUrl?: string;
+    chartGenerated?: boolean;
+    chartSizeBytes?: number;
+    dryRun?: boolean;
+    tweetId?: string;
+    mediaAttached?: boolean;
+  }) {
+    setPreviewText(json.text);
+    setPreviewLead(json.lead ?? "");
+    setPreviewTail(json.tail ?? "");
+    if (json.chartUrl) {
+      setPostPreview({
+        lead: json.lead ?? "",
+        tail: json.tail ?? "",
+        text: json.text,
+        chartUrl: json.chartUrl,
+        cacheKey: String(Date.now()),
+      });
+    }
+    if (json.dryRun) {
+      const kb =
+        json.chartSizeBytes != null ? `${Math.round(json.chartSizeBytes / 1024)} KB` : null;
+      setMessage(
+        json.chartGenerated
+          ? `Dry run OK — chart rendered${kb ? ` (${kb})` : ""}; tweet not sent to X.`
+          : "Dry run OK — copy only; chart did not render."
+      );
+    } else {
+      setMessage(
+        json.mediaAttached
+          ? `Posted to X with chart (id ${json.tweetId}).`
+          : `Posted to X without chart attachment (id ${json.tweetId}).`
+      );
+    }
+  }
+
+  async function runMilestonePost(input: {
+    callId: string;
+    milestone: MilestoneKey;
+    dryRun: boolean;
+    force?: boolean;
+  }) {
+    setPostLoading(true);
+    setMessage("");
+    try {
+      const res = await fetch("/api/admin/social/post", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "fueled_milestone",
+          callId: input.callId,
+          milestone: input.milestone,
+          dryRun: input.dryRun,
+          force: input.force,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setMessage(formatPostError(json.error as string));
+        return;
+      }
+      applyPostResponse(json);
+      if (!input.dryRun) void load();
+    } catch {
+      setMessage("Post failed.");
+    } finally {
+      setPostLoading(false);
+    }
+  }
 
   const demoPreview = useMemo(() => {
     if (!copyDraft) return null;
@@ -154,36 +306,16 @@ export function AdminSocialMilestonePanel() {
   }
 
   async function post(item: MilestoneItem, dryRun: boolean) {
-    setPostLoading(true);
-    setMessage("");
-    try {
-      const res = await fetch("/api/admin/social/post", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "fueled_milestone",
-          callId: item.callId,
-          milestone: item.milestone,
-          dryRun,
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setMessage(json.error === "already_posted" ? "Already posted for this milestone." : "Post failed.");
-        return;
-      }
-      setPreviewText(json.text ?? previewText);
-      setMessage(
-        json.dryRun
-          ? "Dry run — chart generated server-side; not sent to X."
-          : `Posted to X with chart (id ${json.tweetId}).`
-      );
-      void load();
-    } catch {
-      setMessage("Post failed.");
-    } finally {
-      setPostLoading(false);
-    }
+    setSelected(item);
+    await runMilestonePost({ callId: item.callId, milestone: item.milestone, dryRun });
+  }
+
+  async function dryRunDemo() {
+    await runMilestonePost({
+      callId: DEMO_CALL_ID,
+      milestone: demoMilestone,
+      dryRun: true,
+    });
   }
 
   const demoChartUrl = `/api/admin/social/demo-chart?milestone=${demoMilestone}&format=png&k=${demoChartKey}`;
@@ -198,10 +330,36 @@ export function AdminSocialMilestonePanel() {
         Fueled desk milestone posts with chart image
       </h2>
         <p className="mt-2 max-w-2xl text-sm text-[var(--pf-gray-600)]">
-          Dark branded chart with Fueled entry marker, community call dots, and target guide.
-          Run <code className="rounded bg-[var(--pf-gray-100)] px-1 py-0.5 text-xs">npm run social-chart:preview</code>{" "}
-          locally to export a PNG without the admin session.
+          Dry-run renders the real chart server-side and previews the full tweet layout — no X send.
+          Live posts attach the PNG when{" "}
+          <code className="rounded bg-[var(--pf-gray-100)] px-1 py-0.5 text-xs">X_API_DRY_RUN=false</code>{" "}
+          and bearer token is set.
         </p>
+
+      {xConfig ? (
+        <MetricsStrip
+          variant="embedded"
+          className="mt-4 border-t border-[var(--pf-border)] pt-4 !px-0"
+          eyebrow="X milestone posts"
+          items={[
+            {
+              label: "Bearer",
+              value: xConfig.bearerTokenSet ? "Set" : "Missing",
+              accent: xConfig.bearerTokenSet ? "positive" : "negative",
+            },
+            {
+              label: "Live post",
+              value: xConfig.livePostingReady ? "Ready" : "Blocked",
+              accent: xConfig.livePostingReady ? "positive" : undefined,
+            },
+            { label: "Dry run", value: xConfig.dryRun ? "On" : "Off" },
+            {
+              label: "Auto",
+              value: xConfig.autopostMilestones ? "Milestones on" : "Milestones off",
+            },
+          ]}
+        />
+      ) : null}
 
       <div className="mt-6 rounded-xl border-2 border-dashed border-[var(--pf-red)]/30 bg-[var(--pf-gray-50)] p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -303,6 +461,15 @@ export function AdminSocialMilestonePanel() {
           <Button type="button" size="sm" disabled={copySaving || !copyDraft} onClick={() => void saveCopy()}>
             {copySaving ? "Saving…" : "Save post copy"}
           </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={postLoading}
+            onClick={() => void dryRunDemo()}
+          >
+            {postLoading ? "Running…" : "Dry-run demo post"}
+          </Button>
           {copyMessage ? <span className="text-xs text-[var(--pf-gray-600)]">{copyMessage}</span> : null}
         </div>
 
@@ -346,11 +513,20 @@ export function AdminSocialMilestonePanel() {
         </div>
       </div>
 
+      {postPreview ? (
+        <div className="mt-6 space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            Server dry-run / live preview
+          </p>
+          <XPostLayout preview={postPreview} />
+        </div>
+      ) : null}
+
       {loading ? (
         <p className="mt-6 text-sm text-[var(--pf-gray-500)]">Checking live milestones…</p>
       ) : items.length === 0 ? (
         <p className="mt-6 text-sm text-[var(--pf-gray-500)]">
-          No live Fueled calls at a milestone yet — use the demo above to refine copy and chart design.
+          No live Fueled calls at a milestone yet — use dry-run demo above to validate the full pipeline.
         </p>
       ) : (
         <div className="mt-8 space-y-4 border-t border-[var(--pf-border)] pt-6">
@@ -378,10 +554,10 @@ export function AdminSocialMilestonePanel() {
             </div>
           </div>
 
-          {selected && previewLead ? (
+          {selected && previewLead && !postPreview ? (
             <div className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-4">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                Live post preview
+                Copy preview
               </p>
               <pre className="mt-2 text-xs leading-relaxed whitespace-pre-wrap text-[var(--pf-gray-800)]">
                 {previewLead}
@@ -389,7 +565,7 @@ export function AdminSocialMilestonePanel() {
             </div>
           ) : null}
 
-          {selected ? (
+          {selected && !postPreview ? (
             <div className="overflow-hidden rounded-lg border border-[var(--pf-border)] bg-[#0f1419]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -400,7 +576,7 @@ export function AdminSocialMilestonePanel() {
             </div>
           ) : null}
 
-          {selected && previewTail ? (
+          {selected && previewTail && !postPreview ? (
             <pre className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-3 text-xs leading-relaxed whitespace-pre-wrap text-[var(--pf-gray-700)]">
               {previewTail}
             </pre>
@@ -427,14 +603,19 @@ export function AdminSocialMilestonePanel() {
             <Button
               type="button"
               size="sm"
-              disabled={postLoading || !selected}
+              disabled={postLoading || !selected || !xConfig?.livePostingReady}
+              title={
+                xConfig?.livePostingReady
+                  ? undefined
+                  : "Set X_API_ENABLED, bearer token, and X_API_DRY_RUN=false for live posts"
+              }
               onClick={() => selected && void post(selected, false)}
             >
               Post to X with chart
             </Button>
           </div>
 
-          {previewText ? (
+          {previewText && !postPreview ? (
             <pre className="max-h-32 overflow-auto rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-3 text-xs whitespace-pre-wrap">
               {previewText}
             </pre>
