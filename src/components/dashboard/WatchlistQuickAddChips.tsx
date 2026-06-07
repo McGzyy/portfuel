@@ -46,7 +46,11 @@ export function WatchlistQuickAddChips({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbol: sym }),
       });
-      const data = (await res.json()) as { error?: string; items?: WatchlistEntry[] };
+      const data = (await res.json()) as {
+        error?: string;
+        items?: WatchlistEntry[];
+        partial?: boolean;
+      };
 
       if (!res.ok) {
         setError(watchlistAddErrorMessage(data.error));
@@ -55,10 +59,11 @@ export function WatchlistQuickAddChips({
 
       if (data.items && watchlistCtx) {
         watchlistCtx.setItems(data.items);
+      } else if (data.partial) {
+        router.refresh();
       }
 
       router.push(journalSymbolPath(sym, { setup: true }));
-      router.refresh();
     } catch {
       setError("Could not add symbol — check your connection and try again.");
     } finally {

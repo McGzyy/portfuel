@@ -13,6 +13,8 @@ export function watchlistAddErrorMessage(code: string | undefined): string {
       return "That crypto is not on the major-exchange list (Coinbase/Kraken).";
     case "db_error":
       return "Could not save — try again in a moment.";
+    case "server_error":
+      return "Server error while updating watchlist. Try again or contact support if it persists.";
     default:
       return "Could not add symbol.";
   }

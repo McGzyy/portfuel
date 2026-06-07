@@ -195,7 +195,12 @@ export function WatchlistPanel({
         setError(watchlistAddErrorMessage(data.error));
         return;
       }
-      applyItems((data.items ?? []) as WatchlistEntry[]);
+      if (data.partial) {
+        await load();
+        router.refresh();
+      } else {
+        applyItems((data.items ?? []) as WatchlistEntry[]);
+      }
       setSymbol("");
       router.push(journalSymbolPath(sym, { setup: true }));
     } catch {

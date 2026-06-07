@@ -47,8 +47,18 @@ export async function POST(request: Request) {
             : 400;
       return NextResponse.json({ error: result.error }, { status });
     }
-    const items = await fetchWatchlist(session.userId);
-    return NextResponse.json({ ok: true, items });
+    try {
+      const items = await fetchWatchlist(session.userId);
+      return NextResponse.json({ ok: true, items });
+    } catch (fetchErr) {
+      console.error("[watchlist POST fetch after add]", fetchErr);
+      return NextResponse.json({
+        ok: true,
+        items: [],
+        partial: true,
+        warning: "watchlist_reload_failed",
+      });
+    }
   } catch (e) {
     if (e instanceof z.ZodError) {
       return NextResponse.json({ error: "invalid_body" }, { status: 400 });

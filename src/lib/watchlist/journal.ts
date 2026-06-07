@@ -23,9 +23,13 @@ import {
   diffJournalPlanRevisions,
   recordJournalPlanRevisions,
 } from "@/lib/watchlist/journal-revisions";
+import {
+  isSchemaDriftError,
+  JOURNAL_BASIC_SELECT,
+  JOURNAL_FULL_SELECT,
+} from "@/lib/watchlist/db-select";
 
-const JOURNAL_SELECT =
-  "symbol, asset_class, created_at, baseline_price, thesis, conviction, entry_price, stop_price, target_price, entry_note, journal_updated_at, catalysts, risk_factors, personal_tags, outcome, bull_case_price, base_case_price, bear_case_price";
+const JOURNAL_SELECT = JOURNAL_FULL_SELECT;
 
 type WatchlistRow = {
   symbol: string;
@@ -105,12 +109,26 @@ export async function fetchWatchlistJournal(
     return isDemoJournalSymbol(sym) ? getDemoWatchlistJournal(sym) : null;
   }
   const db = createServiceClient();
-  const { data, error } = await db
+  const primary = await db
     .from("user_watchlist")
     .select(JOURNAL_SELECT)
     .eq("user_id", userId)
     .eq("symbol", sym)
     .maybeSingle();
+
+  let data: WatchlistRow | null = primary.data as WatchlistRow | null;
+  let error = primary.error;
+
+  if (error && isSchemaDriftError(error)) {
+    const fallback = await db
+      .from("user_watchlist")
+      .select(JOURNAL_BASIC_SELECT)
+      .eq("user_id", userId)
+      .eq("symbol", sym)
+      .maybeSingle();
+    data = fallback.data as WatchlistRow | null;
+    error = fallback.error;
+  }
 
   if (error) throw error;
   if (!data) return null;
@@ -263,14 +281,31 @@ export async function fetchJournalEntries(
     return isDemoJournalSymbol(sym) ? getDemoJournalEntries(sym) : [];
   }
   const db = createServiceClient();
-  const { data, error } = await db
+  const primary = await db
     .from("watchlist_journal_entries")
     .select("id, body, entry_type, metadata, reply_to_id, conviction_after, marker_price, created_at")
     .eq("user_id", userId)
     .eq("symbol", sym)
     .order("created_at", { ascending: true });
 
-  if (error) throw error;
+  let data = primary.data as Parameters<typeof mapEntryRow>[0][] | null;
+  let error = primary.error;
+
+  if (error && isSchemaDriftError(error)) {
+    const fallback = await db
+      .from("watchlist_journal_entries")
+      .select("id, body, reply_to_id, conviction_after, marker_price, created_at")
+      .eq("user_id", userId)
+      .eq("symbol", sym)
+      .order("created_at", { ascending: true });
+    data = fallback.data as Parameters<typeof mapEntryRow>[0][] | null;
+    error = fallback.error;
+  }
+
+  if (error) {
+    if (isSchemaDriftError(error)) return [];
+    throw error;
+  }
   return (data ?? []).map((row) => mapEntryRow(row as Parameters<typeof mapEntryRow>[0]));
 }
 
@@ -291,10 +326,19 @@ export async function addJournalEntry(
   const body = input.body.trim();
   if (!body) return { error: "empty_body" };
 
-  const onList = await fetchWatchlistJournal(userId, sym);
-  if (!onList) return { error: "not_on_watchlist" };
-
   const db = createServiceClient();
+  const onList = await db
+    .from("user_watchlist")
+    .select("symbol")
+    .eq("user_id", userId)
+    .eq("symbol", sym)
+    .maybeSingle();
+  if (onList.error) {
+    console.error("[watchlist/journal/on-list]", onList.error);
+    return { error: "db_error" };
+  }
+  if (!onList.data) return { error: "not_on_watchlist" };
+
   const conviction_after =
     input.conviction_after != null && Number.isFinite(input.conviction_after)
       ? Math.min(10, Math.max(1, Math.round(input.conviction_after)))
@@ -305,7 +349,7 @@ export async function addJournalEntry(
 
   const marker_price = skipMarker ? null : await resolveJournalMarkerPrice(sym);
 
-  const { data, error } = await db
+  let { data, error } = await db
     .from("watchlist_journal_entries")
     .insert({
       user_id: userId,
@@ -320,12 +364,31 @@ export async function addJournalEntry(
     .select("id, body, entry_type, metadata, reply_to_id, conviction_after, marker_price, created_at")
     .single();
 
+  if (error && isSchemaDriftError(error)) {
+    ({ data, error } = await db
+      .from("watchlist_journal_entries")
+      .insert({
+        user_id: userId,
+        symbol: sym,
+        body: body.slice(0, 4000),
+        reply_to_id: input.reply_to_id ?? null,
+        conviction_after,
+        marker_price,
+      } as never)
+      .select("id, body, reply_to_id, conviction_after, marker_price, created_at")
+      .single());
+  }
+
   if (error) {
+    if (isSchemaDriftError(error)) {
+      console.warn("[watchlist/journal/entry] journal table unavailable");
+      return { error: "journal_unavailable" };
+    }
     console.error("[watchlist/journal/entry]", error);
     return { error: "db_error" };
   }
 
-  await db
+  void db
     .from("user_watchlist")
     .update({ journal_updated_at: new Date().toISOString() } as never)
     .eq("user_id", userId)

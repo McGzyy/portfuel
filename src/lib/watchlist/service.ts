@@ -7,6 +7,11 @@ import { resolveWatchlistSymbol } from "@/lib/market/validate-symbol";
 import { enrichWatchlistActivity } from "@/lib/watchlist/activity";
 import { normalizeCatalysts } from "@/lib/watchlist/journal-meta";
 import { addJournalEntry, resolveBaselinePrice } from "@/lib/watchlist/journal";
+import {
+  isSchemaDriftError,
+  WATCHLIST_BASIC_SELECT,
+  WATCHLIST_FULL_SELECT,
+} from "@/lib/watchlist/db-select";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 
 const MAX_WATCHLIST = 24;
@@ -17,13 +22,25 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
   if (isDemoMode()) return getDemoWatchlist(userId);
 
   const db = createServiceClient();
-  const { data, error } = await db
+  const primary = await db
     .from("user_watchlist")
-    .select(
-      "symbol, asset_class, created_at, baseline_price, conviction, thesis, journal_updated_at, outcome, catalysts, entry_price, target_price, risk_factors, price_alert_pct"
-    )
+    .select(WATCHLIST_FULL_SELECT)
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
+
+  let data = primary.data as WatchlistEntry[] | null;
+  let error = primary.error;
+
+  if (error && isSchemaDriftError(error)) {
+    console.warn("[watchlist/fetch] journal columns missing — using basic select");
+    const fallback = await db
+      .from("user_watchlist")
+      .select(WATCHLIST_BASIC_SELECT)
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    data = fallback.data as WatchlistEntry[] | null;
+    error = fallback.error;
+  }
 
   if (error) throw error;
 
@@ -123,14 +140,21 @@ export async function addToWatchlist(
     return { error: "db_error" };
   }
 
-  await addJournalEntry(userId, sym, {
-    body:
-      thesis && thesis.length > 0
-        ? "Added to watchlist."
-        : "Added to watchlist — add your thesis on the journal page.",
-    conviction_after: conviction,
-    entry_type: "system",
-  });
+  try {
+    const entryResult = await addJournalEntry(userId, sym, {
+      body:
+        thesis && thesis.length > 0
+          ? "Added to watchlist."
+          : "Added to watchlist — add your thesis on the journal page.",
+      conviction_after: conviction,
+      entry_type: "system",
+    });
+    if ("error" in entryResult) {
+      console.warn("[watchlist/add/journal-entry]", entryResult.error);
+    }
+  } catch (e) {
+    console.error("[watchlist/add/journal-entry]", e);
+  }
 
   return { ok: true };
 }

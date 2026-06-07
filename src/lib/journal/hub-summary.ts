@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import { isSchemaDriftError } from "@/lib/watchlist/db-select";
 import { summarizeJournalHubProgress } from "@/lib/journal/checklist";
 import { getDemoJournalEntryStats } from "@/lib/watchlist/journal-demo";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
@@ -29,6 +30,10 @@ export async function fetchJournalEntryStats(
     .eq("user_id", userId);
 
   if (error) {
+    if (isSchemaDriftError(error)) {
+      console.warn("[watchlist/journal/stats] journal entries table unavailable");
+      return {};
+    }
     console.error("[watchlist/journal/stats]", error);
     return {};
   }
