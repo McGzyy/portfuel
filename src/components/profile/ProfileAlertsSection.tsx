@@ -99,8 +99,11 @@ export function ProfileAlertsSection() {
           <span>
             {" "}
             · Email off — enable instant alerts in{" "}
-            <Link href="#email" className="font-semibold text-[var(--pf-red)] hover:underline">
-              Email settings
+            <Link
+              href="/dashboard/settings?section=notifications"
+              className="font-semibold text-[var(--pf-red)] hover:underline"
+            >
+              Notification settings
             </Link>
           </span>
         )}

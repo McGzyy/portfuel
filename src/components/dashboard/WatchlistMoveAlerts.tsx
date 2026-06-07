@@ -36,7 +36,7 @@ export function WatchlistMoveAlerts({
           Watchlist movers
         </span>
         <Link
-          href="/settings#alerts"
+          href="/dashboard/settings?section=notifications"
           className="normal-case tracking-normal text-amber-800 underline-offset-2 hover:underline"
         >
           Alert settings

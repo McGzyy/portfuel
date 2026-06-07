@@ -33,7 +33,7 @@ export function SiteHeader({
                   href="/admin"
                   className="hidden text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] sm:inline"
                 >
-                  Administration
+                  Admin
                 </Link>
               ) : user.role !== "admin" ? (
                 <span className="hidden max-w-[10rem] truncate rounded-full bg-[var(--pf-gray-100)] px-3 py-1 text-xs font-medium text-[var(--pf-gray-600)] sm:inline">

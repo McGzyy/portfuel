@@ -31,7 +31,7 @@ export function WatchlistIntelSnippet({
         <Lock className="h-2.5 w-2.5 shrink-0 text-[var(--pf-gray-400)]" aria-hidden />
         <span>Pro: earnings date &amp; headlines</span>
         <Link
-          href="/settings#billing"
+          href="/dashboard/settings?section=billing"
           className="font-semibold text-[var(--pf-red)] hover:underline"
         >
           Upgrade

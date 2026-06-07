@@ -1,6 +1,8 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { MemberNav } from "@/components/dashboard/MemberNav";
 import { ModerationBanner } from "@/components/member/ModerationBanner";
+import { WorkspaceAnnouncementStack } from "@/components/announcements/WorkspaceAnnouncementStack";
+import { fetchActiveAnnouncementsForUser } from "@/lib/announcements/service";
 import { WorkspaceSidebar } from "@/components/dashboard/WorkspaceSidebar";
 import { WorkspaceContent } from "@/components/dashboard/WorkspaceContent";
 import { requireDashboardSession } from "@/lib/dashboard/data";
@@ -26,6 +28,13 @@ export default async function DashboardLayout({
     ]);
   } catch {
     /* optional */
+  }
+
+  let announcements: Awaited<ReturnType<typeof fetchActiveAnnouncementsForUser>> = [];
+  try {
+    announcements = await fetchActiveAnnouncementsForUser(session.userId, session);
+  } catch {
+    /* migration may be pending */
   }
 
   return (
@@ -58,6 +67,9 @@ export default async function DashboardLayout({
             canDm={session.canDm}
             canComment={session.canComment}
           />
+          {announcements.length > 0 ? (
+            <WorkspaceAnnouncementStack announcements={announcements} />
+          ) : null}
           <WorkspaceContent>{children}</WorkspaceContent>
         </div>
       </div>

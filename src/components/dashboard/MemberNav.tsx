@@ -193,7 +193,7 @@ export function MemberNav({
                   onClick={() => setDrawerOpen(false)}
                   className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
                 >
-                  Administration
+                  Admin
                 </Link>
               ) : null}
               <Link
@@ -204,7 +204,7 @@ export function MemberNav({
                 Profile
               </Link>
               <Link
-                href="/settings"
+                href="/dashboard/settings"
                 onClick={() => setDrawerOpen(false)}
                 className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
               >

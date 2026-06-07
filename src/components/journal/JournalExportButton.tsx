@@ -23,7 +23,7 @@ export function JournalExportButton({
   if (!proUnlocked) {
     return (
       <Link
-        href="/settings#billing"
+        href="/dashboard/settings?section=billing"
         className={cn(
           "inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--pf-red)] hover:underline",
           className

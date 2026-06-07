@@ -69,6 +69,7 @@ After applying migrations:
 | 44 | `20260611100000_watchlist_symbol_price_alerts.sql` | Per-symbol price alert % (Pro) |
 | 45 | `20260612100000_watchlist_digest_ai.sql` | AI watchlist digest usage counter |
 | 46 | `20260613100000_push_subscriptions.sql` | PWA push subscriptions + `push_alerts_enabled` |
+| 47 | `20260614100000_site_announcements.sql` | Admin workspace broadcast banners + dismissals |
 
 > **Note:** `20260607095000_referral_program.sql` was renamed from a duplicate `20260607100000` timestamp so journal migrations apply in a deterministic order on fresh databases.
 

@@ -108,7 +108,7 @@ export function NotificationsList({ proUnlocked = false }: { proUnlocked?: boole
           <NotificationsCommandHeader unreadCount={unread} totalCount={items.length} embedded />
           <div className="flex shrink-0 flex-wrap items-center gap-2 pt-1">
             <Link
-              href="/settings#alerts"
+              href="/dashboard/settings?section=notifications"
               className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--pf-border)] bg-white px-3 py-1.5 text-xs font-semibold text-[var(--pf-gray-700)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
             >
               Alert settings
@@ -135,7 +135,7 @@ export function NotificationsList({ proUnlocked = false }: { proUnlocked?: boole
           </p>
         </div>
         <Link
-          href="/settings#alerts"
+          href="/dashboard/settings?section=notifications"
           className="shrink-0 rounded-lg bg-[var(--pf-red)] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[var(--pf-red-hover)]"
         >
           Open alert settings →
@@ -151,7 +151,7 @@ export function NotificationsList({ proUnlocked = false }: { proUnlocked?: boole
             watchlist
           </Link>{" "}
           and publish calls — engagement shows up here. Configure{" "}
-          <Link href="/settings#alerts" className="font-semibold text-[var(--pf-red)] hover:underline">
+          <Link href="/dashboard/settings?section=notifications" className="font-semibold text-[var(--pf-red)] hover:underline">
             alert delivery
           </Link>{" "}
           in Settings.

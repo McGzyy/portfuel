@@ -50,7 +50,7 @@ export function WatchlistJournalReviewPanel({
           </p>
         </div>
         <Link
-          href="/settings#alerts"
+          href="/dashboard/settings?section=notifications"
           className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
         >
           Alert settings →

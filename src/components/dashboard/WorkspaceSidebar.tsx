@@ -129,7 +129,7 @@ export function WorkspaceSidebar({
                 href="/admin"
                 className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
               >
-                Administration
+                Admin
               </Link>
             ) : null}
               <Link
@@ -139,7 +139,7 @@ export function WorkspaceSidebar({
                 Profile
               </Link>
               <Link
-                href="/settings"
+                href="/dashboard/settings"
                 className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
               >
                 Settings

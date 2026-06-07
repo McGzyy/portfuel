@@ -195,7 +195,7 @@ const WORKSPACE_GUIDE_SECTIONS_TEMPLATE: {
         profileLink: true,
       },
       {
-        href: "/settings",
+        href: "/dashboard/settings",
         label: "Settings",
         description: "Billing, email, watchlist alerts, referrals, and Discord.",
       },

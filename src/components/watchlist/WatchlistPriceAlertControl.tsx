@@ -61,7 +61,7 @@ export function WatchlistPriceAlertControl({
     return (
       <p className="mt-1 text-[10px] text-[var(--pf-gray-400)]">
         Price alerts off —{" "}
-        <Link href="/settings#alerts" className="font-semibold text-[var(--pf-red)] hover:underline">
+        <Link href="/dashboard/settings?section=notifications" className="font-semibold text-[var(--pf-red)] hover:underline">
           enable in Settings
         </Link>
       </p>
@@ -141,7 +141,7 @@ export function WatchlistPriceAlertControl({
       ) : null}
       {!proUnlocked ? (
         <Link
-          href="/settings#billing"
+          href="/dashboard/settings?section=billing"
           className="text-[10px] font-semibold text-[var(--pf-red)] hover:underline"
         >
           Pro: per-symbol
