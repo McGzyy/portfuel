@@ -14,7 +14,12 @@ export type JournalPrefillEntry = Extract<
 
 export function journalSymbolPath(
   symbol: string,
-  opts?: { setup?: boolean; section?: JournalSection; entry?: JournalPrefillEntry }
+  opts?: {
+    setup?: boolean;
+    section?: JournalSection;
+    entry?: JournalPrefillEntry;
+    focusEntryId?: string;
+  }
 ): string {
   const sym = symbol.toUpperCase();
   let url = `/dashboard/journal/${encodeURIComponent(sym)}`;
@@ -23,7 +28,11 @@ export function journalSymbolPath(
   if (opts?.entry) params.set("entry", opts.entry);
   const qs = params.toString();
   if (qs) url += `?${qs}`;
-  if (opts?.section) url += `#journal-${opts.section}`;
+  if (opts?.focusEntryId) {
+    url += `#journal-entry-${encodeURIComponent(opts.focusEntryId)}`;
+  } else if (opts?.section) {
+    url += `#journal-${opts.section}`;
+  }
   return url;
 }
 

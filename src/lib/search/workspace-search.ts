@@ -11,6 +11,7 @@ import { searchWorkspacePages } from "@/lib/search/workspace-pages";
 import { buildSymbolSearchResult } from "@/lib/search/symbol-links";
 import { searchMarketHeadlines } from "@/lib/search/headlines-search";
 import { searchJournalEntries } from "@/lib/search/journal-entries-search";
+import { searchMemberCalls } from "@/lib/search/calls-search";
 import {
   getCachedSearch,
   searchCacheKey,
@@ -258,6 +259,7 @@ export async function searchWorkspace(
       recent,
       symbols: [],
       journalEntries: [],
+      calls: [],
       members: [],
       pages,
       headlines: [],
@@ -286,13 +288,17 @@ export async function searchWorkspace(
       : [];
 
   const headlines = await searchMarketHeadlines(query, watchlistSymbolList);
-  const journalEntries = await searchJournalEntries(userId, query);
+  const [journalEntries, calls] = await Promise.all([
+    searchJournalEntries(userId, query),
+    searchMemberCalls(query),
+  ]);
 
   const results: WorkspaceSearchResults = {
     query,
     recent: [],
     symbols: symbols.slice(0, SYMBOL_LIMIT),
     journalEntries,
+    calls,
     members,
     pages,
     headlines,

@@ -72,6 +72,31 @@ export function WatchlistJournalTimeline({
     [entries]
   );
 
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash.startsWith("#journal-entry-")) return;
+
+    const entryId = decodeURIComponent(hash.slice("#journal-entry-".length));
+    const entry = entries.find((row) => row.id === entryId);
+    if (!entry) return;
+
+    if (filter !== "all" && filter !== entry.entry_type) {
+      setFilter("all");
+    }
+
+    const id = window.requestAnimationFrame(() => {
+      const node = document.getElementById(`journal-entry-${entryId}`);
+      if (!node) return;
+      node.scrollIntoView({ block: "center", behavior: "smooth" });
+      node.classList.add("ring-2", "ring-[var(--pf-red)]/40", "ring-offset-2");
+      window.setTimeout(() => {
+        node.classList.remove("ring-2", "ring-[var(--pf-red)]/40", "ring-offset-2");
+      }, 2400);
+    });
+
+    return () => window.cancelAnimationFrame(id);
+  }, [entries, filter]);
+
   const placeholder =
     JOURNAL_ENTRY_PLACEHOLDERS[entryType] ??
     "Earnings beat — revenue accelerated. Raised conviction…";

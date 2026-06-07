@@ -18,6 +18,7 @@ import {
   ExternalLink,
   LayoutDashboard,
   Loader2,
+  Megaphone,
   Newspaper,
   NotebookPen,
   Search,
@@ -33,6 +34,7 @@ import {
   removeRecentTicker,
 } from "@/lib/search/recent-tickers";
 import type {
+  SearchCallResult,
   SearchHeadlineResult,
   SearchJournalEntryResult,
   SearchMemberResult,
@@ -46,7 +48,8 @@ type PaletteItem =
   | { kind: "member"; data: SearchMemberResult }
   | { kind: "page"; data: SearchPageResult }
   | { kind: "headline"; data: SearchHeadlineResult }
-  | { kind: "journal"; data: SearchJournalEntryResult };
+  | { kind: "journal"; data: SearchJournalEntryResult }
+  | { kind: "call"; data: SearchCallResult };
 
 type WorkspaceSearchContextValue = {
   open: boolean;
@@ -186,6 +189,12 @@ function WorkspaceCommandPalette({
         items: results.journalEntries.map((data) => ({ kind: "journal" as const, data })),
       });
     }
+    if (results.calls.length > 0) {
+      sections.push({
+        title: "Calls",
+        items: results.calls.map((data) => ({ kind: "call" as const, data })),
+      });
+    }
     if (results.members.length > 0) {
       sections.push({
         title: "Members",
@@ -264,6 +273,7 @@ function WorkspaceCommandPalette({
             recent: [],
             symbols: [],
             journalEntries: [],
+            calls: [],
             members: [],
             pages: [],
             headlines: [],
@@ -396,7 +406,7 @@ function WorkspaceCommandPalette({
               <p className="mt-1 text-xs leading-relaxed text-[var(--pf-gray-500)]">
                 {emptyQuery
                   ? "Try NVDA, @username, or earnings in your journal."
-                  : "Check the symbol, try @ before a username, or search journal notes (2+ letters)."}
+                  : "Check the symbol, try @ before a username, or search journal notes and theses (2+ letters)."}
               </p>
             </div>
           ) : null}
@@ -463,6 +473,19 @@ function WorkspaceCommandPalette({
                     return (
                       <JournalEntryRow
                         key={`journal-${item.data.id}`}
+                        item={item.data}
+                        query={query}
+                        dataIndex={index}
+                        active={activeIndex === index}
+                        onHover={() => setActiveIndex(index)}
+                        onPick={() => navigate(item.data.href)}
+                      />
+                    );
+                  }
+                  if (item.kind === "call") {
+                    return (
+                      <CallRow
+                        key={`call-${item.data.id}`}
                         item={item.data}
                         query={query}
                         dataIndex={index}
@@ -766,6 +789,67 @@ function JournalEntryRow({
         </span>
         <span className="mt-0.5 line-clamp-2 text-sm leading-snug text-[var(--pf-black)]">
           <HighlightedText text={item.body} query={query} />
+        </span>
+        {age ? (
+          <span className="mt-1 block text-xs text-[var(--pf-gray-500)]">{age}</span>
+        ) : null}
+      </span>
+      <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" />
+    </button>
+  );
+}
+
+function CallRow({
+  item,
+  query,
+  dataIndex,
+  active,
+  onHover,
+  onPick,
+}: {
+  item: SearchCallResult;
+  query: string;
+  dataIndex: number;
+  active: boolean;
+  onHover: () => void;
+  onPick: () => void;
+}) {
+  const age =
+    item.calledAt.length > 0
+      ? formatDistanceToNow(new Date(item.calledAt), { addSuffix: true })
+      : null;
+
+  return (
+    <button
+      type="button"
+      data-index={dataIndex}
+      onMouseEnter={onHover}
+      onClick={onPick}
+      className={cn(
+        "flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
+        active ? "bg-[var(--pf-gray-100)]" : "hover:bg-[var(--pf-gray-50)]"
+      )}
+    >
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--pf-gray-100)] text-[var(--pf-gray-600)]">
+        <Megaphone className="h-4 w-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <span className="font-mono text-xs font-bold text-[var(--pf-red)]">{item.symbol}</span>
+          <span
+            className={cn(
+              "rounded px-1.5 py-0.5 text-[10px] font-bold uppercase",
+              item.direction === "long"
+                ? "bg-emerald-50 text-emerald-800"
+                : "bg-rose-50 text-rose-800"
+            )}
+          >
+            {item.direction}
+          </span>
+          <span className="text-xs text-[var(--pf-gray-500)]">{item.authorLabel}</span>
+        </span>
+        <span className="mt-0.5 line-clamp-2 text-sm leading-snug text-[var(--pf-black)]">
+          <HighlightedText text={item.thesis} query={query} />
         </span>
         {age ? (
           <span className="mt-1 block text-xs text-[var(--pf-gray-500)]">{age}</span>

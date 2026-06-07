@@ -42,12 +42,23 @@ export type SearchJournalEntryResult = {
   href: string;
 };
 
+export type SearchCallResult = {
+  id: string;
+  symbol: string;
+  direction: "long" | "short";
+  thesis: string;
+  authorLabel: string;
+  calledAt: string;
+  href: string;
+};
+
 export type WorkspaceSearchResults = {
   query: string;
   /** Populated when the query is empty and the client sends recent symbols. */
   recent: SearchSymbolResult[];
   symbols: SearchSymbolResult[];
   journalEntries: SearchJournalEntryResult[];
+  calls: SearchCallResult[];
   members: SearchMemberResult[];
   pages: SearchPageResult[];
   headlines: SearchHeadlineResult[];

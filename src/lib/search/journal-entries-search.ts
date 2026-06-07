@@ -33,7 +33,7 @@ function mapRow(
     entryType: row.entry_type,
     entryTypeLabel: journalEntryTypeLabel(row.entry_type),
     createdAt: row.created_at,
-    href: journalSymbolPath(row.symbol, { section: "entries" }),
+    href: journalSymbolPath(row.symbol, { section: "entries", focusEntryId: row.id }),
   };
 }
 
