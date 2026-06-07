@@ -1,7 +1,7 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { attachJournalHubProgress, fetchJournalEntryStats } from "@/lib/journal/hub-summary";
-import { getCryptoLastPrice, getQuote } from "@/lib/market/finnhub";
+import { getCryptoLastPriceForSymbol } from "@/lib/market/crypto-candles";
 import { getCoreCryptoAsset } from "@/lib/market/crypto-allowlist";
 import { getDemoWatchlist } from "@/lib/watchlist/demo";
 import { resolveWatchlistSymbol } from "@/lib/market/validate-symbol";
@@ -126,9 +126,9 @@ export async function addToWatchlist(
   const baseline_price =
     validated.lastPrice != null && Number.isFinite(validated.lastPrice)
       ? Math.round(validated.lastPrice * 10000) / 10000
-      : validated.assetClass === "crypto" && validated.finnhubSymbol
+      : validated.assetClass === "crypto"
         ? await (async () => {
-            const p = await getCryptoLastPrice(validated.finnhubSymbol!);
+            const p = await getCryptoLastPriceForSymbol(sym);
             return p != null && Number.isFinite(p)
               ? Math.round(p * 10000) / 10000
               : null;
@@ -327,7 +327,7 @@ async function reconcileWatchlistAssetClasses(
       const patch: Record<string, unknown> = { asset_class: "crypto" };
       const baseline = entry.baseline_price != null ? Number(entry.baseline_price) : null;
       if (baseline == null || baseline <= 0) {
-        const live = await getCryptoLastPrice(core.finnhub_symbol);
+        const live = await getCryptoLastPriceForSymbol(entry.symbol);
         if (live != null && live > 0) {
           patch.baseline_price = Math.round(live * 10000) / 10000;
         }
@@ -380,7 +380,7 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
       const core = getCoreCryptoAsset(entry.symbol);
       if (!core) return;
 
-      const live = await getCryptoLastPrice(core.finnhub_symbol);
+      const live = await getCryptoLastPriceForSymbol(entry.symbol);
       if (live != null && live > 0) priceMap.set(entry.symbol, live);
     })
   );

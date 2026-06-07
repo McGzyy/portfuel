@@ -4,8 +4,8 @@ import type { ChartCandleResolution } from "@/lib/charts/types";
 import { getSession } from "@/lib/auth/session";
 import { isDemoMode } from "@/lib/demo/config";
 import { resolveCryptoAsset } from "@/lib/market/crypto-allowlist";
+import { getCryptoCandlesForSymbol } from "@/lib/market/crypto-candles";
 import { getEquityCandles } from "@/lib/market/equity-candles";
-import { getCryptoCandles } from "@/lib/market/finnhub";
 import {
   canAccessProIntelligence,
   sessionToProContext,
@@ -78,11 +78,12 @@ export async function GET(
     }
 
     const { from, to } = windowForResolution(resolution);
-    const crypto = await resolveCryptoAsset(symbol);
+    const assetParam = searchParams.get("asset");
+    const forceCrypto = assetParam === "crypto";
 
     let rawCandles = null;
-    if (crypto?.finnhub_symbol) {
-      rawCandles = await getCryptoCandles(crypto.finnhub_symbol, from, to, resolution);
+    if (forceCrypto || (await resolveCryptoAsset(symbol))) {
+      rawCandles = await getCryptoCandlesForSymbol(symbol, from, to, resolution);
     } else if (resolution === "D") {
       rawCandles = await getEquityCandles(symbol, from, to, "D");
     } else {

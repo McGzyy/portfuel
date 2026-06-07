@@ -1,7 +1,8 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { getCoreCryptoAsset } from "@/lib/market/crypto-allowlist";
+import { getCryptoLastPriceForSymbol } from "@/lib/market/crypto-candles";
 import type { AssetClass } from "@/lib/market/validate-symbol";
-import { getQuote, getCryptoLastPrice } from "@/lib/market/finnhub";
+import { getQuote } from "@/lib/market/finnhub";
 import {
   computeHypeScore,
   computeReturnPct,
@@ -60,15 +61,7 @@ export async function fetchLastPriceForSymbol(
 
   try {
     if (assetClass === "crypto") {
-      if (!finnhubSymbol) {
-        return {
-          symbol: sym,
-          lastPrice: null,
-          assetClass,
-          error: "missing_finnhub_symbol",
-        };
-      }
-      const lastPrice = await getCryptoLastPrice(finnhubSymbol);
+      const lastPrice = await getCryptoLastPriceForSymbol(sym);
       return { symbol: sym, lastPrice, assetClass };
     }
 

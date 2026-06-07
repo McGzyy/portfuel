@@ -138,8 +138,14 @@ export function WatchlistPanel({
   useEffect(() => {
     if (items.length === 0) return;
     const symbols = items.map((i) => i.symbol).join(",");
+    const crypto = items
+      .filter((i) => i.asset_class === "crypto")
+      .map((i) => i.symbol)
+      .join(",");
+    const query = new URLSearchParams({ symbols });
+    if (crypto) query.set("crypto", crypto);
     const controller = new AbortController();
-    void fetch(`/api/market/sparklines?symbols=${encodeURIComponent(symbols)}`, {
+    void fetch(`/api/market/sparklines?${query.toString()}`, {
       signal: controller.signal,
     })
       .then((res) => (res.ok ? res.json() : null))
@@ -336,7 +342,11 @@ export function WatchlistPanel({
                             <span className="rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-800">
                               Crypto
                             </span>
-                          ) : null}
+                          ) : (
+                            <span className="rounded-full bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-800">
+                              Stock
+                            </span>
+                          )}
                           {!item.has_thesis ? (
                             <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
                               Needs thesis

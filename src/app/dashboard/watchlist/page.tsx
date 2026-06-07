@@ -8,6 +8,7 @@ import { WatchlistItemsProvider } from "@/components/dashboard/WatchlistItemsPro
 import { WatchlistQuickAddChips } from "@/components/dashboard/WatchlistQuickAddChips";
 import { FeedRefreshButton } from "@/components/dashboard/FeedRefreshButton";
 import { EarningsCalendarPanel } from "@/components/pro/EarningsCalendarPanel";
+import { MarketHeadlinesWidget } from "@/components/pro/MarketHeadlinesWidget";
 import { WatchlistAiDigestPanel } from "@/components/pro/WatchlistAiDigestPanel";
 import { ResearchPipeline } from "@/components/journal/ResearchPipeline";
 import { requireDashboardSession } from "@/lib/dashboard/data";
@@ -112,7 +113,10 @@ export default async function DashboardWatchlistPage() {
             initialItems={items}
             alertPrefs={alertPrefs}
           />
-          <EarningsCalendarPanel locked={proLocked} proGateCta={proGateCta} />
+          <div className="flex flex-col gap-6">
+            <EarningsCalendarPanel locked={proLocked} proGateCta={proGateCta} />
+            <MarketHeadlinesWidget watchlistSymbols={items.map((i) => i.symbol)} />
+          </div>
         </div>
       </div>
     </WatchlistItemsProvider>

@@ -17,6 +17,14 @@ export async function GET(request: Request) {
     .filter(Boolean)
     .slice(0, 12);
 
+  const cryptoRaw = searchParams.get("crypto") ?? "";
+  const cryptoSymbols = new Set(
+    cryptoRaw
+      .split(",")
+      .map((s) => s.trim().toUpperCase())
+      .filter(Boolean)
+  );
+
   if (symbols.length === 0) {
     return NextResponse.json({ series: {} });
   }
@@ -34,7 +42,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const series = await fetchSparklinesForSymbols(symbols);
+    const series = await fetchSparklinesForSymbols(symbols, { cryptoSymbols });
     return NextResponse.json({ series });
   } catch (e) {
     console.error("[sparklines]", e);

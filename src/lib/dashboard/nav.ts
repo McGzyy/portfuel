@@ -74,7 +74,7 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
   {
     href: "/dashboard/research",
     label: "Pro research",
-    description: "Screener, earnings & compare",
+    description: "Screener, earnings, compare & headlines",
     icon: "scan",
   },
 ];
@@ -181,7 +181,7 @@ const WORKSPACE_GUIDE_SECTIONS_TEMPLATE: {
       {
         href: "/dashboard/research",
         label: "Pro research",
-        description: "Screener, earnings battleboard, and ticker compare in one hub.",
+        description: "Screener, earnings battleboard, ticker compare, and market headlines.",
       },
     ],
   },

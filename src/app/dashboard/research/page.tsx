@@ -12,6 +12,11 @@ import { parseResearchHubTab } from "@/lib/dashboard/research-hub";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { fetchEarningsBattleboard } from "@/lib/earnings/battleboard";
 import {
+  fetchMarketHeadlinesByLane,
+  parseMarketHeadlineLane,
+} from "@/lib/market/market-headlines";
+import { MarketHeadlinesPanel } from "@/components/news/MarketHeadlinesPanel";
+import {
   getProGateCta,
   isProIntelligenceLocked,
   sessionToProContext,
@@ -36,7 +41,7 @@ function compareDetail(symbolCount: number, watchlistCount: number): string {
 export default async function DashboardResearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; symbols?: string }>;
+  searchParams: Promise<{ tab?: string; symbols?: string; lane?: string }>;
 }) {
   const sp = await searchParams;
   const tab = parseResearchHubTab(sp.tab);
@@ -92,6 +97,31 @@ export default async function DashboardResearchPage({
             <EarningsBattleboardTable rows={rows} />
           </div>
         </ProIntelligenceGate>
+      </div>
+    );
+  }
+
+  if (tab === "news") {
+    let watchlistSymbols: string[] = [];
+    try {
+      const wl = await fetchWatchlist(session.userId);
+      watchlistSymbols = wl.map((w) => w.symbol);
+    } catch {
+      /* optional */
+    }
+
+    const initialLane = parseMarketHeadlineLane(sp.lane);
+    const initialHeadlines = await fetchMarketHeadlinesByLane(initialLane, watchlistSymbols);
+
+    return (
+      <div className="space-y-6">
+        <ResearchCommandHeader tab="news" />
+        <WorkspaceQuickActions proUnlocked={!proLocked} />
+        <MarketHeadlinesPanel
+          initialLane={initialLane}
+          initialHeadlines={initialHeadlines}
+          watchlistCount={watchlistSymbols.length}
+        />
       </div>
     );
   }
