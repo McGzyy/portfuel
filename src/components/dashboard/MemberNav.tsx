@@ -99,8 +99,7 @@ export function MemberNav({
       {drawerOpen ? (
         <button
           type="button"
-          className="fixed inset-x-0 bottom-0 top-[var(--pf-safe-top)] z-[60] bg-black/40 lg:hidden"
-          style={{ paddingBottom: "var(--pf-bottom-nav-height)" }}
+          className="fixed inset-0 top-[var(--pf-safe-top)] z-[60] bg-black/40 lg:hidden"
           aria-label="Close workspace menu"
           onClick={() => setDrawerOpen(false)}
         />
@@ -109,7 +108,7 @@ export function MemberNav({
       <aside
         id="workspace-mobile-nav"
         className={cn(
-          "fixed bottom-[var(--pf-bottom-nav-height)] left-0 top-[var(--pf-safe-top)] z-[70] flex w-[min(18.5rem,88vw)] flex-col border-r border-[var(--pf-border)] bg-white shadow-xl transition-transform duration-200 ease-out lg:hidden",
+          "fixed bottom-0 left-0 top-[var(--pf-safe-top)] z-[70] flex w-[min(18.5rem,88vw)] flex-col border-r border-[var(--pf-border)] bg-white pb-[var(--pf-bottom-nav-height)] shadow-xl transition-transform duration-200 ease-out lg:hidden",
           drawerOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
         )}
         aria-hidden={!drawerOpen}
@@ -217,7 +216,10 @@ export function MemberNav({
       </aside>
 
       <nav
-        className="pf-workspace-bottom-nav lg:hidden"
+        className={cn(
+          "pf-workspace-bottom-nav lg:hidden",
+          drawerOpen && "z-[80]"
+        )}
         aria-label="Primary workspace navigation"
       >
         {WORKSPACE_BOTTOM_NAV.map((item) => {
