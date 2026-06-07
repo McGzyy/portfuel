@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Activity } from "lucide-react";
 import { cn, formatPct } from "@/lib/utils";
+import { useProQuoteRefresh } from "@/hooks/useProQuoteRefresh";
 import type { WorkspacePulse } from "@/lib/workspace/pulse";
 
 const POLL_MS = 45_000;
@@ -38,7 +39,8 @@ export function WorkspaceLiveBar({
   const refreshPrices = useCallback(async () => {
     setRefreshing(true);
     try {
-      const res = await fetch("/api/calls/refresh-quotes", { method: "POST" });
+      const url = pulse?.isPro ? "/api/pro/refresh-quotes" : "/api/calls/refresh-quotes";
+      const res = await fetch(url, { method: "POST" });
       if (res.ok) {
         await load();
         router.refresh();
@@ -48,7 +50,12 @@ export function WorkspaceLiveBar({
     } finally {
       setRefreshing(false);
     }
-  }, [load]);
+  }, [load, pulse?.isPro, router]);
+
+  useProQuoteRefresh({
+    enabled: Boolean(pulse?.isPro),
+    onRefresh: refreshPrices,
+  });
 
   useEffect(() => {
     if (!initial) void load();
@@ -80,7 +87,7 @@ export function WorkspaceLiveBar({
           </span>
           <span className="text-xs font-semibold text-[var(--pf-black)]">Live pulse</span>
           <span className="hidden text-xs text-[var(--pf-gray-500)] sm:inline">
-            · quotes every {pulse.quotesRefreshMinutes}m
+            · {pulse.isPro ? "Pro" : "Quotes"} every {pulse.quotesRefreshMinutes}m
           </span>
         </div>
         <div className="flex items-center gap-3 text-xs text-[var(--pf-gray-600)]">

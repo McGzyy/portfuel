@@ -19,6 +19,8 @@ import { resolvePriceMoveThreshold } from "@/lib/alerts/price-threshold";
 import type { WatchlistAlertPrefs } from "@/lib/alerts/preferences";
 import { DEFAULT_WATCHLIST_ALERT_PREFS } from "@/lib/alerts/preferences";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
+import { useProQuoteRefresh } from "@/hooks/useProQuoteRefresh";
+import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
 import { getDemoWatchlistSeed } from "@/lib/watchlist/demo";
 
 const DEMO_STORAGE_KEY = "portfuel_demo_watchlist";
@@ -134,6 +136,25 @@ export function WatchlistPanel({
     return () => controller.abort();
   }, [items]);
 
+  const refreshProQuotes = useCallback(async () => {
+    if (!proUnlocked) return;
+    try {
+      const res = await fetch("/api/pro/refresh-quotes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (res.ok) {
+        await load();
+        router.refresh();
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [proUnlocked, load, router]);
+
+  useProQuoteRefresh({ enabled: proUnlocked, onRefresh: refreshProQuotes });
+
   async function addSymbol(e: React.FormEvent) {
     e.preventDefault();
     const sym = symbol.trim().toUpperCase();
@@ -212,6 +233,11 @@ export function WatchlistPanel({
       </p>
       <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
         Track tickers for alerts and quick intel — you&apos;ll land in Journal to draft your thesis.
+        {proUnlocked ? (
+          <span className="mt-1 block text-[var(--pf-gray-400)]">
+            {quotesRefreshLabel({ isPro: true })}
+          </span>
+        ) : null}
       </p>
 
       <form onSubmit={addSymbol} className="mt-3">

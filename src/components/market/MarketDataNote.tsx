@@ -3,14 +3,14 @@ import { cn } from "@/lib/utils";
 
 export function MarketDataNote({
   className,
-  minutes,
+  isPro = false,
 }: {
   className?: string;
-  minutes?: number;
+  isPro?: boolean;
 }) {
   return (
     <p className={cn("text-xs text-[var(--pf-gray-500)]", className)}>
-      {quotesRefreshLabel(minutes)}
+      {quotesRefreshLabel({ isPro })}
     </p>
   );
 }

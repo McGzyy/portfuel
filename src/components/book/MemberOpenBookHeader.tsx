@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
 import type { MemberOpenBookSummary } from "@/lib/calls/member-book";
+import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
 import { formatPct } from "@/lib/utils";
 
 function Stat({
@@ -32,9 +33,11 @@ function Stat({
 export function MemberOpenBookHeader({
   summary,
   username,
+  isPro = false,
 }: {
   summary: MemberOpenBookSummary;
   username: string;
+  isPro?: boolean;
 }) {
   const avgAccent =
     summary.avgReturnPct == null
@@ -45,7 +48,7 @@ export function MemberOpenBookHeader({
 
   const subtitle =
     summary.openCount > 0
-      ? `${summary.openCount} live thesis${summary.openCount === 1 ? "" : "es"} across ${summary.uniqueSymbols} symbol${summary.uniqueSymbols === 1 ? "" : "s"} — marks refresh on load and every 15 minutes.`
+      ? `${summary.openCount} live thesis${summary.openCount === 1 ? "" : "es"} across ${summary.uniqueSymbols} symbol${summary.uniqueSymbols === 1 ? "" : "s"} — ${quotesRefreshLabel({ isPro }).replace(/^./, (c) => c.toLowerCase())}.`
       : "Your published calls with open entry, target, and stop appear here as a portfolio view — not broker sync.";
 
   return (

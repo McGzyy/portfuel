@@ -4,6 +4,7 @@ import { MemberOpenBookPanel } from "@/components/book/MemberOpenBookPanel";
 import { MemberOpenBookSymbols } from "@/components/book/MemberOpenBookSymbols";
 import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerformanceChart";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
+import { ProQuoteRefreshMount } from "@/components/market/ProQuoteRefreshMount";
 import { fetchMemberOpenBook } from "@/lib/calls/member-book";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { requireDashboardSession } from "@/lib/dashboard/data";
@@ -24,7 +25,12 @@ export default async function DashboardBookPage() {
 
   return (
     <div className="space-y-6">
-      <MemberOpenBookHeader summary={book.summary} username={session.username} />
+      {!proLocked ? <ProQuoteRefreshMount enabled /> : null}
+      <MemberOpenBookHeader
+        summary={book.summary}
+        username={session.username}
+        isPro={!proLocked}
+      />
       <WorkspaceQuickActions proUnlocked={!proLocked} />
 
       {book.summary.openCount > 0 ? (

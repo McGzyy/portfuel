@@ -18,6 +18,7 @@ export function TickerPageHeader({
   backLabel,
   onWatchlist,
   callCount = 0,
+  isPro = false,
 }: {
   symbol: string;
   intel: Awaited<ReturnType<typeof loadTickerIntel>> | null;
@@ -26,6 +27,7 @@ export function TickerPageHeader({
   backLabel?: string;
   onWatchlist?: boolean;
   callCount?: number;
+  isPro?: boolean;
 }) {
   const change = intel?.quote?.changePct;
   const changeAccent =
@@ -93,7 +95,7 @@ export function TickerPageHeader({
                   {formatPct(change)}
                 </span>
               ) : null}
-              <MarketDataNote className="mt-2 w-full" />
+              <MarketDataNote className="mt-2 w-full" isPro={isPro} />
             </div>
           ) : null}
         </div>

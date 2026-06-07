@@ -121,7 +121,7 @@ export function TickerChartSection({
       title={title}
       subtitle={
         subtitle ??
-        `Volume, Pro overlays (SMA · VWAP), and intraday intervals · ${quotesRefreshLabel()}`
+        `Volume, Pro overlays (SMA · VWAP), and intraday intervals · ${quotesRefreshLabel({ isPro: proUnlocked })}`
       }
       legend={
         hasData ? (

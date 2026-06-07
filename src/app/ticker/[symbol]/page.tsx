@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { ProQuoteRefreshMount } from "@/components/market/ProQuoteRefreshMount";
 import { PublishSuccessBanner } from "@/components/calls/PublishSuccessBanner";
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { AppShell } from "@/components/layout/AppShell";
@@ -103,6 +104,7 @@ export default async function TickerPage({
           <PublishSuccessBanner symbol={symbol} username={session.username} />
         </Suspense>
       ) : null}
+      {session && isPro ? <ProQuoteRefreshMount enabled symbols={[symbol]} /> : null}
       <section className="pf-ticker-shell">
         <TickerPageHeader
           symbol={symbol}
@@ -110,6 +112,7 @@ export default async function TickerPage({
           session={Boolean(session)}
           onWatchlist={onWatchlist}
           callCount={calls.length}
+          isPro={isPro}
         />
 
         {session ? (

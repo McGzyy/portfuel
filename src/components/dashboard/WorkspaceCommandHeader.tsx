@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
+import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
 import { cn } from "@/lib/utils";
 
 function greetingForHour(h: number): string {
@@ -12,11 +13,13 @@ export function WorkspaceCommandHeader({
   displayName,
   username,
   openCallsCount,
+  isPro = false,
   className,
 }: {
   displayName: string;
   username: string;
   openCallsCount: number;
+  isPro?: boolean;
   className?: string;
 }) {
   const hour = new Date().getHours();
@@ -24,7 +27,7 @@ export function WorkspaceCommandHeader({
 
   const subtitle =
     openCallsCount > 0
-      ? `${openCallsCount} open call${openCallsCount === 1 ? "" : "s"} on your book — marks refresh on load and every 15 minutes.`
+      ? `${openCallsCount} open call${openCallsCount === 1 ? "" : "s"} on your book — ${quotesRefreshLabel({ isPro }).replace(/^./, (c) => c.toLowerCase())}.`
       : "Publish a thesis with entry, target, and stop to start your on-record track record.";
 
   return (

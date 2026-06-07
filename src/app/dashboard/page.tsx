@@ -193,9 +193,12 @@ export default async function DashboardOverviewPage({
   const portfolio = await fetchDeskPortfolio();
   const fueledTrackRecord = await fetchFueledTrackRecord();
 
+  const isPro = !proLocked;
+  const proGateCta = getProGateCta(proContext);
+
   let workspacePulse = null;
   try {
-    workspacePulse = await fetchWorkspacePulse(session.userId);
+    workspacePulse = await fetchWorkspacePulse(session.userId, isPro);
   } catch {
     /* optional */
   }
@@ -213,8 +216,6 @@ export default async function DashboardOverviewPage({
   const avgPulse = communityPulse.avgReturnPct;
   const avgAccent =
     avgPulse == null ? undefined : avgPulse >= 0 ? ("positive" as const) : ("negative" as const);
-  const isPro = !proLocked;
-  const proGateCta = getProGateCta(proContext);
 
   let journalIdeas: Awaited<ReturnType<typeof fetchJournalHighlights>> = [];
   try {
@@ -252,6 +253,7 @@ export default async function DashboardOverviewPage({
         displayName={displayLabel}
         username={session.username}
         openCallsCount={openCallCards.length}
+        isPro={isPro}
       />
 
       <WorkspaceOverviewStats
