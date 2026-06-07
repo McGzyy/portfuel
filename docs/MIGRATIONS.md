@@ -73,6 +73,7 @@ After applying migrations:
 | 48 | `20260615100000_subscription_cancellation_feedback.sql` | Cancellation feedback + admin churn alerts |
 | 49 | `20260616100000_membership_tenure.sql` | Subscription / tier start timestamps for billing overview |
 | 50 | `20260617100000_workspace_guide_seen.sql` | Persist workspace map dismissal per user |
+| 51 | `20260618100000_journal_plan_revisions.sql` | Field-level audit log for journal plan edits |
 
 > **Note:** `20260607095000_referral_program.sql` was renamed from a duplicate `20260607100000` timestamp so journal migrations apply in a deterministic order on fresh databases.
 

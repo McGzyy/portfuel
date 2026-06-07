@@ -19,6 +19,10 @@ import type {
   WatchlistJournalEntry,
   WatchlistJournalPatch,
 } from "@/lib/watchlist/journal-types";
+import {
+  diffJournalPlanRevisions,
+  recordJournalPlanRevisions,
+} from "@/lib/watchlist/journal-revisions";
 
 const JOURNAL_SELECT =
   "symbol, asset_class, created_at, baseline_price, thesis, conviction, entry_price, stop_price, target_price, entry_note, journal_updated_at, catalysts, risk_factors, personal_tags, outcome, bull_case_price, base_case_price, bear_case_price";
@@ -128,6 +132,8 @@ export async function updateWatchlistJournal(
   const existing = await fetchWatchlistJournal(userId, sym);
   if (!existing) return { error: "not_on_watchlist" };
 
+  const revisionRows = diffJournalPlanRevisions(existing, patch);
+
   const updates: Record<string, unknown> = {
     journal_updated_at: new Date().toISOString(),
   };
@@ -188,6 +194,10 @@ export async function updateWatchlistJournal(
   if (error) {
     console.error("[watchlist/journal/update]", error);
     return { error: "db_error" };
+  }
+
+  if (revisionRows.length > 0) {
+    await recordJournalPlanRevisions(userId, sym, revisionRows);
   }
 
   const convictionAfter = updates.conviction as number | null | undefined;

@@ -229,10 +229,11 @@ export function WatchlistPanel({
       aria-label="Your watchlist"
     >
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-        Your symbols
+        Your watchlist
       </p>
       <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-        Track tickers for alerts and quick intel — you&apos;ll land in Journal to draft your thesis.
+        Step 1 — add tickers you want to research. We open your private journal so you can draft a
+        thesis, plan levels, and log entries over time.
         {proUnlocked ? (
           <span className="mt-1 block text-[var(--pf-gray-400)]">
             {quotesRefreshLabel({ isPro: true })}

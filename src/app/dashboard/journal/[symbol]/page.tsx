@@ -11,6 +11,7 @@ import { isDemoMode } from "@/lib/demo/config";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
 import { buildPublishUrlFromJournal } from "@/lib/watchlist/journal-call-url";
 import { fetchJournalEntries, fetchWatchlistJournal } from "@/lib/watchlist/journal";
+import { fetchJournalPlanRevisions } from "@/lib/watchlist/journal-revisions";
 import { normalizeJournalEntryType } from "@/lib/watchlist/journal-meta";
 import type { JournalPrefillEntry } from "@/lib/journal/paths";
 
@@ -63,8 +64,9 @@ export default async function DashboardJournalSymbolPage({
   const journal = await fetchWatchlistJournal(session.userId, symbol);
   if (!journal) notFound();
 
-  const [entries, intel] = await Promise.all([
+  const [entries, revisions, intel] = await Promise.all([
     fetchJournalEntries(session.userId, symbol),
+    fetchJournalPlanRevisions(session.userId, symbol),
     loadTickerIntel(symbol).catch(() => null),
   ]);
 
@@ -94,6 +96,7 @@ export default async function DashboardJournalSymbolPage({
       <WatchlistJournalWorkspace
         journal={journal}
         entries={entries}
+        revisions={revisions}
         intel={intelData}
         publishUrl={publishUrl}
         proUnlocked={proUnlocked}

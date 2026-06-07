@@ -26,10 +26,8 @@ export function WatchlistCommandHeader({
             Watchlist
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
-            {symbolCount} of {MAX_WATCHLIST} symbols tracked — alerts, lookup, and links to your{" "}
-            <Link href="/dashboard/journal" className="font-semibold text-[var(--pf-red)] hover:underline">
-              journal
-            </Link>
+            {symbolCount} of {MAX_WATCHLIST} symbols on your watchlist — add names here to research
+            in your journal, then publish a call when ready.
             {unreadAlerts > 0 ? (
               <span className="font-semibold text-[var(--pf-red)]">
                 {" "}

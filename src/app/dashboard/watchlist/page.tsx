@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { WatchlistCommandHeader } from "@/components/dashboard/WatchlistCommandHeader";
+import { TrackWorkflowGuide } from "@/components/dashboard/TrackWorkflowGuide";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { TickerLookupBar } from "@/components/dashboard/TickerLookupBar";
 import { WatchlistPanel } from "@/components/dashboard/WatchlistPanel";
@@ -63,6 +64,8 @@ export default async function DashboardWatchlistPage() {
 
       <ResearchPipeline current="track" logHref={nextUp?.href} />
 
+      <TrackWorkflowGuide />
+
       <WorkspaceQuickActions proUnlocked={proUnlocked} />
 
       <WatchlistAiDigestPanel
@@ -72,10 +75,17 @@ export default async function DashboardWatchlistPage() {
       />
 
       <div className="pf-workspace-panel p-4 sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-[var(--pf-gray-500)]">
-            Lookup any symbol for chart, calls, and intel — not limited to your list.
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+              Symbol lookup
+            </p>
+            <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
+              Browse chart, community calls, and intel for any ticker —{" "}
+              <span className="font-semibold text-[var(--pf-black)]">does not add</span> to your
+              watchlist.
+            </p>
+          </div>
           <FeedRefreshButton />
         </div>
         <div className="mt-4">

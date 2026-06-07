@@ -109,6 +109,7 @@ export function WatchlistJournalPlanForm({
         </p>
         <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
           Private research notebook — catalysts, risks, and scenario prices draw on your chart.
+          Saves are recorded in the edit log below.
         </p>
       </div>
 
@@ -307,7 +308,9 @@ export function WatchlistJournalPlanForm({
 
       {error ? <p className="text-xs text-rose-600">{error}</p> : null}
       {saved ? (
-        <p className="text-xs font-semibold text-emerald-700">Saved — chart and scenario strip updated.</p>
+        <p className="text-xs font-semibold text-emerald-700">
+          Saved — changes recorded in the plan edit log below.
+        </p>
       ) : null}
 
       <Button type="submit" size="sm" disabled={saving}>

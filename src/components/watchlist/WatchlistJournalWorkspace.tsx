@@ -20,11 +20,14 @@ import type { CandlePoint, ChartMarker } from "@/lib/charts/types";
 import type { TickerIntel } from "@/lib/market/ticker-intel";
 import { buildJournalEntryMarkers } from "@/lib/watchlist/journal-markers";
 import type { WatchlistJournal, WatchlistJournalEntry } from "@/lib/watchlist/journal-types";
+import { WatchlistJournalEditLog } from "@/components/watchlist/WatchlistJournalEditLog";
+import type { JournalPlanRevision } from "@/lib/watchlist/journal-revisions";
 import type { JournalPrefillEntry } from "@/lib/journal/paths";
 
 export function WatchlistJournalWorkspace({
   journal: initialJournal,
   entries: initialEntries,
+  revisions: initialRevisions,
   intel,
   publishUrl,
   proUnlocked,
@@ -33,6 +36,7 @@ export function WatchlistJournalWorkspace({
 }: {
   journal: WatchlistJournal;
   entries: WatchlistJournalEntry[];
+  revisions?: JournalPlanRevision[];
   intel: TickerIntel;
   publishUrl: string;
   proUnlocked: boolean;
@@ -41,6 +45,7 @@ export function WatchlistJournalWorkspace({
 }) {
   const [journal, setJournal] = useState(initialJournal);
   const [entries, setEntries] = useState(initialEntries);
+  const [revisions, setRevisions] = useState(initialRevisions ?? []);
   const priceLines = useMemo(
     () => [...buildJournalPriceLines(journal), ...buildJournalScenarioPriceLines(journal)],
     [journal]
@@ -79,6 +84,24 @@ export function WatchlistJournalWorkspace({
 
   function handleEntryAdded(entry: WatchlistJournalEntry) {
     setEntries((prev) => [...prev, entry]);
+  }
+
+  async function refreshRevisions() {
+    try {
+      const res = await fetch(
+        `/api/watchlist/${encodeURIComponent(journal.symbol)}/journal/revisions`
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      setRevisions((data.revisions ?? []) as JournalPlanRevision[]);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function handlePlanSaved(next: WatchlistJournal) {
+    setJournal(next);
+    void refreshRevisions();
   }
 
   const scrollToHash = useCallback(() => {
@@ -187,7 +210,7 @@ export function WatchlistJournalWorkspace({
           <WatchlistJournalPlanForm
             symbol={journal.symbol}
             initial={journal}
-            onSaved={(next) => setJournal(next)}
+            onSaved={handlePlanSaved}
           />
         </div>
       ) : null}
@@ -200,7 +223,7 @@ export function WatchlistJournalWorkspace({
             <WatchlistJournalPlanForm
               symbol={journal.symbol}
               initial={journal}
-              onSaved={(next) => setJournal(next)}
+              onSaved={handlePlanSaved}
             />
           </div>
         ) : null}
@@ -212,6 +235,10 @@ export function WatchlistJournalWorkspace({
             prefillEntryType={prefillEntry}
           />
         </div>
+      </div>
+
+      <div id="journal-edit-log">
+        <WatchlistJournalEditLog revisions={revisions} />
       </div>
 
       <div id="journal-research">
