@@ -2,6 +2,7 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { fetchUserAlertPrefs, isWatchlistAlertTypeEnabled } from "@/lib/alerts/preferences";
 import { maybeSendInstantNotificationEmail } from "@/lib/email/instant";
+import { maybeSendWatchlistPush, isWatchlistPushType } from "@/lib/push/watchlist-push";
 import { getDemoNotifications } from "@/lib/notifications/demo";
 import type { NotificationType, UserNotification } from "@/lib/notifications/types";
 
@@ -79,6 +80,16 @@ export async function createNotification(input: CreateNotificationInput): Promis
     body: input.body,
     href: input.href,
   });
+
+  if (isWatchlistPushType(input.type)) {
+    void maybeSendWatchlistPush({
+      userId: input.userId,
+      type: input.type,
+      title: input.title,
+      body: input.body,
+      href: input.href,
+    });
+  }
 }
 
 export async function fetchNotifications(

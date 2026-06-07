@@ -14,6 +14,7 @@ import { isSmsConfigured } from "@/lib/sms/config";
 import { canAccessProIntelligence, sessionToProContext } from "@/lib/features/pro-intelligence";
 import { fetchEmailPrefs } from "@/lib/email/preferences";
 import { isEmailConfigured } from "@/lib/email/config";
+import { isPushConfigured } from "@/lib/push/config";
 
 const watchlistPrefsSchema = z.object({
   price_move: z.boolean().optional(),
@@ -52,10 +53,12 @@ export async function GET() {
       watchlist: prefs.watchlist,
       smsPhoneE164: prefs.smsPhoneE164,
       smsAlertsEnabled: prefs.smsAlertsEnabled,
+      pushAlertsEnabled: prefs.pushAlertsEnabled,
       emailInstantEnabled: emailPrefs?.emailInstantEnabled ?? true,
       notifyEmail: emailPrefs?.notifyEmail ?? null,
       isPro,
       smsConfigured: isSmsConfigured(),
+      pushConfigured: isPushConfigured(),
       emailConfigured: isEmailConfigured(),
       aiConfigured: isAiCoachConfigured(),
       aiUsage,
@@ -130,10 +133,12 @@ export async function PATCH(request: Request) {
       watchlist: prefs?.watchlist ?? DEFAULT_WATCHLIST_ALERT_PREFS,
       smsPhoneE164: prefs?.smsPhoneE164 ?? null,
       smsAlertsEnabled: prefs?.smsAlertsEnabled ?? false,
+      pushAlertsEnabled: prefs?.pushAlertsEnabled ?? false,
       emailInstantEnabled: emailPrefs?.emailInstantEnabled ?? true,
       notifyEmail: emailPrefs?.notifyEmail ?? null,
       isPro,
       smsConfigured: isSmsConfigured(),
+      pushConfigured: isPushConfigured(),
       emailConfigured: isEmailConfigured(),
       aiConfigured: isAiCoachConfigured(),
       aiUsage,

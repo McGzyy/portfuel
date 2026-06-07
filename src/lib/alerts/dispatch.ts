@@ -3,6 +3,7 @@ import { isDemoMode } from "@/lib/demo/config";
 import { maybeEnhanceWatchlistAlertBody, type JournalAlertKind } from "@/lib/ai/journal-alert";
 import { maybeSendInstantNotificationEmail } from "@/lib/email/instant";
 import { maybeSendInstantWatchlistSms } from "@/lib/sms/instant";
+import { maybeSendWatchlistPush } from "@/lib/push/watchlist-push";
 import type { NotificationType } from "@/lib/notifications/types";
 import { WATCHLIST_ALERT_NOTIFICATION_TYPES } from "@/lib/notifications/types";
 import type { MembershipTier } from "@/lib/stripe/config";
@@ -81,6 +82,14 @@ export async function dispatchWatchlistAlert(input: DispatchWatchlistAlertInput)
     body,
     href: input.href,
     proContext: input.proContext,
+  });
+
+  void maybeSendWatchlistPush({
+    userId: input.userId,
+    type: input.type,
+    title: input.title,
+    body,
+    href: input.href,
   });
 }
 

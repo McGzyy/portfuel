@@ -4,6 +4,7 @@ import "./globals.css";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { MobileViewportFix } from "@/components/pwa/MobileViewportFix";
+import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { rootMetadata } from "@/lib/seo/site";
 
 const inter = Inter({
@@ -33,6 +34,7 @@ export default function RootLayout({
           <DemoModeBanner />
           <InstallPrompt />
           <MobileViewportFix />
+          <ServiceWorkerRegister />
           {children}
         </div>
       </body>

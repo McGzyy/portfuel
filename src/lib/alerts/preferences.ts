@@ -15,6 +15,7 @@ export type UserAlertPrefs = {
   watchlist: WatchlistAlertPrefs;
   smsPhoneE164: string | null;
   smsAlertsEnabled: boolean;
+  pushAlertsEnabled: boolean;
 };
 
 export const DEFAULT_WATCHLIST_ALERT_PREFS: WatchlistAlertPrefs = {
@@ -67,7 +68,7 @@ export async function fetchUserAlertPrefs(userId: string): Promise<UserAlertPref
   const db = createServiceClient();
   const { data, error } = await db
     .from("users")
-    .select("watchlist_alert_prefs, sms_phone_e164, sms_alerts_enabled")
+    .select("watchlist_alert_prefs, sms_phone_e164, sms_alerts_enabled, push_alerts_enabled")
     .eq("id", userId)
     .maybeSingle();
 
@@ -77,12 +78,14 @@ export async function fetchUserAlertPrefs(userId: string): Promise<UserAlertPref
     watchlist_alert_prefs: unknown;
     sms_phone_e164: string | null;
     sms_alerts_enabled: boolean;
+    push_alerts_enabled: boolean;
   };
 
   return {
     watchlist: normalizeWatchlistAlertPrefs(row.watchlist_alert_prefs),
     smsPhoneE164: row.sms_phone_e164,
     smsAlertsEnabled: Boolean(row.sms_alerts_enabled),
+    pushAlertsEnabled: Boolean(row.push_alerts_enabled),
   };
 }
 

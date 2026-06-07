@@ -3,15 +3,18 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { WatchlistAlertPrefs } from "@/lib/alerts/preferences";
+import { PushAlertsControl } from "@/components/pwa/PushAlertsControl";
 
 type AlertPrefsResponse = {
   watchlist: WatchlistAlertPrefs;
   smsPhoneE164: string | null;
   smsAlertsEnabled: boolean;
+  pushAlertsEnabled: boolean;
   emailInstantEnabled: boolean;
   notifyEmail: string | null;
   isPro: boolean;
   smsConfigured: boolean;
+  pushConfigured: boolean;
   emailConfigured: boolean;
   aiConfigured: boolean;
   aiUsage: { used: number; limit: number; remaining: number; periodMonth: string };
@@ -104,6 +107,7 @@ export function ProfileAlertsSection() {
         {data.isPro && data.smsAlertsEnabled && data.smsPhoneE164 ? (
           <span> · SMS to {data.smsPhoneE164}</span>
         ) : null}
+        {data.pushAlertsEnabled ? <span> · Browser push</span> : null}
       </div>
 
       {!data.emailConfigured ? (
@@ -212,6 +216,15 @@ export function ProfileAlertsSection() {
             <span className="text-xs text-[var(--pf-gray-400)]">(AI not configured)</span>
           )}
         </label>
+      </div>
+
+      <div className="mt-6 border-t border-[var(--pf-border)] pt-4">
+        <p className="text-sm font-medium text-[var(--pf-gray-700)]">Browser push (PWA)</p>
+        <PushAlertsControl
+          pushConfigured={data.pushConfigured}
+          pushEnabled={data.pushAlertsEnabled}
+          onStatusChange={() => void load()}
+        />
       </div>
 
       <div className="mt-6 border-t border-[var(--pf-border)] pt-4">
