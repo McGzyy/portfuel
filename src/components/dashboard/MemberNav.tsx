@@ -108,7 +108,7 @@ export function MemberNav({
       <aside
         id="workspace-mobile-nav"
         className={cn(
-          "fixed bottom-0 left-0 top-[var(--pf-safe-top)] z-[70] flex w-[min(18.5rem,88vw)] flex-col border-r border-[var(--pf-border)] bg-white pb-[var(--pf-bottom-nav-height)] shadow-xl transition-transform duration-200 ease-out lg:hidden",
+          "fixed bottom-0 left-0 top-[var(--pf-safe-top)] z-[70] flex w-[min(18.5rem,88vw)] flex-col border-r border-[var(--pf-border)] bg-white shadow-xl transition-transform duration-200 ease-out lg:hidden",
           drawerOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
         )}
         aria-hidden={!drawerOpen}
@@ -175,7 +175,7 @@ export function MemberNav({
           ))}
         </nav>
 
-        <div className="shrink-0 space-y-2 border-t border-[var(--pf-border)] p-3">
+        <div className="mt-auto shrink-0 space-y-2 border-t border-[var(--pf-border)] p-3 pb-[var(--pf-bottom-nav-height)]">
           <Link
             href={COPY.newCallHref}
             onClick={() => setDrawerOpen(false)}
