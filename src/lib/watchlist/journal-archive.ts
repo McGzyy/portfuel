@@ -1,6 +1,10 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
-import { isSchemaDriftError, JOURNAL_FULL_SELECT } from "@/lib/watchlist/db-select";
+import {
+  isSchemaDriftError,
+  JOURNAL_BASIC_SELECT,
+  JOURNAL_FULL_SELECT,
+} from "@/lib/watchlist/db-select";
 
 export type WatchlistRemoveSummary = {
   symbol: string;
@@ -29,6 +33,9 @@ type ArchiveRevisionRow = {
   created_at: string;
 };
 
+/** User-authored journal rows only — excludes auto "Added to watchlist" system lines. */
+const USER_JOURNAL_ENTRY_FILTER = "entry_type.is.null,entry_type.neq.system";
+
 function hasPlanContent(journal: Record<string, unknown>): boolean {
   const fields = [
     "entry_price",
@@ -49,6 +56,42 @@ function hasPlanContent(journal: Record<string, unknown>): boolean {
     return true;
   }
   return false;
+}
+
+function pickJournalPayload(row: Record<string, unknown>): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+  for (const key of [
+    "thesis",
+    "conviction",
+    "entry_price",
+    "stop_price",
+    "target_price",
+    "entry_note",
+    "journal_updated_at",
+    "catalysts",
+    "risk_factors",
+    "personal_tags",
+    "outcome",
+    "bull_case_price",
+    "base_case_price",
+    "bear_case_price",
+  ]) {
+    const val = row[key];
+    if (val == null) continue;
+    if (typeof val === "string" && !val.trim()) continue;
+    if (Array.isArray(val) && val.length === 0) continue;
+    payload[key] = val;
+  }
+  return payload;
+}
+
+export function hasMeaningfulJournalResearch(summary: WatchlistRemoveSummary): boolean {
+  return (
+    summary.hasThesis ||
+    summary.hasPlanFields ||
+    summary.entryCount > 0 ||
+    summary.revisionCount > 0
+  );
 }
 
 export async function fetchWatchlistRemoveSummary(
@@ -86,7 +129,8 @@ export async function fetchWatchlistRemoveSummary(
       .from("watchlist_journal_entries")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
-      .eq("symbol", sym),
+      .eq("symbol", sym)
+      .or(USER_JOURNAL_ENTRY_FILTER),
     db
       .from("watchlist_journal_revisions")
       .select("id", { count: "exact", head: true })
@@ -97,49 +141,60 @@ export async function fetchWatchlistRemoveSummary(
   const entryCount = entriesRes.count ?? 0;
   const revisionCount = revisionsRes.count ?? 0;
   const hasPlanFields = hasPlanContent(journal);
-
-  return {
+  const summary: WatchlistRemoveSummary = {
     symbol: sym,
     entryCount,
     revisionCount,
     hasThesis,
     hasPlanFields,
-    hasResearch: hasThesis || hasPlanFields || entryCount > 0 || revisionCount > 0,
+    hasResearch: false,
   };
+  summary.hasResearch = hasMeaningfulJournalResearch(summary);
+  return summary;
 }
 
-async function archiveJournalSnapshot(userId: string, sym: string): Promise<boolean> {
+async function fetchWatchRowForArchive(
+  userId: string,
+  sym: string
+): Promise<Record<string, unknown> | null> {
   const db = createServiceClient();
-
-  const { data: watchRow, error: watchErr } = await db
+  const primary = await db
     .from("user_watchlist")
     .select(`${JOURNAL_FULL_SELECT}, price_alert_pct`)
     .eq("user_id", userId)
     .eq("symbol", sym)
     .maybeSingle();
 
-  if (watchErr || !watchRow) return false;
-
-  const row = watchRow as Record<string, unknown>;
-  const journalPayload: Record<string, unknown> = {};
-  for (const key of [
-    "thesis",
-    "conviction",
-    "entry_price",
-    "stop_price",
-    "target_price",
-    "entry_note",
-    "journal_updated_at",
-    "catalysts",
-    "risk_factors",
-    "personal_tags",
-    "outcome",
-    "bull_case_price",
-    "base_case_price",
-    "bear_case_price",
-  ]) {
-    if (row[key] !== undefined) journalPayload[key] = row[key];
+  if (!primary.error) {
+    return primary.data as Record<string, unknown> | null;
   }
+  if (!isSchemaDriftError(primary.error)) {
+    console.error("[watchlist/archive/fetch]", primary.error);
+    return null;
+  }
+
+  const fallback = await db
+    .from("user_watchlist")
+    .select(`${JOURNAL_BASIC_SELECT}, price_alert_pct, thesis, conviction, entry_price, target_price, catalysts, risk_factors, entry_note, journal_updated_at, outcome`)
+    .eq("user_id", userId)
+    .eq("symbol", sym)
+    .maybeSingle();
+
+  if (fallback.error) {
+    console.error("[watchlist/archive/fetch-fallback]", fallback.error);
+    return null;
+  }
+  return fallback.data as Record<string, unknown> | null;
+}
+
+async function archiveJournalSnapshot(userId: string, sym: string): Promise<boolean> {
+  const db = createServiceClient();
+
+  const watchRow = await fetchWatchRowForArchive(userId, sym);
+  if (!watchRow) return false;
+
+  const row = watchRow;
+  const journalPayload = pickJournalPayload(row);
 
   const { data: entryRows } = await db
     .from("watchlist_journal_entries")
@@ -148,6 +203,7 @@ async function archiveJournalSnapshot(userId: string, sym: string): Promise<bool
     )
     .eq("user_id", userId)
     .eq("symbol", sym)
+    .or(USER_JOURNAL_ENTRY_FILTER)
     .order("created_at", { ascending: true });
 
   const entries: ArchiveEntryRow[] = (entryRows ?? []).map((e) => {
@@ -184,7 +240,7 @@ async function archiveJournalSnapshot(userId: string, sym: string): Promise<bool
 
   const hasAnything =
     Object.keys(journalPayload).length > 0 || entries.length > 0 || revisions.length > 0;
-  if (!hasAnything) return false;
+  if (!hasAnything) return true;
 
   const { error: upsertErr } = await db.from("watchlist_journal_archives").upsert(
     {
@@ -250,9 +306,10 @@ export async function archiveAndRemoveFromWatchlist(
 
   const sym = symbol.toUpperCase();
   const summary = await fetchWatchlistRemoveSummary(userId, sym);
-  const archived = await archiveJournalSnapshot(userId, sym);
+  const needsArchive = summary != null && hasMeaningfulJournalResearch(summary);
+  const archived = needsArchive ? await archiveJournalSnapshot(userId, sym) : false;
 
-  if (summary?.hasResearch && !archived) {
+  if (needsArchive && !archived) {
     return { error: "archive_failed" };
   }
 

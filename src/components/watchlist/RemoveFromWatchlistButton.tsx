@@ -101,7 +101,7 @@ export function RemoveFromWatchlistButton({
       if (!res.ok) {
         setError(
           data.error === "archive_failed"
-            ? "Could not save your journal backup. Run the latest database migration, then try again."
+            ? "Could not save your journal backup before removing. Try again in a minute — if it keeps failing, contact support."
             : "Could not remove from watchlist."
         );
         return;
