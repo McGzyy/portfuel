@@ -18,7 +18,9 @@ import { journalSymbolPath } from "@/lib/journal/paths";
 import { resolvePriceMoveThreshold } from "@/lib/alerts/price-threshold";
 import type { WatchlistAlertPrefs } from "@/lib/alerts/preferences";
 import { DEFAULT_WATCHLIST_ALERT_PREFS } from "@/lib/alerts/preferences";
+import { watchlistAddErrorMessage } from "@/lib/watchlist/add-errors";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
+import { useWatchlistItemsOptional } from "@/components/dashboard/WatchlistItemsProvider";
 import { useProQuoteRefresh } from "@/hooks/useProQuoteRefresh";
 import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
 import { getDemoWatchlistSeed } from "@/lib/watchlist/demo";
@@ -71,6 +73,7 @@ export function WatchlistPanel({
   initialItems?: WatchlistEntry[];
   alertPrefs?: WatchlistAlertPrefs | null;
 }) {
+  const watchlistCtx = useWatchlistItemsOptional();
   const [items, setItems] = useState<WatchlistEntry[]>(initialItems ?? []);
   const [sparklines, setSparklines] = useState<Record<string, LinePoint[]>>({});
   const router = useRouter();
@@ -81,11 +84,18 @@ export function WatchlistPanel({
   const globalPrefs = alertPrefs ?? DEFAULT_WATCHLIST_ALERT_PREFS;
 
   function patchItemPriceAlert(symbol: string, priceAlertPct: number | null) {
-    setItems((prev) =>
-      prev.map((i) =>
+    setItems((prev) => {
+      const next = prev.map((i) =>
         i.symbol === symbol ? { ...i, price_alert_pct: priceAlertPct } : i
-      )
-    );
+      );
+      watchlistCtx?.setItems(next);
+      return next;
+    });
+  }
+
+  function applyItems(list: WatchlistEntry[]) {
+    setItems(list);
+    watchlistCtx?.setItems(list);
   }
 
   const load = useCallback(async () => {
@@ -100,24 +110,25 @@ export function WatchlistPanel({
       }
       let list = (data.items ?? []) as WatchlistEntry[];
       if (demoMode) list = mergeDemoItems(list);
-      setItems(list);
+      applyItems(list);
     } catch {
       setError("Could not load watchlist.");
     } finally {
       setLoading(false);
     }
-  }, [demoMode]);
+  }, [demoMode, watchlistCtx]);
 
   useEffect(() => {
     if (initialItems != null) {
       let list = initialItems;
       if (demoMode) list = mergeDemoItems(list);
       setItems(list);
+      watchlistCtx?.setItems(list);
       setLoading(false);
       return;
     }
     load();
-  }, [load, initialItems, demoMode]);
+  }, [load, initialItems, demoMode, watchlistCtx]);
 
   useEffect(() => {
     if (items.length === 0) return;
@@ -181,14 +192,10 @@ export function WatchlistPanel({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(
-          data.error === "watchlist_full"
-            ? "Watchlist is full (24 max)."
-            : "Could not add symbol."
-        );
+        setError(watchlistAddErrorMessage(data.error));
         return;
       }
-      setItems(data.items ?? []);
+      applyItems((data.items ?? []) as WatchlistEntry[]);
       setSymbol("");
       router.push(journalSymbolPath(sym, { setup: true }));
     } catch {
@@ -217,7 +224,7 @@ export function WatchlistPanel({
         method: "DELETE",
       });
       const data = await res.json();
-      if (res.ok) setItems(data.items ?? []);
+      if (res.ok) applyItems((data.items ?? []) as WatchlistEntry[]);
     } catch {
       setError("Could not remove.");
     }

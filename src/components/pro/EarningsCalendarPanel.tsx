@@ -52,6 +52,10 @@ export function EarningsCalendarPanel({
         );
         return;
       }
+      if (data.warning === "watchlist_unavailable") {
+        setError("Could not load your watchlist symbols. Refresh the page or try again.");
+        return;
+      }
       setEvents(data.events ?? []);
     } catch {
       setError("Could not load earnings calendar.");

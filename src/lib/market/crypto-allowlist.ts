@@ -75,10 +75,54 @@ export async function resolveCryptoAsset(symbol: string) {
     .select("symbol, finnhub_symbol, display_name, exchange")
     .eq("symbol", base)
     .maybeSingle();
-  return data as {
-    symbol: string;
-    finnhub_symbol: string;
-    display_name: string | null;
-    exchange: string;
-  } | null;
+
+  if (data) {
+    return data as {
+      symbol: string;
+      finnhub_symbol: string;
+      display_name: string | null;
+      exchange: string;
+    };
+  }
+
+  const live = await lookupCryptoAssetFromFinnhub(base);
+  if (!live) return null;
+
+  void db
+    .from("allowed_crypto_assets")
+    .upsert(
+      {
+        symbol: live.symbol,
+        finnhub_symbol: live.finnhub_symbol,
+        display_name: live.display_name ?? live.symbol,
+        exchange: live.exchange,
+        updated_at: new Date().toISOString(),
+      } as never,
+      { onConflict: "symbol" }
+    )
+    .then(({ error }) => {
+      if (error) console.error("[crypto-allowlist/upsert]", error);
+    });
+
+  return live;
+}
+
+async function lookupCryptoAssetFromFinnhub(base: string) {
+  for (const exchange of MAJOR_EXCHANGES) {
+    const rows = await listCryptoSymbols(exchange);
+    for (const row of rows) {
+      if (normalizeCryptoBase(row.symbol) !== base) continue;
+      if (CRYPTO_MEMECOIN_BLOCKLIST.has(base)) return null;
+      const finnhubSymbol = row.symbol.includes(":")
+        ? row.symbol
+        : toFinnhubCryptoSymbol(exchange, base);
+      return {
+        symbol: base,
+        finnhub_symbol: finnhubSymbol,
+        display_name: row.description ?? base,
+        exchange,
+      };
+    }
+  }
+  return null;
 }

@@ -6,7 +6,18 @@ import { fetchWatchlist } from "@/lib/watchlist/service";
 export async function GET() {
   try {
     const session = await requireProSession();
-    const watchlist = await fetchWatchlist(session.userId);
+
+    let watchlist: Awaited<ReturnType<typeof fetchWatchlist>> = [];
+    try {
+      watchlist = await fetchWatchlist(session.userId);
+    } catch (e) {
+      console.error("[pro/earnings-calendar/watchlist]", e);
+      return NextResponse.json({
+        events: [],
+        warning: "watchlist_unavailable",
+      });
+    }
+
     const symbols = watchlist
       .filter((w) => w.asset_class === "equity")
       .map((w) => w.symbol);

@@ -4,6 +4,7 @@ import { TrackWorkflowGuide } from "@/components/dashboard/TrackWorkflowGuide";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { TickerLookupBar } from "@/components/dashboard/TickerLookupBar";
 import { WatchlistPanel } from "@/components/dashboard/WatchlistPanel";
+import { WatchlistItemsProvider } from "@/components/dashboard/WatchlistItemsProvider";
 import { WatchlistQuickAddChips } from "@/components/dashboard/WatchlistQuickAddChips";
 import { FeedRefreshButton } from "@/components/dashboard/FeedRefreshButton";
 import { EarningsCalendarPanel } from "@/components/pro/EarningsCalendarPanel";
@@ -28,6 +29,8 @@ import {
 export const metadata: Metadata = {
   title: "Watchlist",
 };
+
+export const dynamic = "force-dynamic";
 
 export default async function DashboardWatchlistPage() {
   const session = await requireDashboardSession();
@@ -54,62 +57,64 @@ export default async function DashboardWatchlistPage() {
   const nextUp = pickJournalNextUp(items);
 
   return (
-    <div className="space-y-6">
-      <WatchlistCommandHeader
-        symbolCount={items.length}
-        unreadAlerts={unreadAlerts}
-        callsLast7d={callsLast7d}
-        nextUp={nextUp}
-      />
-
-      <ResearchPipeline current="track" logHref={nextUp?.href} />
-
-      <TrackWorkflowGuide />
-
-      <WorkspaceQuickActions proUnlocked={proUnlocked} />
-
-      <WatchlistAiDigestPanel
-        locked={proLocked}
-        proGateCta={proGateCta}
-        symbolCount={items.length}
-      />
-
-      <div className="pf-workspace-panel p-4 sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-              Symbol lookup
-            </p>
-            <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-              Browse chart, community calls, and intel for any ticker —{" "}
-              <span className="font-semibold text-[var(--pf-black)]">does not add</span> to your
-              watchlist.
-            </p>
-          </div>
-          <FeedRefreshButton />
-        </div>
-        <div className="mt-4">
-          <TickerLookupBar embedded />
-        </div>
-        {items.length < 6 ? (
-          <div className="mt-4 border-t border-[var(--pf-border)] pt-4">
-            <WatchlistQuickAddChips
-              existingSymbols={items.map((i) => i.symbol)}
-              demoMode={isDemoMode()}
-            />
-          </div>
-        ) : null}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <WatchlistPanel
-          demoMode={isDemoMode()}
-          proUnlocked={proUnlocked}
-          initialItems={items}
-          alertPrefs={alertPrefs}
+    <WatchlistItemsProvider initialItems={items}>
+      <div className="space-y-6">
+        <WatchlistCommandHeader
+          symbolCount={items.length}
+          unreadAlerts={unreadAlerts}
+          callsLast7d={callsLast7d}
+          nextUp={nextUp}
         />
-        <EarningsCalendarPanel locked={proLocked} proGateCta={proGateCta} />
+
+        <ResearchPipeline current="track" logHref={nextUp?.href} />
+
+        <TrackWorkflowGuide />
+
+        <WorkspaceQuickActions proUnlocked={proUnlocked} />
+
+        <WatchlistAiDigestPanel
+          locked={proLocked}
+          proGateCta={proGateCta}
+          symbolCount={items.length}
+        />
+
+        <div className="pf-workspace-panel p-4 sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                Symbol lookup
+              </p>
+              <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
+                Browse chart, community calls, and intel for any ticker —{" "}
+                <span className="font-semibold text-[var(--pf-black)]">does not add</span> to your
+                watchlist.
+              </p>
+            </div>
+            <FeedRefreshButton />
+          </div>
+          <div className="mt-4">
+            <TickerLookupBar embedded />
+          </div>
+          {items.length < 6 ? (
+            <div className="mt-4 border-t border-[var(--pf-border)] pt-4">
+              <WatchlistQuickAddChips
+                existingSymbols={items.map((i) => i.symbol)}
+                demoMode={isDemoMode()}
+              />
+            </div>
+          ) : null}
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <WatchlistPanel
+            demoMode={isDemoMode()}
+            proUnlocked={proUnlocked}
+            initialItems={items}
+            alertPrefs={alertPrefs}
+          />
+          <EarningsCalendarPanel locked={proLocked} proGateCta={proGateCta} />
+        </div>
       </div>
-    </div>
+    </WatchlistItemsProvider>
   );
 }

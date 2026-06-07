@@ -4,6 +4,7 @@ import { attachJournalHubProgress, fetchJournalEntryStats } from "@/lib/journal/
 import { getQuote } from "@/lib/market/finnhub";
 import { getDemoWatchlist } from "@/lib/watchlist/demo";
 import { detectAssetClassForSymbol } from "@/lib/watchlist/symbol-detect";
+import { validateSymbol } from "@/lib/market/validate-symbol";
 import { enrichWatchlistActivity } from "@/lib/watchlist/activity";
 import { normalizeCatalysts } from "@/lib/watchlist/journal-meta";
 import { addJournalEntry, resolveBaselinePrice } from "@/lib/watchlist/journal";
@@ -57,6 +58,19 @@ export async function addToWatchlist(
   if ((count ?? 0) >= MAX_WATCHLIST) return { error: "watchlist_full" };
 
   const asset_class = await detectAssetClassForSymbol(sym);
+  let validated = await validateSymbol(sym, asset_class);
+  if (!validated.ok && asset_class === "equity") {
+    const cryptoRetry = await validateSymbol(sym, "crypto");
+    if (cryptoRetry.ok) validated = cryptoRetry;
+  }
+  if (!validated.ok) {
+    if (validated.error.includes("major-exchange") || asset_class === "crypto") {
+      return { error: "crypto_not_supported" };
+    }
+    return { error: "unknown_symbol" };
+  }
+
+  const resolvedAssetClass = validated.assetClass;
 
   const thesis = opts?.thesis?.trim();
   const conviction =
@@ -92,11 +106,14 @@ export async function addToWatchlist(
     return { ok: true };
   }
 
-  const baseline_price = await resolveBaselinePrice(sym);
+  const baseline_price =
+    validated.lastPrice != null && Number.isFinite(validated.lastPrice)
+      ? Math.round(validated.lastPrice * 10000) / 10000
+      : await resolveBaselinePrice(sym);
   const row: Record<string, unknown> = {
     user_id: userId,
     symbol: sym,
-    asset_class,
+    asset_class: resolvedAssetClass,
     baseline_price,
   };
   if (thesis && thesis.length > 0) {

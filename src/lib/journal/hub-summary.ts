@@ -28,7 +28,10 @@ export async function fetchJournalEntryStats(
     .select("symbol, entry_type")
     .eq("user_id", userId);
 
-  if (error) throw error;
+  if (error) {
+    console.error("[watchlist/journal/stats]", error);
+    return {};
+  }
 
   const map: Record<string, JournalEntryStats> = {};
   for (const row of data ?? []) {
