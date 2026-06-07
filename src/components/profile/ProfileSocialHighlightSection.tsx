@@ -55,7 +55,7 @@ export function ProfileSocialHighlightSection() {
   if (!settings) return null;
 
   return (
-    <section className="pf-workspace-panel p-6">
+    <section className="pf-workspace-panel p-4 sm:p-6">
       <p className="pf-eyebrow">Brand spotlight</p>
       <h2 className="mt-2 text-lg font-bold tracking-tight text-[var(--pf-black)]">
         Public recognition on X

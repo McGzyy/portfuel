@@ -70,6 +70,43 @@ export function weeklyDigestEmail(opts: {
   return { subject: "Your PortFuel week — desk, journal & performance", html, text };
 }
 
+export function adminChurnFeedbackEmail(opts: {
+  username: string;
+  displayName: string | null;
+  reason: string;
+  comment: string | null;
+  tier: "member" | "pro" | null;
+  subscriptionStatus: string;
+}): { subject: string; html: string; text: string } {
+  const memberLabel = opts.displayName?.trim() || opts.username;
+  const tierLabel = opts.tier === "pro" ? "Pro" : opts.tier === "member" ? "Member" : "Unknown plan";
+  const commentBlock = opts.comment
+    ? `<p style="margin:16px 0 0;padding:12px 16px;background:#f1f5f9;border-radius:8px;color:#334155;line-height:1.5"><strong>Comment:</strong><br/>${escapeHtml(opts.comment)}</p>`
+    : "";
+
+  const bodyHtml = `<p style="margin:0;line-height:1.6;color:#334155"><strong>${escapeHtml(memberLabel)}</strong> (@${escapeHtml(opts.username)}) shared cancellation feedback.</p>
+<ul style="margin:16px 0 0;padding-left:20px;color:#334155;line-height:1.6">
+  <li><strong>Reason:</strong> ${escapeHtml(opts.reason)}</li>
+  <li><strong>Plan:</strong> ${escapeHtml(tierLabel)}</li>
+  <li><strong>Status:</strong> ${escapeHtml(opts.subscriptionStatus)}</li>
+</ul>
+${commentBlock}`;
+
+  const adminUrl = `${getAppUrl()}/admin?tab=churn`;
+  const { html, text } = layout({
+    title: "Member cancellation feedback",
+    bodyHtml,
+    ctaHref: adminUrl,
+    ctaLabel: "View in admin",
+  });
+
+  return {
+    subject: `[PortFuel Admin] Cancellation feedback — @${opts.username}`,
+    html,
+    text,
+  };
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")

@@ -107,7 +107,7 @@ export function ProfileReferralSection() {
   }
 
   return (
-    <section className="pf-workspace-panel p-5">
+    <section className="pf-workspace-panel p-4 sm:p-6">
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
           <Gift className="h-5 w-5" aria-hidden />

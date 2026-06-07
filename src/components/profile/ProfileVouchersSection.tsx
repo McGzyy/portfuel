@@ -79,7 +79,7 @@ export function ProfileVouchersSection({
   }
 
   return (
-    <section className="pf-workspace-panel p-5">
+    <section className="pf-workspace-panel p-4 sm:p-6">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
         Promotions
       </p>

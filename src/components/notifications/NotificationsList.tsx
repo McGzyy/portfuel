@@ -43,6 +43,8 @@ function iconForType(type: NotificationType) {
       return Target;
     case "direct_message":
       return MessageCircle;
+    case "admin_churn_feedback":
+      return Bell;
     default:
       return Bell;
   }

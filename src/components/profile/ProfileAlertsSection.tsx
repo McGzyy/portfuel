@@ -86,7 +86,7 @@ export function ProfileAlertsSection() {
   if (!data || !watchlist) return null;
 
   return (
-    <section className="pf-workspace-panel p-5 sm:p-6">
+    <section className="pf-workspace-panel p-4 sm:p-6">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
         Alert types
       </p>

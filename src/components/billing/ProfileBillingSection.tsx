@@ -35,56 +35,27 @@ export function ProfileBillingSection({
 
   if (!isStripeConfigured()) return null;
 
-  const tierLabel =
-    membershipTier === "pro"
-      ? "Pro Intelligence"
-      : membershipTier === "member"
-        ? "Member"
-        : "—";
+  const showCheckout = subscriptionStatus === "pending" || subscriptionStatus === "cancelled";
+  const showUpgrade = subscriptionStatus === "active" && membershipTier === "member";
 
-  const cadenceLabel =
-    billingInterval === "annual" ? "Annual" : billingInterval === "monthly" ? "Monthly" : null;
-  const showCadence = cadenceLabel && billingInterval === "annual";
+  if (!showCheckout && !showUpgrade) {
+    return null;
+  }
 
   return (
-    <section className="pf-workspace-panel p-5">
+    <section className="pf-workspace-panel p-4 sm:p-6">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-        Billing
+        {showCheckout ? "Subscribe" : "Upgrade"}
       </p>
-      <div className="mt-2 flex flex-wrap items-center gap-3">
-        <span className="text-sm text-[var(--pf-gray-600)]">
-          Status:{" "}
-          <span className="font-semibold capitalize text-[var(--pf-black)]">
-            {subscriptionStatus}
-          </span>
-        </span>
-        {subscriptionStatus === "active" ? (
-          <>
-            <span className="text-sm text-[var(--pf-gray-600)]">
-              Plan: <span className="font-semibold text-[var(--pf-black)]">{tierLabel}</span>
-            </span>
-            {showCadence ? (
-              <span className="text-sm text-[var(--pf-gray-600)]">
-                Billing:{" "}
-                <span className="font-semibold text-[var(--pf-black)]">{cadenceLabel}</span>
-              </span>
-            ) : null}
-          </>
-        ) : null}
-      </div>
+      <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
+        {showCheckout
+          ? "Choose a plan and complete checkout through Stripe."
+          : "Move to Pro Intelligence for research tools, SMS alerts, and higher call quota."}
+      </p>
 
-      {subscriptionStatus === "cancelled" ? (
-        <p className="mt-3 text-sm text-[var(--pf-gray-600)]">
-          Your subscription ended. Resubscribe to restore workspace access, or use Manage billing
-          if you cancelled in error.
-        </p>
-      ) : null}
+      {showUpgrade ? <UpgradeToProButton className="mt-4 max-w-md" /> : null}
 
-      {subscriptionStatus === "active" && membershipTier === "member" ? (
-        <UpgradeToProButton className="mt-4 max-w-md" />
-      ) : null}
-
-      {subscriptionStatus === "pending" || subscriptionStatus === "cancelled" ? (
+      {showCheckout ? (
         <>
           <div className="mt-4">
             <BillingIntervalPicker
@@ -105,27 +76,33 @@ export function ProfileBillingSection({
               autoComplete="off"
             />
           </div>
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="min-w-0 flex-1 sm:min-w-[12rem]">
+              <CompleteCheckoutButton
+                tier="member"
+                label={`Subscribe — ${formatTierPriceLong("member", checkoutInterval)}`}
+                voucherCode={checkoutPromo}
+                billingInterval={checkoutInterval}
+              />
+            </div>
+            <div className="min-w-0 flex-1 sm:min-w-[12rem]">
+              <CompleteCheckoutButton
+                tier="pro"
+                label={`Subscribe — ${formatTierPriceLong("pro", checkoutInterval)}`}
+                voucherCode={checkoutPromo}
+                billingInterval={checkoutInterval}
+              />
+            </div>
+          </div>
         </>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap gap-3">
-        {subscriptionStatus === "pending" || subscriptionStatus === "cancelled" ? (
-          <>
-            <CompleteCheckoutButton
-              tier="member"
-              label={`Subscribe — ${formatTierPriceLong("member", checkoutInterval)}`}
-              voucherCode={checkoutPromo}
-              billingInterval={checkoutInterval}
-            />
-            <CompleteCheckoutButton
-              tier="pro"
-              label={`Subscribe — ${formatTierPriceLong("pro", checkoutInterval)}`}
-              voucherCode={checkoutPromo}
-              billingInterval={checkoutInterval}
-            />
-          </>
-        ) : null}
-      </div>
+      {stripeCustomerId && subscriptionStatus === "active" ? (
+        <p className="mt-4 text-xs text-[var(--pf-gray-500)]">
+          Payment method and invoices are in Manage billing below.
+        </p>
+      ) : null}
     </section>
   );
 }

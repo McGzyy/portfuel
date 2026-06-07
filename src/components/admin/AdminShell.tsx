@@ -12,12 +12,14 @@ import { AdminXIngestPanel } from "@/components/admin/AdminXIngestPanel";
 import { AdminVouchersPanel } from "@/components/admin/AdminVouchersPanel";
 import { AdminMarketingPanel } from "@/components/admin/AdminMarketingPanel";
 import { AdminAnnouncementsPanel } from "@/components/admin/AdminAnnouncementsPanel";
+import { AdminCancellationFeedbackPanel } from "@/components/admin/AdminCancellationFeedbackPanel";
 
 const tabs = [
   { id: "members", label: "Members" },
   { id: "vouchers", label: "Vouchers" },
   { id: "launch", label: "Launch" },
   { id: "announcements", label: "Announcements" },
+  { id: "churn", label: "Churn" },
   { id: "social", label: "Social" },
   { id: "marketing", label: "Marketing" },
   { id: "x-ingest", label: "X Ingest" },
@@ -35,6 +37,7 @@ function parseTab(raw: string | null): AdminTab {
     raw === "social" ||
     raw === "marketing" ||
     raw === "announcements" ||
+    raw === "churn" ||
     raw === "x-ingest" ||
     raw === "vouchers"
   ) {
@@ -76,6 +79,8 @@ export function AdminShell() {
         <AdminLaunchPanel />
       ) : tab === "announcements" ? (
         <AdminAnnouncementsPanel />
+      ) : tab === "churn" ? (
+        <AdminCancellationFeedbackPanel />
       ) : tab === "social" ? (
         <AdminSocialPanel />
       ) : tab === "marketing" ? (

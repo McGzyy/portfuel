@@ -74,7 +74,15 @@ export function CompleteCheckoutButton({
   );
 }
 
-export function ManageBillingButton({ className }: { className?: string }) {
+export function ManageBillingButton({
+  className,
+  cancelFlow = false,
+  label,
+}: {
+  className?: string;
+  cancelFlow?: boolean;
+  label?: string;
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -82,7 +90,11 @@ export function ManageBillingButton({ className }: { className?: string }) {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const res = await fetch("/api/stripe/portal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cancelFlow }),
+      });
       const data = await res.json();
       if (!res.ok || !data.url) {
         setError("Could not open billing portal.");
@@ -96,10 +108,12 @@ export function ManageBillingButton({ className }: { className?: string }) {
     }
   }
 
+  const defaultLabel = cancelFlow ? "Continue to Stripe" : "Manage billing";
+
   return (
     <div className={className}>
       <Button variant="secondary" disabled={loading} onClick={openPortal}>
-        {loading ? "Opening…" : "Manage billing"}
+        {loading ? "Opening…" : label ?? defaultLabel}
       </Button>
       {error ? <p className="mt-2 text-sm text-[var(--pf-red)]">{error}</p> : null}
     </div>

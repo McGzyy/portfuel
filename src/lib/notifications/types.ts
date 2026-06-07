@@ -8,7 +8,8 @@ export type NotificationType =
   | "direct_message"
   | "watchlist_price_move"
   | "watchlist_earnings"
-  | "watchlist_plan_level";
+  | "watchlist_plan_level"
+  | "admin_churn_feedback";
 
 export const WATCHLIST_ALERT_NOTIFICATION_TYPES: NotificationType[] = [
   "watchlist_price_move",

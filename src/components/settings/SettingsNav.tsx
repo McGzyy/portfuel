@@ -6,26 +6,31 @@ export type SettingsSection = "billing" | "notifications" | "sharing" | "integra
 export const SETTINGS_SECTIONS: {
   id: SettingsSection;
   label: string;
+  mobileLabel: string;
   description: string;
 }[] = [
   {
     id: "billing",
     label: "Plan & billing",
+    mobileLabel: "Billing",
     description: "Membership, Stripe, vouchers",
   },
   {
     id: "notifications",
     label: "Notifications",
+    mobileLabel: "Alerts",
     description: "Email, alerts, SMS, push",
   },
   {
     id: "sharing",
     label: "Sharing & referrals",
+    mobileLabel: "Sharing",
     description: "Invite credits, X highlight",
   },
   {
     id: "integrations",
     label: "Integrations",
+    mobileLabel: "Apps",
     description: "Discord and connected apps",
   },
 ];
@@ -78,27 +83,48 @@ export function SettingsNav({ active }: { active: SettingsSection }) {
   );
 }
 
-/** Horizontal section picker on mobile */
+/** Section picker — 2×2 grid on mobile, sticky while scrolling long panels */
 export function SettingsNavMobile({ active }: { active: SettingsSection }) {
+  const activeMeta = SETTINGS_SECTIONS.find((item) => item.id === active);
+
   return (
-    <nav
-      className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden"
-      aria-label="Settings sections"
-    >
-      {SETTINGS_SECTIONS.map((item) => (
-        <Link
-          key={item.id}
-          href={settingsSectionHref(item.id)}
-          className={cn(
-            "shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold",
-            item.id === active
-              ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white"
-              : "border-[var(--pf-border)] bg-white text-[var(--pf-gray-700)]"
-          )}
-        >
-          {item.label}
-        </Link>
-      ))}
-    </nav>
+    <div className="pf-settings-mobile-nav lg:hidden">
+      <nav
+        className="pf-workspace-panel grid grid-cols-2 gap-2 p-2"
+        aria-label="Settings sections"
+      >
+        {SETTINGS_SECTIONS.map((item) => {
+          const isActive = item.id === active;
+          return (
+            <Link
+              key={item.id}
+              href={settingsSectionHref(item.id)}
+              className={cn(
+                "flex min-h-[4.25rem] flex-col justify-center rounded-lg border px-3 py-2.5 transition-colors",
+                isActive
+                  ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white shadow-[var(--pf-shadow-sm)]"
+                  : "border-transparent bg-[var(--pf-gray-50)] text-[var(--pf-gray-700)] active:bg-[var(--pf-gray-100)]"
+              )}
+            >
+              <span className="text-sm font-semibold leading-tight">{item.mobileLabel}</span>
+              <span
+                className={cn(
+                  "mt-1 line-clamp-2 text-[11px] leading-snug",
+                  isActive ? "text-white/75" : "text-[var(--pf-gray-500)]"
+                )}
+              >
+                {item.description}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+      {activeMeta ? (
+        <div className="mt-3 px-0.5">
+          <h2 className="text-base font-bold text-[var(--pf-black)]">{activeMeta.label}</h2>
+          <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">{activeMeta.description}</p>
+        </div>
+      ) : null}
+    </div>
   );
 }

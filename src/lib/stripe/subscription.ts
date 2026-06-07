@@ -25,16 +25,17 @@ export async function applySubscriptionToUser(input: SubscriptionSyncInput) {
 
   const { data: beforeRow } = await db
     .from("users")
-    .select("subscription_status")
+    .select("subscription_status, membership_tier, subscription_started_at, membership_tier_started_at")
     .eq("id", input.userId)
     .maybeSingle();
 
+  const now = new Date().toISOString();
   const updates: Record<string, unknown> = {
     stripe_customer_id: input.stripeCustomerId,
     stripe_subscription_id: input.stripeSubscriptionId,
     membership_tier: input.tier,
     subscription_status: input.status,
-    updated_at: new Date().toISOString(),
+    updated_at: now,
   };
 
   if (input.billingInterval) {
@@ -43,6 +44,14 @@ export async function applySubscriptionToUser(input: SubscriptionSyncInput) {
 
   if (input.status === "active") {
     updates.submission_quota_week = quotaForTier(input.tier);
+    if (!beforeRow?.subscription_started_at) {
+      updates.subscription_started_at = now;
+    }
+    const tierChanged =
+      beforeRow?.membership_tier != null && beforeRow.membership_tier !== input.tier;
+    if (!beforeRow?.membership_tier_started_at || tierChanged) {
+      updates.membership_tier_started_at = now;
+    }
   }
 
   const { error } = await db.from("users").update(updates).eq("id", input.userId);

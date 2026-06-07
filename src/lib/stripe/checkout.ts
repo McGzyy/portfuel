@@ -60,12 +60,18 @@ export async function createCheckoutSession(opts: {
   return { url: session.url, sessionId: session.id };
 }
 
-export async function createBillingPortalSession(customerId: string) {
+export async function createBillingPortalSession(
+  customerId: string,
+  opts?: { cancelFlow?: boolean }
+) {
   const stripe = getStripe();
   const appUrl = getAppUrl();
+  const returnUrl = opts?.cancelFlow
+    ? `${appUrl}/dashboard/settings?section=billing&billing=return&cancel=1`
+    : `${appUrl}/dashboard/settings?section=billing&billing=return`;
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
-    return_url: `${appUrl}/dashboard/settings?section=billing&billing=return`,
+    return_url: returnUrl,
   });
   return session.url;
 }

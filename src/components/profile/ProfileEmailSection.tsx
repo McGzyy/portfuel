@@ -84,7 +84,7 @@ export function ProfileEmailSection() {
   if (!prefs) return null;
 
   return (
-    <section className="pf-workspace-panel p-5 sm:p-6">
+    <section className="pf-workspace-panel p-4 sm:p-6">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
         Email delivery
       </p>
@@ -93,10 +93,10 @@ export function ProfileEmailSection() {
       </p>
 
       {verify ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2.5 text-sm">
-          <div>
+        <div className="mt-4 flex flex-col gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2.5 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
             <span className="text-[var(--pf-gray-500)]">Account email: </span>
-            <span className="font-medium">{verify.email ?? "Not set"}</span>
+            <span className="break-all font-medium">{verify.email ?? "Not set"}</span>
             {verify.emailVerified ? (
               <span className="ml-2 text-emerald-600">Verified</span>
             ) : (
@@ -105,7 +105,7 @@ export function ProfileEmailSection() {
           </div>
           <Link
             href="/verify-email"
-            className="font-semibold text-[var(--pf-red)] hover:underline"
+            className="shrink-0 font-semibold text-[var(--pf-red)] hover:underline"
           >
             {verify.emailVerified ? "Change email" : "Verify email →"}
           </Link>

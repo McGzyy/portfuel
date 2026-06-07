@@ -2,7 +2,7 @@
 
 Apply **every** file in `supabase/migrations/` in filename order (oldest first). Use the Supabase SQL Editor, CLI (`supabase db push`), or your deployment pipeline.
 
-**43 migrations** as of journal phase 4.
+**49 migrations** as of membership tenure tracking.
 
 Verify locally:
 
@@ -70,6 +70,8 @@ After applying migrations:
 | 45 | `20260612100000_watchlist_digest_ai.sql` | AI watchlist digest usage counter |
 | 46 | `20260613100000_push_subscriptions.sql` | PWA push subscriptions + `push_alerts_enabled` |
 | 47 | `20260614100000_site_announcements.sql` | Admin workspace broadcast banners + dismissals |
+| 48 | `20260615100000_subscription_cancellation_feedback.sql` | Cancellation feedback + admin churn alerts |
+| 49 | `20260616100000_membership_tenure.sql` | Subscription / tier start timestamps for billing overview |
 
 > **Note:** `20260607095000_referral_program.sql` was renamed from a duplicate `20260607100000` timestamp so journal migrations apply in a deterministic order on fresh databases.
 

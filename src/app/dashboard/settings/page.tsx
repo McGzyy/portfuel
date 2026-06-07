@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { ModerationBanner } from "@/components/member/ModerationBanner";
 import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
@@ -10,7 +11,9 @@ import { ProfileSocialHighlightSection } from "@/components/profile/ProfileSocia
 import { ProfileVouchersSection } from "@/components/profile/ProfileVouchersSection";
 import { ProfileDiscordSection } from "@/components/profile/ProfileDiscordSection";
 import { SettingsAccountSummary } from "@/components/settings/SettingsAccountSummary";
+import { SettingsMembershipOverview } from "@/components/settings/SettingsMembershipOverview";
 import { SettingsDangerZone } from "@/components/settings/SettingsDangerZone";
+import { BillingReturnFeedbackPrompt } from "@/components/settings/BillingReturnFeedbackPrompt";
 import {
   parseSettingsSection,
   SettingsNav,
@@ -53,15 +56,15 @@ export default async function DashboardSettingsPage({
   return (
     <>
       <SettingsBillingSync />
-      <div className="mx-auto max-w-5xl space-y-6">
-        <header>
+      <div className="pf-settings-page mx-auto max-w-5xl space-y-4 sm:space-y-6">
+        <header className="px-0.5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
             Account
           </p>
-          <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-black)]">
+          <h1 className="mt-1 text-xl font-bold tracking-tight text-[var(--pf-black)] sm:mt-1.5 sm:text-2xl">
             Settings
           </h1>
-          <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
+          <p className="mt-1 hidden text-sm text-[var(--pf-gray-500)] sm:block">
             Membership, notifications, referrals, and integrations.
           </p>
         </header>
@@ -86,16 +89,23 @@ export default async function DashboardSettingsPage({
 
         <SettingsNavMobile active={section} />
 
-        <div className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start">
           <div className="hidden lg:block">
             <SettingsNav active={section} />
           </div>
 
-          <div className="min-w-0 space-y-6">
+          <div className="min-w-0 space-y-4 sm:space-y-6">
             {proLocked && section === "billing" ? <ProMembershipStrip locked /> : null}
 
             {section === "billing" ? (
               <section aria-label="Plan and billing" className="space-y-4">
+                <Suspense fallback={null}>
+                  <BillingReturnFeedbackPrompt />
+                </Suspense>
+                <SettingsMembershipOverview
+                  userId={session.userId}
+                  emailVerified={session.emailVerified}
+                />
                 <ProfileBillingSection
                   subscriptionStatus={profile.subscriptionStatus}
                   membershipTier={profile.membershipTier}

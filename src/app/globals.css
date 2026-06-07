@@ -495,6 +495,28 @@ body {
   box-shadow: var(--pf-shadow-sm);
 }
 
+/* Settings — mobile section picker + tighter rhythm */
+@media (max-width: 1023px) {
+  .pf-settings-mobile-nav {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    margin-left: -0.125rem;
+    margin-right: -0.125rem;
+    padding-bottom: 0.25rem;
+    background: linear-gradient(
+      to bottom,
+      var(--pf-gray-50) 0%,
+      var(--pf-gray-50) 82%,
+      transparent 100%
+    );
+  }
+}
+
+.pf-settings-page .pf-workspace-panel {
+  overflow: hidden;
+}
+
 .pf-stat-card {
   border-radius: var(--pf-radius-lg);
   border: 1px solid var(--pf-border);
