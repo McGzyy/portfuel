@@ -22,12 +22,14 @@ import type { ChartCallPreview } from "@/lib/charts/chart-call-preview";
 import { indexChartCalls, toChartCallPreview } from "@/lib/charts/chart-call-preview";
 import type { CallWithUser } from "@/lib/db/supabase";
 import { ChartCallDetailModal } from "@/components/charts/ChartCallDetailModal";
+import { ChartCallDayPickerModal } from "@/components/charts/ChartCallDayPickerModal";
 import {
   clearThesisHash,
   parseThesisHashFromUrl,
   scrollToThesisBlock,
   setThesisHash,
 } from "@/lib/charts/thesis-hash";
+import { sameDayCallIds as getSameDayCallIds } from "@/lib/charts/marker-hit";
 
 const TickerChart = dynamic(
   () => import("@/components/charts/TickerChart").then((m) => m.TickerChart),
@@ -86,6 +88,9 @@ export function TickerChartSection({
   const [showSma, setShowSma] = useState(false);
   const [showVwap, setShowVwap] = useState(false);
   const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
+  const [activeSameDayCallIds, setActiveSameDayCallIds] = useState<string[]>([]);
+  const [dayPickerCallIds, setDayPickerCallIds] = useState<string[] | null>(null);
+  const [dayPickerFocusId, setDayPickerFocusId] = useState<string | null>(null);
 
   const callPreviewsById = useMemo(() => {
     if (!chartCalls?.length) return undefined;
@@ -96,9 +101,10 @@ export function TickerChartSection({
   const selectedCall = selectedCallId && callPreviewsById ? callPreviewsById[selectedCallId] : null;
 
   const openCallModal = useCallback(
-    (callId: string) => {
+    (callId: string, dayIds?: string[]) => {
       if (!callPreviewsById?.[callId]) return;
       setSelectedCallId(callId);
+      setActiveSameDayCallIds(dayIds?.length ? dayIds : [callId]);
       setThesisHash(callId);
     },
     [callPreviewsById]
@@ -106,7 +112,26 @@ export function TickerChartSection({
 
   const closeCallModal = useCallback(() => {
     setSelectedCallId(null);
+    setActiveSameDayCallIds([]);
     clearThesisHash();
+  }, []);
+
+  const handleCallMarkerClick = useCallback(
+    (callId: string, dayIds: string[]) => {
+      if (!callPreviewsById?.[callId]) return;
+      if (dayIds.length > 1) {
+        setDayPickerCallIds(dayIds);
+        setDayPickerFocusId(callId);
+        return;
+      }
+      openCallModal(callId, dayIds);
+    },
+    [callPreviewsById, openCallModal]
+  );
+
+  const closeDayPicker = useCallback(() => {
+    setDayPickerCallIds(null);
+    setDayPickerFocusId(null);
   }, []);
 
   useEffect(() => {
@@ -115,6 +140,10 @@ export function TickerChartSection({
       if (!callId) return;
       if (callPreviewsById?.[callId]) {
         setSelectedCallId(callId);
+        const marker = markers.find((m) => m.callId === callId);
+        setActiveSameDayCallIds(
+          marker ? getSameDayCallIds(markers, marker.time) : [callId]
+        );
         return;
       }
       scrollToThesisBlock(callId);
@@ -126,7 +155,7 @@ export function TickerChartSection({
       window.cancelAnimationFrame(id);
       window.removeEventListener("hashchange", syncFromHash);
     };
-  }, [callPreviewsById]);
+  }, [callPreviewsById, markers]);
 
   const loadCandles = useCallback(
     async (res: ChartCandleResolution) => {
@@ -247,7 +276,7 @@ export function TickerChartSection({
               vwapPoints={vwapPoints}
               callPreviewsById={callPreviewsById}
               onCallMarkerClick={
-                callPreviewsById ? openCallModal : undefined
+                callPreviewsById ? handleCallMarkerClick : undefined
               }
             />
           ) : (
@@ -267,10 +296,25 @@ export function TickerChartSection({
           </p>
         </div>
       )}
+      {dayPickerCallIds && callPreviewsById ? (
+        <ChartCallDayPickerModal
+          callIds={dayPickerCallIds}
+          callPreviewsById={callPreviewsById}
+          focusCallId={dayPickerFocusId}
+          onSelect={(callId) => {
+            closeDayPicker();
+            openCallModal(callId, dayPickerCallIds);
+          }}
+          onClose={closeDayPicker}
+        />
+      ) : null}
       {selectedCall ? (
         <ChartCallDetailModal
           call={selectedCall}
           onClose={closeCallModal}
+          sameDayCallIds={activeSameDayCallIds}
+          callPreviewsById={callPreviewsById}
+          onSelectCall={(callId) => openCallModal(callId, activeSameDayCallIds)}
           interactive={interactive}
           viewerUserId={viewerUserId}
           isPro={isPro}

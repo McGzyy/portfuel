@@ -20,7 +20,7 @@ import {
   type LineData,
 } from "lightweight-charts";
 import type { CandlePoint, ChartMarker, LinePoint, PriceLine } from "@/lib/charts/types";
-import { markerLabelAtTime, markerNearTime, callMarkersOnDay } from "@/lib/charts/marker-hit";
+import { markerLabelAtTime, markerNearCallOnDay, markerNearTime, callMarkersOnDay, sameDayCallIds } from "@/lib/charts/marker-hit";
 import {
   PF_CHART,
   chartGridOptions,
@@ -117,7 +117,7 @@ export function TickerChart({
   vwapPoints?: LinePoint[];
   callPreviewsById?: Record<string, ChartCallPreview>;
   /** Opens in-page call modal instead of scrolling to thesis block. */
-  onCallMarkerClick?: (callId: string) => void;
+  onCallMarkerClick?: (callId: string, sameDayCallIds: string[]) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -241,13 +241,14 @@ export function TickerChart({
 
     const emitMarkerHover = (
       param: MouseEventParams<Time>,
-      time: number
+      time: number,
+      price?: number | null
     ) => {
       if (!callPreviewsRef.current || !param.point) {
         setMarkerHover(null);
         return;
       }
-      const hit = markerNearTime(markerDataRef.current, time);
+      const hit = markerNearCallOnDay(markerDataRef.current, time, price);
       if (!hit?.callId || !callPreviewsRef.current[hit.callId]) {
         setMarkerHover(null);
         return;
@@ -274,9 +275,10 @@ export function TickerChart({
       }
 
       const t = param.time as number;
-      emitMarkerHover(param, t);
       const seriesData = param.seriesData.get(series);
       const bar = seriesData as CandlestickData | undefined;
+      const crosshairPrice = bar?.close ?? bar?.open ?? null;
+      emitMarkerHover(param, t, crosshairPrice);
       if (!bar || bar.open == null) {
         const fallback = candlesRef.current.find((c) => c.time === t);
         if (fallback) {
@@ -299,19 +301,24 @@ export function TickerChart({
     const onClick = (param: MouseEventParams<Time>) => {
       if (param.time == null) return;
       const t = param.time as number;
-      const hit = markerNearTime(markerDataRef.current, t);
-      if (!hit?.callId && !hit?.journalEntryId) return;
-
-      if (hit.journalEntryId) {
-        const el = document.getElementById(`journal-entry-${hit.journalEntryId}`);
+      const seriesData = param.seriesData.get(series);
+      const bar = seriesData as CandlestickData | undefined;
+      const crosshairPrice = bar?.close ?? bar?.open ?? null;
+      const journalHit = markerNearTime(markerDataRef.current, t);
+      if (journalHit?.journalEntryId) {
+        const el = document.getElementById(`journal-entry-${journalHit.journalEntryId}`);
         el?.scrollIntoView({ behavior: "smooth", block: "center" });
         el?.classList.add("pf-thesis-highlight");
         window.setTimeout(() => el?.classList.remove("pf-thesis-highlight"), 2200);
         return;
       }
-      if (!hit.callId) return;
+
+      const hit =
+        markerNearCallOnDay(markerDataRef.current, t, crosshairPrice) ??
+        markerNearCallOnDay(markerDataRef.current, t);
+      if (!hit?.callId) return;
       if (onCallMarkerClickRef.current) {
-        onCallMarkerClickRef.current(hit.callId);
+        onCallMarkerClickRef.current(hit.callId, sameDayCallIds(markerDataRef.current, t));
         return;
       }
       const el = document.getElementById(`thesis-${hit.callId}`);

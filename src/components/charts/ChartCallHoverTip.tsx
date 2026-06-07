@@ -55,7 +55,7 @@ export function ChartCallHoverTip({
       </p>
       <p className="mt-2 text-[10px] font-medium text-[var(--pf-gray-400)]">
         Click for full call
-        {moreOnDay > 0 ? ` · +${moreOnDay} more this day` : ""}
+        {moreOnDay > 0 ? ` · ${moreOnDay + 1} calls this day` : ""}
       </p>
     </div>
   );

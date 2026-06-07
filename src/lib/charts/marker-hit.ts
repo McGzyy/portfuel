@@ -29,3 +29,28 @@ export function callMarkersOnDay(markers: ChartMarker[], time: number): ChartMar
   const day = candleDayStart(time);
   return markers.filter((m) => m.callId && candleDayStart(m.time) === day);
 }
+
+/** Pick the nearest same-day call marker, optionally by chart price (crosshair Y). */
+export function markerNearCallOnDay(
+  markers: ChartMarker[],
+  time: number,
+  price?: number | null
+): ChartMarker | null {
+  const sameDay = callMarkersOnDay(markers, time);
+  if (sameDay.length === 0) return null;
+  if (sameDay.length === 1) return sameDay[0];
+
+  if (price != null && Number.isFinite(price)) {
+    return sameDay.reduce((best, m) =>
+      Math.abs(m.price - price) < Math.abs(best.price - price) ? m : best
+    );
+  }
+
+  return sameDay[0];
+}
+
+export function sameDayCallIds(markers: ChartMarker[], time: number): string[] {
+  return callMarkersOnDay(markers, time)
+    .map((m) => m.callId)
+    .filter((id): id is string => Boolean(id));
+}

@@ -8,10 +8,14 @@ import {
 import { X } from "lucide-react";
 import { CallThesisBlock } from "@/components/calls/CallThesisBlock";
 import type { ChartCallPreview } from "@/lib/charts/chart-call-preview";
+import { cn, formatPct } from "@/lib/utils";
 
 export function ChartCallDetailModal({
   call,
   onClose,
+  sameDayCallIds = [],
+  callPreviewsById,
+  onSelectCall,
   interactive = false,
   viewerUserId,
   isPro,
@@ -21,6 +25,9 @@ export function ChartCallDetailModal({
 }: {
   call: ChartCallPreview;
   onClose: () => void;
+  sameDayCallIds?: string[];
+  callPreviewsById?: Record<string, ChartCallPreview>;
+  onSelectCall?: (callId: string) => void;
   interactive?: boolean;
   viewerUserId?: string | null;
   isPro?: boolean;
@@ -79,6 +86,14 @@ export function ChartCallDetailModal({
             <X className="h-4 w-4" />
           </button>
         </div>
+        {sameDayCallIds.length > 1 && onSelectCall ? (
+          <ChartCallSiblingStrip
+            activeCall={call}
+            sameDayCallIds={sameDayCallIds}
+            callPreviewsById={callPreviewsById}
+            onSelectCall={onSelectCall}
+          />
+        ) : null}
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
           <CallThesisBlock
             call={call}
@@ -99,6 +114,54 @@ export function ChartCallDetailModal({
             View in community section ↓
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ChartCallSiblingStrip({
+  activeCall,
+  sameDayCallIds,
+  callPreviewsById,
+  onSelectCall,
+}: {
+  activeCall: ChartCallPreview;
+  sameDayCallIds: string[];
+  callPreviewsById?: Record<string, ChartCallPreview>;
+  onSelectCall: (callId: string) => void;
+}) {
+  return (
+    <div className="shrink-0 border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2">
+      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+        Same day ({sameDayCallIds.length})
+      </p>
+      <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+        {sameDayCallIds.map((id) => {
+          const preview = callPreviewsById?.[id];
+          const active = id === activeCall.id;
+          const name = preview?.users.display_name ?? preview?.users.pin ?? "Call";
+          const ret = preview?.return_pct;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onSelectCall(id)}
+              className={cn(
+                "shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                active
+                  ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white"
+                  : "border-[var(--pf-border)] bg-white text-[var(--pf-gray-600)] hover:border-[var(--pf-gray-300)]"
+              )}
+            >
+              {name}
+              {ret != null ? (
+                <span className={cn("ml-1 tabular-nums", active ? "opacity-80" : "text-[var(--pf-gray-400)]")}>
+                  {formatPct(ret)}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
