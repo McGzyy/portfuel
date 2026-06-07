@@ -2,7 +2,7 @@ import { COPY } from "@/lib/copy";
 import { DASHBOARD_NAV } from "@/lib/dashboard/nav";
 import type { SearchPageResult } from "@/lib/search/types";
 
-/** Static workspace destinations for palette page search (headlines lane deferred). */
+/** Static workspace destinations for palette page search. */
 export const WORKSPACE_SEARCH_PAGES: SearchPageResult[] = [
   ...DASHBOARD_NAV.map((item) => ({
     label: item.label,

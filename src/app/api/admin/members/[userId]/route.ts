@@ -26,6 +26,7 @@ const patchSchema = z.object({
   banned: z.boolean().optional(),
   marketingMemberOptIn: z.boolean().optional(),
   marketingProOptIn: z.boolean().optional(),
+  compAccessUntil: z.string().datetime().nullable().optional(),
 });
 
 export async function GET(
@@ -101,6 +102,9 @@ export async function PATCH(
     }
     if (body.marketingProOptIn !== undefined) {
       updates.marketing_pro_opt_in = body.marketingProOptIn;
+    }
+    if (body.compAccessUntil !== undefined) {
+      updates.comp_access_until = body.compAccessUntil;
     }
 
     if (Object.keys(updates).length > 0) {

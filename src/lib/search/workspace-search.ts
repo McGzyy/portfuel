@@ -10,6 +10,12 @@ import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { searchWorkspacePages } from "@/lib/search/workspace-pages";
 import { buildSymbolSearchResult } from "@/lib/search/symbol-links";
 import { searchMarketHeadlines } from "@/lib/search/headlines-search";
+import { searchJournalEntries } from "@/lib/search/journal-entries-search";
+import {
+  getCachedSearch,
+  searchCacheKey,
+  setCachedSearch,
+} from "@/lib/search/search-cache";
 import type {
   SearchMemberResult,
   SearchSymbolResult,
@@ -224,6 +230,11 @@ export async function searchWorkspace(
   opts?: { recentSymbols?: string[] }
 ): Promise<WorkspaceSearchResults> {
   const query = normalizeQuery(rawQuery);
+  const recentSymbols = opts?.recentSymbols ?? [];
+  const cacheKey = searchCacheKey(userId, query, recentSymbols);
+  const cached = getCachedSearch(cacheKey, query);
+  if (cached) return cached;
+
   const pages = searchWorkspacePages(query);
 
   const watchlistItems = isDemoMode()
@@ -238,18 +249,21 @@ export async function searchWorkspace(
 
   if (!query) {
     const recent =
-      opts?.recentSymbols && opts.recentSymbols.length > 0
-        ? await resolveRecentTickers(userId, opts.recentSymbols, watchlistItems)
+      recentSymbols.length > 0
+        ? await resolveRecentTickers(userId, recentSymbols, watchlistItems)
         : [];
 
-    return {
+    const emptyResults: WorkspaceSearchResults = {
       query,
       recent,
       symbols: [],
+      journalEntries: [],
       members: [],
       pages,
       headlines: [],
     };
+    setCachedSearch(cacheKey, emptyResults);
+    return emptyResults;
   }
 
   const upper = query.toUpperCase();
@@ -272,13 +286,17 @@ export async function searchWorkspace(
       : [];
 
   const headlines = await searchMarketHeadlines(query, watchlistSymbolList);
+  const journalEntries = await searchJournalEntries(userId, query);
 
-  return {
+  const results: WorkspaceSearchResults = {
     query,
     recent: [],
     symbols: symbols.slice(0, SYMBOL_LIMIT),
+    journalEntries,
     members,
     pages,
     headlines,
   };
+  setCachedSearch(cacheKey, results);
+  return results;
 }

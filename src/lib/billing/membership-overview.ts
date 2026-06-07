@@ -5,6 +5,11 @@ import {
   isProGrantActive,
 } from "@/lib/billing/effective-access";
 import { formatDaysUntil, formatDurationSince, formatShortDate } from "@/lib/billing/format-tenure";
+import {
+  expireCompAccessIfNeeded,
+  isCompAccessActive,
+  isCompAccessOpenEnded,
+} from "@/lib/billing/comp-access";
 import { formatTierPriceLong } from "@/lib/marketing/plans";
 import { getStripe } from "@/lib/stripe/client";
 import {
@@ -41,6 +46,9 @@ export type MembershipOverview = {
   renewsInLabel: string | null;
   accessUntil: string | null;
   accessUntilLabel: string | null;
+  compAccessUntil: string | null;
+  compAccessOpenEnded: boolean;
+  compAccessUntilLabel: string | null;
   cancelAtPeriodEnd: boolean;
   proGrantedUntil: string | null;
   proGrantDaysLeft: string | null;
@@ -134,6 +142,9 @@ export async function fetchMembershipOverview(
       renewsInLabel: formatDaysUntil(renews),
       accessUntil: null,
       accessUntilLabel: null,
+      compAccessUntil: null,
+      compAccessOpenEnded: false,
+      compAccessUntilLabel: null,
       cancelAtPeriodEnd: false,
       proGrantedUntil: null,
       proGrantDaysLeft: null,
@@ -142,11 +153,13 @@ export async function fetchMembershipOverview(
     };
   }
 
+  await expireCompAccessIfNeeded(userId);
+
   const db = createServiceClient();
   const { data: user, error } = await db
     .from("users")
     .select(
-      "trusted_at, created_at, subscription_status, membership_tier, billing_interval, stripe_customer_id, stripe_subscription_id, pro_granted_until, submission_quota_week, subscription_started_at, membership_tier_started_at, email_verified_at"
+      "trusted_at, created_at, subscription_status, membership_tier, billing_interval, stripe_customer_id, stripe_subscription_id, pro_granted_until, comp_access_until, submission_quota_week, subscription_started_at, membership_tier_started_at, email_verified_at"
     )
     .eq("id", userId)
     .maybeSingle();
@@ -169,6 +182,9 @@ export async function fetchMembershipOverview(
       renewsInLabel: null,
       accessUntil: null,
       accessUntilLabel: null,
+      compAccessUntil: null,
+      compAccessOpenEnded: false,
+      compAccessUntilLabel: null,
       cancelAtPeriodEnd: false,
       proGrantedUntil: null,
       proGrantDaysLeft: null,
@@ -186,6 +202,7 @@ export async function fetchMembershipOverview(
     stripe_customer_id: string | null;
     stripe_subscription_id: string | null;
     pro_granted_until: string | null;
+    comp_access_until: string | null;
     submission_quota_week: number | null;
     subscription_started_at: string | null;
     membership_tier_started_at: string | null;
@@ -224,9 +241,11 @@ export async function fetchMembershipOverview(
           : "No active plan";
 
   const planPrice =
-    effectiveTier && row.subscription_status === "active"
-      ? formatTierPriceLong(effectiveTier, billingInterval)
-      : null;
+    billingSource === "comp" && effectiveTier && row.subscription_status === "active"
+      ? "Complimentary"
+      : effectiveTier && row.subscription_status === "active"
+        ? formatTierPriceLong(effectiveTier, billingInterval)
+        : null;
 
   const callsPerWeek =
     effectiveTier && row.subscription_status === "active"
@@ -235,6 +254,10 @@ export async function fetchMembershipOverview(
 
   const cancelAtPeriodEnd = Boolean(stripePeriod?.cancelAtPeriodEnd);
   const periodEnd = stripePeriod?.currentPeriodEnd ?? null;
+  const compAccessOpenEnded =
+    billingSource === "comp" && isCompAccessOpenEnded(row.comp_access_until);
+  const compAccessActive =
+    billingSource === "comp" && isCompAccessActive(row.comp_access_until);
 
   return {
     effectiveTier,
@@ -262,6 +285,15 @@ export async function fetchMembershipOverview(
     renewsInLabel: cancelAtPeriodEnd ? null : formatDaysUntil(periodEnd),
     accessUntil: cancelAtPeriodEnd ? periodEnd : null,
     accessUntilLabel: cancelAtPeriodEnd ? formatDaysUntil(periodEnd) : null,
+    compAccessUntil:
+      billingSource === "comp" && compAccessActive && row.comp_access_until
+        ? row.comp_access_until
+        : null,
+    compAccessOpenEnded,
+    compAccessUntilLabel:
+      billingSource === "comp" && row.comp_access_until && compAccessActive
+        ? formatDaysUntil(row.comp_access_until)
+        : null,
     cancelAtPeriodEnd,
     proGrantedUntil: grantActive ? row.pro_granted_until : null,
     proGrantDaysLeft: grantActive ? formatDaysUntil(row.pro_granted_until) : null,

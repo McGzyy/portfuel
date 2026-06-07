@@ -20,6 +20,7 @@ export type UserLifecycleRow = {
   membership_tier: "member" | "pro" | null;
   billing_interval: "monthly" | "annual" | null;
   pro_granted_until: string | null;
+  comp_access_until: string | null;
   banned_at: string | null;
   last_active_at: string | null;
   moderation_expires_at: string | null;

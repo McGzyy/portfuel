@@ -18,7 +18,7 @@ function badgeLabel(kind: MembershipBadge): { text: string; variant?: "default" 
     case "member":
       return { text: "Member" };
     case "comp_pro":
-      return { text: "Comp Pro" };
+      return { text: "Comped Pro" };
     case "pro_trial":
       return { text: "Pro trial" };
     case "email_verified":
@@ -177,6 +177,25 @@ function OverviewBody({ overview }: { overview: MembershipOverview }) {
             hint={
               overview.tierSince ? `Since ${formatOverviewDate(overview.tierSince)}` : null
             }
+          />
+        ) : null}
+
+        {isActive && overview.billingSource === "comp" ? (
+          <StatCell
+            label="Access until"
+            value={
+              overview.compAccessOpenEnded
+                ? "∞"
+                : formatOverviewDate(overview.compAccessUntil) ?? "—"
+            }
+            hint={
+              overview.compAccessOpenEnded
+                ? "Complimentary access · No end date"
+                : overview.compAccessUntilLabel
+                  ? `${overview.compAccessUntilLabel} remaining`
+                  : "Complimentary access"
+            }
+            className="col-span-2 sm:col-span-1"
           />
         ) : null}
 

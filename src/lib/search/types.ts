@@ -32,11 +32,22 @@ export type SearchHeadlineResult = {
   relatedSymbols: string[];
 };
 
+export type SearchJournalEntryResult = {
+  id: string;
+  symbol: string;
+  body: string;
+  entryType: string;
+  entryTypeLabel: string;
+  createdAt: string;
+  href: string;
+};
+
 export type WorkspaceSearchResults = {
   query: string;
   /** Populated when the query is empty and the client sends recent symbols. */
   recent: SearchSymbolResult[];
   symbols: SearchSymbolResult[];
+  journalEntries: SearchJournalEntryResult[];
   members: SearchMemberResult[];
   pages: SearchPageResult[];
   headlines: SearchHeadlineResult[];

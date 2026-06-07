@@ -19,13 +19,22 @@ import {
   LayoutDashboard,
   Loader2,
   Newspaper,
+  NotebookPen,
   Search,
   UserRound,
+  X,
 } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
-import { pushRecentTicker, readRecentTickers } from "@/lib/search/recent-tickers";
+import { splitByQuery } from "@/lib/search/highlight";
+import {
+  clearRecentTickers,
+  pushRecentTicker,
+  readRecentTickers,
+  removeRecentTicker,
+} from "@/lib/search/recent-tickers";
 import type {
   SearchHeadlineResult,
+  SearchJournalEntryResult,
   SearchMemberResult,
   SearchPageResult,
   SearchSymbolResult,
@@ -36,7 +45,8 @@ type PaletteItem =
   | { kind: "symbol"; data: SearchSymbolResult }
   | { kind: "member"; data: SearchMemberResult }
   | { kind: "page"; data: SearchPageResult }
-  | { kind: "headline"; data: SearchHeadlineResult };
+  | { kind: "headline"; data: SearchHeadlineResult }
+  | { kind: "journal"; data: SearchJournalEntryResult };
 
 type WorkspaceSearchContextValue = {
   open: boolean;
@@ -53,11 +63,6 @@ function useWorkspaceSearch() {
   return ctx;
 }
 
-function isMacPlatform(): boolean {
-  if (typeof navigator === "undefined") return false;
-  return /Mac|iPhone|iPad|iPod/.test(navigator.platform);
-}
-
 function AssetBadge({ assetClass }: { assetClass: "equity" | "crypto" }) {
   const crypto = assetClass === "crypto";
   return (
@@ -69,15 +74,6 @@ function AssetBadge({ assetClass }: { assetClass: "equity" | "crypto" }) {
     >
       {crypto ? "Crypto" : "Stock"}
     </span>
-  );
-}
-
-function ShortcutHint() {
-  const mac = isMacPlatform();
-  return (
-    <kbd className="hidden shrink-0 rounded border border-[var(--pf-border)] bg-white px-1.5 py-0.5 text-[10px] font-semibold text-[var(--pf-gray-500)] sm:inline">
-      {mac ? "⌘K" : "Ctrl K"}
-    </kbd>
   );
 }
 
@@ -131,8 +127,7 @@ export function WorkspaceSearchTrigger({ className }: { className?: string }) {
         )}
       >
         <Search className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" strokeWidth={2.25} />
-        <span className="flex-1 truncate text-left">Search symbols, news, members…</span>
-        <ShortcutHint />
+        <span className="flex-1 truncate text-left">Search symbols, journal, news…</span>
       </button>
     </>
   );
@@ -183,6 +178,12 @@ function WorkspaceCommandPalette({
       sections.push({
         title: "Headlines",
         items: results.headlines.map((data) => ({ kind: "headline" as const, data })),
+      });
+    }
+    if (results.journalEntries.length > 0) {
+      sections.push({
+        title: "Journal",
+        items: results.journalEntries.map((data) => ({ kind: "journal" as const, data })),
       });
     }
     if (results.members.length > 0) {
@@ -262,6 +263,7 @@ function WorkspaceCommandPalette({
             query,
             recent: [],
             symbols: [],
+            journalEntries: [],
             members: [],
             pages: [],
             headlines: [],
@@ -279,6 +281,20 @@ function WorkspaceCommandPalette({
   useEffect(() => {
     setActiveIndex((prev) => (items.length === 0 ? 0 : Math.min(prev, items.length - 1)));
   }, [items.length]);
+
+  function clearAllRecents() {
+    clearRecentTickers();
+    setRecentSeed([]);
+    setResults((prev) => (prev ? { ...prev, recent: [] } : prev));
+  }
+
+  function removeRecent(symbol: string) {
+    removeRecentTicker(symbol);
+    setRecentSeed((prev) => prev.filter((s) => s !== symbol));
+    setResults((prev) =>
+      prev ? { ...prev, recent: prev.recent.filter((row) => row.symbol !== symbol) } : prev
+    );
+  }
 
   function navigateSymbol(item: SearchSymbolResult) {
     pushRecentTicker({ symbol: item.symbol, assetClass: item.assetClass });
@@ -346,7 +362,7 @@ function WorkspaceCommandPalette({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onInputKeyDown}
-            placeholder="Symbol, @member, headline, or page…"
+            placeholder="Search…"
             className="min-w-0 flex-1 bg-transparent text-base text-[var(--pf-black)] outline-none placeholder:text-[var(--pf-gray-400)] sm:text-sm"
             autoComplete="off"
             autoCorrect="off"
@@ -379,17 +395,32 @@ function WorkspaceCommandPalette({
               </p>
               <p className="mt-1 text-xs leading-relaxed text-[var(--pf-gray-500)]">
                 {emptyQuery
-                  ? "Try NVDA, @username, or fed rate headlines."
-                  : "Check the symbol, try @ before a username, or search headlines (3+ letters)."}
+                  ? "Try NVDA, @username, or earnings in your journal."
+                  : "Check the symbol, try @ before a username, or search journal notes (2+ letters)."}
               </p>
             </div>
           ) : null}
 
           {resultSections.map((section, sectionIndex) => {
             const indexOffset = sectionOffsets[sectionIndex] ?? 0;
+            const isRecentSection = section.title === "Recent";
 
             return (
-              <ResultSection key={section.title} title={section.title}>
+              <ResultSection
+                key={section.title}
+                title={section.title}
+                action={
+                  isRecentSection && section.items.length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={clearAllRecents}
+                      className="text-[10px] font-semibold normal-case tracking-normal text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-black)]"
+                    >
+                      Clear
+                    </button>
+                  ) : null
+                }
+              >
                 {section.items.map((item, i) => {
                   const index = indexOffset + i;
                   if (item.kind === "symbol") {
@@ -401,6 +432,9 @@ function WorkspaceCommandPalette({
                         active={activeIndex === index}
                         onHover={() => setActiveIndex(index)}
                         onPick={() => navigateSymbol(item.data)}
+                        onRemove={
+                          isRecentSection ? () => removeRecent(item.data.symbol) : undefined
+                        }
                         onIntel={() => {
                           pushRecentTicker({
                             symbol: item.data.symbol,
@@ -417,10 +451,24 @@ function WorkspaceCommandPalette({
                       <HeadlineRow
                         key={`headline-${item.data.id}`}
                         item={item.data}
+                        query={query}
                         dataIndex={index}
                         active={activeIndex === index}
                         onHover={() => setActiveIndex(index)}
                         onPick={() => openHeadline(item.data.url)}
+                      />
+                    );
+                  }
+                  if (item.kind === "journal") {
+                    return (
+                      <JournalEntryRow
+                        key={`journal-${item.data.id}`}
+                        item={item.data}
+                        query={query}
+                        dataIndex={index}
+                        active={activeIndex === index}
+                        onHover={() => setActiveIndex(index)}
+                        onPick={() => navigate(item.data.href)}
                       />
                     );
                   }
@@ -500,14 +548,44 @@ function WorkspaceCommandPalette({
   );
 }
 
-function ResultSection({ title, children }: { title: string; children: ReactNode }) {
+function ResultSection({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <section className="mb-2">
-      <p className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--pf-gray-400)]">
-        {title}
-      </p>
+      <div className="flex items-center justify-between gap-2 px-3 pb-1 pt-2">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--pf-gray-400)]">
+          {title}
+        </p>
+        {action}
+      </div>
       <div className="space-y-0.5">{children}</div>
     </section>
+  );
+}
+
+function HighlightedText({ text, query }: { text: string; query: string }) {
+  return (
+    <>
+      {splitByQuery(text, query).map((segment, i) =>
+        segment.highlight ? (
+          <mark
+            key={i}
+            className="rounded-sm bg-amber-100 px-0.5 font-semibold text-[var(--pf-black)]"
+          >
+            {segment.text}
+          </mark>
+        ) : (
+          <span key={i}>{segment.text}</span>
+        )
+      )}
+    </>
   );
 }
 
@@ -518,6 +596,7 @@ function SymbolRow({
   onHover,
   onPick,
   onIntel,
+  onRemove,
 }: {
   item: SearchSymbolResult;
   dataIndex: number;
@@ -525,6 +604,7 @@ function SymbolRow({
   onHover: () => void;
   onPick: () => void;
   onIntel: () => void;
+  onRemove?: () => void;
 }) {
   return (
     <div
@@ -563,6 +643,19 @@ function SymbolRow({
           {item.onWatchlist ? "Journal" : "Intel"}
         </span>
       </button>
+      {onRemove ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="shrink-0 rounded-md p-1.5 text-[var(--pf-gray-400)] transition-colors hover:bg-white hover:text-[var(--pf-black)]"
+          aria-label={`Remove ${item.symbol} from recent`}
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      ) : null}
       {item.onWatchlist ? (
         <button
           type="button"
@@ -579,12 +672,14 @@ function SymbolRow({
 
 function HeadlineRow({
   item,
+  query,
   dataIndex,
   active,
   onHover,
   onPick,
 }: {
   item: SearchHeadlineResult;
+  query: string;
   dataIndex: number;
   active: boolean;
   onHover: () => void;
@@ -611,7 +706,7 @@ function HeadlineRow({
       </span>
       <span className="min-w-0 flex-1">
         <span className="line-clamp-2 text-sm font-medium leading-snug text-[var(--pf-black)]">
-          {item.headline}
+          <HighlightedText text={item.headline} query={query} />
         </span>
         <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[var(--pf-gray-500)]">
           <span className="truncate">{item.source}</span>
@@ -624,6 +719,59 @@ function HeadlineRow({
         </span>
       </span>
       <ExternalLink className="mt-1 h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" />
+    </button>
+  );
+}
+
+function JournalEntryRow({
+  item,
+  query,
+  dataIndex,
+  active,
+  onHover,
+  onPick,
+}: {
+  item: SearchJournalEntryResult;
+  query: string;
+  dataIndex: number;
+  active: boolean;
+  onHover: () => void;
+  onPick: () => void;
+}) {
+  const age =
+    item.createdAt.length > 0
+      ? formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })
+      : null;
+
+  return (
+    <button
+      type="button"
+      data-index={dataIndex}
+      onMouseEnter={onHover}
+      onClick={onPick}
+      className={cn(
+        "flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
+        active ? "bg-[var(--pf-gray-100)]" : "hover:bg-[var(--pf-gray-50)]"
+      )}
+    >
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--pf-gray-100)] text-[var(--pf-gray-600)]">
+        <NotebookPen className="h-4 w-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <span className="font-mono text-xs font-bold text-[var(--pf-red)]">{item.symbol}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            {item.entryTypeLabel}
+          </span>
+        </span>
+        <span className="mt-0.5 line-clamp-2 text-sm leading-snug text-[var(--pf-black)]">
+          <HighlightedText text={item.body} query={query} />
+        </span>
+        {age ? (
+          <span className="mt-1 block text-xs text-[var(--pf-gray-500)]">{age}</span>
+        ) : null}
+      </span>
+      <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" />
     </button>
   );
 }

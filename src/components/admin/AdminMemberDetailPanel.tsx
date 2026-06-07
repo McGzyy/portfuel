@@ -129,6 +129,7 @@ export function AdminMemberDetailPanel({ userId }: { userId: string }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [moderationExpiresAt, setModerationExpiresAt] = useState("");
+  const [compAccessUntil, setCompAccessUntil] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -146,6 +147,11 @@ export function AdminMemberDetailPanel({ userId }: { userId: string }) {
       setModerationExpiresAt(
         data.user?.moderation_expires_at
           ? new Date(data.user.moderation_expires_at).toISOString().slice(0, 16)
+          : ""
+      );
+      setCompAccessUntil(
+        data.user?.comp_access_until
+          ? new Date(data.user.comp_access_until).toISOString().slice(0, 16)
           : ""
       );
     } catch {
@@ -220,6 +226,8 @@ export function AdminMemberDetailPanel({ userId }: { userId: string }) {
   const proGrantActive =
     Boolean(user.pro_granted_until) &&
     new Date(user.pro_granted_until!).getTime() > Date.now();
+  const isComped =
+    isActive && !user.stripe_customer_id && Boolean(user.membership_tier) && !proGrantActive;
 
   return (
     <div className="mt-6 space-y-6">
@@ -306,9 +314,67 @@ export function AdminMemberDetailPanel({ userId }: { userId: string }) {
                     : "None"
               }
             />
+            <InfoCell
+              label="Comp access"
+              value={
+                isComped
+                  ? user.comp_access_until
+                    ? `Until ${formatDate(user.comp_access_until)}`
+                    : "No end date (∞)"
+                  : user.stripe_customer_id
+                    ? "Stripe billing"
+                    : "—"
+              }
+            />
             <InfoCell label="Weekly call quota" value={`${user.submission_quota_week} / week`} />
             <InfoCell label="Trusted caller" value={user.trusted_at ? "Yes" : "No"} />
           </dl>
+
+          {isComped ? (
+            <div className="mt-5 border-t border-[var(--pf-border)] pt-4">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                Comp access until
+              </label>
+              <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
+                Leave blank for indefinite access (∞). Set a date to auto-cancel when it passes.
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <input
+                  type="datetime-local"
+                  className="w-full max-w-xs rounded-md border border-[var(--pf-border)] px-3 py-2 text-sm"
+                  value={compAccessUntil}
+                  onChange={(e) => setCompAccessUntil(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  disabled={saving}
+                  onClick={() =>
+                    patch({
+                      compAccessUntil: compAccessUntil
+                        ? new Date(compAccessUntil).toISOString()
+                        : null,
+                    })
+                  }
+                >
+                  Save end date
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  disabled={saving}
+                  onClick={() => {
+                    setCompAccessUntil("");
+                    void patch({ compAccessUntil: null });
+                  }}
+                >
+                  No end date (∞)
+                </Button>
+              </div>
+            </div>
+          ) : null}
 
           <div className="mt-5 flex flex-wrap gap-2">
             {user.subscription_status !== "active" ? (

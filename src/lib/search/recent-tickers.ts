@@ -53,3 +53,29 @@ export function pushRecentTicker(input: {
 export function recentTickerSymbols(): string[] {
   return readRecentTickers().map((row) => row.symbol);
 }
+
+export function removeRecentTicker(symbol: string): void {
+  if (typeof window === "undefined") return;
+  const sym = symbol.toUpperCase().trim();
+  if (!sym) return;
+
+  const next = readRecentTickers().filter((row) => row.symbol !== sym);
+  try {
+    if (next.length === 0) {
+      window.localStorage.removeItem(RECENT_TICKERS_STORAGE_KEY);
+    } else {
+      window.localStorage.setItem(RECENT_TICKERS_STORAGE_KEY, JSON.stringify(next));
+    }
+  } catch {
+    /* storage full or blocked */
+  }
+}
+
+export function clearRecentTickers(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(RECENT_TICKERS_STORAGE_KEY);
+  } catch {
+    /* storage blocked */
+  }
+}

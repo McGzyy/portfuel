@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { effectiveMembershipTier } from "@/lib/billing/effective-access";
 import { fetchLifecycleSessionFields } from "@/lib/auth/session-lifecycle";
 import { expireProGrantIfNeeded } from "@/lib/billing/pro-grant";
+import { expireCompAccessIfNeeded } from "@/lib/billing/comp-access";
 import type { MembershipTier } from "@/lib/stripe/config";
 import type { SessionPayload } from "@/lib/auth/session-types";
 
@@ -121,6 +122,7 @@ export async function refreshSessionFromDatabase(
 ): Promise<{ session: SessionPayload; token?: string }> {
   try {
     await expireProGrantIfNeeded(session.userId);
+    await expireCompAccessIfNeeded(session.userId);
     const row = await fetchBillingRow(session.userId);
     if (!row) return { session };
 
