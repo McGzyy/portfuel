@@ -90,7 +90,7 @@ export default async function TickerPage({
 
   const intelData = intel ?? emptyIntel;
   const isEquityIntel = intelData.assetClass === "equity";
-  const intelGateLocked = proLocked && isEquityIntel;
+  const intelGateLocked = proLocked;
   const intelTeaser = buildIntelTeaserSummary(intelData);
   const chartPriceLines = buildTickerPriceLines({
     calls,
@@ -131,7 +131,9 @@ export default async function TickerPage({
         <TickerCommunityBar stats={communityStats} />
       ) : null}
 
-      {session && proLocked ? <ProIntelDiscoverStrip symbol={symbol} /> : null}
+      {session && proLocked ? (
+        <ProIntelDiscoverStrip symbol={symbol} assetClass={intelData.assetClass} />
+      ) : null}
 
       <section id="chart" className="scroll-mt-24">
         <TickerChartSection

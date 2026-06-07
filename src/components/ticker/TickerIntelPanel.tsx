@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { CryptoIntelPanel } from "@/components/ticker/CryptoIntelPanel";
 import type { TickerIntel } from "@/lib/market/ticker-intel";
 
 function formatDate(d: string | number) {
@@ -6,72 +7,9 @@ function formatDate(d: string | number) {
   return new Date(d).toLocaleDateString();
 }
 
-function formatPct(n: number) {
-  const sign = n > 0 ? "+" : "";
-  return `${sign}${n.toFixed(2)}%`;
-}
-
 export function TickerIntelPanel({ intel }: { intel: TickerIntel }) {
   if (intel.assetClass === "crypto") {
-    const exchange = intel.cryptoMeta?.exchange ?? "coinbase";
-    return (
-      <div className="grid gap-6 lg:grid-cols-2">
-        <IntelCard title="Venue" subtitle="Coinbase / Kraken listed pairs">
-          <dl className="space-y-3 text-sm">
-            <div>
-              <dt className="text-[var(--pf-gray-500)]">Asset</dt>
-              <dd className="font-semibold text-[var(--pf-black)]">
-                {intel.cryptoMeta?.displayName ?? intel.companyName}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[var(--pf-gray-500)]">Symbol</dt>
-              <dd className="font-mono font-semibold">{intel.symbol}</dd>
-            </div>
-            <div>
-              <dt className="text-[var(--pf-gray-500)]">Primary exchange</dt>
-              <dd className="capitalize font-semibold">{exchange}</dd>
-            </div>
-            <div>
-              <dt className="text-[var(--pf-gray-500)]">Finnhub pair</dt>
-              <dd className="font-mono text-xs text-[var(--pf-gray-700)]">
-                {intel.finnhubSymbol ?? "—"}
-              </dd>
-            </div>
-            {intel.quote ? (
-              <div>
-                <dt className="text-[var(--pf-gray-500)]">Last · daily change</dt>
-                <dd className="font-semibold tabular-nums">
-                  ${intel.quote.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}{" "}
-                  <span
-                    className={
-                      intel.quote.changePct >= 0 ? "text-emerald-600" : "text-rose-600"
-                    }
-                  >
-                    {formatPct(intel.quote.changePct)}
-                  </span>
-                </dd>
-              </div>
-            ) : null}
-          </dl>
-          <p className="mt-4 text-xs leading-relaxed text-[var(--pf-gray-500)]">
-            Exchange-listed majors only — no memecoins. Earnings and SEC filings are available on
-            equity tickers.
-          </p>
-        </IntelCard>
-
-        <IntelCard title="Headlines" subtitle="Crypto news mentioning this symbol">
-          {intel.news.length === 0 ? (
-            <Empty>
-              No symbol-tagged headlines in the latest crypto feed. Check back after major moves or
-              open an equity ticker for earnings and filings.
-            </Empty>
-          ) : (
-            <NewsList items={intel.news} />
-          )}
-        </IntelCard>
-      </div>
-    );
+    return <CryptoIntelPanel intel={intel} />;
   }
 
   return (

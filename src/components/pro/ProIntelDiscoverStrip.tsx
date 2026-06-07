@@ -5,16 +5,27 @@ import { formatTierPrice } from "@/lib/marketing/plans";
 
 import { buildResearchHubHref } from "@/lib/dashboard/research-hub";
 
-const LINKS = [
-  { href: buildResearchHubHref("screener"), label: "Screener", icon: ScanSearch },
-  { href: buildResearchHubHref("earnings"), label: "Earnings", icon: Calendar },
-  { href: buildResearchHubHref("compare"), label: "Compare", icon: GitCompare },
-  { href: "/ticker/NVDA", label: "Ticker intel", icon: BarChart3 },
-] as const;
-
 /** Member feed: surface Pro research tools without another full-width banner. */
-export function ProIntelDiscoverStrip({ symbol }: { symbol?: string }) {
-  const intelHref = symbol ? `/ticker/${symbol}` : "/ticker/NVDA";
+export function ProIntelDiscoverStrip({
+  symbol,
+  assetClass = "equity",
+}: {
+  symbol?: string;
+  assetClass?: "equity" | "crypto";
+}) {
+  const intelHref = symbol
+    ? `/ticker/${symbol}`
+    : assetClass === "crypto"
+      ? "/ticker/BTC"
+      : "/ticker/NVDA";
+  const intelLabel = assetClass === "crypto" ? "Crypto intel" : "Ticker intel";
+  const links = [
+    { href: buildResearchHubHref("screener"), label: "Screener", icon: ScanSearch },
+    { href: buildResearchHubHref("earnings"), label: "Earnings", icon: Calendar },
+    { href: buildResearchHubHref("compare"), label: "Compare", icon: GitCompare },
+    { href: intelHref, label: intelLabel, icon: BarChart3 },
+  ] as const;
+
   return (
     <section className="rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-4 py-3 shadow-[var(--pf-shadow-sm)]">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -25,15 +36,17 @@ export function ProIntelDiscoverStrip({ symbol }: { symbol?: string }) {
           <div>
             <p className="text-sm font-bold text-[var(--pf-black)]">Pro Intelligence research layer</p>
             <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
-              News, filings, intraday charts, screener &amp; compare — {formatTierPrice("pro")}/mo.
+              {assetClass === "crypto"
+                ? `Crypto headlines, price action & community conviction — ${formatTierPrice("pro")}/mo.`
+                : `News, filings, intraday charts, screener & compare — ${formatTierPrice("pro")}/mo.`}
             </p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {LINKS.map(({ href, label, icon: Icon }) => (
+          {links.map(({ href, label, icon: Icon }) => (
             <Link
               key={label}
-              href={label === "Ticker intel" ? intelHref : href}
+              href={href}
               className="inline-flex items-center gap-1.5 rounded-full border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-1.5 text-xs font-semibold text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-white"
             >
               <Icon className="h-3.5 w-3.5" />

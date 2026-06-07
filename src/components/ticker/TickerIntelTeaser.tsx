@@ -1,5 +1,6 @@
 import type { AssetClass } from "@/lib/market/validate-symbol";
 import type { IntelTeaserSummary } from "@/lib/market/intel-teaser";
+import { formatPct } from "@/lib/utils";
 
 export function TickerIntelTeaser({
   summary,
@@ -23,12 +24,20 @@ export function TickerIntelTeaser({
     pills.push(`${summary.filingsCount} SEC filing${summary.filingsCount === 1 ? "" : "s"}`);
   }
   if (summary.hasProfile) pills.push("Company stats");
+  if (assetClass === "crypto" && summary.return30d != null) {
+    pills.push(`30d ${formatPct(summary.return30d)}`);
+  }
+  if (assetClass === "crypto" && summary.communityCallCount > 0) {
+    pills.push(
+      `${summary.communityCallCount} community call${summary.communityCallCount === 1 ? "" : "s"}`
+    );
+  }
 
   if (pills.length === 0) {
     return (
       <p className="text-sm text-[var(--pf-gray-600)]">
         {assetClass === "crypto"
-          ? "Pro unlocks symbol-filtered crypto headlines and venue context on listed pairs."
+          ? "Pro unlocks crypto headlines, price action windows, and community conviction on listed pairs."
           : "Pro unlocks news, earnings, SEC filings, and company stats on this ticker."}
       </p>
     );

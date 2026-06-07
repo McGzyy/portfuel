@@ -34,8 +34,8 @@ export function TickerIntelSection({
               ? "Preview below — upgrade to read full headlines and SEC forms on every equity ticker."
               : "Headlines, earnings history, and SEC filings for this symbol. Watchlist = your dates; Earnings = market-wide positioning."
             : locked
-              ? "Preview below — upgrade to read symbol-filtered crypto headlines and venue context."
-              : "Exchange venue, daily change, and crypto headlines tagged to this symbol."}
+              ? "Preview below — upgrade for crypto headlines, price action windows, and community conviction."
+              : "Exchange venue, multi-window returns, community call stats, and symbol-filtered headlines."}
         </p>
       </div>
 

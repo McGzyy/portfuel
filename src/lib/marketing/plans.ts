@@ -17,7 +17,7 @@ export const TIER_COMPARISON_ROWS: TierComparisonRow[] = [
   { feature: "In-app + email watchlist alerts", member: true, pro: true },
   { feature: "SMS text watchlist alerts (Pro · requires Twilio)", member: false, pro: true },
   { feature: "Published calls per week", member: "2", pro: "6" },
-  { feature: "News, earnings & SEC on tickers", member: false, pro: true },
+  { feature: "News, earnings & SEC (equity) + crypto intel", member: false, pro: true },
   { feature: "Intraday chart (1H / 15m) + SMA / VWAP", member: false, pro: true },
   { feature: "Community screener & CSV export", member: false, pro: true },
   { feature: "Earnings — reporting week + positioning", member: false, pro: true },
@@ -71,7 +71,7 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
     highlight: true,
     features: [
       "Everything in Member",
-      "6 calls/week · news, earnings & SEC",
+      "6 calls/week · news, earnings & SEC + crypto intel",
       "Intraday chart, SMA / VWAP & ticker compare",
       "Screener, CSV export & Pro analytics strips",
       "AI thesis coach (educational): 30 reviews/mo + track-record context",
