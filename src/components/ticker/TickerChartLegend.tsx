@@ -81,6 +81,9 @@ export function TickerChartLegend({
           </span>
         </>
       ) : null}
+      {callCount > 0 || journalCount > 0 ? (
+        <span className="text-[10px] text-[var(--pf-gray-400)]">Click marker → thesis</span>
+      ) : null}
     </div>
   );
 }

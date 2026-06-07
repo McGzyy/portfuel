@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   createChart,
   createSeriesMarkers,
@@ -20,16 +20,26 @@ import {
   type LineData,
 } from "lightweight-charts";
 import type { CandlePoint, ChartMarker, LinePoint, PriceLine } from "@/lib/charts/types";
+import { markerLabelAtTime, markerNearTime } from "@/lib/charts/marker-hit";
 import {
   PF_CHART,
   chartGridOptions,
   chartLayoutOptions,
 } from "@/lib/charts/theme";
+import { cn, formatPrice } from "@/lib/utils";
 
 export type { CandlePoint, ChartMarker } from "@/lib/charts/types";
 
 const SMA_COLOR = "#2563eb";
 const VWAP_COLOR = "#7c3aed";
+
+type CrosshairHud = {
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  markerLabel: string | null;
+};
 
 function markerShape(m: ChartMarker): SeriesMarker<Time>["shape"] {
   if (m.kind === "fueled") return "square";
@@ -44,6 +54,47 @@ function markerPosition(m: ChartMarker): SeriesMarker<Time>["position"] {
   if (m.kind === "short") return "aboveBar";
   if (m.kind === "journal") return "belowBar";
   return "aboveBar";
+}
+
+function hudFromCandle(candle: CandlePoint, markerLabel: string | null): CrosshairHud {
+  return {
+    open: candle.open,
+    high: candle.high,
+    low: candle.low,
+    close: candle.close,
+    markerLabel,
+  };
+}
+
+function OhlcStat({ label, value }: { label: string; value: number }) {
+  return (
+    <span className="inline-flex items-baseline gap-1">
+      <span className="font-semibold text-[var(--pf-gray-400)]">{label}</span>
+      <span className="font-mono tabular-nums text-[var(--pf-black)]">{formatPrice(value)}</span>
+    </span>
+  );
+}
+
+function ChartCrosshairBar({ hud }: { hud: CrosshairHud | null }) {
+  if (!hud) return null;
+
+  return (
+    <div
+      className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-2.5 py-1.5 text-[11px]"
+      aria-live="polite"
+    >
+      <OhlcStat label="O" value={hud.open} />
+      <OhlcStat label="H" value={hud.high} />
+      <OhlcStat label="L" value={hud.low} />
+      <OhlcStat label="C" value={hud.close} />
+      {hud.markerLabel ? (
+        <span className="inline-flex min-w-0 items-center gap-1 border-l border-[var(--pf-border)] pl-3 text-[var(--pf-gray-600)]">
+          <span className="font-semibold text-[var(--pf-gray-400)]">Call</span>
+          <span className="truncate font-medium text-[var(--pf-black)]">{hud.markerLabel}</span>
+        </span>
+      ) : null}
+    </div>
+  );
 }
 
 export function TickerChart({
@@ -70,10 +121,22 @@ export function TickerChart({
   const markersRef = useRef<ReturnType<typeof createSeriesMarkers<Time>> | null>(null);
   const priceLinesRef = useRef<IPriceLine[]>([]);
   const markerDataRef = useRef(markers);
+  const candlesRef = useRef(candles);
+  const [crosshairHud, setCrosshairHud] = useState<CrosshairHud | null>(null);
 
   useEffect(() => {
     markerDataRef.current = markers;
   }, [markers]);
+
+  useEffect(() => {
+    candlesRef.current = candles;
+    const last = candles[candles.length - 1];
+    if (last) {
+      setCrosshairHud(hudFromCandle(last, markerLabelAtTime(markers, last.time)));
+    } else {
+      setCrosshairHud(null);
+    }
+  }, [candles, markers]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -153,13 +216,45 @@ export function TickerChart({
     });
     ro.observe(containerRef.current);
 
+    const onCrosshairMove = (param: MouseEventParams<Time>) => {
+      if (param.time == null || !param.point) {
+        const last = candlesRef.current[candlesRef.current.length - 1];
+        if (last) {
+          setCrosshairHud(
+            hudFromCandle(last, markerLabelAtTime(markerDataRef.current, last.time))
+          );
+        }
+        return;
+      }
+
+      const t = param.time as number;
+      const seriesData = param.seriesData.get(series);
+      const bar = seriesData as CandlestickData | undefined;
+      if (!bar || bar.open == null) {
+        const fallback = candlesRef.current.find((c) => c.time === t);
+        if (fallback) {
+          setCrosshairHud(
+            hudFromCandle(fallback, markerLabelAtTime(markerDataRef.current, t))
+          );
+        }
+        return;
+      }
+
+      setCrosshairHud({
+        open: bar.open,
+        high: bar.high,
+        low: bar.low,
+        close: bar.close,
+        markerLabel: markerLabelAtTime(markerDataRef.current, t),
+      });
+    };
+
     const onClick = (param: MouseEventParams<Time>) => {
       if (param.time == null) return;
       const t = param.time as number;
-      const hit = markerDataRef.current.find(
-        (m) => m.time === t && (m.callId || m.journalEntryId)
-      );
-      if (!hit) return;
+      const hit = markerNearTime(markerDataRef.current, t);
+      if (!hit?.callId && !hit?.journalEntryId) return;
+
       if (hit.journalEntryId) {
         const el = document.getElementById(`journal-entry-${hit.journalEntryId}`);
         el?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -173,9 +268,12 @@ export function TickerChart({
       el?.classList.add("pf-thesis-highlight");
       window.setTimeout(() => el?.classList.remove("pf-thesis-highlight"), 2200);
     };
+
+    chart.subscribeCrosshairMove(onCrosshairMove);
     chart.subscribeClick(onClick);
 
     return () => {
+      chart.unsubscribeCrosshairMove(onCrosshairMove);
       chart.unsubscribeClick(onClick);
       ro.disconnect();
       chart.remove();
@@ -261,5 +359,10 @@ export function TickerChart({
 
   const h = showVolume ? 440 : PF_CHART.height;
 
-  return <div ref={containerRef} className="w-full min-h-[320px]" style={{ height: h }} />;
+  return (
+    <div className="space-y-2">
+      <ChartCrosshairBar hud={crosshairHud} />
+      <div ref={containerRef} className={cn("w-full min-h-[320px]")} style={{ height: h }} />
+    </div>
+  );
 }
