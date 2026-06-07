@@ -62,7 +62,6 @@ import {
 import { fetchEarningsForSymbols } from "@/lib/market/earnings-calendar";
 import {
   buildProTodayBrief,
-  DEMO_PRO_TODAY_BRIEF,
 } from "@/lib/pro/today-brief";
 import { formatPct, formatPrice } from "@/lib/utils";
 
@@ -227,23 +226,26 @@ export default async function DashboardOverviewPage({
     /* optional */
   }
 
-  let proTodayBrief = DEMO_PRO_TODAY_BRIEF;
+  let proTodayBrief: ReturnType<typeof buildProTodayBrief> | null = null;
   let proOverviewIntel: {
     battleboard: EarningsBattleboardSummary;
     screener: CommunityScreenerData;
   } | null = null;
 
-  if (isPro) {
-    const equitySymbols = watchlistItems
-      .filter((w) => w.asset_class === "equity")
-      .map((w) => w.symbol);
+  if (session.subscriptionStatus === "active") {
     const [screener, battleboardRows, watchlistEarnings] = await Promise.all([
       fetchCommunityScreener(),
       fetchEarningsBattleboard(),
-      fetchEarningsForSymbols(equitySymbols, 14),
+      isPro
+        ? fetchEarningsForSymbols(
+            watchlistItems.filter((w) => w.asset_class === "equity").map((w) => w.symbol),
+            14
+          )
+        : Promise.resolve([]),
     ]);
     const battleboard = summarizeBattleboard(battleboardRows);
     proOverviewIntel = { battleboard, screener };
+
     const journalReady = watchlistItems.filter((i) => i.journal_progress?.ready_to_publish);
     proTodayBrief = buildProTodayBrief({
       deskNote: deskBrief.weeklyNote,
@@ -282,12 +284,16 @@ export default async function DashboardOverviewPage({
 
       <ProMembershipStrip locked={proLocked} />
 
-      <ProTodayBrief brief={proTodayBrief} locked={proLocked} proGateCta={proGateCta} />
+      {proTodayBrief ? (
+        <ProTodayBrief brief={proTodayBrief} locked={proLocked} proGateCta={proGateCta} />
+      ) : null}
 
       {proOverviewIntel ? (
         <ProOverviewIntelStrip
           battleboard={proOverviewIntel.battleboard}
           screener={proOverviewIntel.screener}
+          locked={proLocked}
+          proGateCta={proGateCta}
         />
       ) : null}
 
