@@ -6,8 +6,10 @@ import { getCoreCryptoAsset } from "@/lib/market/crypto-allowlist";
 import { resolveWatchlistSymbol } from "@/lib/market/validate-symbol";
 import { createServiceClient } from "@/lib/db/supabase";
 import { fetchWatchlist } from "@/lib/watchlist/service";
+import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { searchWorkspacePages } from "@/lib/search/workspace-pages";
 import { buildSymbolSearchResult } from "@/lib/search/symbol-links";
+import { searchMarketHeadlines } from "@/lib/search/headlines-search";
 import type {
   SearchMemberResult,
   SearchSymbolResult,
@@ -16,6 +18,7 @@ import type {
 
 const SYMBOL_LIMIT = 6;
 const MEMBER_LIMIT = 5;
+const RECENT_LIMIT = 8;
 
 function normalizeQuery(raw: string): string {
   return raw.trim();
@@ -33,24 +36,37 @@ function looksLikeTicker(raw: string): boolean {
   return /^[A-Z0-9.-]{1,12}$/i.test(raw.trim());
 }
 
+function watchlistMap(items: WatchlistEntry[]): Map<string, WatchlistEntry> {
+  return new Map(items.map((item) => [item.symbol.toUpperCase(), item]));
+}
+
+function symbolFromWatchlist(entry: WatchlistEntry): SearchSymbolResult {
+  return buildSymbolSearchResult({
+    symbol: entry.symbol,
+    assetClass: (entry.asset_class ?? "equity") as "equity" | "crypto",
+    name: getCoreCryptoAsset(entry.symbol)?.display_name ?? undefined,
+    onWatchlist: true,
+    lastPrice: entry.last_price ?? null,
+  });
+}
+
 async function searchWatchlistSymbols(
   userId: string,
-  query: string
-): Promise<{ symbol: string; asset_class: "equity" | "crypto" }[]> {
+  query: string,
+  items: WatchlistEntry[]
+): Promise<WatchlistEntry[]> {
   if (isDemoMode()) {
     return getDemoWatchlistSeed()
-      .map((row) => ({ symbol: row.symbol, asset_class: row.asset_class }))
-      .filter((row) => row.symbol.includes(query.toUpperCase()));
+      .filter((row) => row.symbol.includes(query.toUpperCase()))
+      .map((row) => ({
+        symbol: row.symbol,
+        asset_class: row.asset_class,
+        last_price: null,
+      })) as WatchlistEntry[];
   }
 
-  const items = await fetchWatchlist(userId);
   const q = query.toUpperCase();
-  return items
-    .filter((item) => item.symbol.includes(q))
-    .map((item) => ({
-      symbol: item.symbol,
-      asset_class: (item.asset_class ?? "equity") as "equity" | "crypto",
-    }));
+  return items.filter((item) => item.symbol.includes(q));
 }
 
 async function searchMembers(
@@ -120,11 +136,13 @@ async function resolveTickerSymbol(
 
   const core = getCoreCryptoAsset(sym);
   if (core) {
+    const validated = await resolveWatchlistSymbol(sym);
     return buildSymbolSearchResult({
       symbol: sym,
       assetClass: "crypto",
       name: core.display_name ?? undefined,
       onWatchlist: false,
+      lastPrice: validated.ok ? validated.lastPrice ?? null : null,
     });
   }
 
@@ -136,34 +154,111 @@ async function resolveTickerSymbol(
     assetClass: validated.assetClass,
     name: validated.name,
     onWatchlist: false,
+    lastPrice: validated.lastPrice ?? null,
   });
+}
+
+export async function resolveRecentTickers(
+  userId: string,
+  symbols: string[],
+  watchlistItems: WatchlistEntry[]
+): Promise<SearchSymbolResult[]> {
+  const unique = [...new Set(symbols.map((s) => s.toUpperCase().trim()).filter(Boolean))].slice(
+    0,
+    RECENT_LIMIT
+  );
+  if (unique.length === 0) return [];
+
+  const onWatchlist = watchlistMap(watchlistItems);
+  const out: SearchSymbolResult[] = [];
+
+  await Promise.all(
+    unique.map(async (sym) => {
+      const listed = onWatchlist.get(sym);
+      if (listed) {
+        out.push(symbolFromWatchlist(listed));
+        return;
+      }
+
+      const core = getCoreCryptoAsset(sym);
+      if (core) {
+        const validated = await resolveWatchlistSymbol(sym);
+        if (validated.ok) {
+          out.push(
+            buildSymbolSearchResult({
+              symbol: sym,
+              assetClass: "crypto",
+              name: core.display_name ?? undefined,
+              onWatchlist: false,
+              lastPrice: validated.lastPrice ?? null,
+            })
+          );
+        }
+        return;
+      }
+
+      const validated = await resolveWatchlistSymbol(sym);
+      if (validated.ok) {
+        out.push(
+          buildSymbolSearchResult({
+            symbol: validated.symbol,
+            assetClass: validated.assetClass,
+            name: validated.name,
+            onWatchlist: false,
+            lastPrice: validated.lastPrice ?? null,
+          })
+        );
+      }
+    })
+  );
+
+  const order = new Map(unique.map((sym, index) => [sym, index]));
+  return out.sort(
+    (a, b) => (order.get(a.symbol) ?? 999) - (order.get(b.symbol) ?? 999)
+  );
 }
 
 export async function searchWorkspace(
   userId: string,
-  rawQuery: string
+  rawQuery: string,
+  opts?: { recentSymbols?: string[] }
 ): Promise<WorkspaceSearchResults> {
   const query = normalizeQuery(rawQuery);
   const pages = searchWorkspacePages(query);
 
+  const watchlistItems = isDemoMode()
+    ? (getDemoWatchlistSeed().map((row) => ({
+        symbol: row.symbol,
+        asset_class: row.asset_class,
+        last_price: null,
+      })) as WatchlistEntry[])
+    : await fetchWatchlist(userId);
+
+  const watchlistSymbolList = watchlistItems.map((item) => item.symbol);
+
   if (!query) {
-    return { query, symbols: [], members: [], pages };
+    const recent =
+      opts?.recentSymbols && opts.recentSymbols.length > 0
+        ? await resolveRecentTickers(userId, opts.recentSymbols, watchlistItems)
+        : [];
+
+    return {
+      query,
+      recent,
+      symbols: [],
+      members: [],
+      pages,
+      headlines: [],
+    };
   }
 
   const upper = query.toUpperCase();
-  const watchlistMatches = await searchWatchlistSymbols(userId, upper);
-  const watchlistSet = new Set(watchlistMatches.map((row) => row.symbol));
+  const watchlistMatches = await searchWatchlistSymbols(userId, upper, watchlistItems);
+  const watchlistSet = new Set(watchlistMatches.map((row) => row.symbol.toUpperCase()));
 
   const symbols: SearchSymbolResult[] = watchlistMatches
     .slice(0, SYMBOL_LIMIT)
-    .map((row) =>
-      buildSymbolSearchResult({
-        symbol: row.symbol,
-        assetClass: row.asset_class,
-        name: getCoreCryptoAsset(row.symbol)?.display_name ?? undefined,
-        onWatchlist: true,
-      })
-    );
+    .map((row) => symbolFromWatchlist(row));
 
   if (symbols.length < SYMBOL_LIMIT && looksLikeTicker(query)) {
     const resolved = await resolveTickerSymbol(query, watchlistSet);
@@ -176,10 +271,14 @@ export async function searchWorkspace(
       ? await searchMembers(userId, query)
       : [];
 
+  const headlines = await searchMarketHeadlines(query, watchlistSymbolList);
+
   return {
     query,
+    recent: [],
     symbols: symbols.slice(0, SYMBOL_LIMIT),
     members,
     pages,
+    headlines,
   };
 }

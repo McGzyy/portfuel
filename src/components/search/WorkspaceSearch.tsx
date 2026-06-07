@@ -11,16 +11,21 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
+import { formatDistanceToNow } from "date-fns";
 import {
   ArrowRight,
   Bookmark,
+  ExternalLink,
   LayoutDashboard,
   Loader2,
+  Newspaper,
   Search,
   UserRound,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
+import { pushRecentTicker, readRecentTickers } from "@/lib/search/recent-tickers";
 import type {
+  SearchHeadlineResult,
   SearchMemberResult,
   SearchPageResult,
   SearchSymbolResult,
@@ -30,7 +35,8 @@ import type {
 type PaletteItem =
   | { kind: "symbol"; data: SearchSymbolResult }
   | { kind: "member"; data: SearchMemberResult }
-  | { kind: "page"; data: SearchPageResult };
+  | { kind: "page"; data: SearchPageResult }
+  | { kind: "headline"; data: SearchHeadlineResult };
 
 type WorkspaceSearchContextValue = {
   open: boolean;
@@ -125,7 +131,7 @@ export function WorkspaceSearchTrigger({ className }: { className?: string }) {
         )}
       >
         <Search className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" strokeWidth={2.25} />
-        <span className="flex-1 truncate text-left">Search symbols, members, pages…</span>
+        <span className="flex-1 truncate text-left">Search symbols, news, members…</span>
         <ShortcutHint />
       </button>
     </>
@@ -147,6 +153,8 @@ function WorkspaceCommandPalette({
   const [results, setResults] = useState<WorkspaceSearchResults | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const [recentSeed, setRecentSeed] = useState<string[]>([]);
+
   const close = useCallback(() => {
     onOpenChange(false);
     setQuery("");
@@ -154,14 +162,63 @@ function WorkspaceCommandPalette({
     setActiveIndex(0);
   }, [onOpenChange]);
 
-  const items = useMemo((): PaletteItem[] => {
-    if (!results) return [];
-    return [
-      ...results.symbols.map((data) => ({ kind: "symbol" as const, data })),
-      ...results.members.map((data) => ({ kind: "member" as const, data })),
-      ...results.pages.map((data) => ({ kind: "page" as const, data })),
-    ];
-  }, [results]);
+  const resultSections = useMemo(() => {
+    if (!results) return [] as { title: string; items: PaletteItem[] }[];
+
+    const sections: { title: string; items: PaletteItem[] }[] = [];
+
+    if (results.recent.length > 0) {
+      sections.push({
+        title: "Recent",
+        items: results.recent.map((data) => ({ kind: "symbol" as const, data })),
+      });
+    }
+    if (results.symbols.length > 0) {
+      sections.push({
+        title: "Symbols",
+        items: results.symbols.map((data) => ({ kind: "symbol" as const, data })),
+      });
+    }
+    if (results.headlines.length > 0) {
+      sections.push({
+        title: "Headlines",
+        items: results.headlines.map((data) => ({ kind: "headline" as const, data })),
+      });
+    }
+    if (results.members.length > 0) {
+      sections.push({
+        title: "Members",
+        items: results.members.map((data) => ({ kind: "member" as const, data })),
+      });
+    }
+    if (results.pages.length > 0) {
+      sections.push({
+        title: !query.trim() ? "Quick links" : "Pages",
+        items: results.pages.map((data) => ({ kind: "page" as const, data })),
+      });
+    }
+
+    return sections;
+  }, [results, query]);
+
+  const items = useMemo(
+    () => resultSections.flatMap((section) => section.items),
+    [resultSections]
+  );
+
+  const sectionOffsets = useMemo(() => {
+    let running = 0;
+    return resultSections.map((section) => {
+      const offset = running;
+      running += section.items.length;
+      return offset;
+    });
+  }, [resultSections]);
+
+  useEffect(() => {
+    if (!open) return;
+    setRecentSeed(readRecentTickers().map((row) => row.symbol));
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -186,7 +243,11 @@ function WorkspaceCommandPalette({
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
       setLoading(true);
-      void fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal: controller.signal })
+      const params = new URLSearchParams({ q: query });
+      if (!query.trim() && recentSeed.length > 0) {
+        params.set("recent", recentSeed.join(","));
+      }
+      void fetch(`/api/search?${params}`, { signal: controller.signal })
         .then(async (res) => {
           if (!res.ok) throw new Error("search_failed");
           return (await res.json()) as WorkspaceSearchResults;
@@ -197,7 +258,14 @@ function WorkspaceCommandPalette({
         })
         .catch((err) => {
           if (err instanceof DOMException && err.name === "AbortError") return;
-          setResults({ query, symbols: [], members: [], pages: [] });
+          setResults({
+            query,
+            recent: [],
+            symbols: [],
+            members: [],
+            pages: [],
+            headlines: [],
+          });
         })
         .finally(() => setLoading(false));
     }, query ? 180 : 0);
@@ -206,15 +274,32 @@ function WorkspaceCommandPalette({
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [open, query]);
+  }, [open, query, recentSeed]);
 
   useEffect(() => {
     setActiveIndex((prev) => (items.length === 0 ? 0 : Math.min(prev, items.length - 1)));
   }, [items.length]);
 
+  function navigateSymbol(item: SearchSymbolResult) {
+    pushRecentTicker({ symbol: item.symbol, assetClass: item.assetClass });
+    close();
+    router.push(item.href);
+  }
+
   function navigate(href: string) {
     close();
     router.push(href);
+  }
+
+  function openHeadline(url: string) {
+    close();
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  function activateItem(item: PaletteItem) {
+    if (item.kind === "symbol") navigateSymbol(item.data);
+    else if (item.kind === "headline") openHeadline(item.data.url);
+    else navigate(item.data.href);
   }
 
   function onInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -226,10 +311,7 @@ function WorkspaceCommandPalette({
       setActiveIndex((prev) => (items.length === 0 ? 0 : (prev - 1 + items.length) % items.length));
     } else if (e.key === "Enter" && items[activeIndex]) {
       e.preventDefault();
-      const item = items[activeIndex];
-      if (item.kind === "symbol") navigate(item.data.href);
-      else if (item.kind === "member") navigate(item.data.href);
-      else navigate(item.data.href);
+      activateItem(items[activeIndex]);
     }
   }
 
@@ -264,7 +346,7 @@ function WorkspaceCommandPalette({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onInputKeyDown}
-            placeholder="Symbol, @member, or page…"
+            placeholder="Symbol, @member, headline, or page…"
             className="min-w-0 flex-1 bg-transparent text-base text-[var(--pf-black)] outline-none placeholder:text-[var(--pf-gray-400)] sm:text-sm"
             autoComplete="off"
             autoCorrect="off"
@@ -297,96 +379,113 @@ function WorkspaceCommandPalette({
               </p>
               <p className="mt-1 text-xs leading-relaxed text-[var(--pf-gray-500)]">
                 {emptyQuery
-                  ? "Try NVDA, @username, or journal. Headlines search is coming soon."
-                  : "Check the symbol, try @ before a username, or search a page like watchlist."}
+                  ? "Try NVDA, @username, or fed rate headlines."
+                  : "Check the symbol, try @ before a username, or search headlines (3+ letters)."}
               </p>
             </div>
           ) : null}
 
-          {results && results.symbols.length > 0 ? (
-            <ResultSection title="Symbols">
-              {results.symbols.map((item, i) => (
-                <SymbolRow
-                  key={`sym-${item.symbol}`}
-                  item={item}
-                  dataIndex={i}
-                  active={activeIndex === i}
-                  onHover={() => setActiveIndex(i)}
-                  onPick={() => navigate(item.href)}
-                  onIntel={() => navigate(item.intelHref)}
-                />
-              ))}
-            </ResultSection>
-          ) : null}
+          {resultSections.map((section, sectionIndex) => {
+            const indexOffset = sectionOffsets[sectionIndex] ?? 0;
 
-          {results && results.members.length > 0 ? (
-            <ResultSection title="Members">
-              {results.members.map((item, i) => {
-                const index = (results?.symbols.length ?? 0) + i;
-                return (
-                  <button
-                    key={`mem-${item.username}`}
-                    type="button"
-                    data-index={index}
-                    onMouseEnter={() => setActiveIndex(index)}
-                    onClick={() => navigate(item.href)}
-                    className={cn(
-                      "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
-                      activeIndex === index ? "bg-[var(--pf-gray-100)]" : "hover:bg-[var(--pf-gray-50)]"
-                    )}
-                  >
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--pf-gray-100)] text-[var(--pf-gray-600)]">
-                      <UserRound className="h-4 w-4" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-[var(--pf-black)]">
-                        {item.displayName ?? item.username}
+            return (
+              <ResultSection key={section.title} title={section.title}>
+                {section.items.map((item, i) => {
+                  const index = indexOffset + i;
+                  if (item.kind === "symbol") {
+                    return (
+                      <SymbolRow
+                        key={`${section.title}-${item.data.symbol}`}
+                        item={item.data}
+                        dataIndex={index}
+                        active={activeIndex === index}
+                        onHover={() => setActiveIndex(index)}
+                        onPick={() => navigateSymbol(item.data)}
+                        onIntel={() => {
+                          pushRecentTicker({
+                            symbol: item.data.symbol,
+                            assetClass: item.data.assetClass,
+                          });
+                          close();
+                          router.push(item.data.intelHref);
+                        }}
+                      />
+                    );
+                  }
+                  if (item.kind === "headline") {
+                    return (
+                      <HeadlineRow
+                        key={`headline-${item.data.id}`}
+                        item={item.data}
+                        dataIndex={index}
+                        active={activeIndex === index}
+                        onHover={() => setActiveIndex(index)}
+                        onPick={() => openHeadline(item.data.url)}
+                      />
+                    );
+                  }
+                  if (item.kind === "member") {
+                    return (
+                      <button
+                        key={`mem-${item.data.username}`}
+                        type="button"
+                        data-index={index}
+                        onMouseEnter={() => setActiveIndex(index)}
+                        onClick={() => navigate(item.data.href)}
+                        className={cn(
+                          "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
+                          activeIndex === index
+                            ? "bg-[var(--pf-gray-100)]"
+                            : "hover:bg-[var(--pf-gray-50)]"
+                        )}
+                      >
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--pf-gray-100)] text-[var(--pf-gray-600)]">
+                          <UserRound className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-semibold text-[var(--pf-black)]">
+                            {item.data.displayName ?? item.data.username}
+                          </span>
+                          <span className="block truncate font-mono text-xs text-[var(--pf-gray-500)]">
+                            @{item.data.username}
+                          </span>
+                        </span>
+                        <ArrowRight className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" />
+                      </button>
+                    );
+                  }
+                  return (
+                    <button
+                      key={`page-${item.data.href}`}
+                      type="button"
+                      data-index={index}
+                      onMouseEnter={() => setActiveIndex(index)}
+                      onClick={() => navigate(item.data.href)}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
+                        activeIndex === index
+                          ? "bg-[var(--pf-gray-100)]"
+                          : "hover:bg-[var(--pf-gray-50)]"
+                      )}
+                    >
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--pf-gray-100)] text-[var(--pf-gray-600)]">
+                        <LayoutDashboard className="h-4 w-4" />
                       </span>
-                      <span className="block truncate font-mono text-xs text-[var(--pf-gray-500)]">
-                        @{item.username}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-[var(--pf-black)]">
+                          {item.data.label}
+                        </span>
+                        <span className="block truncate text-xs text-[var(--pf-gray-500)]">
+                          {item.data.description}
+                        </span>
                       </span>
-                    </span>
-                    <ArrowRight className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" />
-                  </button>
-                );
-              })}
-            </ResultSection>
-          ) : null}
-
-          {results && results.pages.length > 0 ? (
-            <ResultSection title={emptyQuery ? "Quick links" : "Pages"}>
-              {results.pages.map((item, i) => {
-                const index =
-                  (results?.symbols.length ?? 0) + (results?.members.length ?? 0) + i;
-                return (
-                  <button
-                    key={`page-${item.href}`}
-                    type="button"
-                    data-index={index}
-                    onMouseEnter={() => setActiveIndex(index)}
-                    onClick={() => navigate(item.href)}
-                    className={cn(
-                      "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
-                      activeIndex === index ? "bg-[var(--pf-gray-100)]" : "hover:bg-[var(--pf-gray-50)]"
-                    )}
-                  >
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--pf-gray-100)] text-[var(--pf-gray-600)]">
-                      <LayoutDashboard className="h-4 w-4" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-[var(--pf-black)]">
-                        {item.label}
-                      </span>
-                      <span className="block truncate text-xs text-[var(--pf-gray-500)]">
-                        {item.description}
-                      </span>
-                    </span>
-                    <ArrowRight className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" />
-                  </button>
-                );
-              })}
-            </ResultSection>
-          ) : null}
+                      <ArrowRight className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" />
+                    </button>
+                  );
+                })}
+              </ResultSection>
+            );
+          })}
         </div>
 
         <div className="border-t border-[var(--pf-border)] px-4 py-2.5 text-[11px] text-[var(--pf-gray-500)]">
@@ -455,6 +554,11 @@ function SymbolRow({
             <span className="mt-0.5 block truncate text-xs text-[var(--pf-gray-500)]">{item.name}</span>
           ) : null}
         </span>
+        {item.lastPrice != null ? (
+          <span className="shrink-0 font-mono text-sm font-semibold tabular-nums text-[var(--pf-black)]">
+            ${formatPrice(item.lastPrice)}
+          </span>
+        ) : null}
         <span className="shrink-0 text-xs font-semibold text-[var(--pf-gray-600)]">
           {item.onWatchlist ? "Journal" : "Intel"}
         </span>
@@ -470,5 +574,56 @@ function SymbolRow({
         </button>
       ) : null}
     </div>
+  );
+}
+
+function HeadlineRow({
+  item,
+  dataIndex,
+  active,
+  onHover,
+  onPick,
+}: {
+  item: SearchHeadlineResult;
+  dataIndex: number;
+  active: boolean;
+  onHover: () => void;
+  onPick: () => void;
+}) {
+  const age =
+    item.datetime > 0
+      ? formatDistanceToNow(new Date(item.datetime * 1000), { addSuffix: true })
+      : null;
+
+  return (
+    <button
+      type="button"
+      data-index={dataIndex}
+      onMouseEnter={onHover}
+      onClick={onPick}
+      className={cn(
+        "flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
+        active ? "bg-[var(--pf-gray-100)]" : "hover:bg-[var(--pf-gray-50)]"
+      )}
+    >
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--pf-gray-100)] text-[var(--pf-gray-600)]">
+        <Newspaper className="h-4 w-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="line-clamp-2 text-sm font-medium leading-snug text-[var(--pf-black)]">
+          {item.headline}
+        </span>
+        <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[var(--pf-gray-500)]">
+          <span className="truncate">{item.source}</span>
+          {age ? <span className="shrink-0">{age}</span> : null}
+          {item.relatedSymbols.length > 0 ? (
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+              {item.relatedSymbols.slice(0, 3).join(" · ")}
+            </span>
+          ) : null}
+        </span>
+      </span>
+      <ExternalLink className="mt-1 h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" />
+    </button>
   );
 }

@@ -13,6 +13,7 @@ export function buildSymbolSearchResult(input: {
   assetClass: AssetClass;
   name?: string;
   onWatchlist: boolean;
+  lastPrice?: number | null;
 }): SearchSymbolResult {
   const sym = input.symbol.toUpperCase();
   const intelHref = tickerIntelPath(sym, input.assetClass);
@@ -23,5 +24,6 @@ export function buildSymbolSearchResult(input: {
     onWatchlist: input.onWatchlist,
     href: input.onWatchlist ? journalSymbolPath(sym) : intelHref,
     intelHref,
+    lastPrice: input.lastPrice ?? null,
   };
 }
