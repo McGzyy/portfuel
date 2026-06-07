@@ -197,7 +197,6 @@ body {
   left: 0;
   right: 0;
   z-index: 55;
-  display: flex;
   align-items: stretch;
   justify-content: space-around;
   gap: 0.125rem;
@@ -206,6 +205,18 @@ body {
   padding-bottom: var(--pf-safe-bottom);
   backdrop-filter: blur(10px);
   box-shadow: 0 -4px 24px rgba(15, 20, 25, 0.06);
+}
+
+@media (max-width: 1023px) {
+  .pf-workspace-bottom-nav {
+    display: flex;
+  }
+}
+
+@media (min-width: 1024px) {
+  .pf-workspace-bottom-nav {
+    display: none !important;
+  }
 }
 
 .pf-workspace-bottom-nav-item {

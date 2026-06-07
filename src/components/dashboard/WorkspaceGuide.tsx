@@ -8,19 +8,35 @@ import { buildWorkspaceGuideSections } from "@/lib/dashboard/nav";
 
 const GUIDE_SEEN_KEY = "pf_workspace_guide_seen";
 
-export function WorkspaceGuide({ username }: { username: string }) {
+export function WorkspaceGuide({
+  username,
+  autoShow = false,
+  onOpen,
+}: {
+  username: string;
+  /** First-visit tour — desktop sidebar only; mobile uses Help in the More drawer. */
+  autoShow?: boolean;
+  onOpen?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const sections = buildWorkspaceGuideSections(username);
 
   useEffect(() => {
+    if (!autoShow) return;
     try {
-      if (localStorage.getItem(GUIDE_SEEN_KEY) !== "1") {
+      const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+      if (isDesktop && localStorage.getItem(GUIDE_SEEN_KEY) !== "1") {
         setOpen(true);
       }
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [autoShow]);
+
+  function openGuide() {
+    onOpen?.();
+    setOpen(true);
+  }
 
   function dismissGuide() {
     try {
@@ -35,7 +51,7 @@ export function WorkspaceGuide({ username }: { username: string }) {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={openGuide}
         className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-black)]"
       >
         <Map className="h-3.5 w-3.5" />
@@ -44,12 +60,12 @@ export function WorkspaceGuide({ username }: { username: string }) {
 
       {open ? (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+          className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 px-4 pt-[var(--pf-safe-top)] pb-[calc(var(--pf-bottom-nav-height)+1rem)] sm:items-center sm:p-4 sm:pb-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="workspace-guide-title"
         >
-          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-lg)]">
+          <div className="flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-lg)] sm:max-h-[85vh]">
             <div className="flex items-start justify-between gap-3 border-b border-[var(--pf-border)] px-5 py-4">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
@@ -68,7 +84,7 @@ export function WorkspaceGuide({ username }: { username: string }) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="space-y-5 p-5">
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-5">
               {sections.map((section) => (
                 <div key={section.title}>
                   <p className="text-xs font-bold uppercase tracking-wide text-[var(--pf-gray-400)]">
@@ -95,7 +111,7 @@ export function WorkspaceGuide({ username }: { username: string }) {
                 </div>
               ))}
             </div>
-            <div className="border-t border-[var(--pf-border)] px-5 py-4 space-y-3">
+            <div className="shrink-0 border-t border-[var(--pf-border)] px-5 py-4 space-y-3">
               <p className="text-center text-xs text-[var(--pf-gray-500)]">
                 New here? Finish the launch checklist on{" "}
                 <Link

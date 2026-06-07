@@ -1,15 +1,17 @@
-# Marketing assets & paid acquisition
+# PortFuel — Marketing assets & paid acquisition
 
-Companion to [MARKETING-PLAN.md](./MARKETING-PLAN.md). Use these URLs, sizes, and UTMs so ads and organic posts match what PortFuel already generates.
+Companion to [MARKETING-PLAN.md](./MARKETING-PLAN.md). **Brand kit & creative workflow:** [BRAND-KIT.md](./BRAND-KIT.md) · **Admin → Marketing** tab in-app.
+
+Use these URLs, sizes, and UTMs so ads and organic posts match what PortFuel already generates.
 
 ## Primary creative sizes
 
 | Use | Size | Source in product |
 |-----|------|-------------------|
-| Homepage / join link preview | 1200×630 | Auto: `/opengraph-image` · `/join/opengraph-image` · API: `/api/og/marketing?variant=join` |
-| X / LinkedIn link preview | 1200×675 | `/api/social/chart/{callId}?format=png` · weekly: `/api/admin/social/weekly-digest/chart` (admin) |
+| Homepage / join link preview | 1200×630 | Auto: `/opengraph-image` · `/join/opengraph-image` · API: `/api/og/marketing?variant=join|proof|desk|demo` |
+| X / LinkedIn link preview | 1200×675 | `/api/social/chart/{callId}?format=png` · `/api/og/ad?variant=proof&size=x` |
 | Meta / display | 1200×628 (crop from 675) | Export PNG from chart URL, slight top/bottom crop |
-| Square retargeting | 1080×1080 | Crop chart or use product hero from `/` |
+| Square retargeting | 1080×1080 | `/api/og/ad?variant=proof&size=square` · crop chart or product hero |
 
 Always use **dark PortFuel charts** for performance posts — they match the live brand on X.
 
