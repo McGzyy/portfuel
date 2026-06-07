@@ -36,7 +36,11 @@ import {
 } from "@/lib/dashboard/data";
 import { buildFeedHref } from "@/lib/dashboard/nav";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
-import { isProIntelligenceLocked, sessionToProContext } from "@/lib/features/pro-intelligence";
+import {
+  getProGateCta,
+  isProIntelligenceLocked,
+  sessionToProContext,
+} from "@/lib/features/pro-intelligence";
 import { FollowingFeedPanel } from "@/components/dashboard/FollowingFeedPanel";
 import { fetchFollowingIds, fetchFollowingMembers } from "@/lib/follows/service";
 import { filterCallsByFollowing } from "@/lib/calls/filter-feed";
@@ -46,12 +50,17 @@ import { fetchWatchlist } from "@/lib/watchlist/service";
 import { fetchJournalHighlights } from "@/lib/watchlist/journal-highlights";
 import { WatchlistJournalPulse } from "@/components/watchlist/WatchlistJournalPulse";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
-import { ProOverviewIntelStrip } from "@/components/pro/ProOverviewIntelStrip";
+import { ProTodayBrief } from "@/components/pro/ProTodayBrief";
 import { fetchCommunityScreener } from "@/lib/screener/community";
 import {
   fetchEarningsBattleboard,
   summarizeBattleboard,
 } from "@/lib/earnings/battleboard";
+import { fetchEarningsForSymbols } from "@/lib/market/earnings-calendar";
+import {
+  buildProTodayBrief,
+  DEMO_PRO_TODAY_BRIEF,
+} from "@/lib/pro/today-brief";
 import { formatPct, formatPrice } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -167,14 +176,15 @@ export default async function DashboardOverviewPage({
   const fueledPreviews = fueledCalls.slice(0, 3).map((c) => toPreview(c));
   const featuredDesk = fueledPreviews[0] ?? null;
 
-  let watchlistPreview: Awaited<ReturnType<typeof fetchWatchlist>> = [];
+  let watchlistItems: Awaited<ReturnType<typeof fetchWatchlist>> = [];
+  let watchlistPreview: typeof watchlistItems = [];
   let watchlistCount = 0;
   let journalThesisCount = 0;
   try {
-    const watchlist = await fetchWatchlist(session.userId);
-    watchlistCount = watchlist.length;
-    journalThesisCount = watchlist.filter((i) => i.has_thesis).length;
-    watchlistPreview = watchlist.slice(0, 6);
+    watchlistItems = await fetchWatchlist(session.userId);
+    watchlistCount = watchlistItems.length;
+    journalThesisCount = watchlistItems.filter((i) => i.has_thesis).length;
+    watchlistPreview = watchlistItems.slice(0, 6);
   } catch {
     /* optional */
   }
@@ -204,6 +214,7 @@ export default async function DashboardOverviewPage({
   const avgAccent =
     avgPulse == null ? undefined : avgPulse >= 0 ? ("positive" as const) : ("negative" as const);
   const isPro = !proLocked;
+  const proGateCta = getProGateCta(proContext);
 
   let journalIdeas: Awaited<ReturnType<typeof fetchJournalHighlights>> = [];
   try {
@@ -212,16 +223,27 @@ export default async function DashboardOverviewPage({
     /* optional */
   }
 
-  let proIntel: { battleboard: ReturnType<typeof summarizeBattleboard>; screener: Awaited<ReturnType<typeof fetchCommunityScreener>> } | null = null;
+  let proTodayBrief = DEMO_PRO_TODAY_BRIEF;
   if (isPro) {
-    const [screener, battleboardRows] = await Promise.all([
+    const equitySymbols = watchlistItems
+      .filter((w) => w.asset_class === "equity")
+      .map((w) => w.symbol);
+    const [screener, battleboardRows, watchlistEarnings] = await Promise.all([
       fetchCommunityScreener(),
       fetchEarningsBattleboard(),
+      fetchEarningsForSymbols(equitySymbols, 14),
     ]);
-    proIntel = {
+    const battleboard = summarizeBattleboard(battleboardRows);
+    const journalReady = watchlistItems.filter((i) => i.journal_progress?.ready_to_publish);
+    proTodayBrief = buildProTodayBrief({
+      deskNote: deskBrief.weeklyNote,
+      watchlistEarnings,
       screener,
-      battleboard: summarizeBattleboard(battleboardRows),
-    };
+      battleboard,
+      openCalls: openCallCards,
+      journalReady,
+      memberProfileHref: `/member/${session.username}`,
+    });
   }
 
   return (
@@ -249,14 +271,9 @@ export default async function DashboardOverviewPage({
 
       <ProMembershipStrip locked={proLocked} />
 
-      {journalIdeas.length > 0 ? <WatchlistJournalPulse ideas={journalIdeas} /> : null}
+      <ProTodayBrief brief={proTodayBrief} locked={proLocked} proGateCta={proGateCta} />
 
-      {proIntel ? (
-        <ProOverviewIntelStrip
-          battleboard={proIntel.battleboard}
-          screener={proIntel.screener}
-        />
-      ) : null}
+      {journalIdeas.length > 0 ? <WatchlistJournalPulse ideas={journalIdeas} /> : null}
 
       {workspacePulse ? <WorkspaceLiveBar initial={workspacePulse} compact /> : null}
 
