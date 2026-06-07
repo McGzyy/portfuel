@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, LineChart, Megaphone, NotebookPen } from "lucide-react";
+import { JournalExportButton } from "@/components/journal/JournalExportButton";
 import { JournalResearchChecklistStrip } from "@/components/journal/JournalResearchChecklistStrip";
 import { JournalResearchPanel } from "@/components/journal/JournalResearchPanel";
 import { ResearchPipeline } from "@/components/journal/ResearchPipeline";
@@ -147,6 +148,8 @@ export function WatchlistJournalWorkspace({
               </Link>
             </div>
           </div>
+          <div className="flex flex-col items-end gap-2">
+            <JournalExportButton symbol={journal.symbol} proUnlocked={proUnlocked} />
           {setupMode ? (
             <div className="inline-flex items-center gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-2.5 text-sm font-semibold text-[var(--pf-gray-600)]">
               <NotebookPen className="h-4 w-4 shrink-0" strokeWidth={2.25} />
@@ -166,6 +169,7 @@ export function WatchlistJournalWorkspace({
               Finish checklist to publish
             </div>
           )}
+          </div>
         </div>
       </header>
 

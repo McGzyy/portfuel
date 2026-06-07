@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { JournalExportButton } from "@/components/journal/JournalExportButton";
 import { JournalHeaderAction } from "@/components/journal/JournalHeaderAction";
 import type { JournalNextUp } from "@/lib/journal/next-up";
 
@@ -7,11 +8,13 @@ export function JournalCommandHeader({
   withThesis,
   activeCount,
   nextUp,
+  proUnlocked = false,
 }: {
   ideaCount: number;
   withThesis: number;
   activeCount: number;
   nextUp?: JournalNextUp | null;
+  proUnlocked?: boolean;
 }) {
   return (
     <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
@@ -49,7 +52,10 @@ export function JournalCommandHeader({
             </Link>
           </div>
         </div>
-        {nextUp ? <JournalHeaderAction nextUp={nextUp} /> : null}
+        <div className="flex flex-col items-end gap-2">
+          <JournalExportButton proUnlocked={proUnlocked} />
+          {nextUp ? <JournalHeaderAction nextUp={nextUp} /> : null}
+        </div>
       </div>
     </header>
   );

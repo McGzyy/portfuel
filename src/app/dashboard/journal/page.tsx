@@ -59,6 +59,7 @@ export default async function DashboardJournalPage({
         withThesis={withThesis}
         activeCount={active}
         nextUp={nextUp}
+        proUnlocked={proUnlocked}
       />
 
       {readyItems.length > 0 ? (
