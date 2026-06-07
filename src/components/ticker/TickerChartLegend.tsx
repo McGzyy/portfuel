@@ -6,12 +6,14 @@ export function TickerChartLegend({
   levelCount = 0,
   showDepth = false,
   embedded,
+  callModal = false,
 }: {
   callCount: number;
   journalCount?: number;
   levelCount?: number;
   showDepth?: boolean;
   embedded?: boolean;
+  callModal?: boolean;
 }) {
   if (callCount === 0 && journalCount === 0 && levelCount === 0 && !showDepth) return null;
 
@@ -82,7 +84,13 @@ export function TickerChartLegend({
         </>
       ) : null}
       {callCount > 0 || journalCount > 0 ? (
-        <span className="text-[10px] text-[var(--pf-gray-400)]">Click marker → thesis</span>
+        <span className="text-[10px] text-[var(--pf-gray-400)]">
+          {callModal
+            ? "Hover call · click to open"
+            : journalCount > 0 && callCount === 0
+              ? "Click dot → journal note"
+              : "Click marker → thesis"}
+        </span>
       ) : null}
     </div>
   );

@@ -18,6 +18,10 @@ import type { AssetClass } from "@/lib/market/validate-symbol";
 import { filterCandlesByRange, filterMarkersByRange } from "@/lib/charts/range";
 import { computeSma, computeVwap, hasVolumeData } from "@/lib/charts/indicators";
 import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
+import type { ChartCallPreview } from "@/lib/charts/chart-call-preview";
+import { indexChartCalls, toChartCallPreview } from "@/lib/charts/chart-call-preview";
+import type { CallWithUser } from "@/lib/db/supabase";
+import { ChartCallDetailModal } from "@/components/charts/ChartCallDetailModal";
 
 const TickerChart = dynamic(
   () => import("@/components/charts/TickerChart").then((m) => m.TickerChart),
@@ -38,6 +42,13 @@ export function TickerChartSection({
   title = "Price history",
   subtitle,
   journalMarkerCount = 0,
+  chartCalls,
+  interactive = false,
+  viewerUserId,
+  isPro = false,
+  showUpgrade = false,
+  canGenerateSummary = false,
+  isAdmin = false,
 }: {
   symbol: string;
   initialCandles: CandlePoint[];
@@ -50,6 +61,14 @@ export function TickerChartSection({
   title?: string;
   subtitle?: string;
   journalMarkerCount?: number;
+  /** When set, call markers open an in-page modal instead of scrolling away from the chart. */
+  chartCalls?: (CallWithUser & { live?: boolean })[];
+  interactive?: boolean;
+  viewerUserId?: string | null;
+  isPro?: boolean;
+  showUpgrade?: boolean;
+  canGenerateSummary?: boolean;
+  isAdmin?: boolean;
 }) {
   const [range, setRange] = useState<ChartRangeKey>("1y");
   const [resolution, setResolution] = useState<ChartCandleResolution>("D");
@@ -60,6 +79,15 @@ export function TickerChartSection({
   const [showVolume, setShowVolume] = useState(true);
   const [showSma, setShowSma] = useState(false);
   const [showVwap, setShowVwap] = useState(false);
+  const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
+
+  const callPreviewsById = useMemo(() => {
+    if (!chartCalls?.length) return undefined;
+    const previews: ChartCallPreview[] = chartCalls.map(toChartCallPreview);
+    return indexChartCalls(previews);
+  }, [chartCalls]);
+
+  const selectedCall = selectedCallId && callPreviewsById ? callPreviewsById[selectedCallId] : null;
 
   const loadCandles = useCallback(
     async (res: ChartCandleResolution) => {
@@ -145,6 +173,7 @@ export function TickerChartSection({
             levelCount={priceLines.length}
             showDepth
             embedded
+            callModal={Boolean(callPreviewsById)}
           />
         ) : undefined
       }
@@ -177,6 +206,10 @@ export function TickerChartSection({
               showVolume={showVolume && volumeOk}
               smaPoints={smaPoints}
               vwapPoints={vwapPoints}
+              callPreviewsById={callPreviewsById}
+              onCallMarkerClick={
+                callPreviewsById ? (callId) => setSelectedCallId(callId) : undefined
+              }
             />
           ) : (
             <div className="flex h-[280px] items-center justify-center text-sm text-[var(--pf-gray-500)]">
@@ -195,6 +228,18 @@ export function TickerChartSection({
           </p>
         </div>
       )}
+      {selectedCall ? (
+        <ChartCallDetailModal
+          call={selectedCall}
+          onClose={() => setSelectedCallId(null)}
+          interactive={interactive}
+          viewerUserId={viewerUserId}
+          isPro={isPro}
+          showUpgrade={showUpgrade}
+          canGenerateSummary={canGenerateSummary}
+          isAdmin={isAdmin}
+        />
+      ) : null}
     </ChartFrame>
   );
 }

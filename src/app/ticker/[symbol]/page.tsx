@@ -138,9 +138,17 @@ export default async function TickerPage({
         <TickerChartSection
           symbol={symbol}
           initialCandles={intel?.candles ?? []}
+          assetClass={intelData.assetClass}
           markers={intel?.markers ?? []}
           priceLines={chartPriceLines}
           proUnlocked={isPro}
+          chartCalls={calls}
+          interactive={Boolean(session)}
+          viewerUserId={session?.userId}
+          isPro={isPro}
+          showUpgrade={session ? proLocked : false}
+          canGenerateSummary={isPro}
+          isAdmin={session?.role === "admin"}
         />
       </section>
 

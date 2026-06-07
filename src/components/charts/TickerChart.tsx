@@ -20,13 +20,15 @@ import {
   type LineData,
 } from "lightweight-charts";
 import type { CandlePoint, ChartMarker, LinePoint, PriceLine } from "@/lib/charts/types";
-import { markerLabelAtTime, markerNearTime } from "@/lib/charts/marker-hit";
+import { markerLabelAtTime, markerNearTime, callMarkersOnDay } from "@/lib/charts/marker-hit";
 import {
   PF_CHART,
   chartGridOptions,
   chartLayoutOptions,
 } from "@/lib/charts/theme";
 import { cn, formatPrice } from "@/lib/utils";
+import type { ChartCallPreview } from "@/lib/charts/chart-call-preview";
+import { ChartCallHoverTip } from "@/components/charts/ChartCallHoverTip";
 
 export type { CandlePoint, ChartMarker } from "@/lib/charts/types";
 
@@ -104,6 +106,8 @@ export function TickerChart({
   showVolume = true,
   smaPoints = [],
   vwapPoints = [],
+  callPreviewsById,
+  onCallMarkerClick,
 }: {
   candles: CandlePoint[];
   markers: ChartMarker[];
@@ -111,6 +115,9 @@ export function TickerChart({
   showVolume?: boolean;
   smaPoints?: LinePoint[];
   vwapPoints?: LinePoint[];
+  callPreviewsById?: Record<string, ChartCallPreview>;
+  /** Opens in-page call modal instead of scrolling to thesis block. */
+  onCallMarkerClick?: (callId: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -122,7 +129,23 @@ export function TickerChart({
   const priceLinesRef = useRef<IPriceLine[]>([]);
   const markerDataRef = useRef(markers);
   const candlesRef = useRef(candles);
+  const onCallMarkerClickRef = useRef(onCallMarkerClick);
+  const callPreviewsRef = useRef(callPreviewsById);
   const [crosshairHud, setCrosshairHud] = useState<CrosshairHud | null>(null);
+  const [markerHover, setMarkerHover] = useState<{
+    callId: string;
+    x: number;
+    y: number;
+    moreOnDay: number;
+  } | null>(null);
+
+  useEffect(() => {
+    onCallMarkerClickRef.current = onCallMarkerClick;
+  }, [onCallMarkerClick]);
+
+  useEffect(() => {
+    callPreviewsRef.current = callPreviewsById;
+  }, [callPreviewsById]);
 
   useEffect(() => {
     markerDataRef.current = markers;
@@ -216,8 +239,31 @@ export function TickerChart({
     });
     ro.observe(containerRef.current);
 
+    const emitMarkerHover = (
+      param: MouseEventParams<Time>,
+      time: number
+    ) => {
+      if (!callPreviewsRef.current || !param.point) {
+        setMarkerHover(null);
+        return;
+      }
+      const hit = markerNearTime(markerDataRef.current, time);
+      if (!hit?.callId || !callPreviewsRef.current[hit.callId]) {
+        setMarkerHover(null);
+        return;
+      }
+      const sameDay = callMarkersOnDay(markerDataRef.current, time);
+      setMarkerHover({
+        callId: hit.callId,
+        x: param.point.x,
+        y: param.point.y,
+        moreOnDay: Math.max(0, sameDay.length - 1),
+      });
+    };
+
     const onCrosshairMove = (param: MouseEventParams<Time>) => {
       if (param.time == null || !param.point) {
+        setMarkerHover(null);
         const last = candlesRef.current[candlesRef.current.length - 1];
         if (last) {
           setCrosshairHud(
@@ -228,6 +274,7 @@ export function TickerChart({
       }
 
       const t = param.time as number;
+      emitMarkerHover(param, t);
       const seriesData = param.seriesData.get(series);
       const bar = seriesData as CandlestickData | undefined;
       if (!bar || bar.open == null) {
@@ -263,6 +310,10 @@ export function TickerChart({
         return;
       }
       if (!hit.callId) return;
+      if (onCallMarkerClickRef.current) {
+        onCallMarkerClickRef.current(hit.callId);
+        return;
+      }
       const el = document.getElementById(`thesis-${hit.callId}`);
       el?.scrollIntoView({ behavior: "smooth", block: "start" });
       el?.classList.add("pf-thesis-highlight");
@@ -358,11 +409,23 @@ export function TickerChart({
   }, [candles, markers, priceLines, showVolume, smaPoints, vwapPoints]);
 
   const h = showVolume ? 440 : PF_CHART.height;
+  const hoverCall =
+    markerHover && callPreviewsById ? callPreviewsById[markerHover.callId] : null;
 
   return (
     <div className="space-y-2">
       <ChartCrosshairBar hud={crosshairHud} />
-      <div ref={containerRef} className={cn("w-full min-h-[320px]")} style={{ height: h }} />
+      <div className="relative">
+        <div ref={containerRef} className={cn("w-full min-h-[320px]")} style={{ height: h }} />
+        {hoverCall && markerHover ? (
+          <ChartCallHoverTip
+            call={hoverCall}
+            x={markerHover.x}
+            y={markerHover.y}
+            moreOnDay={markerHover.moreOnDay}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }

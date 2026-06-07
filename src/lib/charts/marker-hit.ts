@@ -23,3 +23,9 @@ export function markerLabelAtTime(markers: ChartMarker[], time: number): string 
   if (!hit) return null;
   return hit.label;
 }
+
+/** Community call markers on the same calendar day (for stacked-day hints). */
+export function callMarkersOnDay(markers: ChartMarker[], time: number): ChartMarker[] {
+  const day = candleDayStart(time);
+  return markers.filter((m) => m.callId && candleDayStart(m.time) === day);
+}
