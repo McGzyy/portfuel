@@ -202,6 +202,44 @@ export async function listCryptoSymbols(
   }
 }
 
+export type MarketNewsCategory = "general" | "forex" | "crypto" | "merger";
+
+export type MarketNewsItem = CompanyNewsItem & {
+  related?: string;
+};
+
+export async function getMarketNews(
+  category: MarketNewsCategory = "general"
+): Promise<MarketNewsItem[]> {
+  try {
+    const data = await finnhubFetch<MarketNewsItem[]>("/news", { category }, 120);
+    return Array.isArray(data) ? data.slice(0, 50) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Headlines from Finnhub crypto feed where `related` includes the base symbol (e.g. BTC). */
+export function filterCryptoNewsForSymbol(
+  items: MarketNewsItem[],
+  baseSymbol: string
+): CompanyNewsItem[] {
+  const sym = baseSymbol.toUpperCase();
+  return items
+    .filter((item) => {
+      const related = item.related?.toUpperCase() ?? "";
+      if (!related) return false;
+      return related.split(",").some((token) => token.trim() === sym);
+    })
+    .slice(0, 20)
+    .map(({ related: _related, ...item }) => item);
+}
+
+export async function getCryptoNewsForSymbol(baseSymbol: string): Promise<CompanyNewsItem[]> {
+  const rows = await getMarketNews("crypto");
+  return filterCryptoNewsForSymbol(rows, baseSymbol);
+}
+
 export async function getCompanyNews(
   symbol: string,
   from: string,

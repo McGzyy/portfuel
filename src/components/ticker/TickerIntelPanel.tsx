@@ -6,63 +6,81 @@ function formatDate(d: string | number) {
   return new Date(d).toLocaleDateString();
 }
 
+function formatPct(n: number) {
+  const sign = n > 0 ? "+" : "";
+  return `${sign}${n.toFixed(2)}%`;
+}
+
 export function TickerIntelPanel({ intel }: { intel: TickerIntel }) {
   if (intel.assetClass === "crypto") {
+    const exchange = intel.cryptoMeta?.exchange ?? "coinbase";
     return (
-      <section>
-        <p className="pf-eyebrow">Market reference</p>
-        <h2 className="mt-2 text-lg font-bold tracking-tight">Crypto · exchange-listed only</h2>
-        <Card className="pf-card-elevated mt-4 border-0">
-          <CardHeader>
-            <p className="text-sm text-[var(--pf-gray-500)]">
-              Coinbase / Kraken pairs only. No memecoins. News, earnings, and SEC data are on
-              equity tickers.
-            </p>
-          </CardHeader>
-          <CardContent className="text-sm text-[var(--pf-gray-600)]">
-            <p>
-              <span className="font-medium text-[var(--pf-black)]">Venue:</span>{" "}
-              {intel.finnhubSymbol ?? intel.symbol}
-            </p>
-            <p className="mt-3 leading-relaxed">
-              Member calls and community stats appear above. Open a stock ticker for filings,
-              earnings, and headline flow.
-            </p>
-          </CardContent>
-        </Card>
-      </section>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <IntelCard title="Venue" subtitle="Coinbase / Kraken listed pairs">
+          <dl className="space-y-3 text-sm">
+            <div>
+              <dt className="text-[var(--pf-gray-500)]">Asset</dt>
+              <dd className="font-semibold text-[var(--pf-black)]">
+                {intel.cryptoMeta?.displayName ?? intel.companyName}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[var(--pf-gray-500)]">Symbol</dt>
+              <dd className="font-mono font-semibold">{intel.symbol}</dd>
+            </div>
+            <div>
+              <dt className="text-[var(--pf-gray-500)]">Primary exchange</dt>
+              <dd className="capitalize font-semibold">{exchange}</dd>
+            </div>
+            <div>
+              <dt className="text-[var(--pf-gray-500)]">Finnhub pair</dt>
+              <dd className="font-mono text-xs text-[var(--pf-gray-700)]">
+                {intel.finnhubSymbol ?? "—"}
+              </dd>
+            </div>
+            {intel.quote ? (
+              <div>
+                <dt className="text-[var(--pf-gray-500)]">Last · daily change</dt>
+                <dd className="font-semibold tabular-nums">
+                  ${intel.quote.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}{" "}
+                  <span
+                    className={
+                      intel.quote.changePct >= 0 ? "text-emerald-600" : "text-rose-600"
+                    }
+                  >
+                    {formatPct(intel.quote.changePct)}
+                  </span>
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+          <p className="mt-4 text-xs leading-relaxed text-[var(--pf-gray-500)]">
+            Exchange-listed majors only — no memecoins. Earnings and SEC filings are available on
+            equity tickers.
+          </p>
+        </IntelCard>
+
+        <IntelCard title="Headlines" subtitle="Crypto news mentioning this symbol">
+          {intel.news.length === 0 ? (
+            <Empty>
+              No symbol-tagged headlines in the latest crypto feed. Check back after major moves or
+              open an equity ticker for earnings and filings.
+            </Empty>
+          ) : (
+            <NewsList items={intel.news} />
+          )}
+        </IntelCard>
+      </div>
     );
   }
 
   return (
-    <section>
-      <p className="pf-eyebrow">Market reference</p>
-      <h2 className="mt-2 text-lg font-bold tracking-tight">News & filings</h2>
-      <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
-        Headlines, earnings, and SEC forms — newest first.
-      </p>
-      <div className="mt-4 grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-6 lg:grid-cols-2">
       <IntelCard title="News" subtitle="Last 30 days">
         {intel.news.length === 0 ? (
           <Empty>No recent headlines from Finnhub.</Empty>
         ) : (
-          <ul className="space-y-3">
-            {intel.news.map((n) => (
-              <li key={n.id} className="border-b border-[var(--pf-border)] pb-3 last:border-0">
-                <a
-                  href={n.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-[var(--pf-black)] hover:text-[var(--pf-red)]"
-                >
-                  {n.headline}
-                </a>
-                <p className="mt-1 text-xs text-[var(--pf-gray-400)]">
-                  {n.source} · {formatDate(n.datetime)}
-                </p>
-              </li>
-            ))}
-          </ul>
+          <NewsList items={intel.news} />
         )}
       </IntelCard>
 
@@ -122,8 +140,29 @@ export function TickerIntelPanel({ intel }: { intel: TickerIntel }) {
           </ul>
         )}
       </IntelCard>
-      </div>
-    </section>
+    </div>
+  );
+}
+
+function NewsList({ items }: { items: TickerIntel["news"] }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((n) => (
+        <li key={n.id} className="border-b border-[var(--pf-border)] pb-3 last:border-0">
+          <a
+            href={n.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-[var(--pf-black)] hover:text-[var(--pf-red)]"
+          >
+            {n.headline}
+          </a>
+          <p className="mt-1 text-xs text-[var(--pf-gray-400)]">
+            {n.source} · {formatDate(n.datetime)}
+          </p>
+        </li>
+      ))}
+    </ul>
   );
 }
 

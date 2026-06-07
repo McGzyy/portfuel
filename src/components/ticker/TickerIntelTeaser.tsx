@@ -1,6 +1,13 @@
+import type { AssetClass } from "@/lib/market/validate-symbol";
 import type { IntelTeaserSummary } from "@/lib/market/intel-teaser";
 
-export function TickerIntelTeaser({ summary }: { summary: IntelTeaserSummary }) {
+export function TickerIntelTeaser({
+  summary,
+  assetClass = "equity",
+}: {
+  summary: IntelTeaserSummary;
+  assetClass?: AssetClass;
+}) {
   const pills: string[] = [];
   if (summary.headlineCount > 0) {
     pills.push(
@@ -20,7 +27,9 @@ export function TickerIntelTeaser({ summary }: { summary: IntelTeaserSummary }) 
   if (pills.length === 0) {
     return (
       <p className="text-sm text-[var(--pf-gray-600)]">
-        Pro unlocks news, earnings, SEC filings, and company stats on this ticker.
+        {assetClass === "crypto"
+          ? "Pro unlocks symbol-filtered crypto headlines and venue context on listed pairs."
+          : "Pro unlocks news, earnings, SEC filings, and company stats on this ticker."}
       </p>
     );
   }

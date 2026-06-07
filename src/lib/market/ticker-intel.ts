@@ -11,6 +11,7 @@ import {
   getFilings,
   getQuote,
   getCryptoLastPrice,
+  getCryptoNewsForSymbol,
   type CompanyNewsItem,
   type EarningsItem,
   type FilingItem,
@@ -42,7 +43,21 @@ export type TickerIntel = {
   earnings: EarningsItem[];
   filings: FilingItem[];
   profile: Awaited<ReturnType<typeof getCompanyProfile>>;
+  cryptoMeta?: {
+    exchange: string;
+    displayName: string;
+  };
 };
+
+function dailyChangePctFromCandles(candles: {
+  c: number[];
+} | null): number {
+  if (!candles?.c || candles.c.length < 2) return 0;
+  const last = candles.c[candles.c.length - 1]!;
+  const prev = candles.c[candles.c.length - 2]!;
+  if (!prev) return 0;
+  return ((last - prev) / prev) * 100;
+}
 
 async function detectAssetClass(symbol: string): Promise<{
   assetClass: AssetClass;
@@ -97,14 +112,25 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
   let news: CompanyNewsItem[] = [];
   let earnings: EarningsItem[] = [];
   let filings: FilingItem[] = [];
+  let cryptoMeta: TickerIntel["cryptoMeta"];
 
   if (assetClass === "crypto" && finnhubSymbol) {
-    const [c, price] = await Promise.all([
+    const cryptoAsset = await resolveCryptoAsset(sym);
+    if (cryptoAsset) {
+      cryptoMeta = {
+        exchange: cryptoAsset.exchange,
+        displayName: cryptoAsset.display_name ?? sym,
+      };
+    }
+    const [c, price, cryptoNews] = await Promise.all([
       getCryptoCandles(finnhubSymbol, from, to),
       getCryptoLastPrice(finnhubSymbol),
+      getCryptoNewsForSymbol(sym),
     ]);
     candlesRaw = c;
-    if (price != null) quote = { price, changePct: 0 };
+    news = cryptoNews;
+    const changePct = dailyChangePctFromCandles(c);
+    if (price != null) quote = { price, changePct };
   } else {
     const [c, q, p] = await Promise.all([
       getEquityCandles(sym, from, to, "D"),
@@ -184,5 +210,6 @@ export async function loadTickerIntel(symbol: string): Promise<TickerIntel> {
     earnings,
     filings,
     profile,
+    cryptoMeta,
   };
 }
