@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TradeSetupPreview } from "@/components/calls/TradeSetupPreview";
 import { ThesisCoachPanel } from "@/components/ai/ThesisCoachPanel";
-import { JournalPublishPreview } from "@/components/journal/JournalPublishPreview";
+import { PublishCallCardPreview } from "@/components/calls/PublishCallCardPreview";
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
 import { ModerationBanner } from "@/components/member/ModerationBanner";
 import type { SessionPayload } from "@/lib/auth/session-types";
@@ -197,9 +197,11 @@ export function NewCallForm({
       if (data.ok) {
         setSymbolValid(true);
         setSymbolHint(data.name ? data.name : "Valid symbol");
+        setMarketPrice(typeof data.lastPrice === "number" ? data.lastPrice : null);
       } else {
         setSymbolValid(false);
         setSymbolHint(data.error ?? "Invalid symbol");
+        setMarketPrice(null);
       }
     }, 400);
     return () => clearTimeout(t);
@@ -293,25 +295,30 @@ export function NewCallForm({
         </div>
       ) : null}
 
-      {queryDraft.fromJournal && thesis.trim() ? (
-        <JournalPublishPreview
-          symbol={symbol}
-          direction={direction}
-          thesis={thesis}
-          entryPrice={entryPrice}
-          targetPrice={targetPrice}
-          stopPrice={stopPrice}
-          timeframeTag={timeframeTag}
-          conviction={queryDraft.conviction}
-          catalysts={queryDraft.catalysts}
-          contextNotes={aiNotes}
-        />
-      ) : queryDraft.fromJournal ? (
+      {queryDraft.fromJournal && !thesis.trim() ? (
         <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
           Prefilled from your private watchlist journal — add your thesis and levels below before
           publishing to the community.
         </div>
       ) : null}
+
+      <PublishCallCardPreview
+        user={user}
+        symbol={symbol}
+        assetClass={assetClass}
+        direction={direction}
+        thesis={thesis}
+        entryPrice={entryPrice}
+        targetPrice={targetPrice}
+        stopPrice={stopPrice}
+        timeframeTag={timeframeTag}
+        lastPrice={marketPrice}
+        publishFueled={publishFueled}
+        fromJournal={queryDraft.fromJournal}
+        conviction={queryDraft.conviction}
+        catalysts={queryDraft.catalysts}
+        contextNotes={aiNotes}
+      />
 
       <div className="pf-workspace-panel p-5 sm:p-6">
           <form onSubmit={handleSubmit} className="space-y-8">
