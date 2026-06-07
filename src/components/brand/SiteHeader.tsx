@@ -1,14 +1,18 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
 import type { HeaderUser } from "@/lib/auth/session-user";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { cn } from "@/lib/utils";
+
 export function SiteHeader({
   showAuth = true,
   user,
   headerMode = "default",
   logoHref: logoHrefProp,
+  centerSlot,
 }: {
   showAuth?: boolean;
   user?: HeaderUser;
@@ -16,15 +20,27 @@ export function SiteHeader({
   headerMode?: "default" | "workspace";
   /** Override logo link (e.g. /demo for public workspace preview). */
   logoHref?: string;
+  /** Workspace command palette trigger (logged-in dashboard only). */
+  centerSlot?: ReactNode;
 }) {
   const inWorkspace = headerMode === "workspace" && Boolean(user);
   const logoHref = logoHrefProp ?? (user ? "/dashboard" : "/");
 
   return (
     <header className="pf-site-header sticky z-50 border-b border-[var(--pf-border)] shadow-[var(--pf-shadow-sm)]">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-3 sm:h-[4.5rem] sm:gap-3 sm:px-4">
+      <div
+        className={cn(
+          "mx-auto flex h-14 items-center justify-between gap-2 px-3 sm:h-[4.5rem] sm:gap-3 sm:px-4",
+          inWorkspace ? "max-w-none lg:px-6" : "max-w-6xl"
+        )}
+      >
         <Logo size="xs" href={logoHref} className="min-w-0 sm:hidden" unoptimized />
         <Logo size="md" href={logoHref} className="hidden min-w-0 sm:inline-flex" unoptimized />
+        {inWorkspace && centerSlot ? (
+          <div className="flex min-w-0 flex-1 justify-center px-1 sm:px-4">{centerSlot}</div>
+        ) : (
+          <div className="flex-1" aria-hidden />
+        )}
         <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
           {user ? (
             <>

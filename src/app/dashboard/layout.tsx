@@ -6,6 +6,10 @@ import { fetchActiveAnnouncementsForUser } from "@/lib/announcements/service";
 import { WorkspaceSidebar } from "@/components/dashboard/WorkspaceSidebar";
 import { WorkspaceContent } from "@/components/dashboard/WorkspaceContent";
 import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
+import {
+  WorkspaceSearchHeaderTrigger,
+  WorkspaceSearchShell,
+} from "@/components/search/WorkspaceSearchShell";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { shouldAutoShowWorkspaceGuide } from "@/lib/onboarding/workspace-guide";
 import { toHeaderUser } from "@/lib/auth/session-user";
@@ -47,46 +51,49 @@ export default async function DashboardLayout({
   }
 
   return (
-    <AppShell
-      user={toHeaderUser(session)}
-      headerMode="workspace"
-      mainClassName="!max-w-none !px-0 !py-0"
-    >
-      <div className="pf-workspace">
-        <div className="pf-workspace-sidebar-wrap">
-          <WorkspaceSidebar
-            username={session.username}
-            displayName={session.displayName ?? session.username}
-            isAdmin={session.role === "admin"}
-            dmUnread={dmUnread}
-            notifUnread={notifUnread}
-          />
+    <WorkspaceSearchShell>
+      <AppShell
+        user={toHeaderUser(session)}
+        headerMode="workspace"
+        headerCenter={<WorkspaceSearchHeaderTrigger />}
+        mainClassName="!max-w-none !px-0 !py-0"
+      >
+        <div className="pf-workspace">
+          <div className="pf-workspace-sidebar-wrap">
+            <WorkspaceSidebar
+              username={session.username}
+              displayName={session.displayName ?? session.username}
+              isAdmin={session.role === "admin"}
+              dmUnread={dmUnread}
+              notifUnread={notifUnread}
+            />
+          </div>
+          <div className="pf-workspace-main">
+            <MemberNav
+              dmUnread={dmUnread}
+              notifUnread={notifUnread}
+              username={session.username}
+              displayName={session.displayName ?? session.username}
+              isAdmin={session.role === "admin"}
+            />
+            <ModerationBanner
+              role={session.role}
+              canPublishCalls={session.canPublishCalls}
+              canDm={session.canDm}
+              canComment={session.canComment}
+            />
+            {announcements.length > 0 ? (
+              <WorkspaceAnnouncementStack announcements={announcements} />
+            ) : null}
+            <WorkspaceContent>{children}</WorkspaceContent>
+          </div>
         </div>
-        <div className="pf-workspace-main">
-          <MemberNav
-            dmUnread={dmUnread}
-            notifUnread={notifUnread}
-            username={session.username}
-            displayName={session.displayName ?? session.username}
-            isAdmin={session.role === "admin"}
-          />
-          <ModerationBanner
-            role={session.role}
-            canPublishCalls={session.canPublishCalls}
-            canDm={session.canDm}
-            canComment={session.canComment}
-          />
-          {announcements.length > 0 ? (
-            <WorkspaceAnnouncementStack announcements={announcements} />
-          ) : null}
-          <WorkspaceContent>{children}</WorkspaceContent>
-        </div>
-      </div>
-      <WorkspaceGuide
-        username={session.username}
-        userId={session.userId}
-        autoShow={showWorkspaceGuide}
-      />
-    </AppShell>
+        <WorkspaceGuide
+          username={session.username}
+          userId={session.userId}
+          autoShow={showWorkspaceGuide}
+        />
+      </AppShell>
+    </WorkspaceSearchShell>
   );
 }

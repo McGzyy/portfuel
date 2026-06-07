@@ -1,6 +1,7 @@
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { cn } from "@/lib/utils";
 import type { HeaderUser } from "@/lib/auth/session-user";
+import type { ReactNode } from "react";
 
 export function AppShell({
   user,
@@ -9,6 +10,7 @@ export function AppShell({
   mainClassName,
   width = "default",
   headerMode = "default",
+  headerCenter,
 }: {
   user: HeaderUser;
   children: React.ReactNode;
@@ -16,12 +18,13 @@ export function AppShell({
   mainClassName?: string;
   width?: "default" | "narrow";
   headerMode?: "default" | "workspace";
+  headerCenter?: ReactNode;
 }) {
   const maxW = width === "narrow" ? "max-w-2xl" : "max-w-6xl";
 
   return (
     <div className={cn("flex min-h-screen flex-col", className)}>
-      <SiteHeader user={user} headerMode={headerMode} />
+      <SiteHeader user={user} headerMode={headerMode} centerSlot={headerCenter} />
       <div className={cn("flex-1", headerMode === "workspace" ? "pf-workspace-shell" : "pf-app-bg")}>
         <main
           className={cn(
