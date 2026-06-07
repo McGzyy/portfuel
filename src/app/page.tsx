@@ -82,6 +82,11 @@ export default async function LandingPage() {
                     Sign in
                   </Button>
                 </Link>
+                <Link href="/demo">
+                  <Button variant="outline" size="lg">
+                    Explore workspace
+                  </Button>
+                </Link>
               </div>
               <div className="mt-10 grid grid-cols-3 gap-3">
                 <StatTile icon={LineChart} label={LANDING_STAT_TILES[0].label} value={LANDING_STAT_TILES[0].value} />

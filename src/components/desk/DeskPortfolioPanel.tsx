@@ -20,9 +20,11 @@ function convictionLabel(n: number) {
 export function DeskPortfolioPanel({
   entries,
   compact,
+  deskHref = "/dashboard/desk",
 }: {
   entries: DeskPortfolioView[];
   compact?: boolean;
+  deskHref?: string;
 }) {
   const open = entries.filter((e) => e.status === "open");
   const closed = entries.filter((e) => e.status === "closed");
@@ -31,7 +33,7 @@ export function DeskPortfolioPanel({
     <WorkspacePanel
       title="Fueled model portfolio"
       subtitle="Desk-maintained theses with live marks"
-      href="/dashboard/desk"
+      href={deskHref}
       className="overflow-hidden"
       headerClassName="bg-[var(--pf-gray-50)]"
     >

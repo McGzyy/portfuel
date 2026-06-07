@@ -8,14 +8,17 @@ export function SiteHeader({
   showAuth = true,
   user,
   headerMode = "default",
+  logoHref: logoHrefProp,
 }: {
   showAuth?: boolean;
   user?: HeaderUser;
   /** Slim nav when sidebar already covers workspace destinations. */
   headerMode?: "default" | "workspace";
+  /** Override logo link (e.g. /demo for public workspace preview). */
+  logoHref?: string;
 }) {
   const inWorkspace = headerMode === "workspace" && Boolean(user);
-  const logoHref = user ? "/dashboard" : "/";
+  const logoHref = logoHrefProp ?? (user ? "/dashboard" : "/");
 
   return (
     <header className="pf-site-header sticky z-50 border-b border-[var(--pf-border)] shadow-[var(--pf-shadow-sm)]">
@@ -76,6 +79,12 @@ export function SiteHeader({
             </>
           ) : showAuth ? (
             <>
+              <Link
+                href="/demo"
+                className="hidden text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] sm:inline"
+              >
+                Demo
+              </Link>
               <Link
                 href="/rankings"
                 className="hidden text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] sm:inline"

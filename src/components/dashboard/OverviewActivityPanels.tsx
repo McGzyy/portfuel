@@ -5,7 +5,13 @@ import { buildFeedHref } from "@/lib/dashboard/nav";
 import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
 
-export function OverviewActivityPanels({ hotTickers }: { hotTickers: HotTicker[] }) {
+export function OverviewActivityPanels({
+  hotTickers,
+  feedHref,
+}: {
+  hotTickers: HotTicker[];
+  feedHref?: string;
+}) {
   if (hotTickers.length === 0) {
     return (
       <div className="pf-workspace-panel px-6 py-10 text-center">
@@ -31,7 +37,7 @@ export function OverviewActivityPanels({ hotTickers }: { hotTickers: HotTicker[]
     <WorkspacePanel
       title="Hot in feed"
       subtitle="Symbols getting attention in recent member calls"
-      href={buildFeedHref({})}
+      href={feedHref ?? buildFeedHref({})}
     >
       <div className="px-3 py-3">
         <HotTickersStrip tickers={hotTickers} embedded />

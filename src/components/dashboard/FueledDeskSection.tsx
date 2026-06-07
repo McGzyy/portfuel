@@ -6,10 +6,14 @@ export function FueledDeskSection({
   calls,
   viewerUserId,
   isAdmin = false,
+  deskHref = "/dashboard/desk",
+  readOnly = false,
 }: {
   calls: CallCardData[];
   viewerUserId?: string;
   isAdmin?: boolean;
+  deskHref?: string;
+  readOnly?: boolean;
 }) {
   if (calls.length === 0) return null;
 
@@ -24,7 +28,7 @@ export function FueledDeskSection({
           </p>
         </div>
         <Link
-          href="/dashboard/desk"
+          href={deskHref}
           className="text-xs font-semibold text-red-300 hover:text-red-200 hover:underline"
         >
           Open Fueled desk →
@@ -35,7 +39,7 @@ export function FueledDeskSection({
           <div key={call.id} className="[&_.group]:border-white/10 [&_.group]:bg-white/95">
             <CallCard
               call={call}
-              interactive
+              interactive={!readOnly}
               compact
               showSummary={false}
               viewerUserId={viewerUserId}
