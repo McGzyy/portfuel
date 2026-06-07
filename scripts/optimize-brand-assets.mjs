@@ -224,6 +224,7 @@ await sharp(tabIcon).toFile(join(root, "src/app/icon.png"));
 await sharp(tabIcon).toFile(join(root, "public/icons/favicon.png"));
 await sharp(appleIcon).toFile(join(root, "src/app/apple-icon.png"));
 await sharp(appleIcon).toFile(join(iconsDir, "apple-touch-icon.png"));
+await sharp(appleIcon).toFile(join(root, "public/apple-touch-icon.png"));
 await sharp(icon192).toFile(join(iconsDir, "icon-192.png"));
 await sharp(icon512).toFile(join(iconsDir, "icon-512.png"));
 await sharp(maskable512).toFile(join(iconsDir, "icon-512-maskable.png"));
