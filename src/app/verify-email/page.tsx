@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Sparkles } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
@@ -16,7 +16,17 @@ type VerifyStatus = {
   emailConfigured?: boolean;
 };
 
-export default function VerifyEmailPage() {
+function VerifyEmailFallback() {
+  return (
+    <AuthShell title="Unlock your workspace">
+      <div className="flex justify-center py-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--pf-border)] border-t-[var(--pf-red)]" />
+      </div>
+    </AuthShell>
+  );
+}
+
+function VerifyEmailInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const welcome = searchParams.get("welcome") === "1";
@@ -211,5 +221,13 @@ export default function VerifyEmailPage() {
         </p>
       </div>
     </AuthShell>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<VerifyEmailFallback />}>
+      <VerifyEmailInner />
+    </Suspense>
   );
 }
