@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import {
+  clearThesisHash,
+  scrollToThesisBlock,
+} from "@/lib/charts/thesis-hash";
 import { X } from "lucide-react";
 import { CallThesisBlock } from "@/components/calls/CallThesisBlock";
 import type { ChartCallPreview } from "@/lib/charts/chart-call-preview";
@@ -39,12 +43,8 @@ export function ChartCallDetailModal({
 
   function scrollToThread() {
     onClose();
-    window.requestAnimationFrame(() => {
-      const el = document.getElementById(`thesis-${call.id}`);
-      el?.scrollIntoView({ behavior: "smooth", block: "start" });
-      el?.classList.add("pf-thesis-highlight");
-      window.setTimeout(() => el?.classList.remove("pf-thesis-highlight"), 2200);
-    });
+    clearThesisHash();
+    window.requestAnimationFrame(() => scrollToThesisBlock(call.id));
   }
 
   return (

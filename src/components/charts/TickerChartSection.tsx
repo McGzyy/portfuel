@@ -22,6 +22,12 @@ import type { ChartCallPreview } from "@/lib/charts/chart-call-preview";
 import { indexChartCalls, toChartCallPreview } from "@/lib/charts/chart-call-preview";
 import type { CallWithUser } from "@/lib/db/supabase";
 import { ChartCallDetailModal } from "@/components/charts/ChartCallDetailModal";
+import {
+  clearThesisHash,
+  parseThesisHashFromUrl,
+  scrollToThesisBlock,
+  setThesisHash,
+} from "@/lib/charts/thesis-hash";
 
 const TickerChart = dynamic(
   () => import("@/components/charts/TickerChart").then((m) => m.TickerChart),
@@ -88,6 +94,39 @@ export function TickerChartSection({
   }, [chartCalls]);
 
   const selectedCall = selectedCallId && callPreviewsById ? callPreviewsById[selectedCallId] : null;
+
+  const openCallModal = useCallback(
+    (callId: string) => {
+      if (!callPreviewsById?.[callId]) return;
+      setSelectedCallId(callId);
+      setThesisHash(callId);
+    },
+    [callPreviewsById]
+  );
+
+  const closeCallModal = useCallback(() => {
+    setSelectedCallId(null);
+    clearThesisHash();
+  }, []);
+
+  useEffect(() => {
+    function syncFromHash() {
+      const callId = parseThesisHashFromUrl();
+      if (!callId) return;
+      if (callPreviewsById?.[callId]) {
+        setSelectedCallId(callId);
+        return;
+      }
+      scrollToThesisBlock(callId);
+    }
+
+    const id = window.requestAnimationFrame(syncFromHash);
+    window.addEventListener("hashchange", syncFromHash);
+    return () => {
+      window.cancelAnimationFrame(id);
+      window.removeEventListener("hashchange", syncFromHash);
+    };
+  }, [callPreviewsById]);
 
   const loadCandles = useCallback(
     async (res: ChartCandleResolution) => {
@@ -208,7 +247,7 @@ export function TickerChartSection({
               vwapPoints={vwapPoints}
               callPreviewsById={callPreviewsById}
               onCallMarkerClick={
-                callPreviewsById ? (callId) => setSelectedCallId(callId) : undefined
+                callPreviewsById ? openCallModal : undefined
               }
             />
           ) : (
@@ -231,7 +270,7 @@ export function TickerChartSection({
       {selectedCall ? (
         <ChartCallDetailModal
           call={selectedCall}
-          onClose={() => setSelectedCallId(null)}
+          onClose={closeCallModal}
           interactive={interactive}
           viewerUserId={viewerUserId}
           isPro={isPro}
