@@ -34,14 +34,16 @@ export function SiteHeader({
           inWorkspace ? "max-w-none lg:px-6" : "max-w-6xl"
         )}
       >
-        <Logo size="xs" href={logoHref} className="min-w-0 sm:hidden" unoptimized />
-        <Logo size="md" href={logoHref} className="hidden min-w-0 sm:inline-flex" unoptimized />
+        <Logo size="xs" href={logoHref} className="min-w-0 shrink-0 sm:hidden" unoptimized />
+        <Logo size="md" href={logoHref} className="hidden min-w-0 shrink-0 sm:inline-flex" unoptimized />
         {inWorkspace && centerSlot ? (
-          <div className="flex min-w-0 flex-1 justify-center px-1 sm:px-4">{centerSlot}</div>
+          <div className="flex min-w-0 flex-1 items-center px-1 sm:justify-center sm:px-4">
+            {centerSlot}
+          </div>
         ) : (
           <div className="flex-1" aria-hidden />
         )}
-        <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <nav className="flex shrink-0 items-center gap-0.5 sm:gap-2">
           {user ? (
             <>
               {user.role === "admin" && !inWorkspace ? (

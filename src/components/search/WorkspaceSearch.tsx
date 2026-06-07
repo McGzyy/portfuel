@@ -108,12 +108,13 @@ export function WorkspaceSearchTrigger({ className }: { className?: string }) {
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] text-[var(--pf-gray-600)] shadow-[var(--pf-shadow-sm)] transition-colors hover:bg-white sm:hidden",
+          "flex h-9 w-full min-w-0 items-center gap-2 rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 text-sm text-[var(--pf-gray-500)] shadow-[var(--pf-shadow-sm)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-white sm:hidden",
           className
         )}
         aria-label="Search workspace"
       >
-        <Search className="h-4 w-4" strokeWidth={2.25} />
+        <Search className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" strokeWidth={2.25} />
+        <span className="truncate text-left">Search…</span>
       </button>
       <button
         type="button"
