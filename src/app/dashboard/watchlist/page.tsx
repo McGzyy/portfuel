@@ -105,7 +105,7 @@ export default async function DashboardWatchlistPage() {
           ) : null}
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
           <WatchlistPanel
             demoMode={isDemoMode()}
             proUnlocked={proUnlocked}

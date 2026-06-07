@@ -78,6 +78,11 @@ function coreCryptoRow(base: string): CryptoAssetRow | null {
   };
 }
 
+/** Synchronous lookup for major cryptos — use before cache or equity fallback. */
+export function getCoreCryptoAsset(symbol: string): CryptoAssetRow | null {
+  return coreCryptoRow(symbol.toUpperCase().trim());
+}
+
 function pickBestUsdPair(
   rows: { symbol: string; description?: string; displaySymbol?: string }[],
   base: string
@@ -201,15 +206,16 @@ export async function resolveCryptoAsset(symbol: string): Promise<CryptoAssetRow
   if (!base) return null;
   if (CRYPTO_MEMECOIN_BLOCKLIST.has(base)) return null;
 
-  if (resolveCache.has(base)) {
-    return resolveCache.get(base) ?? null;
-  }
-
+  // Core majors always win — stale negative cache must not block SOL/BTC/etc.
   const core = coreCryptoRow(base);
   if (core) {
     resolveCache.set(base, core);
     void cacheCryptoAsset(core);
     return core;
+  }
+
+  if (resolveCache.has(base)) {
+    return resolveCache.get(base) ?? null;
   }
 
   const db = createServiceClient();

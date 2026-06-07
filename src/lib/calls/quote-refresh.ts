@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/db/supabase";
+import { getCoreCryptoAsset } from "@/lib/market/crypto-allowlist";
 import type { AssetClass } from "@/lib/market/validate-symbol";
 import { getQuote, getCryptoLastPrice } from "@/lib/market/finnhub";
 import {
@@ -93,6 +94,11 @@ function resolveSymbolHints(
   calls: CallRow[],
   snap: { asset_class?: AssetClass; finnhub_symbol?: string | null } | null
 ): { assetClass: AssetClass; finnhubSymbol: string | null } {
+  const core = getCoreCryptoAsset(sym);
+  if (core) {
+    return { assetClass: "crypto", finnhubSymbol: core.finnhub_symbol };
+  }
+
   const symCalls = calls.filter((c) => c.symbol === sym);
   const fromCall = symCalls.find((c) => c.asset_class)?.asset_class;
   return {

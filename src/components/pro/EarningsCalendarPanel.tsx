@@ -69,7 +69,7 @@ export function EarningsCalendarPanel({
   }, [load]);
 
   const body = (
-    <div className="pf-workspace-panel p-5">
+    <div className="pf-workspace-panel flex h-full flex-col p-5">
       <div className="flex items-center gap-2">
         <Calendar className="h-4 w-4 text-[var(--pf-red)]" strokeWidth={2.25} />
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
@@ -99,13 +99,22 @@ export function EarningsCalendarPanel({
       ) : error ? (
         <p className="mt-4 text-sm text-rose-600">{error}</p>
       ) : events.length === 0 ? (
-        <p className="mt-4 text-sm text-[var(--pf-gray-500)]">
-          No earnings dates in range for your watchlist. Add equity tickers like AAPL or NVDA.
-        </p>
+        <div className="mt-5 flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-[var(--pf-border)] bg-[var(--pf-gray-50)]/60 px-4 py-10 text-center">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm">
+            <Calendar className="h-5 w-5 text-[var(--pf-gray-300)]" strokeWidth={2} />
+          </div>
+          <p className="mt-3 text-sm font-semibold text-[var(--pf-gray-700)]">
+            No reports in the next 14 days
+          </p>
+          <p className="mt-1 max-w-xs text-xs leading-relaxed text-[var(--pf-gray-500)]">
+            Your watchlist equities will appear here when Finnhub has upcoming earnings dates. Crypto
+            symbols are excluded.
+          </p>
+        </div>
       ) : (
-        <ul className="mt-4 divide-y divide-[var(--pf-border)]">
+        <ul className="mt-4 flex-1 divide-y divide-[var(--pf-border)] overflow-hidden rounded-xl border border-[var(--pf-border)] bg-[var(--pf-gray-50)]/40">
           {events.map((ev) => (
-            <li key={`${ev.symbol}-${ev.date}`} className="flex items-center justify-between py-3">
+            <li key={`${ev.symbol}-${ev.date}`} className="flex items-center justify-between bg-white px-4 py-3 first:rounded-t-xl last:rounded-b-xl">
               <div>
                 <Link
                   href={`/ticker/${ev.symbol}`}
@@ -132,6 +141,7 @@ export function EarningsCalendarPanel({
       title="Watchlist earnings calendar"
       description="Upcoming report dates for symbols you track. For community lean and desk direction, open Earnings."
       compact
+      className="h-full"
     >
       {body}
     </ProIntelligenceGate>

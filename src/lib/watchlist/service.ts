@@ -1,7 +1,8 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { attachJournalHubProgress, fetchJournalEntryStats } from "@/lib/journal/hub-summary";
-import { getQuote } from "@/lib/market/finnhub";
+import { getCryptoLastPrice, getQuote } from "@/lib/market/finnhub";
+import { getCoreCryptoAsset } from "@/lib/market/crypto-allowlist";
 import { getDemoWatchlist } from "@/lib/watchlist/demo";
 import { resolveWatchlistSymbol } from "@/lib/market/validate-symbol";
 import { enrichWatchlistActivity } from "@/lib/watchlist/activity";
@@ -44,7 +45,8 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
 
   if (error) throw error;
 
-  const entries = (data ?? []) as WatchlistEntry[];
+  let entries = (data ?? []) as WatchlistEntry[];
+  entries = await reconcileWatchlistAssetClasses(userId, entries);
   const withQuotes = await enrichWatchlistQuotes(entries);
   const [withActivity, entryStats] = await Promise.all([
     enrichWatchlistActivity(userId, withQuotes),
@@ -91,13 +93,17 @@ export async function addToWatchlist(
 
   const { data: existing } = await db
     .from("user_watchlist")
-    .select("symbol, baseline_price")
+    .select("symbol, baseline_price, asset_class")
     .eq("user_id", userId)
     .eq("symbol", sym)
     .maybeSingle();
 
   if (existing) {
     const patch: Record<string, unknown> = {};
+    const storedClass = (existing as { asset_class?: string }).asset_class;
+    if (storedClass && storedClass !== resolvedAssetClass) {
+      patch.asset_class = resolvedAssetClass;
+    }
     if (thesis && thesis.length > 0) {
       patch.thesis = thesis.slice(0, 4000);
       patch.journal_updated_at = new Date().toISOString();
@@ -120,7 +126,14 @@ export async function addToWatchlist(
   const baseline_price =
     validated.lastPrice != null && Number.isFinite(validated.lastPrice)
       ? Math.round(validated.lastPrice * 10000) / 10000
-      : await resolveBaselinePrice(sym);
+      : validated.assetClass === "crypto" && validated.finnhubSymbol
+        ? await (async () => {
+            const p = await getCryptoLastPrice(validated.finnhubSymbol!);
+            return p != null && Number.isFinite(p)
+              ? Math.round(p * 10000) / 10000
+              : null;
+          })()
+        : await resolveBaselinePrice(sym);
   const row: Record<string, unknown> = {
     user_id: userId,
     symbol: sym,
@@ -301,6 +314,48 @@ export async function updateWatchlistPriceAlert(
   return { ok: true };
 }
 
+async function reconcileWatchlistAssetClasses(
+  userId: string,
+  entries: WatchlistEntry[]
+): Promise<WatchlistEntry[]> {
+  const db = createServiceClient();
+  const out: WatchlistEntry[] = [];
+
+  for (const entry of entries) {
+    const core = getCoreCryptoAsset(entry.symbol);
+    if (core && entry.asset_class !== "crypto") {
+      const patch: Record<string, unknown> = { asset_class: "crypto" };
+      const baseline = entry.baseline_price != null ? Number(entry.baseline_price) : null;
+      if (baseline == null || baseline <= 0) {
+        const live = await getCryptoLastPrice(core.finnhub_symbol);
+        if (live != null && live > 0) {
+          patch.baseline_price = Math.round(live * 10000) / 10000;
+        }
+      }
+      const { error } = await db
+        .from("user_watchlist")
+        .update(patch as never)
+        .eq("user_id", userId)
+        .eq("symbol", entry.symbol);
+      if (error) {
+        console.warn("[watchlist/reconcile asset_class]", entry.symbol, error);
+        out.push(entry);
+      } else {
+        out.push({
+          ...entry,
+          asset_class: "crypto",
+          baseline_price:
+            (patch.baseline_price as number | undefined) ?? entry.baseline_price ?? null,
+        });
+      }
+    } else {
+      out.push(entry);
+    }
+  }
+
+  return out;
+}
+
 async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<WatchlistEntry[]> {
   if (entries.length === 0) return entries;
 
@@ -313,6 +368,22 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
     .in("symbol", symbols);
 
   const priceMap = new Map((snaps ?? []).map((s) => [s.symbol, s.last_price]));
+
+  await Promise.all(
+    entries.map(async (entry) => {
+      const stored = priceMap.get(entry.symbol);
+      if (stored != null && stored > 0) return;
+
+      const isCrypto = entry.asset_class === "crypto" || Boolean(getCoreCryptoAsset(entry.symbol));
+      if (!isCrypto) return;
+
+      const core = getCoreCryptoAsset(entry.symbol);
+      if (!core) return;
+
+      const live = await getCryptoLastPrice(core.finnhub_symbol);
+      if (live != null && live > 0) priceMap.set(entry.symbol, live);
+    })
+  );
 
   const { data: recentCalls } = await db
     .from("calls")

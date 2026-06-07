@@ -27,6 +27,11 @@ import { getDemoWatchlistSeed } from "@/lib/watchlist/demo";
 
 const DEMO_STORAGE_KEY = "portfuel_demo_watchlist";
 
+function formatWatchlistPrice(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value) || value <= 0) return "—";
+  return `$${formatPrice(value)}`;
+}
+
 function loadDemoLocal(): string[] {
   if (typeof window === "undefined") return [];
   try {
@@ -237,7 +242,7 @@ export function WatchlistPanel({
 
   return (
     <section
-      className="pf-workspace-panel p-4 sm:p-5"
+      className="pf-workspace-panel flex h-full flex-col p-4 sm:p-5"
       aria-label="Your watchlist"
     >
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
@@ -295,7 +300,7 @@ export function WatchlistPanel({
       ) : items.length === 0 ? (
         <p className="mt-4 text-xs text-[var(--pf-gray-500)]">No symbols yet. Add one above.</p>
       ) : (
-        <ul className="mt-4 space-y-1">
+        <ul className="mt-4 flex-1 space-y-3">
           {items.map((item) => {
             const moveThreshold = resolvePriceMoveThreshold(globalPrefs, {
               symbolPriceAlertPct: item.price_alert_pct,
@@ -305,114 +310,132 @@ export function WatchlistPanel({
               moveThreshold != null &&
               item.change_since_add_pct != null &&
               Math.abs(item.change_since_add_pct) >= moveThreshold;
+            const isCrypto = item.asset_class === "crypto";
 
             return (
             <li
               key={item.symbol}
-              className="group flex items-center gap-2 rounded-lg border border-transparent px-2 py-2 hover:border-[var(--pf-border)] hover:bg-[var(--pf-gray-50)]"
+              className="group rounded-xl border border-[var(--pf-border)] bg-[var(--pf-gray-50)]/50 p-3 transition-colors hover:border-[var(--pf-gray-300)] hover:bg-white"
             >
-              <MiniSparkline
-                points={sparklines[item.symbol] ?? []}
-                width={48}
-                height={20}
-                className="hidden sm:block"
-              />
-              <div className="min-w-0 flex-1">
-              <Link
-                href={journalSymbolPath(item.symbol)}
-                className="block"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-2 font-mono text-sm font-bold text-[var(--pf-black)]">
-                    {item.symbol}
-                    {!item.has_thesis ? (
-                      <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
-                        Needs thesis
-                      </span>
-                    ) : item.journal_progress?.ready_to_publish ? (
-                      <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
-                        Ready
-                      </span>
+              <div className="flex items-start gap-3">
+                <MiniSparkline
+                  points={sparklines[item.symbol] ?? []}
+                  width={56}
+                  height={28}
+                  className="mt-0.5 shrink-0 rounded-md bg-white/80 p-0.5"
+                />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Link href={journalSymbolPath(item.symbol)} className="block">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
+                            {item.symbol}
+                          </span>
+                          {isCrypto ? (
+                            <span className="rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-800">
+                              Crypto
+                            </span>
+                          ) : null}
+                          {!item.has_thesis ? (
+                            <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
+                              Needs thesis
+                            </span>
+                          ) : item.journal_progress?.ready_to_publish ? (
+                            <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+                              Ready
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="mt-1 text-sm font-semibold tabular-nums text-[var(--pf-black)]">
+                          {formatWatchlistPrice(
+                            item.last_price != null ? Number(item.last_price) : null
+                          )}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        {item.change_since_add_pct != null ? (
+                          <span
+                            className={`text-xs font-semibold tabular-nums ${
+                              item.change_since_add_pct >= 0 ? "text-emerald-600" : "text-rose-600"
+                            }`}
+                            title="Change since added to watchlist"
+                          >
+                            {(item.change_since_add_pct >= 0 ? "+" : "") +
+                              formatPct(item.change_since_add_pct)}{" "}
+                            <span className="font-medium text-[var(--pf-gray-400)]">since add</span>
+                          </span>
+                        ) : null}
+                        {item.return_pct != null ? (
+                          <p className="mt-0.5 text-[10px] font-medium tabular-nums text-[var(--pf-gray-500)]">
+                            Call book {formatPct(item.return_pct)}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    {item.has_unread_call_alert || (item.community_calls_7d ?? 0) > 0 || showMoveHint ? (
+                      <p className="mt-1.5 text-[10px] text-[var(--pf-gray-500)]">
+                        {item.has_unread_call_alert ? (
+                          <span className="inline-flex items-center gap-0.5 font-semibold text-[var(--pf-red)]">
+                            <Bell className="h-2.5 w-2.5" aria-hidden />
+                            New community call
+                          </span>
+                        ) : (item.community_calls_7d ?? 0) > 0 ? (
+                          <span className="font-medium text-[var(--pf-gray-600)]">
+                            {item.community_calls_7d} member call
+                            {item.community_calls_7d === 1 ? "" : "s"} (7d)
+                          </span>
+                        ) : null}
+                        {proUnlocked && showMoveHint ? (
+                          <span className="font-semibold text-amber-700"> · Price alert</span>
+                        ) : null}
+                      </p>
                     ) : null}
-                  </span>
-                  <span className="flex flex-col items-end gap-0.5">
-                    {item.change_since_add_pct != null ? (
-                      <span
-                        className={`text-xs font-semibold tabular-nums ${
-                          item.change_since_add_pct >= 0 ? "text-emerald-600" : "text-rose-600"
-                        }`}
-                        title="Change since added to watchlist"
+
+                    <WatchlistIntelSnippet item={item} proUnlocked={proUnlocked} />
+                    {item.journal_progress ? (
+                      <JournalProgressMini progress={item.journal_progress} className="mt-2" />
+                    ) : null}
+                  </Link>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--pf-border)]/70 pt-2">
+                    <WatchlistPriceAlertControl
+                      item={item}
+                      globalPrefs={globalPrefs}
+                      proUnlocked={proUnlocked}
+                      demoMode={demoMode}
+                      onUpdated={patchItemPriceAlert}
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <Link
+                        href={journalSymbolPath(item.symbol)}
+                        className="inline-flex items-center gap-1 rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-1 text-[10px] font-semibold text-[var(--pf-gray-700)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
+                        title={`${item.symbol} research journal`}
                       >
-                        {(item.change_since_add_pct >= 0 ? "+" : "") +
-                          formatPct(item.change_since_add_pct)}{" "}
-                        since add
-                      </span>
-                    ) : null}
-                    {item.return_pct != null ? (
-                      <span className="text-[10px] font-medium tabular-nums text-[var(--pf-gray-500)]">
-                        Call book {formatPct(item.return_pct)}
-                      </span>
-                    ) : null}
-                  </span>
+                        <BookOpen className="h-3 w-3" aria-hidden />
+                        Journal
+                      </Link>
+                      <Link
+                        href={`/ticker/${item.symbol}${isCrypto ? "?asset=crypto" : ""}`}
+                        className="inline-flex items-center gap-1 rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-1 text-[10px] font-semibold text-[var(--pf-gray-500)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
+                        title={`${item.symbol} community intel`}
+                      >
+                        <LineChart className="h-3 w-3" aria-hidden />
+                        Intel
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => remove(item.symbol)}
+                        className="rounded-full p-1.5 text-[var(--pf-gray-400)] transition-colors hover:bg-[var(--pf-gray-100)] hover:text-[var(--pf-gray-700)]"
+                        aria-label={`Remove ${item.symbol}`}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                {item.last_price != null || item.community_calls_7d || item.has_unread_call_alert ? (
-                  <p className="text-[10px] tabular-nums text-[var(--pf-gray-400)]">
-                    {item.last_price != null ? (
-                      <>${formatPrice(Number(item.last_price))}</>
-                    ) : null}
-                    {item.has_unread_call_alert ? (
-                      <span className="ml-2 inline-flex items-center gap-0.5 font-semibold text-[var(--pf-red)]">
-                        <Bell className="h-2.5 w-2.5" aria-hidden />
-                        New community call
-                      </span>
-                    ) : (item.community_calls_7d ?? 0) > 0 ? (
-                      <span className="ml-2 font-medium text-[var(--pf-gray-600)]">
-                        · {item.community_calls_7d} member call
-                        {item.community_calls_7d === 1 ? "" : "s"} (7d)
-                      </span>
-                    ) : null}
-                    {proUnlocked && showMoveHint ? (
-                      <span className="ml-2 font-semibold text-amber-700">· Price alert</span>
-                    ) : null}
-                  </p>
-                ) : null}
-                <WatchlistIntelSnippet item={item} proUnlocked={proUnlocked} />
-                {item.journal_progress ? (
-                  <JournalProgressMini progress={item.journal_progress} className="mt-1.5" />
-                ) : null}
-              </Link>
-              <WatchlistPriceAlertControl
-                item={item}
-                globalPrefs={globalPrefs}
-                proUnlocked={proUnlocked}
-                demoMode={demoMode}
-                onUpdated={patchItemPriceAlert}
-              />
               </div>
-              <Link
-                href={journalSymbolPath(item.symbol)}
-                className="hidden shrink-0 items-center gap-1 rounded-full border border-[var(--pf-border)] bg-white px-2 py-1 text-[10px] font-semibold text-[var(--pf-gray-700)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)] group-hover:inline-flex sm:inline-flex"
-                title={`${item.symbol} research journal`}
-              >
-                <BookOpen className="h-3 w-3" aria-hidden />
-                Journal
-              </Link>
-              <Link
-                href={`/ticker/${item.symbol}`}
-                className="hidden shrink-0 items-center gap-1 rounded-full border border-[var(--pf-border)] bg-white px-2 py-1 text-[10px] font-semibold text-[var(--pf-gray-500)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)] group-hover:inline-flex sm:inline-flex"
-                title={`${item.symbol} community intel`}
-              >
-                <LineChart className="h-3 w-3" aria-hidden />
-                Intel
-              </Link>
-              <button
-                type="button"
-                onClick={() => remove(item.symbol)}
-                className="rounded p-1 text-[var(--pf-gray-400)] opacity-0 transition-opacity hover:bg-[var(--pf-gray-100)] hover:text-[var(--pf-gray-700)] group-hover:opacity-100"
-                aria-label={`Remove ${item.symbol}`}
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
             </li>
             );
           })}

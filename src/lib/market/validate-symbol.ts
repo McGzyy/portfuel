@@ -1,5 +1,5 @@
 import { getCryptoLastPrice, getQuote } from "@/lib/market/finnhub";
-import { resolveCryptoAsset } from "@/lib/market/crypto-allowlist";
+import { getCoreCryptoAsset, resolveCryptoAsset } from "@/lib/market/crypto-allowlist";
 
 export type AssetClass = "equity" | "crypto";
 
@@ -66,6 +66,15 @@ export async function resolveWatchlistSymbol(symbol: string): Promise<SymbolVali
       finnhubSymbol: cryptoAsset.finnhub_symbol,
       name: cryptoAsset.display_name ?? cryptoAsset.symbol,
       lastPrice: lastPrice ?? undefined,
+    };
+  }
+
+  // Avoid matching obscure equity tickers (e.g. OTC "SOL") when user meant Solana.
+  if (getCoreCryptoAsset(sym)) {
+    return {
+      ok: false,
+      error:
+        "Could not verify crypto price right now. Try again in a moment or pick Crypto in symbol lookup.",
     };
   }
 
