@@ -4,6 +4,8 @@
   --pf-safe-top: env(safe-area-inset-top, 0px);
   --pf-safe-bottom: env(safe-area-inset-bottom, 0px);
   --pf-bottom-nav-height: calc(3.75rem + var(--pf-safe-bottom));
+  /* Drawer footer: clear tab icons only — safe area lives inside the tab bar */
+  --pf-drawer-footer-pad: calc(3.75rem + 0.125rem);
   --pf-red: #e31b23;
   --pf-red-hover: #c41820;
   --pf-red-muted: #fef2f2;
