@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth/session";
+import { isEmailConfigured } from "@/lib/email/config";
 import {
   chooseEmailForVerification,
   getEmailVerifyStatus,
@@ -20,7 +21,7 @@ export async function GET() {
     const session = await requireSession();
     const status = await getEmailVerifyStatus(session.userId);
     if (!status) return NextResponse.json({ error: "not_found" }, { status: 404 });
-    return NextResponse.json(status);
+    return NextResponse.json({ ...status, emailConfigured: isEmailConfigured() });
   } catch (e) {
     if (e instanceof Error && e.message === "unauthorized") {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });

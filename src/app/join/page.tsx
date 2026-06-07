@@ -43,6 +43,7 @@ export default function JoinPage() {
   const [step, setStep] = useState<Step>("plan");
   const [selectedTier, setSelectedTier] = useState<MembershipTier>("member");
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -136,6 +137,7 @@ export default function JoinPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: username.trim().toLowerCase(),
+          email: email.trim(),
           password,
           displayName,
           acceptedTerms: true,
@@ -147,6 +149,8 @@ export default function JoinPage() {
         setError(
           data.error === "username_taken"
             ? "That username is taken. Choose another."
+            : data.error === "email_taken"
+              ? "That email is already registered. Sign in or use another address."
             : data.error === "invalid_input"
               ? "Accept the Terms of Service and Privacy Policy to continue."
               : data.message ?? "Registration failed. Check your details."
@@ -419,7 +423,8 @@ export default function JoinPage() {
                 </button>
               </div>
               <p className="mt-4 text-sm text-[var(--pf-gray-500)]">
-                Username is permanent and appears on your public track record.
+                Username is permanent and appears on your public track record. Email is used for
+                alerts, recovery, and unlocking the workspace after payment.
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -434,6 +439,18 @@ export default function JoinPage() {
                   }
                   placeholder="fuel_trader"
                   autoComplete="username"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
+                  Email
+                </label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  autoComplete="email"
                 />
               </div>
               <div>
@@ -504,6 +521,7 @@ export default function JoinPage() {
                   loading ||
                   !acceptedTerms ||
                   username.length < 3 ||
+                  !email.includes("@") ||
                   password.length < 8 ||
                   displayName.length < 2
                 }

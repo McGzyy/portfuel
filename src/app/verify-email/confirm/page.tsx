@@ -2,7 +2,9 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Check, Sparkles } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { EmailUnlockSteps } from "@/components/auth/EmailUnlockSteps";
 import { Button } from "@/components/ui/button";
 
 function ConfirmEmailInner() {
@@ -45,32 +47,63 @@ function ConfirmEmailInner() {
       });
   }, [token]);
 
+  useEffect(() => {
+    if (status !== "ok") return;
+    const t = window.setTimeout(() => router.push("/security/2fa"), 3500);
+    return () => window.clearTimeout(t);
+  }, [status, router]);
+
   return (
     <AuthShell
-      title={status === "ok" ? "Email confirmed" : status === "loading" ? "Confirming…" : "Confirmation failed"}
+      title={
+        status === "ok"
+          ? "Email confirmed"
+          : status === "loading"
+            ? "Unlocking…"
+            : "Confirmation failed"
+      }
       subtitle={
         status === "ok"
-          ? "Your email is verified. Set up two-factor authentication next."
+          ? "Your email is verified. Set up 2FA next — then the workspace opens."
           : undefined
       }
     >
-      <div className="space-y-6 text-center">
-        {status === "loading" ? (
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[var(--pf-border)] border-t-[var(--pf-red)]" />
-        ) : null}
-        {status === "error" ? (
-          <p className="text-sm text-[var(--pf-red)]">{error}</p>
-        ) : null}
-        {status === "ok" ? (
-          <Button className="w-full" size="lg" onClick={() => router.push("/security/2fa")}>
-            Set up 2FA
-          </Button>
-        ) : null}
-        {status === "error" ? (
-          <Button className="w-full" variant="outline" onClick={() => router.push("/verify-email")}>
-            Back to verify email
-          </Button>
-        ) : null}
+      <div className="space-y-6">
+        {status === "ok" ? <EmailUnlockSteps current="2fa" /> : null}
+
+        <div className="space-y-6 text-center">
+          {status === "loading" ? (
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-[var(--pf-border)] border-t-[var(--pf-red)]" />
+          ) : null}
+
+          {status === "ok" ? (
+            <>
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg shadow-emerald-500/25">
+                <Check className="h-8 w-8" strokeWidth={2.5} aria-hidden />
+              </div>
+              <p className="text-sm font-medium text-[var(--pf-gray-700)]">
+                <Sparkles className="mr-1 inline h-4 w-4 text-emerald-600" aria-hidden />
+                Email unlocked — securing your account with 2FA…
+              </p>
+              <Button className="w-full" size="lg" onClick={() => router.push("/security/2fa")}>
+                Continue to 2FA
+              </Button>
+            </>
+          ) : null}
+
+          {status === "error" ? (
+            <>
+              <p className="text-sm text-[var(--pf-red)]">{error}</p>
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => router.push("/verify-email")}
+              >
+                Back to verify email
+              </Button>
+            </>
+          ) : null}
+        </div>
       </div>
     </AuthShell>
   );
@@ -80,7 +113,7 @@ export default function ConfirmEmailPage() {
   return (
     <Suspense
       fallback={
-        <AuthShell title="Confirming…">
+        <AuthShell title="Unlocking…">
           <div className="flex justify-center py-8">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--pf-border)] border-t-[var(--pf-red)]" />
           </div>

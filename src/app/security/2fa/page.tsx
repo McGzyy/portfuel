@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { EmailUnlockSteps } from "@/components/auth/EmailUnlockSteps";
 import { OtpInput } from "@/components/auth/OtpInput";
 import { Button } from "@/components/ui/button";
 
@@ -63,9 +64,10 @@ export default function TwoFactorSetupPage() {
   return (
     <AuthShell
       title="Secure your account"
-      subtitle="Active membership requires two-factor authentication. Complete this once before using PortFuel."
+      subtitle="Email confirmed. Set up 2FA once — then your workspace opens."
     >
       <div className="space-y-6">
+        <EmailUnlockSteps current="2fa" />
         {qr ? (
           <div className="flex justify-center rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-4 shadow-[var(--pf-shadow-sm)]">
             <Image src={qr} alt="TOTP QR code" width={200} height={200} unoptimized />
@@ -88,7 +90,7 @@ export default function TwoFactorSetupPage() {
           disabled={loading || token.length !== 6 || !totpSecret}
           onClick={handleComplete}
         >
-          {loading ? "Verifying…" : "Enable two-factor & continue"}
+          {loading ? "Verifying…" : "Unlock workspace with 2FA"}
         </Button>
       </div>
     </AuthShell>

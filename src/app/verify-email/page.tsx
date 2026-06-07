@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Mail, Sparkles } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { EmailUnlockSteps } from "@/components/auth/EmailUnlockSteps";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -11,10 +13,14 @@ type VerifyStatus = {
   emailVerified: boolean;
   stripeCheckoutEmail: string | null;
   mismatch: boolean;
+  emailConfigured?: boolean;
 };
 
 export default function VerifyEmailPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const welcome = searchParams.get("welcome") === "1";
+
   const [status, setStatus] = useState<VerifyStatus | null>(null);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -37,11 +43,18 @@ export default function VerifyEmailPage() {
     if (data.emailVerified) {
       router.replace("/security/2fa");
     }
+    return data as VerifyStatus;
   }, [router]);
 
   useEffect(() => {
     load().catch(() => setError("Could not load verification status."));
   }, [load]);
+
+  useEffect(() => {
+    if (!welcome || !status?.emailConfigured) return;
+    if (status.emailVerified || !email.includes("@")) return;
+    setMessage("We sent a confirmation link to your inbox. Open it once to unlock the next step.");
+  }, [welcome, status, email]);
 
   async function sendVerification(targetEmail?: string) {
     setError("");
@@ -59,12 +72,12 @@ export default function VerifyEmailPage() {
           data.error === "email_taken"
             ? "That email is already verified on another account."
             : data.error === "send_failed"
-              ? "Email could not be sent. Check RESEND_API_KEY."
+              ? "Email could not be sent. Check RESEND_API_KEY and EMAIL_FROM in production."
               : "Could not send verification email.";
         setError(msg);
         return;
       }
-      setMessage("Check your inbox for a confirmation link (valid 24 hours).");
+      setMessage("Check your inbox — tap Unlock my workspace in the email (valid 24 hours).");
     } catch {
       setError("Something went wrong.");
     } finally {
@@ -87,7 +100,7 @@ export default function VerifyEmailPage() {
         return;
       }
       setEmail(data.email ?? email);
-      setMessage("Verification email sent to the address you selected.");
+      setMessage("Confirmation link sent. Open your email to unlock the workspace.");
       await load();
     } catch {
       setError("Something went wrong.");
@@ -96,12 +109,36 @@ export default function VerifyEmailPage() {
     }
   }
 
+  const emailConfigured = status?.emailConfigured !== false;
+
   return (
     <AuthShell
-      title="Confirm your email"
-      subtitle="Payment is complete. Verify your email once, then set up two-factor authentication to open the workspace."
+      title="Unlock your workspace"
+      subtitle="Membership is active. Confirm your email once — then 2FA opens the dashboard."
     >
-      <div className="space-y-5">
+      <div className="space-y-6">
+        <EmailUnlockSteps current="email" />
+
+        <div className="rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-gradient-to-b from-white to-[var(--pf-gray-50)] px-4 py-4 text-center">
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
+            <Mail className="h-5 w-5" strokeWidth={2.25} aria-hidden />
+          </div>
+          <p className="mt-3 text-sm font-semibold text-[var(--pf-black)]">
+            Email is the key
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-[var(--pf-gray-500)]">
+            Alerts, password recovery, and your member identity all use this address. We never
+            share it.
+          </p>
+        </div>
+
+        {!emailConfigured ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900">
+            Email delivery is not configured in this environment. Verification is skipped in
+            dev — set RESEND_API_KEY, EMAIL_FROM, and NEXT_PUBLIC_APP_URL to test the full flow.
+          </div>
+        ) : null}
+
         {status?.mismatch ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900">
             <p className="font-medium">Two different emails were found</p>
@@ -130,7 +167,7 @@ export default function VerifyEmailPage() {
               </Button>
             </div>
           </div>
-        ) : (
+        ) : emailConfigured ? (
           <>
             <div>
               <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
@@ -147,15 +184,16 @@ export default function VerifyEmailPage() {
             </div>
             <Button
               type="button"
-              className="w-full"
+              className="w-full gap-2"
               size="lg"
               disabled={loading || !email.includes("@")}
               onClick={() => sendVerification()}
             >
-              {loading ? "Sending…" : "Send confirmation link"}
+              <Sparkles className="h-4 w-4" aria-hidden />
+              {loading ? "Sending…" : welcome ? "Resend unlock link" : "Send unlock link"}
             </Button>
           </>
-        )}
+        ) : null}
 
         {error ? (
           <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-center text-sm text-[var(--pf-red)]">
@@ -169,14 +207,7 @@ export default function VerifyEmailPage() {
         ) : null}
 
         <p className="text-center text-xs text-[var(--pf-gray-500)]">
-          Already confirmed?{" "}
-          <button
-            type="button"
-            className="font-semibold text-[var(--pf-red)] hover:underline"
-            onClick={() => router.push("/security/2fa")}
-          >
-            Continue to 2FA
-          </button>
+          Wrong address? Update it above and send a new link.
         </p>
       </div>
     </AuthShell>

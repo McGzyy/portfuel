@@ -101,7 +101,7 @@ export default function LoginPage() {
         return;
       }
       if (data.needsEmailVerification) {
-        router.push("/verify-email");
+        router.push("/verify-email?welcome=1");
       } else if (data.needsTwoFactorSetup) {
         router.push("/security/2fa");
       } else if (data.needsOnboarding) {

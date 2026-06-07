@@ -56,6 +56,44 @@ export async function isEmailTakenByOther(
   return Boolean(data);
 }
 
+export async function isEmailAvailableForSignup(email: string): Promise<boolean> {
+  const normalized = normalizeEmail(email);
+  const db = createServiceClient();
+  const { data } = await db
+    .from("users")
+    .select("id")
+    .ilike("email", normalized)
+    .not("email_verified_at", "is", null)
+    .maybeSingle();
+
+  return !data;
+}
+
+function buildVerificationEmailContent(link: string) {
+  const html = `
+<div style="font-family:system-ui,sans-serif;max-width:480px;margin:0 auto;color:#111">
+  <p style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#E31B23;margin:0 0 12px">PortFuel</p>
+  <h1 style="font-size:22px;font-weight:700;margin:0 0 8px">Confirm your email to unlock the workspace</h1>
+  <p style="font-size:15px;line-height:1.5;color:#525252;margin:0 0 20px">
+    Payment is complete. Tap the button below once — then you&apos;ll set up 2FA and open your member dashboard.
+  </p>
+  <p style="margin:0 0 24px">
+    <a href="${link}" style="display:inline-block;background:#E31B23;color:#fff;font-weight:600;text-decoration:none;padding:12px 20px;border-radius:8px">Unlock my workspace</a>
+  </p>
+  <p style="font-size:12px;color:#737373;margin:0">Link expires in 24 hours. If you didn&apos;t join PortFuel, ignore this message.</p>
+</div>`;
+
+  const text = `Confirm your email to unlock the PortFuel workspace.
+
+Payment is complete. Open this link once, then set up 2FA:
+
+${link}
+
+Expires in 24 hours.`;
+
+  return { html, text };
+}
+
 export async function setUserEmailPending(userId: string, email: string): Promise<void> {
   const db = createServiceClient();
   const { error } = await db
@@ -142,15 +180,31 @@ export async function sendVerificationEmail(
   const appUrl = getAppUrl();
   const link = `${appUrl}/verify-email/confirm?token=${encodeURIComponent(token)}`;
 
+  const content = buildVerificationEmailContent(link);
   const sent = await sendPortfuelEmail({
     to: normalized,
-    subject: "Confirm your PortFuel email",
-    html: `<p>Confirm your email to open the PortFuel workspace.</p><p><a href="${link}">Confirm email</a></p><p>This link expires in 24 hours.</p>`,
-    text: `Confirm your email to open the PortFuel workspace.\n\n${link}\n\nExpires in 24 hours.`,
+    subject: "Unlock your PortFuel workspace — confirm email",
+    html: content.html,
+    text: content.text,
   });
 
   if (!sent) return { ok: false, error: "send_failed" };
   return { ok: true };
+}
+
+export async function sendPostPaymentVerificationEmail(
+  userId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const status = await getEmailVerifyStatus(userId);
+  if (!status || status.emailVerified) return { ok: true };
+
+  const email =
+    status.email?.trim() ||
+    status.stripeCheckoutEmail?.trim() ||
+    "";
+  if (!email) return { ok: false, error: "email_missing" };
+
+  return sendVerificationEmail(userId, email);
 }
 
 export async function confirmVerificationToken(

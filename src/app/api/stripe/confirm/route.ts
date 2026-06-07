@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildSessionPayloadForUser } from "@/lib/auth/session-lifecycle";
 import { isEmailVerificationRequired } from "@/lib/member-lifecycle/config";
+import { sendPostPaymentVerificationEmail } from "@/lib/member-lifecycle/email-verify";
 import { createSession } from "@/lib/auth/session";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { confirmCheckoutSession } from "@/lib/stripe/webhooks";
@@ -29,11 +30,21 @@ export async function POST(request: Request) {
     const verifiedAt = (user as { email_verified_at?: string | null }).email_verified_at;
     const needsEmailVerification = isEmailVerificationRequired() && !verifiedAt;
 
+    let verificationEmailSent = false;
+    let verificationEmailError: string | null = null;
+    if (needsEmailVerification) {
+      const sendResult = await sendPostPaymentVerificationEmail(user.id);
+      verificationEmailSent = sendResult.ok;
+      if (!sendResult.ok) verificationEmailError = sendResult.error;
+    }
+
     return NextResponse.json({
       ok: true,
       username: user.username,
       needsTwoFactorSetup: !user.totp_verified,
       needsEmailVerification,
+      verificationEmailSent,
+      verificationEmailError,
       tier,
     });
   } catch (e) {
