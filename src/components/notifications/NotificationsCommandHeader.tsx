@@ -28,10 +28,7 @@ export function NotificationsCommandHeader({
           <span className="text-[var(--pf-gray-400)]"> · all caught up</span>
         )}
         {" "}
-        — watchlist alerts, calls, votes, comments, desk updates, and DMs.{" "}
-        <Link href="/settings#alerts" className="font-semibold text-[var(--pf-red)] hover:underline">
-          Alert settings
-        </Link>
+        — watchlist alerts, calls, votes, comments, desk updates, and DMs.
       </p>
       <Link
         href="/dashboard"

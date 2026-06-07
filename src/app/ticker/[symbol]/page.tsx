@@ -108,8 +108,6 @@ export default async function TickerPage({
           symbol={symbol}
           intel={intel}
           session={Boolean(session)}
-          backHref="/dashboard/watchlist"
-          backLabel="Watchlist"
           onWatchlist={onWatchlist}
           callCount={calls.length}
         />

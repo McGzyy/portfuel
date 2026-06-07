@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { BookOpen, Plus } from "lucide-react";
 import { HypeMeter } from "@/components/brand/HypeMeter";
 import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MarketDataNote } from "@/components/market/MarketDataNote";
+import { journalSymbolPath } from "@/lib/journal/paths";
 import { formatPct, formatPrice } from "@/lib/utils";
 import { TickerWatchlistChip } from "@/components/ticker/TickerWatchlistChip";
 import type { loadTickerIntel } from "@/lib/market/ticker-intel";
@@ -35,7 +36,18 @@ export function TickerPageHeader({
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="min-w-0 flex-1">
           {session ? (
-            <WorkspaceBackLink href={backHref} label={backLabel} />
+            <div className="flex flex-wrap items-center gap-3">
+              <WorkspaceBackLink href={backHref} label={backLabel} />
+              {onWatchlist ? (
+                <Link
+                  href={journalSymbolPath(symbol)}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-700 transition-colors hover:text-indigo-900 hover:underline"
+                >
+                  <BookOpen className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
+                  Open journal
+                </Link>
+              ) : null}
+            </div>
           ) : (
             <Link
               href="/"
