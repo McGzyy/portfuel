@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatTierPrice } from "@/lib/marketing/plans";
+import { buildResearchHubHref } from "@/lib/dashboard/research-hub";
 
 const PRO_HIGHLIGHTS = [
   "Full ticker intel (news, earnings, SEC)",
@@ -59,7 +60,7 @@ export function ProMembershipStrip({ locked }: { locked: boolean }) {
         </div>
       </div>
       <Link
-        href="/dashboard/screener"
+        href={buildResearchHubHref("screener")}
         className="shrink-0 text-xs font-semibold text-[var(--pf-gray-700)] hover:text-[var(--pf-black)] hover:underline"
       >
         Open screener →

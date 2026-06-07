@@ -6,6 +6,7 @@ import { buildPublishUrlFromHubEntry } from "@/lib/watchlist/journal-call-url";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { formatPct } from "@/lib/utils";
 import { journalSymbolPath } from "@/lib/journal/paths";
+import { buildResearchHubHref } from "@/lib/dashboard/research-hub";
 
 export type ProTodayBriefRow = {
   id: string;
@@ -71,7 +72,7 @@ export function buildProTodayBrief(input: {
         earnings.length === 1
           ? `${next.symbol} reports ${fmtShortDate(next.date)}${hourLabel(next.hour) ? ` · ${hourLabel(next.hour)}` : ""}`
           : `${earnings.length} symbols this fortnight · next ${next.symbol} ${fmtShortDate(next.date)}`,
-      href: "/dashboard/earnings",
+      href: buildResearchHubHref("earnings"),
       accent: "earnings",
     });
   } else if (input.battleboard.reportingCount > 0) {
@@ -82,7 +83,7 @@ export function buildProTodayBrief(input: {
         input.battleboard.nextSymbol && input.battleboard.nextDate
           ? `${input.battleboard.reportingCount} names reporting · community focus on ${input.battleboard.nextSymbol}`
           : `${input.battleboard.reportingCount} symbols reporting this week`,
-      href: "/dashboard/earnings",
+      href: buildResearchHubHref("earnings"),
       accent: "earnings",
     });
   }
@@ -100,7 +101,7 @@ export function buildProTodayBrief(input: {
             }`
         )
         .join(" · "),
-      href: "/dashboard/screener",
+      href: buildResearchHubHref("screener"),
       accent: "screener",
     });
   } else if (input.screener.mostCalled[0]) {
@@ -109,7 +110,7 @@ export function buildProTodayBrief(input: {
       id: "screener",
       title: "Screener pulse",
       detail: `${top.symbol} · ${top.callCount} community call${top.callCount === 1 ? "" : "s"} this week`,
-      href: "/dashboard/screener",
+      href: buildResearchHubHref("screener"),
       accent: "screener",
     });
   }
@@ -173,14 +174,14 @@ export const DEMO_PRO_TODAY_BRIEF: ProTodayBrief = {
       id: "earnings-demo",
       title: "Your watchlist earnings",
       detail: "NVDA reports Thu AMC · 2 more symbols on your list this fortnight",
-      href: "/dashboard/earnings",
+      href: buildResearchHubHref("earnings"),
       accent: "earnings",
     },
     {
       id: "screener-demo",
       title: "Screener pulse",
       detail: "AMD 68% to target · NVDA 54% · META 41%",
-      href: "/dashboard/screener",
+      href: buildResearchHubHref("screener"),
       accent: "screener",
     },
     {

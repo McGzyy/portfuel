@@ -89,7 +89,7 @@ export function WorkspaceChecklistCompleteBanner({
               member feed
             </Link>
             , run{" "}
-            <Link href="/dashboard/compare" className="font-semibold underline hover:no-underline">
+            <Link href="/dashboard/research?tab=compare" className="font-semibold underline hover:no-underline">
               ticker compare
             </Link>
             , or publish another thesis when you&apos;re ready.

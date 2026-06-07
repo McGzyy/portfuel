@@ -22,8 +22,8 @@ const SURFACES = [
     when: "Scanning the market",
     description:
       "Every symbol reporting in the next 14 days, plus how PortFuel members and the Fueled desk are positioned (calls from the last 30 days).",
-    href: "/dashboard/earnings",
-    linkLabel: "This page",
+    href: "/dashboard/research?tab=earnings",
+    linkLabel: "Research hub · Earnings",
     current: true,
   },
 ];

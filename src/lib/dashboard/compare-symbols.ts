@@ -1,5 +1,7 @@
 const MAX_COMPARE_SYMBOLS = 3;
 
+import { buildResearchHubHref } from "@/lib/dashboard/research-hub";
+
 export function parseCompareSymbolsParam(
   raw: string | string[] | undefined,
   max = MAX_COMPARE_SYMBOLS
@@ -20,6 +22,6 @@ export function parseCompareSymbolsParam(
 
 export function buildCompareHref(symbols: string[]): string {
   const syms = symbols.slice(0, MAX_COMPARE_SYMBOLS);
-  if (syms.length === 0) return "/dashboard/compare";
-  return `/dashboard/compare?symbols=${encodeURIComponent(syms.join(","))}`;
+  if (syms.length === 0) return buildResearchHubHref("compare");
+  return buildResearchHubHref("compare", { symbols: syms.join(",") });
 }

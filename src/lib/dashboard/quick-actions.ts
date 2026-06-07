@@ -37,6 +37,11 @@ export const WORKSPACE_NAV_RAIL: WorkspaceNavRailItem[] = [
     icon: "notebook",
   },
   {
+    href: "/dashboard/research",
+    label: "Research",
+    icon: "scan",
+  },
+  {
     href: "/dashboard/rankings",
     label: "Rankings",
     icon: "trophy",
@@ -55,20 +60,5 @@ export const WORKSPACE_NAV_RAIL: WorkspaceNavRailItem[] = [
   },
 ];
 
-export const PRO_NAV_RAIL: WorkspaceNavRailItem[] = [
-  {
-    href: "/dashboard/screener",
-    label: "Screener",
-    icon: "scan",
-  },
-  {
-    href: "/dashboard/earnings",
-    label: "Earnings",
-    icon: "calendar",
-  },
-  {
-    href: "/dashboard/compare",
-    label: "Compare",
-    icon: "compare",
-  },
-];
+/** Pro tools live in the research hub — no separate mobile rail group. */
+export const PRO_NAV_RAIL: WorkspaceNavRailItem[] = [];

@@ -7,6 +7,7 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react";
+import { buildResearchHubHref } from "@/lib/dashboard/research-hub";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import type { ProTodayBrief, ProTodayBriefRow } from "@/lib/pro/today-brief";
@@ -53,7 +54,7 @@ function ProTodayBriefCard({ brief }: { brief: ProTodayBrief }) {
             <p className="mt-1 text-sm text-slate-400">{today}</p>
           </div>
           <Link
-            href="/dashboard/screener"
+            href={buildResearchHubHref("screener")}
             className="text-xs font-semibold text-indigo-300 hover:text-indigo-200 hover:underline"
           >
             Research tools →

@@ -79,7 +79,7 @@ export function EarningsCalendarPanel({
       </p>
       <p className="mt-1.5 text-xs text-[var(--pf-gray-500)]">
         Want market-wide positioning before reports?{" "}
-        <Link href="/dashboard/earnings" className="font-semibold text-[var(--pf-red)] hover:underline">
+        <Link href="/dashboard/research?tab=earnings" className="font-semibold text-[var(--pf-red)] hover:underline">
           Open Earnings →
         </Link>
         {" · "}

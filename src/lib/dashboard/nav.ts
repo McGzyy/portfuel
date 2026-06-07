@@ -72,22 +72,10 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
     icon: "trophy",
   },
   {
-    href: "/dashboard/screener",
-    label: "Screener",
-    description: "Most called & top returns",
+    href: "/dashboard/research",
+    label: "Pro research",
+    description: "Screener, earnings & compare",
     icon: "scan",
-  },
-  {
-    href: "/dashboard/earnings",
-    label: "Earnings",
-    description: "Reporting week + positioning",
-    icon: "calendar",
-  },
-  {
-    href: "/dashboard/compare",
-    label: "Compare",
-    description: "2–3 symbols side by side",
-    icon: "compare",
   },
 ];
 
@@ -107,7 +95,7 @@ export const WORKSPACE_NAV_GROUPS: { title: string; items: DashboardNavItem[] }[
   {
     title: "Research",
     items: DASHBOARD_NAV.filter((i) =>
-      ["/dashboard/desk", "/dashboard/watchlist", "/dashboard/journal", "/dashboard/screener", "/dashboard/earnings", "/dashboard/compare"].includes(
+      ["/dashboard/desk", "/dashboard/watchlist", "/dashboard/journal", "/dashboard/research"].includes(
         i.href
       )
     ),
@@ -191,19 +179,9 @@ const WORKSPACE_GUIDE_SECTIONS_TEMPLATE: {
         description: "Private research — thesis, plan, AI review, and entries per symbol.",
       },
       {
-        href: "/dashboard/screener",
-        label: "Screener",
-        description: "Conviction, progress & desk vs crowd filters (Pro).",
-      },
-      {
-        href: "/dashboard/earnings",
-        label: "Earnings",
-        description: "Reporting week with community positioning (Pro).",
-      },
-      {
-        href: "/dashboard/compare",
-        label: "Compare",
-        description: "Chart 2–3 symbols side by side (Pro).",
+        href: "/dashboard/research",
+        label: "Pro research",
+        description: "Screener, earnings battleboard, and ticker compare in one hub.",
       },
     ],
   },
