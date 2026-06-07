@@ -12,6 +12,10 @@ import { isDemoMode } from "@/lib/demo/config";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import {
+  DEFAULT_WATCHLIST_ALERT_PREFS,
+  fetchUserAlertPrefs,
+} from "@/lib/alerts/preferences";
+import {
   canAccessProIntelligence,
   getProGateCta,
   isProIntelligenceLocked,
@@ -30,8 +34,11 @@ export default async function DashboardWatchlistPage() {
   const proUnlocked = canAccessProIntelligence(proContext);
 
   let items: Awaited<ReturnType<typeof fetchWatchlist>> = [];
+  let alertPrefs = DEFAULT_WATCHLIST_ALERT_PREFS;
   try {
     items = await fetchWatchlist(session.userId);
+    const prefs = await fetchUserAlertPrefs(session.userId);
+    if (prefs?.watchlist) alertPrefs = prefs.watchlist;
   } catch (e) {
     console.error("[watchlist/page]", e);
   }
@@ -74,7 +81,12 @@ export default async function DashboardWatchlistPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <WatchlistPanel demoMode={isDemoMode()} proUnlocked={proUnlocked} initialItems={items} />
+        <WatchlistPanel
+          demoMode={isDemoMode()}
+          proUnlocked={proUnlocked}
+          initialItems={items}
+          alertPrefs={alertPrefs}
+        />
         <EarningsCalendarPanel locked={proLocked} proGateCta={proGateCta} />
       </div>
     </div>

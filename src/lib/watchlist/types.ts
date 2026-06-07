@@ -34,4 +34,6 @@ export type WatchlistEntry = {
   target_price?: number | null;
   risk_factors?: string | null;
   thesis?: string | null;
+  /** Pro: per-symbol ±% move threshold; null uses global alert prefs */
+  price_alert_pct?: number | null;
 };

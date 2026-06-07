@@ -20,7 +20,7 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
   const { data, error } = await db
     .from("user_watchlist")
     .select(
-      "symbol, asset_class, created_at, baseline_price, conviction, thesis, journal_updated_at, outcome, catalysts, entry_price, target_price, risk_factors"
+      "symbol, asset_class, created_at, baseline_price, conviction, thesis, journal_updated_at, outcome, catalysts, entry_price, target_price, risk_factors, price_alert_pct"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
@@ -214,6 +214,58 @@ export async function removeFromWatchlist(
   return { ok: true };
 }
 
+export async function updateWatchlistPriceAlert(
+  userId: string,
+  symbol: string,
+  priceAlertPct: number | null
+): Promise<{ ok: true } | { error: string }> {
+  const sym = symbol.toUpperCase().trim();
+  if (!sym) return { error: "invalid_symbol" };
+
+  if (priceAlertPct != null && (priceAlertPct < 3 || priceAlertPct > 20)) {
+    return { error: "invalid_threshold" };
+  }
+
+  if (isDemoMode()) return { error: "demo_readonly" };
+
+  const db = createServiceClient();
+
+  const { data: existing } = await db
+    .from("user_watchlist")
+    .select("symbol")
+    .eq("user_id", userId)
+    .eq("symbol", sym)
+    .maybeSingle();
+
+  if (!existing) return { error: "not_found" };
+
+  const { error } = await db
+    .from("user_watchlist")
+    .update({ price_alert_pct: priceAlertPct } as never)
+    .eq("user_id", userId)
+    .eq("symbol", sym);
+
+  if (error) {
+    console.error("[watchlist/price-alert]", error);
+    return { error: "update_failed" };
+  }
+
+  await db
+    .from("watchlist_price_band")
+    .delete()
+    .eq("user_id", userId)
+    .eq("symbol", sym);
+
+  await db
+    .from("watchlist_alert_sent")
+    .delete()
+    .eq("user_id", userId)
+    .eq("symbol", sym)
+    .in("alert_kind", ["price_move_up", "price_move_down"]);
+
+  return { ok: true };
+}
+
 async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<WatchlistEntry[]> {
   if (entries.length === 0) return entries;
 
@@ -254,6 +306,7 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
       entry_price?: number | null;
       target_price?: number | null;
       risk_factors?: string | null;
+      price_alert_pct?: number | null;
     };
     return {
       ...row,
@@ -268,6 +321,8 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
       target_price: row.target_price != null ? Number(row.target_price) : null,
       risk_factors: row.risk_factors ?? null,
       thesis: row.thesis ?? null,
+      price_alert_pct:
+        row.price_alert_pct != null ? Number(row.price_alert_pct) : null,
     };
   });
 }

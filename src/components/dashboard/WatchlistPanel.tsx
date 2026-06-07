@@ -8,12 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { JournalProgressMini } from "@/components/journal/JournalProgressMini";
 import { WatchlistMoveAlerts } from "@/components/dashboard/WatchlistMoveAlerts";
+import { WatchlistPriceAlertControl } from "@/components/watchlist/WatchlistPriceAlertControl";
 import { MiniSparkline } from "@/components/charts/MiniSparkline";
 import type { LinePoint } from "@/lib/charts/types";
 import { formatPct, formatPrice } from "@/lib/utils";
 import { COPY } from "@/lib/copy";
 import { journalSymbolPath } from "@/lib/journal/paths";
-import { WATCHLIST_MOVE_ALERT_PCT } from "@/lib/watchlist/service";
+import { resolvePriceMoveThreshold } from "@/lib/alerts/price-threshold";
+import type { WatchlistAlertPrefs } from "@/lib/alerts/preferences";
+import { DEFAULT_WATCHLIST_ALERT_PREFS } from "@/lib/alerts/preferences";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { getDemoWatchlistSeed } from "@/lib/watchlist/demo";
 
@@ -58,10 +61,12 @@ export function WatchlistPanel({
   demoMode,
   proUnlocked = false,
   initialItems,
+  alertPrefs,
 }: {
   demoMode: boolean;
   proUnlocked?: boolean;
   initialItems?: WatchlistEntry[];
+  alertPrefs?: WatchlistAlertPrefs | null;
 }) {
   const [items, setItems] = useState<WatchlistEntry[]>(initialItems ?? []);
   const [sparklines, setSparklines] = useState<Record<string, LinePoint[]>>({});
@@ -70,6 +75,15 @@ export function WatchlistPanel({
   const [loading, setLoading] = useState(initialItems == null);
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(false);
+  const globalPrefs = alertPrefs ?? DEFAULT_WATCHLIST_ALERT_PREFS;
+
+  function patchItemPriceAlert(symbol: string, priceAlertPct: number | null) {
+    setItems((prev) =>
+      prev.map((i) =>
+        i.symbol === symbol ? { ...i, price_alert_pct: priceAlertPct } : i
+      )
+    );
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -228,7 +242,11 @@ export function WatchlistPanel({
 
       {!loading && items.length > 0 ? (
         <div className="mt-3">
-          <WatchlistMoveAlerts items={items} proUnlocked={proUnlocked} />
+          <WatchlistMoveAlerts
+            items={items}
+            proUnlocked={proUnlocked}
+            globalPrefs={globalPrefs}
+          />
         </div>
       ) : null}
 
@@ -238,7 +256,17 @@ export function WatchlistPanel({
         <p className="mt-4 text-xs text-[var(--pf-gray-500)]">No symbols yet. Add one above.</p>
       ) : (
         <ul className="mt-4 space-y-1">
-          {items.map((item) => (
+          {items.map((item) => {
+            const moveThreshold = resolvePriceMoveThreshold(globalPrefs, {
+              symbolPriceAlertPct: item.price_alert_pct,
+              proUnlocked,
+            });
+            const showMoveHint =
+              moveThreshold != null &&
+              item.change_since_add_pct != null &&
+              Math.abs(item.change_since_add_pct) >= moveThreshold;
+
+            return (
             <li
               key={item.symbol}
               className="group flex items-center gap-2 rounded-lg border border-transparent px-2 py-2 hover:border-[var(--pf-border)] hover:bg-[var(--pf-gray-50)]"
@@ -249,9 +277,10 @@ export function WatchlistPanel({
                 height={20}
                 className="hidden sm:block"
               />
+              <div className="min-w-0 flex-1">
               <Link
                 href={journalSymbolPath(item.symbol)}
-                className="min-w-0 flex-1"
+                className="block"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="flex items-center gap-2 font-mono text-sm font-bold text-[var(--pf-black)]">
@@ -302,9 +331,7 @@ export function WatchlistPanel({
                         {item.community_calls_7d === 1 ? "" : "s"} (7d)
                       </span>
                     ) : null}
-                    {proUnlocked &&
-                    item.change_since_add_pct != null &&
-                    Math.abs(item.change_since_add_pct) >= WATCHLIST_MOVE_ALERT_PCT ? (
+                    {proUnlocked && showMoveHint ? (
                       <span className="ml-2 font-semibold text-amber-700">· Price alert</span>
                     ) : !proUnlocked && item.asset_class === "equity" ? (
                       <span className="ml-2 font-medium text-[var(--pf-red)]">
@@ -317,6 +344,14 @@ export function WatchlistPanel({
                   <JournalProgressMini progress={item.journal_progress} className="mt-1.5" />
                 ) : null}
               </Link>
+              <WatchlistPriceAlertControl
+                item={item}
+                globalPrefs={globalPrefs}
+                proUnlocked={proUnlocked}
+                demoMode={demoMode}
+                onUpdated={patchItemPriceAlert}
+              />
+              </div>
               <Link
                 href={journalSymbolPath(item.symbol)}
                 className="hidden shrink-0 items-center gap-1 rounded-full border border-[var(--pf-border)] bg-white px-2 py-1 text-[10px] font-semibold text-[var(--pf-gray-700)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)] group-hover:inline-flex sm:inline-flex"
@@ -342,7 +377,8 @@ export function WatchlistPanel({
                 <X className="h-3.5 w-3.5" />
               </button>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </section>

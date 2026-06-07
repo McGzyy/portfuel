@@ -9,6 +9,8 @@ import {
   normalizeWatchlistAlertPrefs,
   type WatchlistAlertPrefs,
 } from "@/lib/alerts/preferences";
+import { resolvePriceMoveThreshold } from "@/lib/alerts/price-threshold";
+import { canAccessProIntelligence } from "@/lib/features/pro-intelligence";
 import { journalAlertHref } from "@/lib/journal/paths";
 import { fetchEarningsForSymbols } from "@/lib/market/earnings-calendar";
 import type { ProAccessContext } from "@/lib/features/pro-intelligence";
@@ -29,6 +31,7 @@ type WatchlistRow = {
   entry_price: number | null;
   stop_price: number | null;
   target_price: number | null;
+  price_alert_pct: number | null;
   membership_tier: MembershipTier | null;
   role: string;
   subscription_status: string | null;
@@ -108,7 +111,7 @@ export async function runWatchlistAlertsCron(): Promise<WatchlistAlertsCronResul
   const { data: rows, error } = await db
     .from("user_watchlist")
     .select(
-      "user_id, symbol, asset_class, baseline_price, thesis, conviction, entry_price, stop_price, target_price"
+      "user_id, symbol, asset_class, baseline_price, thesis, conviction, entry_price, stop_price, target_price, price_alert_pct"
     );
 
   if (error) {
@@ -163,6 +166,7 @@ export async function runWatchlistAlertsCron(): Promise<WatchlistAlertsCronResul
       entry_price: number | null;
       stop_price: number | null;
       target_price: number | null;
+      price_alert_pct: number | null;
     };
     const user = userMap.get(raw.user_id);
     if (!user) continue;
@@ -177,6 +181,8 @@ export async function runWatchlistAlertsCron(): Promise<WatchlistAlertsCronResul
       entry_price: raw.entry_price != null ? Number(raw.entry_price) : null,
       stop_price: raw.stop_price != null ? Number(raw.stop_price) : null,
       target_price: raw.target_price != null ? Number(raw.target_price) : null,
+      price_alert_pct:
+        raw.price_alert_pct != null ? Number(raw.price_alert_pct) : null,
       membership_tier: user.membership_tier,
       role: user.role,
       subscription_status: user.subscription_status,
@@ -232,7 +238,12 @@ export async function runWatchlistAlertsCron(): Promise<WatchlistAlertsCronResul
     if (last != null && last > 0) {
       if (prefs.price_move && entry.baseline_price != null && entry.baseline_price > 0) {
         const pct = ((last - entry.baseline_price) / entry.baseline_price) * 100;
-        const threshold = prefs.price_move_pct;
+        const proUnlocked = canAccessProIntelligence(proContext);
+        const threshold = resolvePriceMoveThreshold(prefs, {
+          symbolPriceAlertPct: entry.price_alert_pct,
+          proUnlocked,
+        })!;
+
         const band = priceBandForChange(pct, threshold);
 
         const { data: bandRow } = await db

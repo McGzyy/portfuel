@@ -87,6 +87,7 @@ export function getDemoWatchlist(_userId: string): WatchlistEntry[] {
       symbol: s.symbol,
       asset_class: s.asset_class,
       created_at: now,
+      price_alert_pct: s.symbol === "NVDA" ? 3 : null,
       baseline_price: baseline,
       last_price: last,
       return_pct: DEMO_RETURNS[s.symbol] ?? null,

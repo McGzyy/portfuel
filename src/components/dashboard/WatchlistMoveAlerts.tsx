@@ -1,22 +1,30 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
+import { resolvePriceMoveThreshold } from "@/lib/alerts/price-threshold";
+import type { WatchlistAlertPrefs } from "@/lib/alerts/preferences";
 import { journalAlertHref } from "@/lib/journal/paths";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
-import { WATCHLIST_MOVE_ALERT_PCT } from "@/lib/watchlist/service";
 import { formatPct } from "@/lib/utils";
 
 export function WatchlistMoveAlerts({
   items,
   proUnlocked = false,
+  globalPrefs,
 }: {
   items: WatchlistEntry[];
   proUnlocked?: boolean;
+  globalPrefs: WatchlistAlertPrefs;
 }) {
-  const alerts = items.filter(
-    (i) =>
-      i.change_since_add_pct != null &&
-      Math.abs(i.change_since_add_pct) >= WATCHLIST_MOVE_ALERT_PCT
-  );
+  if (!globalPrefs.price_move) return null;
+
+  const alerts = items.filter((i) => {
+    if (i.change_since_add_pct == null) return false;
+    const threshold = resolvePriceMoveThreshold(globalPrefs, {
+      symbolPriceAlertPct: i.price_alert_pct,
+      proUnlocked,
+    });
+    return threshold != null && Math.abs(i.change_since_add_pct) >= threshold;
+  });
 
   if (alerts.length === 0) return null;
 
@@ -35,7 +43,7 @@ export function WatchlistMoveAlerts({
         </Link>
         {proUnlocked ? (
           <span className="normal-case tracking-normal font-normal text-amber-800/80">
-            · SMS available on Pro
+            · Per-symbol thresholds on Pro
           </span>
         ) : null}
       </p>

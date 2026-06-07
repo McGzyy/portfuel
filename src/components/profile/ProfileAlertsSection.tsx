@@ -141,6 +141,15 @@ export function ProfileAlertsSection() {
             </select>
           </label>
         ) : null}
+        {data.isPro ? (
+          <p className="ml-6 text-xs text-[var(--pf-gray-500)]">
+            Pro: set a custom ±% threshold per symbol on your{" "}
+            <Link href="/dashboard/watchlist" className="font-semibold text-[var(--pf-red)] hover:underline">
+              watchlist
+            </Link>
+            .
+          </p>
+        ) : null}
 
         <label className="flex items-center gap-2">
           <input
