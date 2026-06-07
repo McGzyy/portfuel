@@ -51,10 +51,13 @@ import { fetchJournalHighlights } from "@/lib/watchlist/journal-highlights";
 import { WatchlistJournalPulse } from "@/components/watchlist/WatchlistJournalPulse";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
 import { ProTodayBrief } from "@/components/pro/ProTodayBrief";
+import { ProOverviewIntelStrip } from "@/components/pro/ProOverviewIntelStrip";
 import { fetchCommunityScreener } from "@/lib/screener/community";
+import type { CommunityScreenerData } from "@/lib/screener/community";
 import {
   fetchEarningsBattleboard,
   summarizeBattleboard,
+  type EarningsBattleboardSummary,
 } from "@/lib/earnings/battleboard";
 import { fetchEarningsForSymbols } from "@/lib/market/earnings-calendar";
 import {
@@ -225,6 +228,11 @@ export default async function DashboardOverviewPage({
   }
 
   let proTodayBrief = DEMO_PRO_TODAY_BRIEF;
+  let proOverviewIntel: {
+    battleboard: EarningsBattleboardSummary;
+    screener: CommunityScreenerData;
+  } | null = null;
+
   if (isPro) {
     const equitySymbols = watchlistItems
       .filter((w) => w.asset_class === "equity")
@@ -235,6 +243,7 @@ export default async function DashboardOverviewPage({
       fetchEarningsForSymbols(equitySymbols, 14),
     ]);
     const battleboard = summarizeBattleboard(battleboardRows);
+    proOverviewIntel = { battleboard, screener };
     const journalReady = watchlistItems.filter((i) => i.journal_progress?.ready_to_publish);
     proTodayBrief = buildProTodayBrief({
       deskNote: deskBrief.weeklyNote,
@@ -274,6 +283,13 @@ export default async function DashboardOverviewPage({
       <ProMembershipStrip locked={proLocked} />
 
       <ProTodayBrief brief={proTodayBrief} locked={proLocked} proGateCta={proGateCta} />
+
+      {proOverviewIntel ? (
+        <ProOverviewIntelStrip
+          battleboard={proOverviewIntel.battleboard}
+          screener={proOverviewIntel.screener}
+        />
+      ) : null}
 
       {journalIdeas.length > 0 ? <WatchlistJournalPulse ideas={journalIdeas} /> : null}
 
