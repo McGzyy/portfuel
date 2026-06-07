@@ -12,6 +12,7 @@ import { TickerCommunityBar } from "@/components/ticker/TickerCommunityBar";
 import { TickerActionBar } from "@/components/ticker/TickerActionBar";
 import { TickerPageNav } from "@/components/ticker/TickerPageNav";
 import { TickerCallsSection } from "@/components/ticker/TickerCallsSection";
+import { TickerThesisHashFocus } from "@/components/ticker/TickerThesisHashFocus";
 import { TickerIntelSection } from "@/components/ticker/TickerIntelSection";
 import { ProIntelDiscoverStrip } from "@/components/pro/ProIntelDiscoverStrip";
 import { SITE_NAME } from "@/lib/seo/site";
@@ -149,6 +150,7 @@ export default async function TickerPage({
         </div>
       ) : null}
 
+      <TickerThesisHashFocus />
       <TickerCallsSection
         symbol={symbol}
         assetClass={intelData.assetClass}

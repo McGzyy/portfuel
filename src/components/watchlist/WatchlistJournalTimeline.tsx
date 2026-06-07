@@ -88,10 +88,8 @@ export function WatchlistJournalTimeline({
       const node = document.getElementById(`journal-entry-${entryId}`);
       if (!node) return;
       node.scrollIntoView({ block: "center", behavior: "smooth" });
-      node.classList.add("ring-2", "ring-[var(--pf-red)]/40", "ring-offset-2");
-      window.setTimeout(() => {
-        node.classList.remove("ring-2", "ring-[var(--pf-red)]/40", "ring-offset-2");
-      }, 2400);
+      node.classList.add("pf-thesis-highlight");
+      window.setTimeout(() => node.classList.remove("pf-thesis-highlight"), 2200);
     });
 
     return () => window.cancelAnimationFrame(id);

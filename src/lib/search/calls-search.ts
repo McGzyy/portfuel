@@ -29,7 +29,7 @@ function mapCall(
     thesis: snippetAroundMatch(row.thesis.trim(), query),
     authorLabel: row.authorLabel,
     calledAt: row.called_at,
-    href: `/ticker/${encodeURIComponent(row.symbol.toUpperCase())}`,
+    href: `/ticker/${encodeURIComponent(row.symbol.toUpperCase())}#thesis-${encodeURIComponent(row.id)}`,
   };
 }
 
