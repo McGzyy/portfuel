@@ -6,6 +6,7 @@ import {
   AdminXPostPreview,
   type AdminXPostPreviewData,
 } from "@/components/admin/AdminXPostPreview";
+import { formatPostError } from "@/lib/social/format-post-error";
 
 type Candidate = {
   callId: string;
@@ -17,23 +18,6 @@ type Candidate = {
   gateAt: string;
   status: "ready" | "waiting_sustain";
 };
-
-function formatPostError(error: string): string {
-  switch (error) {
-    case "already_posted":
-      return "Already published for this call.";
-    case "no_content":
-      return "This call does not meet publish criteria yet.";
-    case "chart_failed":
-      return "Chart render failed — check server logs.";
-    case "disabled":
-      return "X API is disabled — set X_API_ENABLED=true in env.";
-    default:
-      return error.startsWith("http_") || error === "no_token"
-        ? `X API error: ${error}`
-        : "Publish failed.";
-  }
-}
 
 export function AdminMemberWinsPanel() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);

@@ -7,6 +7,11 @@ export type AdminXPostPreviewData = {
   chartAlt?: string;
 };
 
+function chartPreviewSrc(chartUrl: string, cacheKey: string): string {
+  const sep = chartUrl.includes("?") ? "&" : "?";
+  return `${chartUrl}${sep}k=${cacheKey}`;
+}
+
 /** Dark X-style preview: copy above chart image (+ optional tail below). */
 export function AdminXPostPreview({ preview }: { preview: AdminXPostPreviewData }) {
   const tail = preview.tail?.trim();
@@ -26,7 +31,7 @@ export function AdminXPostPreview({ preview }: { preview: AdminXPostPreviewData 
       </div>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={`${preview.chartUrl}&k=${preview.cacheKey}`}
+        src={chartPreviewSrc(preview.chartUrl, preview.cacheKey)}
         alt={preview.chartAlt ?? "Social chart"}
         className="w-full"
       />

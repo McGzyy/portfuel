@@ -1,9 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AdminXPostPreview,
+  type AdminXPostPreviewData,
+} from "@/components/admin/AdminXPostPreview";
+import { formatPostError } from "@/lib/social/format-post-error";
 
 type DigestRow = {
   symbol: string;
@@ -19,6 +22,9 @@ export function AdminWeeklyDigestPanel() {
   const [posting, setPosting] = useState(false);
   const [message, setMessage] = useState("");
   const [chartKey, setChartKey] = useState(0);
+  const [postPreview, setPostPreview] = useState<AdminXPostPreviewData | null>(null);
+
+  const chartUrl = "/api/admin/social/weekly-digest/chart";
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -33,6 +39,17 @@ export function AdminWeeklyDigestPanel() {
         setRows(json.rows);
         setText(json.text ?? "");
         setChartKey((k) => k + 1);
+        if (json.text) {
+          setPostPreview({
+            lead: json.text,
+            text: json.text,
+            chartUrl,
+            cacheKey: String(Date.now()),
+            chartAlt: "Weekly digest composite preview",
+          });
+        } else {
+          setPostPreview(null);
+        }
       }
     } finally {
       setLoading(false);
@@ -54,21 +71,32 @@ export function AdminWeeklyDigestPanel() {
       });
       const json = await res.json();
       if (!res.ok) {
-        setMessage(json.error === "no_content" ? "Not enough qualifying calls this week." : "Publish failed.");
+        setMessage(formatPostError(json.error as string));
         return;
       }
-      setText(json.text ?? text);
-      setMessage(
-        json.dryRun
-          ? "Dry run complete — composite image generated server-side."
-          : `Published (tweet ${json.tweetId ?? "—"}).`
-      );
+      const nextText = (json.text as string | undefined) ?? text;
+      setText(nextText);
+      setPostPreview({
+        lead: nextText,
+        text: nextText,
+        chartUrl,
+        cacheKey: String(Date.now()),
+        chartAlt: "Weekly digest composite preview",
+      });
+      setChartKey((k) => k + 1);
+      if (json.dryRun) {
+        const size =
+          typeof json.chartSizeBytes === "number"
+            ? ` — chart ${(json.chartSizeBytes / 1024).toFixed(1)} KB`
+            : "";
+        setMessage(`Dry run complete${size}.`);
+      } else {
+        setMessage(`Published (tweet ${json.tweetId ?? "—"}).`);
+      }
     } finally {
       setPosting(false);
     }
   }
-
-  const chartUrl = `/api/admin/social/weekly-digest/chart?k=${chartKey}`;
 
   return (
     <section className="pf-workspace-panel p-6">
@@ -109,39 +137,31 @@ export function AdminWeeklyDigestPanel() {
             ))}
           </ul>
 
-          <div className="mt-6 flex items-center justify-between gap-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-              Composite asset
-            </p>
-            <Link
-              href={chartUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-red)] hover:underline"
-            >
-              Open PNG
-              <ExternalLink className="h-3 w-3" />
-            </Link>
-          </div>
-          <div className="mt-2 overflow-hidden rounded-xl border border-[var(--pf-border)] bg-[#0a0a0a]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              key={chartKey}
-              src={chartUrl}
-              alt="Weekly digest composite preview"
-              className="w-full"
-            />
-          </div>
-
-          {text ? (
-            <div className="mt-6">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                Tweet copy
-              </p>
-              <pre className="mt-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-4 text-sm leading-relaxed whitespace-pre-wrap">
-                {text}
-              </pre>
-              <p className="mt-1 text-xs text-[var(--pf-gray-500)]">{text.length} / 280 characters</p>
+          {postPreview ? (
+            <div className="mt-6 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                  Full X post preview
+                </p>
+                <div className="flex flex-wrap gap-3 text-xs font-semibold">
+                  <a
+                    href={`${chartUrl}?k=${chartKey}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--pf-red)] hover:underline"
+                  >
+                    Open PNG
+                  </a>
+                  <a
+                    href={`${chartUrl}?k=${chartKey}&download=1`}
+                    download
+                    className="text-[var(--pf-gray-700)] hover:underline"
+                  >
+                    Download PNG
+                  </a>
+                </div>
+              </div>
+              <AdminXPostPreview preview={postPreview} />
             </div>
           ) : null}
 

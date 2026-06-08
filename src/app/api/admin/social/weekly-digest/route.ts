@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
 import { composeWeeklyDigestPost, fetchWeeklyDigestRows } from "@/lib/social/weekly-digest";
-import { postWeeklyDigest } from "@/lib/social/x-weekly-digest-post";
+import { postWeeklyDigest, weeklyDigestChartUrl } from "@/lib/social/x-weekly-digest-post";
 import { xConfigSummary } from "@/lib/social/x-config";
 
 export async function GET() {
@@ -15,7 +15,7 @@ export async function GET() {
       text: composed.ok ? composed.text : null,
       charCount: composed.ok ? composed.text.length : 0,
       refId: composed.ok ? composed.refId : null,
-      chartUrl: "/api/admin/social/weekly-digest/chart",
+      chartUrl: weeklyDigestChartUrl,
       x: xConfigSummary(),
     });
   } catch (e) {
@@ -45,7 +45,13 @@ export async function POST(request: Request) {
     });
     if (!result.ok) {
       const status =
-        result.error === "already_posted" ? 409 : result.error === "no_content" ? 404 : 502;
+        result.error === "already_posted"
+          ? 409
+          : result.error === "no_content"
+            ? 404
+            : result.error === "chart_failed"
+              ? 502
+              : 502;
       return NextResponse.json({ error: result.error, text: result.text }, { status });
     }
     return NextResponse.json({
@@ -53,6 +59,10 @@ export async function POST(request: Request) {
       dryRun: result.dryRun,
       text: result.text,
       tweetId: result.tweetId,
+      chartUrl: result.chartUrl,
+      chartGenerated: result.chartGenerated,
+      chartSizeBytes: result.chartSizeBytes,
+      mediaAttached: result.mediaAttached,
     });
   } catch (e) {
     if (e instanceof z.ZodError) {

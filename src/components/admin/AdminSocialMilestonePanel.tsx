@@ -16,6 +16,7 @@ import {
   AdminXPostPreview,
   type AdminXPostPreviewData,
 } from "@/components/admin/AdminXPostPreview";
+import { formatPostError } from "@/lib/social/format-post-error";
 
 type MilestoneKey = "return_10" | "return_25" | "target_reached";
 
@@ -56,25 +57,6 @@ const DEMO_LINK = "https://portfuel.pro/ticker/NVDA?utm_source=x&utm_medium=soci
 const DEMO_CALL_ID = "demo-call-001";
 
 type PostPreview = AdminXPostPreviewData;
-
-function formatPostError(error: string): string {
-  switch (error) {
-    case "already_posted":
-      return "Already posted for this milestone.";
-    case "disabled":
-      return "X API is disabled — set X_API_ENABLED=true in env.";
-    case "chart_failed":
-      return "Chart render failed — check server logs.";
-    case "no_content":
-      return "Call not found or not a Fueled desk call.";
-    case "invalid_input":
-      return "Invalid request — check call id and milestone.";
-    default:
-      return error.startsWith("http_") || error === "no_token"
-        ? `X API error: ${error}`
-        : "Post failed.";
-  }
-}
 
 export function AdminSocialMilestonePanel() {
   const [demoMilestone, setDemoMilestone] = useState<MilestoneKey>("return_25");
