@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, X } from "lucide-react";
+import { ReferralBannerActions } from "@/components/referrals/ReferralInviteStrip";
+import type { ReferralInvitePrompt } from "@/lib/referrals/prompt";
 import {
   CHECKLIST_COMPLETE_DISMISSED_KEY,
   CHECKLIST_DESK_VISITED_KEY,
@@ -14,11 +16,13 @@ export function WorkspaceChecklistCompleteBanner({
   watchlistCount,
   journalThesisCount,
   followingCount,
+  referralPrompt,
 }: {
   publishedCall: boolean;
   watchlistCount: number;
   journalThesisCount: number;
   followingCount: number;
+  referralPrompt?: ReferralInvitePrompt | null;
 }) {
   const [deskVisited, setDeskVisited] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -94,6 +98,13 @@ export function WorkspaceChecklistCompleteBanner({
             </Link>
             , or publish another thesis when you&apos;re ready.
           </p>
+          {referralPrompt ? (
+            <ReferralBannerActions
+              prompt={referralPrompt}
+              className="mt-3"
+              linkClassName="text-emerald-800"
+            />
+          ) : null}
         </div>
       </div>
     </section>

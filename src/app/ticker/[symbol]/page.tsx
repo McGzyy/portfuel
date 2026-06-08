@@ -28,6 +28,8 @@ import {
   isProIntelligenceLocked,
   sessionToProContext,
 } from "@/lib/features/pro-intelligence";
+import { fetchReferralStats } from "@/lib/referrals/service";
+import { toReferralInvitePrompt, canShowReferralInvite } from "@/lib/referrals/prompt";
 
 export const dynamic = "force-dynamic";
 
@@ -97,11 +99,28 @@ export default async function TickerPage({
     viewerUserId: session?.userId,
   });
 
+  let publishReferralPrompt = null;
+  if (session?.subscriptionStatus === "active") {
+    try {
+      const referralStats = await fetchReferralStats(session.userId, session.username);
+      const prompt = toReferralInvitePrompt(referralStats);
+      if (canShowReferralInvite(prompt)) {
+        publishReferralPrompt = prompt;
+      }
+    } catch {
+      /* optional */
+    }
+  }
+
   const body = (
     <div className="mx-auto max-w-5xl space-y-8">
       {session ? (
         <Suspense fallback={null}>
-          <PublishSuccessBanner symbol={symbol} username={session.username} />
+          <PublishSuccessBanner
+            symbol={symbol}
+            username={session.username}
+            referralPrompt={publishReferralPrompt}
+          />
         </Suspense>
       ) : null}
       {session && isPro ? <ProQuoteRefreshMount enabled symbols={[symbol]} /> : null}

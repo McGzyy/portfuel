@@ -4,12 +4,17 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, X } from "lucide-react";
+import { ReferralBannerActions } from "@/components/referrals/ReferralInviteStrip";
+import type { ReferralInvitePrompt } from "@/lib/referrals/prompt";
+
 export function PublishSuccessBanner({
   symbol,
   username,
+  referralPrompt,
 }: {
   symbol: string;
   username?: string;
+  referralPrompt?: ReferralInvitePrompt | null;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -53,6 +58,12 @@ export function PublishSuccessBanner({
             Watchlist →
           </Link>
         </div>
+        {referralPrompt ? (
+          <ReferralBannerActions
+            prompt={referralPrompt}
+            linkClassName="text-emerald-800"
+          />
+        ) : null}
       </div>
       <button
         type="button"

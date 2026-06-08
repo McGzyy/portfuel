@@ -69,6 +69,12 @@ import {
   buildProTodayBrief,
 } from "@/lib/pro/today-brief";
 import { formatPct, formatPrice } from "@/lib/utils";
+import { fetchReferralStats } from "@/lib/referrals/service";
+import {
+  shouldShowReferralOverviewPrompt,
+  toReferralInvitePrompt,
+} from "@/lib/referrals/prompt";
+import { ReferralOverviewStrip } from "@/components/referrals/ReferralInviteStrip";
 
 export const metadata: Metadata = {
   title: "Overview",
@@ -199,6 +205,17 @@ export default async function DashboardOverviewPage({
   let emailPrefs: Awaited<ReturnType<typeof fetchEmailPrefs>> = null;
   try {
     emailPrefs = await fetchEmailPrefs(session.userId);
+  } catch {
+    /* optional */
+  }
+
+  let referralPrompt = null;
+  try {
+    const referralStats = await fetchReferralStats(session.userId, session.username);
+    const prompt = toReferralInvitePrompt(referralStats);
+    if (shouldShowReferralOverviewPrompt(prompt, { publishedCall: ownCalls.length > 0 })) {
+      referralPrompt = prompt;
+    }
   } catch {
     /* optional */
   }
@@ -350,9 +367,12 @@ export default async function DashboardOverviewPage({
             watchlistCount={watchlistCount}
             journalThesisCount={journalThesisCount}
             followingCount={followingMembers.length}
+            referralPrompt={referralPrompt}
           />
         </>
       ) : null}
+
+      {referralPrompt ? <ReferralOverviewStrip prompt={referralPrompt} /> : null}
 
       {session.role === "admin" && communityPulse.count === 0 && latestPreviews.length === 0 ? (
         <AdminCommunityHint />
