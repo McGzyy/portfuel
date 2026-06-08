@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import { fmtSocialAsOf } from "@/lib/charts/social-chart-format";
 import { loadSocialChartLogoBase64 } from "@/lib/charts/social-chart-logo";
 import { socialChartOgFonts } from "@/lib/charts/social-chart-og-fonts";
-import { PF_CHART_SOCIAL as C } from "@/lib/charts/theme";
 import {
   MARKETING_AD_COPY,
   MARKETING_BRAND as T,
@@ -25,27 +24,27 @@ const POSTURE_STYLE: Record<
 > = {
   researching: {
     label: "Researching",
-    bg: "rgba(100, 116, 139, 0.18)",
+    bg: "rgba(51, 65, 85, 0.35)",
     color: "#cbd5e1",
-    border: "rgba(148, 163, 184, 0.35)",
+    border: "rgba(100, 116, 139, 0.4)",
   },
   building: {
     label: "Building",
-    bg: "rgba(56, 189, 248, 0.12)",
-    color: "#7dd3fc",
-    border: "rgba(56, 189, 248, 0.35)",
+    bg: "rgba(227, 27, 35, 0.12)",
+    color: "#fecaca",
+    border: "rgba(227, 27, 35, 0.32)",
   },
   active: {
     label: "Active",
-    bg: "rgba(52, 211, 153, 0.14)",
-    color: C.lineUp,
-    border: "rgba(52, 211, 153, 0.4)",
+    bg: "rgba(5, 150, 105, 0.14)",
+    color: "#6ee7b7",
+    border: "rgba(5, 150, 105, 0.38)",
   },
   trimming: {
     label: "Trimming",
-    bg: "rgba(251, 191, 36, 0.14)",
+    bg: "rgba(217, 119, 6, 0.14)",
     color: "#fcd34d",
-    border: "rgba(251, 191, 36, 0.4)",
+    border: "rgba(217, 119, 6, 0.38)",
   },
 };
 
@@ -121,7 +120,7 @@ function MarketingSparkline({
             y1={padY + pct * innerH}
             x2={width - padX}
             y2={padY + pct * innerH}
-            stroke="rgba(148, 163, 184, 0.12)"
+            stroke={T.chartGrid}
             strokeWidth={1}
           />
         ))}
@@ -130,19 +129,16 @@ function MarketingSparkline({
           y1={targetLineY}
           x2={width - padX}
           y2={targetLineY}
-          stroke={C.target}
+          stroke={T.target}
           strokeWidth={1.5}
           strokeDasharray="6 4"
           opacity={0.75}
         />
-        <path
-          d={sparkAreaPath(TREND_Y, width, height, padX, padY)}
-          fill={C.areaUp}
-        />
+        <path d={sparkAreaPath(TREND_Y, width, height, padX, padY)} fill={T.areaUp} />
         <path
           d={sparkPath(TREND_Y, width, height, padX, padY)}
           fill="none"
-          stroke={C.lineUp}
+          stroke={T.up}
           strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -184,7 +180,7 @@ function BackgroundShell({
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        background: `linear-gradient(145deg, ${C.bg} 0%, #0f1419 52%, #15101a 100%)`,
+        background: "linear-gradient(135deg, #0f1419 0%, #1a2332 55%, #2a1520 100%)",
         fontFamily: "Inter",
         overflow: "hidden",
       }}
@@ -208,7 +204,7 @@ function BackgroundShell({
           width: 480,
           height: 480,
           borderRadius: "50%",
-          background: "rgba(227, 27, 35, 0.09)",
+          background: "rgba(227, 27, 35, 0.1)",
           display: "flex",
         }}
       />
@@ -220,7 +216,7 @@ function BackgroundShell({
           width: 360,
           height: 360,
           borderRadius: "50%",
-          background: "rgba(52, 211, 153, 0.05)",
+          background: "rgba(196, 24, 32, 0.06)",
           display: "flex",
         }}
       />
@@ -229,7 +225,7 @@ function BackgroundShell({
           position: "absolute",
           inset: 0,
           backgroundImage:
-            "linear-gradient(rgba(148,163,184,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.035) 1px, transparent 1px)",
+            "linear-gradient(rgba(148,163,184,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.025) 1px, transparent 1px)",
           backgroundSize: "48px 48px",
           display: "flex",
         }}
@@ -293,11 +289,11 @@ function StatStrip() {
             display: "flex",
             padding: "5px 12px",
             borderRadius: 999,
-            background: C.chipBg,
-            border: `1px solid ${C.chipBorder}`,
+            background: T.chipBg,
+            border: `1px solid ${T.chipBorder}`,
             fontSize: 10,
             fontWeight: 600,
-            color: C.chipText,
+            color: T.chipText,
           }}
         >
           {item}
@@ -385,14 +381,14 @@ function FooterBar({
         height: compact ? 56 : 72,
         padding: `0 ${pad}px`,
         borderTop: `1px solid ${T.rule}`,
-        background: C.surface,
+        background: T.surface,
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
         <div style={{ display: "flex", fontSize: compact ? 10 : 11, color: T.text }}>
           Not investment advice · portfuel.pro
         </div>
-        <div style={{ display: "flex", fontSize: 10, fontWeight: 500, color: C.textDim }}>
+        <div style={{ display: "flex", fontSize: 10, fontWeight: 500, color: T.textDim }}>
           {`As of ${asOf}`}
         </div>
       </div>
@@ -446,9 +442,9 @@ function MockChartCard({
         width: "100%",
         borderRadius: 18,
         border: `1px solid ${lane === "desk" ? "rgba(227, 27, 35, 0.35)" : T.rule}`,
-        background: "rgba(20, 24, 32, 0.96)",
+        background: T.surface,
         padding: compact ? 16 : 20,
-        boxShadow: "0 24px 60px rgba(0,0,0,0.4)",
+        boxShadow: "0 24px 60px rgba(0,0,0,0.45)",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -459,8 +455,8 @@ function MockChartCard({
                 display: "flex",
                 padding: "4px 10px",
                 borderRadius: 999,
-                background: lane === "desk" ? "rgba(227, 27, 35, 0.14)" : C.chipBg,
-                border: `1px solid ${lane === "desk" ? "rgba(227, 27, 35, 0.35)" : C.chipBorder}`,
+                background: lane === "desk" ? "rgba(227, 27, 35, 0.14)" : T.chipBg,
+                border: `1px solid ${lane === "desk" ? "rgba(227, 27, 35, 0.35)" : T.chipBorder}`,
                 fontSize: 9,
                 fontWeight: 700,
                 color: laneColor,
@@ -510,7 +506,7 @@ function MockChartCard({
               display: "flex",
               fontSize: 9,
               fontWeight: 600,
-              color: C.textDim,
+              color: T.textDim,
               letterSpacing: 1.1,
             }}
           >
@@ -525,7 +521,7 @@ function MockChartCard({
           flexDirection: "column",
           marginTop: 16,
           borderRadius: 12,
-          background: C.bg,
+          background: T.bgDeep,
           border: `1px solid ${T.rule}`,
           padding: "12px 12px 8px",
         }}
@@ -548,8 +544,8 @@ function MockChartCard({
                 display: "flex",
                 padding: "4px 10px",
                 borderRadius: 999,
-                background: C.chipBg,
-                border: `1px solid ${C.chipBorder}`,
+                background: T.chipBg,
+                border: `1px solid ${T.chipBorder}`,
                 fontSize: 10,
                 fontWeight: 600,
                 color: T.text,
@@ -605,7 +601,7 @@ function MiniFeedPreview() {
               padding: "14px 16px",
               borderRadius: 14,
               border: `1px solid ${row.lane === "desk" ? "rgba(227, 27, 35, 0.28)" : T.rule}`,
-              background: "rgba(20, 24, 32, 0.96)",
+              background: T.surface,
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -618,8 +614,8 @@ function MiniFeedPreview() {
                   alignItems: "center",
                   justifyContent: "center",
                   background:
-                    row.lane === "desk" ? "rgba(227, 27, 35, 0.16)" : C.chipBg,
-                  border: `1px solid ${row.lane === "desk" ? "rgba(227, 27, 35, 0.35)" : C.chipBorder}`,
+                    row.lane === "desk" ? "rgba(227, 27, 35, 0.16)" : T.chipBg,
+                  border: `1px solid ${row.lane === "desk" ? "rgba(227, 27, 35, 0.35)" : T.chipBorder}`,
                   fontSize: 10,
                   fontWeight: 700,
                   color: row.lane === "desk" ? T.accentRed : T.text,

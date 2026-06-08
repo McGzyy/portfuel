@@ -1,20 +1,26 @@
 /** Single source for marketing colors, sizes, and AI prompt templates. */
 
-import { PF_CHART_SOCIAL } from "@/lib/charts/theme";
-
-/** Chart/surface tokens — match social milestone PNGs. Brand CTAs use accentRed. */
+/** PortFuel marketing palette — charcoal + red (matches landing hero / globals.css). */
 export const MARKETING_BRAND = {
-  bg: PF_CHART_SOCIAL.bg,
-  surface: PF_CHART_SOCIAL.surface,
-  surfaceAlt: "#1a2030",
-  text: PF_CHART_SOCIAL.text,
-  textBright: PF_CHART_SOCIAL.textBright,
-  textMuted: PF_CHART_SOCIAL.chipText,
+  bg: "#0f1419",
+  bgDeep: "#0c1018",
+  surface: "#1a2332",
+  surfaceRaised: "#222d3f",
+  text: "#94a3b8",
+  textBright: "#f8fafc",
+  textMuted: "#cbd5e1",
+  textDim: "#64748b",
   accentRed: "#e31b23",
-  accent: PF_CHART_SOCIAL.accent,
-  rule: PF_CHART_SOCIAL.rule,
-  up: PF_CHART_SOCIAL.lineUp,
-  down: PF_CHART_SOCIAL.lineDown,
+  accentRedHover: "#c41820",
+  rule: "#334155",
+  chipBg: "rgba(15, 20, 25, 0.55)",
+  chipBorder: "rgba(51, 65, 85, 0.65)",
+  chipText: "#e2e8f0",
+  up: "#059669",
+  down: "#e31b23",
+  target: "#059669",
+  areaUp: "rgba(5, 150, 105, 0.14)",
+  chartGrid: "rgba(148, 163, 184, 0.08)",
   font: "Inter, ui-sans-serif, system-ui, sans-serif",
 } as const;
 
