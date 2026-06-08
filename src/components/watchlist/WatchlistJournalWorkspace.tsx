@@ -11,12 +11,11 @@ import { COPY } from "@/lib/copy";
 import { buildJournalResearchChecklist } from "@/lib/journal/checklist";
 import { RemoveFromWatchlistButton } from "@/components/watchlist/RemoveFromWatchlistButton";
 import { journalHubPath, journalSymbolPath } from "@/lib/journal/paths";
-import { TickerChartSection } from "@/components/charts/TickerChartSection";
+import { JournalPrivateChart } from "@/components/watchlist/JournalPrivateChart";
+import { WatchlistJournalScenarioStrip } from "@/components/watchlist/WatchlistJournalScenarioStrip";
 import { WatchlistJournalPlanForm } from "@/components/watchlist/WatchlistJournalPlanForm";
 import { WatchlistJournalStats } from "@/components/watchlist/WatchlistJournalStats";
 import { WatchlistJournalTimeline } from "@/components/watchlist/WatchlistJournalTimeline";
-import { buildJournalPriceLines, buildJournalScenarioPriceLines } from "@/lib/charts/price-lines";
-import { WatchlistJournalScenarioStrip } from "@/components/watchlist/WatchlistJournalScenarioStrip";
 import type { CandlePoint, ChartMarker } from "@/lib/charts/types";
 import type { TickerIntel } from "@/lib/market/ticker-intel";
 import { buildJournalEntryMarkers } from "@/lib/watchlist/journal-markers";
@@ -48,10 +47,6 @@ export function WatchlistJournalWorkspace({
   const [journal, setJournal] = useState(initialJournal);
   const [entries, setEntries] = useState(initialEntries);
   const [revisions, setRevisions] = useState(initialRevisions ?? []);
-  const priceLines = useMemo(
-    () => [...buildJournalPriceLines(journal), ...buildJournalScenarioPriceLines(journal)],
-    [journal]
-  );
 
   const candles: CandlePoint[] = intel.candles.map((c) => ({
     time: c.time,
@@ -225,6 +220,18 @@ export function WatchlistJournalWorkspace({
         />
       </div>
 
+      <JournalPrivateChart
+        symbol={journal.symbol}
+        journal={journal}
+        candles={candles}
+        assetClass={journal.asset_class}
+        markers={markers}
+        proUnlocked={proUnlocked}
+        journalMarkerCount={journalMarkerCount}
+      />
+
+      <WatchlistJournalStats intel={intel} />
+
       {setupMode ? (
         <div id="journal-plan">
           <WatchlistJournalPlanForm
@@ -234,8 +241,6 @@ export function WatchlistJournalWorkspace({
           />
         </div>
       ) : null}
-
-      <WatchlistJournalStats intel={intel} />
 
       <div className="flex flex-col gap-8 lg:gap-10">
         {!setupMode ? (
@@ -247,6 +252,17 @@ export function WatchlistJournalWorkspace({
             />
           </div>
         ) : null}
+
+        <WatchlistJournalScenarioStrip journal={journal} />
+
+        <div id="journal-research">
+          <JournalResearchPanel
+            symbol={journal.symbol}
+            hasThesis={Boolean(journal.thesis?.trim())}
+            onEntrySaved={handleEntryAdded}
+          />
+        </div>
+
         <div id="journal-entries">
           <WatchlistJournalTimeline
             symbol={journal.symbol}
@@ -259,30 +275,6 @@ export function WatchlistJournalWorkspace({
 
       <div id="journal-edit-log">
         <WatchlistJournalEditLog revisions={revisions} />
-      </div>
-
-      <div id="journal-research">
-        <JournalResearchPanel
-          symbol={journal.symbol}
-          hasThesis={Boolean(journal.thesis?.trim())}
-          onEntrySaved={handleEntryAdded}
-        />
-      </div>
-
-      <WatchlistJournalScenarioStrip journal={journal} />
-
-      <div id="journal-chart">
-        <TickerChartSection
-        symbol={journal.symbol}
-        initialCandles={candles}
-        assetClass={journal.asset_class}
-        markers={markers}
-        priceLines={priceLines}
-        proUnlocked={proUnlocked}
-        title="Private chart"
-        subtitle="Indigo dots mark each journal entry at that day's price — click a dot to jump to the note."
-        journalMarkerCount={journalMarkerCount}
-      />
       </div>
     </div>
   );

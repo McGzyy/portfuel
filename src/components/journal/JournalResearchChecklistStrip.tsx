@@ -44,7 +44,7 @@ export function JournalResearchChecklistStrip({
         ) : null}
       </div>
 
-      <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+      <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {checklist.items.map((item) => {
           const section = journalChecklistItemSection(item.id);
           const href =

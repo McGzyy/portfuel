@@ -28,10 +28,15 @@ function journalRowHref(item: WatchlistEntry): string {
   if (item.journal_progress?.ready_to_publish) {
     return journalSymbolPath(item.symbol, { section: "checklist" });
   }
-  if ((item.journal_progress?.manual_entry_count ?? 0) < 2) {
-    return journalSymbolPath(item.symbol, { section: "entries" });
+  const hasPlan =
+    item.entry_price != null &&
+    item.entry_price > 0 &&
+    item.target_price != null &&
+    item.target_price > 0;
+  if (!hasPlan) {
+    return journalSymbolPath(item.symbol, { section: "plan" });
   }
-  return journalSymbolPath(item.symbol, { section: "research" });
+  return journalSymbolPath(item.symbol, { section: "entries" });
 }
 
 export function JournalIdeasPanel({

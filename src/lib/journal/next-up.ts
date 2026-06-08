@@ -48,20 +48,12 @@ function nextResearchGap(item: WatchlistEntry): {
   if (!hasPlan) {
     return { label: "set entry and target on your plan", section: "plan" };
   }
-  const manual = item.journal_progress?.manual_entry_count ?? 0;
-  if (manual < 2) {
-    const need = 2 - manual;
-    return {
-      label: `log ${need} more price-action or news ${need === 1 ? "entry" : "entries"}`,
-      section: "entries",
-    };
-  }
   return null;
 }
 
 function progressLabel(item: WatchlistEntry): string {
   const done = item.journal_progress?.required_completed ?? 0;
-  const total = item.journal_progress?.required_total ?? 4;
+  const total = item.journal_progress?.required_total ?? 3;
   return `${done}/${total} research steps done`;
 }
 

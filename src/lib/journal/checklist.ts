@@ -78,9 +78,13 @@ export function buildJournalResearchChecklist(
     },
     {
       id: "entries",
-      label: "2+ logged updates",
-      done: manualEntries >= 2,
-      hint: `${manualEntries}/2 notes, earnings, or price action`,
+      label: "Logged updates",
+      done: manualEntries > 0,
+      hint:
+        manualEntries > 0
+          ? `${manualEntries} note${manualEntries === 1 ? "" : "s"}, earnings, or price action`
+          : "Optional — log news or price action as you research",
+      optional: true,
     },
     {
       id: "ai_research",
@@ -133,12 +137,7 @@ export function summarizeJournalHubProgress(
     journal.target_price != null &&
     journal.target_price > 0;
 
-  const required = [
-    hasThesis,
-    hasCatalystsOrRisks,
-    hasPlan,
-    stats.manualCount >= 2,
-  ];
+  const required = [hasThesis, hasCatalystsOrRisks, hasPlan];
   const requiredCompleted = required.filter(Boolean).length;
 
   return {

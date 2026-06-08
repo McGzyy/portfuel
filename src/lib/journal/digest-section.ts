@@ -56,7 +56,7 @@ export async function buildJournalDigestSection(userId: string): Promise<DigestS
   for (const item of incomplete) {
     const p = item.journal_progress;
     lines.push(
-      `${item.symbol} · ${p?.required_completed ?? 0}/${p?.required_total ?? 4} research steps done`
+      `${item.symbol} · ${p?.required_completed ?? 0}/${p?.required_total ?? 3} research steps done`
     );
   }
 

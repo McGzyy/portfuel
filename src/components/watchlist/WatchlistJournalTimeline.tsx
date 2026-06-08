@@ -76,8 +76,6 @@ export function WatchlistJournalTimeline({
     return [...entries].filter((e) => e.entry_type === filter).reverse();
   }, [entries, filter]);
 
-  const latestVisibleId = visible[0]?.id;
-
   const toggleExpanded = useCallback((id: string) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
@@ -87,22 +85,24 @@ export function WatchlistJournalTimeline({
     });
   }, []);
 
-  const initializedExpand = useRef(false);
-  const prevLatestRef = useRef<string | null>(null);
+  const seenEntryIdsRef = useRef<Set<string>>(new Set());
+  const mountSeededRef = useRef(false);
 
   useEffect(() => {
-    if (!latestVisibleId) return;
-    if (!initializedExpand.current) {
-      setExpandedIds(new Set([latestVisibleId]));
-      initializedExpand.current = true;
-      prevLatestRef.current = latestVisibleId;
+    if (!mountSeededRef.current) {
+      for (const e of entries) seenEntryIdsRef.current.add(e.id);
+      mountSeededRef.current = true;
       return;
     }
-    if (prevLatestRef.current !== latestVisibleId) {
-      setExpandedIds((prev) => new Set([latestVisibleId, ...prev]));
-      prevLatestRef.current = latestVisibleId;
-    }
-  }, [latestVisibleId]);
+    const newcomers = entries.filter((e) => !seenEntryIdsRef.current.has(e.id));
+    if (newcomers.length === 0) return;
+    for (const e of newcomers) seenEntryIdsRef.current.add(e.id);
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      for (const e of newcomers) next.add(e.id);
+      return next;
+    });
+  }, [entries]);
 
   const usedTypes = useMemo(
     () => [...new Set(entries.map((e) => e.entry_type))],
