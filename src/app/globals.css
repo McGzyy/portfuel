@@ -1784,3 +1784,34 @@ body {
   border-color: var(--pf-gray-200);
   background-color: var(--pf-gray-50);
 }
+
+.pf-workspace-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--pf-border);
+  background-color: var(--pf-surface);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--pf-gray-700);
+  box-shadow: var(--pf-shadow-sm);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.pf-workspace-chip:hover {
+  border-color: var(--pf-gray-300);
+  color: var(--pf-black);
+  background-color: var(--pf-gray-50);
+}
+
+.pf-workspace-chip-square {
+  border-radius: var(--pf-radius);
+  height: 2.25rem;
+  padding-left: 0.875rem;
+  padding-right: 0.875rem;
+}

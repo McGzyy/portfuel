@@ -15,7 +15,7 @@ export function OverviewShortcutBar() {
         <Link
           key={href}
           href={href}
-          className="inline-flex items-center gap-2 rounded-full border border-[var(--pf-border)] bg-white px-4 py-2 text-xs font-semibold text-[var(--pf-gray-700)] shadow-[var(--pf-shadow-sm)] transition-colors hover:border-[var(--pf-gray-300)] hover:text-[var(--pf-black)]"
+          className="pf-workspace-chip"
         >
           <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
           {label}

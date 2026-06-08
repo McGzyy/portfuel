@@ -15,9 +15,7 @@ export function DashboardQuickNav() {
         <Link
           key={href}
           href={href}
-          className={cn(
-            "inline-flex h-9 items-center gap-2 rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-white px-3.5 text-xs font-semibold text-[var(--pf-gray-700)] shadow-[var(--pf-shadow-sm)] transition-colors hover:border-[var(--pf-gray-200)] hover:bg-[var(--pf-gray-50)]"
-          )}
+          className={cn("pf-workspace-chip pf-workspace-chip-square")}
         >
           <Icon className="h-3.5 w-3.5" strokeWidth={2.5} />
           {label}
