@@ -10,6 +10,7 @@ import { requireDashboardSession } from "@/lib/dashboard/data";
 import { isDemoMode } from "@/lib/demo/config";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
 import { fetchJournalReview } from "@/lib/watchlist/journal-review";
+import { summarizeBookPosture } from "@/lib/watchlist/book-posture";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import { buildPublishUrlFromHubEntry } from "@/lib/watchlist/journal-call-url";
 import {
@@ -28,7 +29,12 @@ export default async function DashboardJournalPage({
 }) {
   const session = await requireDashboardSession();
   const sp = await searchParams;
-  const initialFilter = sp.filter === "ready" ? ("ready" as const) : undefined;
+  const initialFilter =
+    sp.filter === "ready"
+      ? ("ready" as const)
+      : sp.filter === "in_book"
+        ? ("in_book" as const)
+        : undefined;
   const proUnlocked = canAccessProIntelligence(sessionToProContext(session));
 
   let items: Awaited<ReturnType<typeof fetchWatchlist>> = [];
@@ -51,6 +57,7 @@ export default async function DashboardJournalPage({
   const pipelineCurrent = readyItems.length > 0 ? ("publish" as const) : ("research" as const);
   const publishHref =
     readyItems.length > 0 ? buildPublishUrlFromHubEntry(readyItems[0]!) : undefined;
+  const bookPosture = summarizeBookPosture(items);
 
   return (
     <div className="space-y-6">
@@ -60,6 +67,7 @@ export default async function DashboardJournalPage({
         activeCount={active}
         nextUp={nextUp}
         proUnlocked={proUnlocked}
+        bookPosture={bookPosture}
       />
 
       {readyItems.length > 0 ? (

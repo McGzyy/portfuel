@@ -382,9 +382,20 @@ export function WatchlistPanel({
                             <span className="font-medium text-[var(--pf-gray-400)]">since add</span>
                           </span>
                         ) : null}
-                        {item.return_pct != null ? (
+                        {item.user_call?.return_pct != null ? (
+                          <p
+                            className={`mt-0.5 text-[10px] font-semibold tabular-nums ${
+                              item.user_call.return_pct >= 0 ? "pf-return-up" : "pf-return-down"
+                            }`}
+                            title="Your latest call on this symbol"
+                          >
+                            Your call{" "}
+                            {(item.user_call.return_pct >= 0 ? "+" : "") +
+                              formatPct(item.user_call.return_pct)}
+                          </p>
+                        ) : item.return_pct != null ? (
                           <p className="mt-0.5 text-[10px] font-medium tabular-nums text-[var(--pf-gray-500)]">
-                            Call book {formatPct(item.return_pct)}
+                            Community {formatPct(item.return_pct)}
                           </p>
                         ) : null}
                       </div>

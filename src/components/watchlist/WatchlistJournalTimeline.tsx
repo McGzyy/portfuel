@@ -29,6 +29,9 @@ type FilterMode = "all" | JournalEntryType;
 
 const TYPE_CHIP_STYLE: Partial<Record<JournalEntryType, string>> = {
   price_action: "bg-sky-50 text-sky-800 ring-sky-100",
+  building: "bg-[var(--pf-red-muted)] text-[var(--pf-red-hover)] ring-[var(--pf-red-ring)]",
+  trimming: "bg-[var(--pf-warning-muted)] text-[var(--pf-warning)] ring-amber-100",
+  exit: "bg-[var(--pf-gray-100)] text-[var(--pf-gray-700)] ring-[var(--pf-border)]",
   earnings: "bg-violet-50 text-violet-800 ring-violet-100",
   news: "bg-amber-50 text-amber-900 ring-amber-100",
   thesis_update: "bg-indigo-50 text-indigo-800 ring-indigo-100",

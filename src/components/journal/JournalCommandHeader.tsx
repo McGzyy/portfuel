@@ -2,6 +2,7 @@ import Link from "next/link";
 import { JournalExportButton } from "@/components/journal/JournalExportButton";
 import { JournalHeaderAction } from "@/components/journal/JournalHeaderAction";
 import type { JournalNextUp } from "@/lib/journal/next-up";
+import type { BookPostureSummary } from "@/lib/watchlist/book-posture";
 
 export function JournalCommandHeader({
   ideaCount,
@@ -9,13 +10,25 @@ export function JournalCommandHeader({
   activeCount,
   nextUp,
   proUnlocked = false,
+  bookPosture,
 }: {
   ideaCount: number;
   withThesis: number;
   activeCount: number;
   nextUp?: JournalNextUp | null;
   proUnlocked?: boolean;
+  bookPosture?: BookPostureSummary | null;
 }) {
+  const postureLine =
+    bookPosture && bookPosture.inBook > 0
+      ? [
+          bookPosture.active > 0 ? `${bookPosture.active} active` : null,
+          bookPosture.trimming > 0 ? `${bookPosture.trimming} trimming` : null,
+          bookPosture.building > 0 ? `${bookPosture.building} building` : null,
+        ]
+          .filter(Boolean)
+          .join(", ")
+      : null;
   return (
     <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -34,6 +47,12 @@ export function JournalCommandHeader({
               <span className="text-[var(--pf-gray-400)]">
                 {" "}
                 · {withThesis} with thesis · {activeCount} active
+              </span>
+            ) : null}
+            {postureLine ? (
+              <span className="font-medium text-[var(--pf-gray-600)]">
+                {" "}
+                · Book: {postureLine}
               </span>
             ) : null}
           </p>

@@ -102,6 +102,14 @@ export function getDemoWatchlist(_userId: string): WatchlistEntry[] {
             : s.symbol === "BTC"
               ? "active"
               : "researching",
+      user_call:
+        s.symbol === "NVDA"
+          ? {
+              id: "demo-user-call-nvda",
+              called_at: new Date(Date.now() - 18 * 86400000).toISOString(),
+              return_pct: DEMO_RETURNS.NVDA ?? 24.6,
+            }
+          : null,
       ...journal,
     };
   });

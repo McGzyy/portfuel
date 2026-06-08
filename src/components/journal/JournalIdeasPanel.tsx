@@ -6,11 +6,19 @@ import { BookOpen, Sparkles } from "lucide-react";
 import { JournalProgressMini } from "@/components/journal/JournalProgressMini";
 import { compareJournalHubIncomplete } from "@/lib/journal/hub-summary";
 import { journalSymbolPath } from "@/lib/journal/paths";
+import { PositionIntentBadge } from "@/components/watchlist/PositionIntentBadge";
+import { ACTIVE_INTENTS } from "@/lib/watchlist/position-intent";
 import { outcomeLabel, type JournalCatalyst } from "@/lib/watchlist/journal-meta";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { cn, formatPct, formatPrice } from "@/lib/utils";
 
-type FilterMode = "all" | "high" | "broken" | "needs_thesis" | "ready";
+type FilterMode = "all" | "in_book" | "high" | "broken" | "needs_thesis" | "ready";
+
+const POSTURE_SORT: Record<string, number> = {
+  trimming: 0,
+  building: 1,
+  active: 2,
+};
 
 function journalRowHref(item: WatchlistEntry): string {
   if (!item.has_thesis) {
@@ -80,12 +88,30 @@ export function JournalIdeasPanel({
     }
     if (filter === "needs_thesis" && item.has_thesis) return false;
     if (filter === "ready" && !item.journal_progress?.ready_to_publish) return false;
+    if (
+      filter === "in_book" &&
+      !ACTIVE_INTENTS.has(item.position_intent ?? "researching")
+    ) {
+      return false;
+    }
     if (catalystFilter && !(item.catalysts ?? []).includes(catalystFilter)) return false;
     return true;
   }
 
-  const filtered = items.filter(matchesFilters).sort(compareJournalHubIncomplete);
+  const filtered = items
+    .filter(matchesFilters)
+    .sort((a, b) => {
+      if (filter === "in_book") {
+        const ra = POSTURE_SORT[a.position_intent ?? ""] ?? 9;
+        const rb = POSTURE_SORT[b.position_intent ?? ""] ?? 9;
+        if (ra !== rb) return ra - rb;
+      }
+      return compareJournalHubIncomplete(a, b);
+    });
   const readyCount = items.filter((i) => i.journal_progress?.ready_to_publish).length;
+  const inBookCount = items.filter((i) =>
+    ACTIVE_INTENTS.has(i.position_intent ?? "researching")
+  ).length;
 
   return (
     <section
@@ -107,6 +133,12 @@ export function JournalIdeasPanel({
                 · {readyCount} ready to publish
               </span>
             ) : null}
+            {inBookCount > 0 ? (
+              <span className="font-semibold text-[var(--pf-gray-600)]">
+                {" "}
+                · {inBookCount} in book
+              </span>
+            ) : null}
           </p>
         </div>
         {demoMode ? (
@@ -122,6 +154,7 @@ export function JournalIdeasPanel({
             {(
               [
                 ["all", "All"],
+                ["in_book", "In book"],
                 ["ready", "Ready to publish"],
                 ["high", "High conviction"],
                 ["needs_thesis", "Needs thesis"],
@@ -141,7 +174,9 @@ export function JournalIdeasPanel({
                         ? "bg-indigo-600 text-white"
                         : id === "ready"
                           ? "bg-emerald-600 text-white"
-                          : "bg-[var(--pf-black)] text-white"
+                          : id === "in_book"
+                            ? "bg-amber-600 text-white"
+                            : "bg-[var(--pf-black)] text-white"
                     : "pf-pill-inactive border px-2.5 py-1"
                 )}
               >
@@ -225,6 +260,9 @@ export function JournalIdeasPanel({
                     ) : item.journal_progress?.ready_to_publish ? (
                       <span className="pf-badge-ready">Ready</span>
                     ) : null}
+                    {item.position_intent && item.position_intent !== "researching" ? (
+                      <PositionIntentBadge intent={item.position_intent} />
+                    ) : null}
                     {item.outcome && item.outcome !== "watching" ? (
                       <span className="pf-outcome-badge">{outcomeLabel(item.outcome)}</span>
                     ) : null}
@@ -250,6 +288,18 @@ export function JournalIdeasPanel({
                         · {(item.change_since_add_pct >= 0 ? "+" : "") +
                           formatPct(item.change_since_add_pct)}{" "}
                         since add
+                      </span>
+                    ) : null}
+                    {item.user_call?.return_pct != null ? (
+                      <span
+                        className={
+                          item.user_call.return_pct >= 0 ? " pf-return-up" : " pf-return-down"
+                        }
+                      >
+                        {" "}
+                        · Your call{" "}
+                        {(item.user_call.return_pct >= 0 ? "+" : "") +
+                          formatPct(item.user_call.return_pct)}
                       </span>
                     ) : null}
                   </p>

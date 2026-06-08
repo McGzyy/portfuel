@@ -31,12 +31,20 @@ export function BookPostureStrip({ items }: { items: WatchlistEntry[] }) {
             <span className="font-semibold text-[var(--pf-black)]">{parts.join(" · ")}</span>
           </p>
         </div>
-        <Link
-          href="/dashboard/watchlist"
-          className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
-        >
-          Watchlist →
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/dashboard/journal?filter=in_book#journal-ideas"
+            className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
+          >
+            Journal filter →
+          </Link>
+          <Link
+            href="/dashboard/watchlist"
+            className="text-xs font-semibold text-[var(--pf-gray-600)] hover:underline"
+          >
+            Watchlist
+          </Link>
+        </div>
       </div>
       <ul className="mt-3 flex flex-wrap gap-2">
         {posture.rows.slice(0, 8).map((row) => (
