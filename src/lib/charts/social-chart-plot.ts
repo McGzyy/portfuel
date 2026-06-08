@@ -116,6 +116,11 @@ export function renderSocialChartPlotSvg(payload: SocialChartPayload): string {
   }
 
   let guides = "";
+  if (entry != null) {
+    const entryY = yAt(entry);
+    guides += `<line x1="${chartX}" y1="${entryY}" x2="${chartX + chartW}" y2="${entryY}" stroke="${T.callDot}" stroke-width="1.25" stroke-dasharray="4 4" opacity="0.5"/>
+      <text x="${chartX + 4}" y="${entryY - 6}" fill="${T.textDim}" font-size="9" font-weight="600" font-family="${FONT_SANS}" letter-spacing="0.5">ENTRY $${fmtPrice(entry)}</text>`;
+  }
   if (
     showTargetGuide(payload.milestone) &&
     target != null &&

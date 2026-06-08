@@ -41,10 +41,17 @@ export async function GET(
     }
 
     const png = await renderSocialChartPng(payload);
+    const download = url.searchParams.get("download") === "1";
+    const milestoneSuffix = milestone ? `-${milestone}` : "";
     return new NextResponse(new Uint8Array(png), {
       headers: {
         "Content-Type": "image/png",
         "Cache-Control": "no-store",
+        ...(download
+          ? {
+              "Content-Disposition": `attachment; filename="portfuel-${payload.symbol}${milestoneSuffix}.png"`,
+            }
+          : {}),
       },
     });
   } catch (e) {

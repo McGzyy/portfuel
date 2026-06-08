@@ -50,13 +50,13 @@ export function JournalReadyToPublishBanner({
           <li key={item.symbol} className="flex flex-wrap items-center gap-1.5">
             <Link
               href={buildPublishUrlFromHubEntry(item)}
-              className="inline-flex h-8 items-center rounded-lg bg-emerald-700 px-3 text-xs font-semibold text-white hover:bg-emerald-800"
+              className="pf-ready-publish-btn inline-flex h-8 items-center rounded-lg px-3 text-xs font-semibold"
             >
               Publish {item.symbol}
             </Link>
             <Link
               href={journalSymbolPath(item.symbol, { section: "checklist" })}
-              className="inline-flex h-8 items-center rounded-lg border border-emerald-200 bg-white px-3 text-xs font-semibold text-emerald-900 hover:border-emerald-300"
+              className="pf-ready-publish-review inline-flex h-8 items-center rounded-lg border px-3 text-xs font-semibold"
             >
               Review
             </Link>

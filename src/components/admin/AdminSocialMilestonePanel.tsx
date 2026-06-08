@@ -288,6 +288,7 @@ export function AdminSocialMilestonePanel() {
   async function preview(item: MilestoneItem) {
     setSelected(item);
     setMessage("");
+    setPostPreview(null);
     const res = await fetch("/api/admin/social/preview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -302,6 +303,17 @@ export function AdminSocialMilestonePanel() {
       setPreviewText(json.text as string);
       setPreviewLead((json.lead as string) ?? "");
       setPreviewTail((json.tail as string) ?? "");
+      if (json.chartUrl) {
+        setPostPreview({
+          lead: (json.lead as string) ?? "",
+          tail: (json.tail as string) ?? "",
+          text: json.text as string,
+          chartUrl: json.chartUrl as string,
+          cacheKey: String(Date.now()),
+        });
+      } else {
+        setPostPreview(null);
+      }
     }
   }
 
@@ -319,6 +331,7 @@ export function AdminSocialMilestonePanel() {
   }
 
   const demoChartUrl = `/api/admin/social/demo-chart?milestone=${demoMilestone}&format=png&k=${demoChartKey}`;
+  const demoChartDownloadUrl = `${demoChartUrl}&download=1`;
   const demoSvgUrl = `/api/admin/social/demo-chart?milestone=${demoMilestone}&format=svg&k=${demoChartKey}`;
 
   return (
@@ -381,6 +394,13 @@ export function AdminSocialMilestonePanel() {
               Open PNG
               <ExternalLink className="h-3 w-3" />
             </Link>
+            <a
+              href={demoChartDownloadUrl}
+              download
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-gray-700)] hover:underline"
+            >
+              Download PNG
+            </a>
             <Link
               href={demoSvgUrl}
               target="_blank"
@@ -566,13 +586,27 @@ export function AdminSocialMilestonePanel() {
           ) : null}
 
           {selected && !postPreview ? (
-            <div className="overflow-hidden rounded-lg border border-[var(--pf-border)] bg-[#0f1419]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`${selected.chartUrl}&t=${selected.refId}`}
-                alt={`${selected.symbol} milestone chart`}
-                className="w-full"
-              />
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                  Chart preview
+                </p>
+                <a
+                  href={`${selected.chartUrl}&download=1`}
+                  download
+                  className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
+                >
+                  Download PNG
+                </a>
+              </div>
+              <div className="overflow-hidden rounded-lg border border-[var(--pf-border)] bg-[#0f1419]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`${selected.chartUrl}&t=${selected.refId}`}
+                  alt={`${selected.symbol} milestone chart`}
+                  className="w-full"
+                />
+              </div>
             </div>
           ) : null}
 

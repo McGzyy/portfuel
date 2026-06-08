@@ -34,10 +34,16 @@ export async function GET(request: Request) {
     }
 
     const png = await renderSocialChartPng(payload);
+    const download = url.searchParams.get("download") === "1";
     return new NextResponse(new Uint8Array(png), {
       headers: {
         "Content-Type": "image/png",
         "Cache-Control": "no-store",
+        ...(download
+          ? {
+              "Content-Disposition": `attachment; filename="portfuel-${payload.symbol}-demo-${parsed.data}.png"`,
+            }
+          : {}),
       },
     });
   } catch (e) {
