@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { LogOut } from "lucide-react";
 import { LogoThemed } from "@/components/brand/LogoThemed";
 import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
@@ -37,7 +38,7 @@ export function SiteHeader({
         <LogoThemed size="xs" href={logoHref} className="min-w-0 shrink-0 sm:hidden" unoptimized />
         <LogoThemed size="md" href={logoHref} className="hidden min-w-0 shrink-0 sm:inline-flex" unoptimized />
         {inWorkspace && centerSlot ? (
-          <div className="flex min-w-0 flex-1 items-center px-1 sm:justify-center sm:px-4">
+          <div className="flex min-w-0 flex-1 items-center justify-center px-0.5 sm:px-4">
             {centerSlot}
           </div>
         ) : (
@@ -90,8 +91,15 @@ export function SiteHeader({
                 </Link>
               ) : null}
               <form action="/api/auth/logout" method="POST">
-                <Button variant="ghost" size="sm" type="submit">
-                  Log out
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  type="submit"
+                  className="h-8 min-w-8 px-2 sm:h-9 sm:min-w-0 sm:px-3"
+                  aria-label="Log out"
+                >
+                  <LogOut className="h-4 w-4 sm:hidden" strokeWidth={2.25} />
+                  <span className="hidden sm:inline">Log out</span>
                 </Button>
               </form>
             </>

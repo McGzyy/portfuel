@@ -9,6 +9,7 @@ export type TrackRecordHighlight = {
   symbol: string;
   direction: string;
   returnPct: number | null;
+  calledAt: string;
 };
 
 export type TrackRecordCardPayload = {
@@ -23,6 +24,7 @@ export type TrackRecordCardPayload = {
   rankScore: number;
   trusted: boolean;
   highlights: TrackRecordHighlight[];
+  equityCurve: number[];
   profileUrl: string;
   siteHost: string;
 };
@@ -50,7 +52,20 @@ export async function loadTrackRecordCardPayload(
     symbol: c.symbol,
     direction: c.direction,
     returnPct: c.return_pct != null ? Number(c.return_pct) : null,
+    calledAt: c.called_at,
   }));
+
+  const chronological = [...calls]
+    .filter((c) => c.return_pct != null)
+    .sort(
+      (a, b) => new Date(a.called_at).getTime() - new Date(b.called_at).getTime()
+    );
+  let cumulative = 0;
+  const equityCurve = [0];
+  for (const call of chronological) {
+    cumulative += Number(call.return_pct);
+    equityCurve.push(Math.round(cumulative * 100) / 100);
+  }
 
   const origin = getAppOrigin();
 
@@ -67,6 +82,7 @@ export async function loadTrackRecordCardPayload(
       rankScore: member.rank_score,
       trusted: member.trusted,
       highlights,
+      equityCurve,
       profileUrl: `${origin}/member/${member.username}`,
       siteHost: getPublicSiteHost(),
     },
