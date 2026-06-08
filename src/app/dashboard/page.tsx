@@ -47,6 +47,8 @@ import { filterCallsByFollowing } from "@/lib/calls/filter-feed";
 import { fetchDeskBrief } from "@/lib/desk/brief";
 import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
 import { fetchWatchlist } from "@/lib/watchlist/service";
+import { fetchEmailPrefs } from "@/lib/email/preferences";
+import { AlertsEmailSetupStrip } from "@/components/dashboard/AlertsEmailSetupStrip";
 import { fetchJournalHighlights } from "@/lib/watchlist/journal-highlights";
 import { WatchlistJournalPulse } from "@/components/watchlist/WatchlistJournalPulse";
 import { JournalReadyToPublishBanner } from "@/components/journal/JournalReadyToPublishBanner";
@@ -194,6 +196,13 @@ export default async function DashboardOverviewPage({
     /* optional */
   }
 
+  let emailPrefs: Awaited<ReturnType<typeof fetchEmailPrefs>> = null;
+  try {
+    emailPrefs = await fetchEmailPrefs(session.userId);
+  } catch {
+    /* optional */
+  }
+
   const deskBrief = await fetchDeskBrief();
   const portfolio = await fetchDeskPortfolio();
   const fueledTrackRecord = await fetchFueledTrackRecord();
@@ -290,6 +299,13 @@ export default async function DashboardOverviewPage({
       ) : journalNextUp ? (
         <JournalContinueCard nextUp={journalNextUp} />
       ) : null}
+
+      <AlertsEmailSetupStrip
+        watchlistCount={watchlistCount}
+        emailInstantEnabled={emailPrefs?.emailInstantEnabled ?? false}
+        notifyEmail={emailPrefs?.notifyEmail ?? null}
+        emailVerified={session.emailVerified}
+      />
 
       <ProMembershipStrip locked={proLocked} />
 

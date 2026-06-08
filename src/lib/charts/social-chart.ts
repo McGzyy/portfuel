@@ -104,7 +104,7 @@ ${txt(PAD + w + 16, y, eyebrow, { size: 10, weight: 600, fill: C.textDim })}`;
   ${embedPlot(payload)}
   <rect x="0" y="${footerTop}" width="${W}" height="${FOOTER}" fill="${C.surface}"/>
   <line x1="${PAD}" y1="${footerTop}" x2="${W - PAD}" y2="${footerTop}" stroke="${C.rule}"/>
-  ${txt(PAD, footerTop + 24, "Not investment advice  ·  portfuel.pro", { size: 10, weight: 500, fill: C.textDim })}
+  ${txt(PAD, footerTop + 24, `Not investment advice  ·  ${payload.siteHost}`, { size: 10, weight: 500, fill: C.textDim })}
   ${txt(PAD, footerTop + 40, `As of ${asOf}`, { size: 10, weight: 500, fill: C.textDim })}
 </svg>`;
 }

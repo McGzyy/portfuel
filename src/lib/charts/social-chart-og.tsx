@@ -213,7 +213,7 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <div style={{ display: "flex", fontSize: 11, fontWeight: 500, color: T.textDim }}>
-              Not investment advice · portfuel.pro
+              Not investment advice · {payload.siteHost}
             </div>
             <div style={{ display: "flex", fontSize: 10, fontWeight: 500, color: T.textDim }}>
               {`As of ${asOf}`}

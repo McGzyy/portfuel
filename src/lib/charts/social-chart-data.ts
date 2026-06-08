@@ -26,6 +26,7 @@ export type SocialChartPayload = {
   markers: ChartMarker[];
   priceLines: PriceLine[];
   logoBase64: string | null;
+  siteHost: string;
 };
 
 const MILESTONE_LABELS: Record<CallMilestoneKey, string> = {
@@ -35,6 +36,7 @@ const MILESTONE_LABELS: Record<CallMilestoneKey, string> = {
 };
 
 import { loadSocialChartLogoBase64 } from "@/lib/charts/social-chart-logo";
+import { getPublicSiteHost } from "@/lib/social/app-url";
 export { loadSocialChartLogoBase64 };
 
 function inferMilestone(call: {
@@ -149,5 +151,6 @@ export async function loadSocialChartPayload(
     markers,
     priceLines,
     logoBase64: loadSocialChartLogoBase64(),
+    siteHost: getPublicSiteHost(),
   };
 }

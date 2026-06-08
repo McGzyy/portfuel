@@ -29,7 +29,7 @@ export function WatchlistMoveAlerts({
   if (alerts.length === 0) return null;
 
   return (
-    <div className="rounded-[var(--pf-radius-lg)] border border-amber-200/80 bg-amber-50/90 px-4 py-3">
+    <div className="pf-watchlist-movers rounded-[var(--pf-radius-lg)] border px-4 py-3">
       <p className="flex flex-wrap items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
         <span className="inline-flex items-center gap-2">
           <Bell className="h-3.5 w-3.5" strokeWidth={2.25} />
@@ -52,7 +52,7 @@ export function WatchlistMoveAlerts({
           <li key={i.symbol}>
             <Link
               href={journalAlertHref(i.symbol, "price_move")}
-              className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-white px-2.5 py-1 text-xs font-semibold text-amber-950 hover:border-amber-400"
+              className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-[var(--pf-surface)] px-2.5 py-1 text-xs font-semibold text-amber-950 hover:border-amber-400"
             >
               <span className="font-mono">{i.symbol}</span>
               <span

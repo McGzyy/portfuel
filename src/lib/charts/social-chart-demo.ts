@@ -10,7 +10,7 @@ import {
   loadSocialChartLogoBase64,
   type SocialChartPayload,
 } from "@/lib/charts/social-chart-data";
-import { appPath } from "@/lib/social/app-url";
+import { appPath, getPublicSiteHost } from "@/lib/social/app-url";
 import {
   composeMilestonePostText,
   fetchSocialPostCopy,
@@ -105,6 +105,7 @@ export async function loadDemoSocialChartPayload(
     markers,
     priceLines,
     logoBase64: loadSocialChartLogoBase64(),
+    siteHost: getPublicSiteHost(),
   };
 }
 

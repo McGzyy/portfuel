@@ -1525,6 +1525,29 @@ body {
   color: rgba(209, 250, 229, 0.75);
 }
 
+.pf-alerts-setup-strip {
+  border-color: var(--pf-border);
+  background: linear-gradient(135deg, var(--pf-gray-50) 0%, var(--pf-surface) 100%);
+}
+
+.pf-alerts-setup-strip:hover {
+  border-color: rgba(227, 27, 35, 0.35);
+}
+
+.pf-watchlist-movers {
+  border-color: rgb(252 211 77 / 0.45);
+  background: linear-gradient(135deg, rgb(255 251 235 / 0.95) 0%, var(--pf-surface) 100%);
+}
+
+[data-theme="dark"] .pf-alerts-setup-strip {
+  background: linear-gradient(135deg, rgba(227, 27, 35, 0.06) 0%, var(--pf-surface) 100%);
+}
+
+[data-theme="dark"] .pf-watchlist-movers {
+  border-color: rgba(251, 191, 36, 0.35);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, var(--pf-surface) 100%);
+}
+
 [data-theme="dark"] .pf-continue-card {
   background: linear-gradient(
     135deg,
