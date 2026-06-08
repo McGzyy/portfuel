@@ -12,6 +12,14 @@ import {
   type MarketingOgVariant,
   type MarketingSizeKey,
 } from "@/lib/marketing/brand-kit";
+import {
+  joinSparkFromContext,
+  loadMarketingCallContext,
+  type MarketingCallContext,
+  type MarketingFeedRow,
+  type MarketingRankRow,
+  type MarketingSparkHero,
+} from "@/lib/marketing/marketing-call-data";
 
 /** Upward trend — y as fraction of plot height (0 = top, 1 = bottom). */
 const TREND_Y = [0.78, 0.76, 0.73, 0.7, 0.66, 0.62, 0.58, 0.52, 0.46, 0.4, 0.34, 0.28, 0.22, 0.16, 0.12];
@@ -248,16 +256,7 @@ function FooterBar({
   );
 }
 
-type SparkHeroMeta = {
-  symbol: string;
-  returnPct: string;
-  laneLabel: string;
-  insight: string;
-  lane: "member" | "desk";
-  entryLabel: string;
-  targetLabel: string;
-  stopLabel: string;
-};
+type SparkHeroMeta = MarketingSparkHero;
 
 function PosterSparkHero({
   symbol,
@@ -367,16 +366,12 @@ function PosterSparkHero({
 function MiniFeedPreview({
   compact = false,
   title = "LIVE FEED PREVIEW",
+  rows,
 }: {
   compact?: boolean;
   title?: string;
+  rows: MarketingFeedRow[];
 }) {
-  const rows = [
-    { sym: "NVDA", ret: "+24.6%", meta: "LONG · Member call", lane: "member" as const },
-    { sym: "META", ret: "+11.2%", meta: "LONG · Member call", lane: "member" as const },
-    { sym: "CRWD", ret: "+18.4%", meta: "LONG · Fueled desk", lane: "desk" as const },
-  ];
-
   return (
     <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
       <div
@@ -448,13 +443,7 @@ function MiniFeedPreview({
   );
 }
 
-function RankingsPreview() {
-  const rows = [
-    { rank: "1", sym: "NVDA", ret: "+24.6%", meta: "Member call · LONG" },
-    { rank: "2", sym: "META", ret: "+11.2%", meta: "Member call · LONG" },
-    { rank: "3", sym: "CRWD", ret: "+18.4%", meta: "Fueled desk · LONG", desk: true },
-  ];
-
+function RankingsPreview({ rows }: { rows: MarketingRankRow[] }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
       <div
@@ -540,70 +529,26 @@ function RankingsPreview() {
   );
 }
 
-const JOIN_SPARK: SparkHeroMeta = {
-  symbol: "AAPL",
-  returnPct: "+12.8%",
-  laneLabel: "YOUR MEMBER CALL",
-  insight: "Entry, target, stop · tracked live",
-  lane: "member",
-  entryLabel: "Entry $228.50",
-  targetLabel: "Target $255",
-  stopLabel: "Stop $218",
-};
-
-const PROOF_SPARK: SparkHeroMeta = {
-  symbol: "NVDA",
-  returnPct: "+24.6%",
-  laneLabel: "MEMBER CALL",
-  insight: "18d on board · ranked caller",
-  lane: "member",
-  entryLabel: "Entry $128.40",
-  targetLabel: "Target $165",
-  stopLabel: "Stop $118",
-};
-
-const DESK_SPARK: SparkHeroMeta = {
-  symbol: "CRWD",
-  returnPct: "+18.4%",
-  laneLabel: "FUELED DESK",
-  insight: "House thesis · live marks",
-  lane: "desk",
-  entryLabel: "Entry $312.00",
-  targetLabel: "Target $380",
-  stopLabel: "Stop $285",
-};
-
-function ogVisual(variant: MarketingOgVariant) {
+function ogVisual(variant: MarketingOgVariant, ctx: MarketingCallContext) {
   if (variant === "home") {
-    return <RankingsPreview />;
+    return <RankingsPreview rows={ctx.rankRows} />;
   }
   if (variant === "join") {
-    return <PosterSparkHero {...JOIN_SPARK} compact />;
+    return <PosterSparkHero {...joinSparkFromContext(ctx)} compact />;
   }
   if (variant === "demo") {
-    return <MiniFeedPreview title="DEMO WORKSPACE · READ ONLY" />;
+    return <MiniFeedPreview title="DEMO WORKSPACE · READ ONLY" rows={ctx.feedRows} />;
   }
   if (variant === "desk") {
-    return <PosterSparkHero {...DESK_SPARK} compact />;
+    return <PosterSparkHero {...ctx.topFueled} compact />;
   }
-  return <PosterSparkHero {...PROOF_SPARK} />;
+  return <PosterSparkHero {...ctx.topMember} />;
 }
 
-function adChartMeta(variant: MarketingAdVariant): SparkHeroMeta {
-  if (variant === "desk") return DESK_SPARK;
-  if (variant === "structure") {
-    return {
-      symbol: "AAPL",
-      returnPct: "+12.8%",
-      laneLabel: "MEMBER THESIS",
-      insight: "Building · entry zone set in journal",
-      lane: "member",
-      entryLabel: "Entry $228.50",
-      targetLabel: "Target $255",
-      stopLabel: "Stop $218",
-    };
-  }
-  return PROOF_SPARK;
+function adChartMeta(variant: MarketingAdVariant, ctx: MarketingCallContext): SparkHeroMeta {
+  if (variant === "desk") return ctx.topFueled;
+  if (variant === "structure") return ctx.structureSpark;
+  return ctx.topMember;
 }
 
 function logoDataUri(): string | null {
@@ -612,12 +557,14 @@ function logoDataUri(): string | null {
 }
 
 export async function renderMarketingOgPng(
-  variant: MarketingOgVariant = "home"
+  variant: MarketingOgVariant = "home",
+  ctx?: MarketingCallContext
 ): Promise<Buffer> {
   const { width, height } = MARKETING_SIZES.og;
   const c = MARKETING_OG_COPY[variant];
   const pad = 52;
   const logoSrc = logoDataUri();
+  const calls = ctx ?? (await loadMarketingCallContext());
 
   const response = new ImageResponse(
     (
@@ -680,7 +627,7 @@ export async function renderMarketingOgPng(
               justifyContent: "center",
             }}
           >
-            {ogVisual(variant)}
+            {ogVisual(variant, calls)}
           </div>
         </div>
         <FooterBar pad={pad} logoSrc={logoSrc} />
@@ -759,6 +706,7 @@ export async function renderMarketingAdPng(opts: {
   variant: MarketingAdVariant;
   size?: MarketingSizeKey;
   headline?: string;
+  ctx?: MarketingCallContext;
 }): Promise<Buffer> {
   const sizeKey = opts.size ?? "x";
   const { width, height } = MARKETING_SIZES[sizeKey];
@@ -766,7 +714,8 @@ export async function renderMarketingAdPng(opts: {
   const headline = opts.headline?.trim().slice(0, 120) || copy.headline;
   const pad = sizeKey === "square" ? 48 : 52;
   const isSquare = sizeKey === "square";
-  const chartMeta = adChartMeta(opts.variant);
+  const callCtx = opts.ctx ?? (await loadMarketingCallContext());
+  const chartMeta = adChartMeta(opts.variant, callCtx);
   const logoSrc = logoDataUri();
 
   const response = new ImageResponse(

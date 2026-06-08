@@ -8,6 +8,7 @@ import {
   renderMarketingAdPng,
   renderMarketingOgPng,
 } from "../src/lib/charts/marketing-render.tsx";
+import { loadMarketingCallContext } from "../src/lib/marketing/marketing-call-data.ts";
 
 const OUT = join(process.cwd(), "marketing-exports");
 
@@ -21,16 +22,17 @@ const AD_SIZES = [
 
 async function main() {
   mkdirSync(OUT, { recursive: true });
+  const ctx = await loadMarketingCallContext();
 
   for (const variant of OG_VARIANTS) {
-    const png = await renderMarketingOgPng(variant);
+    const png = await renderMarketingOgPng(variant, ctx);
     writeFileSync(join(OUT, `og-${variant}-1200x630.png`), png);
     console.log(`wrote og-${variant}-1200x630.png`);
   }
 
   for (const variant of AD_VARIANTS) {
     for (const [size, suffix] of AD_SIZES) {
-      const png = await renderMarketingAdPng({ variant, size });
+      const png = await renderMarketingAdPng({ variant, size, ctx });
       writeFileSync(join(OUT, `ad-${variant}-${suffix}.png`), png);
       console.log(`wrote ad-${variant}-${suffix}.png`);
     }

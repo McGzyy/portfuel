@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { renderMarketingAdPng } from "@/lib/charts/marketing-render";
 import type { MarketingAdVariant, MarketingSizeKey } from "@/lib/marketing/brand-kit";
+import { loadMarketingCallContext } from "@/lib/marketing/marketing-call-data";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -10,7 +11,7 @@ const SIZES: MarketingSizeKey[] = ["x", "og", "square"];
 
 const PNG_HEADERS = {
   "Content-Type": "image/png",
-  "Cache-Control": "private, no-cache, no-store, must-revalidate",
+  "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
 } as const;
 
 /** Programmatic ad card PNGs for paid social and Figma compositing. */
@@ -28,7 +29,8 @@ export async function GET(request: Request) {
     : "x";
 
   try {
-    const png = await renderMarketingAdPng({ variant, size, headline });
+    const ctx = await loadMarketingCallContext();
+    const png = await renderMarketingAdPng({ variant, size, headline, ctx });
     return new NextResponse(new Uint8Array(png), { headers: PNG_HEADERS });
   } catch (e) {
     console.error("[og/ad]", e);

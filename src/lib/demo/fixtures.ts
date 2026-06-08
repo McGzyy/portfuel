@@ -498,6 +498,14 @@ export function getDemoCallsFeed(mode: "latest" | "performing"): CallWithUser[] 
   ).sort((a, b) => (b.return_pct ?? 0) - (a.return_pct ?? 0));
 }
 
+/** All-time top calls by return — marketing OG/ad spotlights. */
+export function getDemoTopCallsByReturn(limit = 10): CallWithUser[] {
+  return [...ALL_CALLS]
+    .filter((c) => c.return_pct != null && c.return_pct > 0)
+    .sort((a, b) => (b.return_pct ?? 0) - (a.return_pct ?? 0))
+    .slice(0, limit);
+}
+
 export function getDemoCallsBySymbol(symbol: string): CallWithUser[] {
   const sym = symbol.toUpperCase();
   return ALL_CALLS.filter((c) => c.symbol === sym).sort((a, b) => {
