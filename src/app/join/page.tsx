@@ -227,9 +227,11 @@ export default function JoinPage() {
         <p className="pf-lead mx-auto mt-3 max-w-xl text-sm">
           {inviteMode
             ? "Create your account below — no payment step. After you register, we activate your access and you set up 2FA before the workspace."
-            : stripeEnabled
-              ? `Choose Member (${formatTierPrice("member")}) or Pro Intelligence (${formatTierPrice("pro")}), create your account, and checkout with Stripe. Member includes the full workspace — desk, feed, charts, and DMs. Upgrade anytime from profile; 2FA required after activation.`
-              : "Create your account — billing activates manually until Stripe is configured on this environment."}
+            : stripeEnabled === null
+              ? "Loading checkout options…"
+              : stripeEnabled
+                ? `Choose Member (${formatTierPrice("member")}) or Pro Intelligence (${formatTierPrice("pro")}), create your account, and checkout with Stripe. Member includes the full workspace — desk, feed, charts, and DMs. Upgrade anytime from profile; 2FA required after activation.`
+                : "Create your account — billing activates manually until Stripe is configured on this environment."}
         </p>
         {stripeEnabled ? (
           <p className="mx-auto mt-2 max-w-lg text-center text-xs text-[var(--pf-gray-500)]">
