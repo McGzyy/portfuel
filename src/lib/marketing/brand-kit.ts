@@ -1,26 +1,30 @@
 /** Single source for marketing colors, sizes, and AI prompt templates. */
 
-/** PortFuel marketing palette — charcoal + red (matches landing hero / globals.css). */
+/** PortFuel marketing palette — neutral charcoal + red (no blue-navy). */
+export const MARKETING_RENDER_REVISION = 3;
+
 export const MARKETING_BRAND = {
   bg: "#0f1419",
-  bgDeep: "#0c1018",
-  surface: "#1a2332",
-  surfaceRaised: "#222d3f",
+  bgDeep: "#0a0a0a",
+  /** Neutral charcoal — matches dark-mode `--pf-surface: #111111`, not slate navy */
+  surface: "#141414",
+  surfaceRaised: "#1a1a1a",
+  bgGradient: "linear-gradient(160deg, #0f1419 0%, #111111 42%, #1a0e10 100%)",
   text: "#94a3b8",
   textBright: "#f8fafc",
   textMuted: "#cbd5e1",
   textDim: "#64748b",
   accentRed: "#e31b23",
   accentRedHover: "#c41820",
-  rule: "#334155",
-  chipBg: "rgba(15, 20, 25, 0.55)",
-  chipBorder: "rgba(51, 65, 85, 0.65)",
-  chipText: "#e2e8f0",
+  rule: "#2e2e2e",
+  chipBg: "rgba(20, 20, 20, 0.9)",
+  chipBorder: "rgba(255, 255, 255, 0.1)",
+  chipText: "#e5e7eb",
   up: "#059669",
   down: "#e31b23",
   target: "#059669",
-  areaUp: "rgba(5, 150, 105, 0.14)",
-  chartGrid: "rgba(148, 163, 184, 0.08)",
+  areaUp: "rgba(5, 150, 105, 0.12)",
+  chartGrid: "rgba(255, 255, 255, 0.06)",
   font: "Inter, ui-sans-serif, system-ui, sans-serif",
 } as const;
 

@@ -2,8 +2,16 @@ import { NextResponse } from "next/server";
 import { renderMarketingAdPng } from "@/lib/charts/marketing-render";
 import type { MarketingAdVariant, MarketingSizeKey } from "@/lib/marketing/brand-kit";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const VARIANTS: MarketingAdVariant[] = ["proof", "structure", "desk"];
 const SIZES: MarketingSizeKey[] = ["x", "og", "square"];
+
+const PNG_HEADERS = {
+  "Content-Type": "image/png",
+  "Cache-Control": "private, no-cache, no-store, must-revalidate",
+} as const;
 
 /** Programmatic ad card PNGs for paid social and Figma compositing. */
 export async function GET(request: Request) {
@@ -21,12 +29,7 @@ export async function GET(request: Request) {
 
   try {
     const png = await renderMarketingAdPng({ variant, size, headline });
-    return new NextResponse(new Uint8Array(png), {
-      headers: {
-        "Content-Type": "image/png",
-        "Cache-Control": "public, max-age=86400",
-      },
-    });
+    return new NextResponse(new Uint8Array(png), { headers: PNG_HEADERS });
   } catch (e) {
     console.error("[og/ad]", e);
     return NextResponse.json({ error: "render_failed" }, { status: 500 });

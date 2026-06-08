@@ -12,6 +12,7 @@ import {
   FIGMA_CHECKLIST,
   MARKETING_AD_COPY,
   MARKETING_OG_COPY,
+  MARKETING_RENDER_REVISION,
   MARKETING_SIZES,
   type MarketingAdVariant,
   type MarketingOgVariant,
@@ -66,7 +67,9 @@ function AssetCard({
   downloadUrl: string;
   cacheKey: number;
 }) {
-  const src = `${previewUrl}${previewUrl.includes("?") ? "&" : "?"}v=${cacheKey}`;
+  const bust = `rev=${MARKETING_RENDER_REVISION}&v=${cacheKey}`;
+  const src = `${previewUrl}${previewUrl.includes("?") ? "&" : "?"}${bust}`;
+  const downloadHref = `${downloadUrl}${downloadUrl.includes("?") ? "&" : "?"}${bust}`;
 
   return (
     <div className="overflow-hidden rounded-xl border border-[var(--pf-border)] bg-white">
@@ -79,7 +82,7 @@ function AssetCard({
         <img src={src} alt={title} className="w-full rounded-lg border border-[var(--pf-border)]" />
       </div>
       <div className="flex flex-wrap gap-2 border-t border-[var(--pf-border)] p-3">
-        <a href={downloadUrl} download target="_blank" rel="noopener noreferrer">
+        <a href={downloadHref} download target="_blank" rel="noopener noreferrer">
           <Button type="button" variant="secondary" size="sm">
             <Download className="mr-1.5 h-3.5 w-3.5" />
             Download PNG
@@ -97,7 +100,7 @@ function AssetCard({
 }
 
 export function AdminMarketingPanel() {
-  const [cacheKey, setCacheKey] = useState(0);
+  const [cacheKey, setCacheKey] = useState(() => Date.now());
   const [callId, setCallId] = useState("");
   const [adHeadline, setAdHeadline] = useState("");
   const [adVariant, setAdVariant] = useState<MarketingAdVariant>("proof");
@@ -114,7 +117,7 @@ export function AdminMarketingPanel() {
     return `/api/og/ad?${params.toString()}`;
   }, [adVariant, adHeadline]);
 
-  const refresh = useCallback(() => setCacheKey((k) => k + 1), []);
+  const refresh = useCallback(() => setCacheKey(Date.now()), []);
 
   return (
     <div className="mt-8 space-y-8">

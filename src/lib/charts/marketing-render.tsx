@@ -24,9 +24,9 @@ const POSTURE_STYLE: Record<
 > = {
   researching: {
     label: "Researching",
-    bg: "rgba(51, 65, 85, 0.35)",
-    color: "#cbd5e1",
-    border: "rgba(100, 116, 139, 0.4)",
+    bg: "rgba(255, 255, 255, 0.06)",
+    color: "#d1d5db",
+    border: "rgba(255, 255, 255, 0.12)",
   },
   building: {
     label: "Building",
@@ -180,7 +180,7 @@ function BackgroundShell({
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        background: "linear-gradient(135deg, #0f1419 0%, #1a2332 55%, #2a1520 100%)",
+        background: T.bgGradient,
         fontFamily: "Inter",
         overflow: "hidden",
       }}
@@ -204,19 +204,19 @@ function BackgroundShell({
           width: 480,
           height: 480,
           borderRadius: "50%",
-          background: "rgba(227, 27, 35, 0.1)",
+          background: "rgba(227, 27, 35, 0.14)",
           display: "flex",
         }}
       />
       <div
         style={{
           position: "absolute",
-          bottom: 80,
-          left: -100,
-          width: 360,
-          height: 360,
+          bottom: -40,
+          left: -80,
+          width: 420,
+          height: 420,
           borderRadius: "50%",
-          background: "rgba(196, 24, 32, 0.06)",
+          background: "rgba(227, 27, 35, 0.07)",
           display: "flex",
         }}
       />
@@ -225,7 +225,7 @@ function BackgroundShell({
           position: "absolute",
           inset: 0,
           backgroundImage:
-            "linear-gradient(rgba(148,163,184,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.025) 1px, transparent 1px)",
+            "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
           backgroundSize: "48px 48px",
           display: "flex",
         }}
@@ -381,7 +381,7 @@ function FooterBar({
         height: compact ? 56 : 72,
         padding: `0 ${pad}px`,
         borderTop: `1px solid ${T.rule}`,
-        background: T.surface,
+        background: T.surfaceRaised,
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
