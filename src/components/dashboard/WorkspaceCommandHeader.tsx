@@ -1,13 +1,8 @@
 import Link from "next/link";
 import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
+import { LocalTimeGreeting } from "@/components/time/LocalTimeGreeting";
 import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
 import { cn } from "@/lib/utils";
-
-function greetingForHour(h: number): string {
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-}
 
 export function WorkspaceCommandHeader({
   displayName,
@@ -22,9 +17,6 @@ export function WorkspaceCommandHeader({
   isPro?: boolean;
   className?: string;
 }) {
-  const hour = new Date().getHours();
-  const greeting = greetingForHour(hour);
-
   const subtitle =
     openCallsCount > 0
       ? `${openCallsCount} open call${openCallsCount === 1 ? "" : "s"} on your book — ${quotesRefreshLabel({ isPro }).replace(/^./, (c) => c.toLowerCase())}.`
@@ -42,9 +34,10 @@ export function WorkspaceCommandHeader({
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
             Workspace · Overview
           </p>
-          <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
-            {greeting}, {displayName}
-          </h1>
+          <LocalTimeGreeting
+            displayName={displayName}
+            className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]"
+          />
           <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">{subtitle}</p>
           {openCallsCount > 0 ? (
             <Link

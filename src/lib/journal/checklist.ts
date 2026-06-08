@@ -86,7 +86,9 @@ export function buildJournalResearchChecklist(
       id: "ai_research",
       label: "AI research saved",
       done: hasAiResearch,
-      hint: "Run review — auto-saves to timeline",
+      hint: hasThesis
+        ? "Optional — run review after your thesis"
+        : "Optional — draft thesis first, then review",
       optional: true,
     },
   ];

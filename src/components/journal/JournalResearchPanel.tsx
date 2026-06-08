@@ -15,9 +15,11 @@ type ResearchApiResponse = JournalResearchResponse & {
 
 export function JournalResearchPanel({
   symbol,
+  hasThesis = true,
   onEntrySaved,
 }: {
   symbol: string;
+  hasThesis?: boolean;
   onEntrySaved?: (entry: WatchlistJournalEntry) => void;
 }) {
   const [usage, setUsage] = useState<JournalResearchUsageStatus | null>(null);
@@ -97,7 +99,9 @@ export function JournalResearchPanel({
             AI research assistant
           </p>
           <p className="mt-1 max-w-xl text-xs text-[var(--pf-gray-500)]">
-            Stress-tests your thesis — results save automatically to your journal timeline.
+            {hasThesis
+              ? "Stress-tests your saved thesis — results save automatically to your journal timeline."
+              : "Draft your thesis in Thesis & plan first (use Draft with AI). This review finds gaps — it does not write your thesis for you."}
           </p>
         </div>
         <Button

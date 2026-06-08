@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { briefTitleForHour } from "@/lib/time/greeting";
 import {
   BookOpen,
   Calendar,
@@ -34,11 +38,20 @@ function rowIcon(accent: ProTodayBriefRow["accent"]) {
 }
 
 function ProTodayBriefCard({ brief, interactive = true }: { brief: ProTodayBrief; interactive?: boolean }) {
-  const today = new Date().toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "short",
-    day: "numeric",
-  });
+  const [briefTitle, setBriefTitle] = useState("Your daily brief");
+  const [today, setToday] = useState("");
+
+  useEffect(() => {
+    const now = new Date();
+    setBriefTitle(briefTitleForHour(now.getHours()));
+    setToday(
+      now.toLocaleDateString(undefined, {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+      })
+    );
+  }, []);
 
   return (
     <section
@@ -52,7 +65,7 @@ function ProTodayBriefCard({ brief, interactive = true }: { brief: ProTodayBrief
               Pro Today
             </p>
             <h2 className="mt-1 text-lg font-bold tracking-tight text-white sm:text-xl">
-              Your morning brief
+              {briefTitle}
             </h2>
             <p className="mt-1 text-sm text-slate-400">{today}</p>
           </div>

@@ -51,9 +51,9 @@ export function pickJournalNextUp(items: WatchlistEntry[]): JournalNextUp | null
       symbol: row.symbol,
       reason: "draft_thesis",
       title: `$${row.symbol} needs a thesis`,
-      detail: "Start with why you're watching — catalysts and plan levels come next.",
+      detail: "Use Draft with AI on the journal plan form, edit it, then save — catalysts and levels come next.",
       href: journalSymbolPath(row.symbol, { setup: true, section: "plan" }),
-      cta: "Draft thesis",
+      cta: "Open journal",
     };
   }
 

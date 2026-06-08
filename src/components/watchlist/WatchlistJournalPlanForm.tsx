@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +17,7 @@ import {
 } from "@/lib/watchlist/journal-meta";
 import { POSITION_INTENT_OPTIONS } from "@/lib/watchlist/position-intent";
 import type { WatchlistJournal } from "@/lib/watchlist/journal-types";
+import type { JournalResearchUsageStatus } from "@/lib/ai/journal-research-usage";
 import { COPY } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 
@@ -59,13 +61,71 @@ export function WatchlistJournalPlanForm({
     initial.bear_case_price != null ? String(initial.bear_case_price) : ""
   );
   const [saving, setSaving] = useState(false);
+  const [drafting, setDrafting] = useState(false);
+  const [usage, setUsage] = useState<JournalResearchUsageStatus | null>(null);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [draftApplied, setDraftApplied] = useState(false);
+
+  const loadUsage = useCallback(async () => {
+    try {
+      const res = await fetch("/api/ai/journal-research");
+      if (res.ok) setUsage(await res.json());
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadUsage();
+  }, [loadUsage]);
 
   function toggleCatalyst(c: JournalCatalyst) {
     setCatalysts((prev) =>
       prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
     );
+  }
+
+  async function draftWithAi() {
+    setDrafting(true);
+    setError("");
+    setDraftApplied(false);
+    try {
+      const res = await fetch(
+        `/api/watchlist/${encodeURIComponent(symbol)}/journal/draft-thesis`,
+        { method: "POST" }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.error === "quota_exceeded") {
+          setError("Monthly AI limit reached — try again next month.");
+        } else if (data.error === "ai_not_configured") {
+          setError("AI is not configured in this environment.");
+        } else {
+          setError("Could not draft thesis.");
+        }
+        return;
+      }
+      setThesis(data.thesis ?? "");
+      if (Array.isArray(data.catalysts)) setCatalysts(data.catalysts);
+      if (data.risk_factors) setRiskFactors(data.risk_factors);
+      if (data.conviction != null) setConviction(String(data.conviction));
+      if (data.entry_note) setEntryNote(data.entry_note);
+      setUsage((u) =>
+        u
+          ? {
+              ...u,
+              used: data.usage.used,
+              remaining: data.usage.remaining,
+            }
+          : u
+      );
+      setDraftApplied(true);
+    } catch {
+      setError("Could not draft thesis.");
+    } finally {
+      setDrafting(false);
+    }
   }
 
   async function save(e: React.FormEvent) {
@@ -115,13 +175,49 @@ export function WatchlistJournalPlanForm({
           Thesis &amp; plan
         </p>
         <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
-          Private research notebook — catalysts, risks, and scenario prices draw on your chart.
-          Saves are recorded in the edit log below.
+          Private research notebook — start with a thesis (AI draft or your own), then catalysts,
+          plan levels, and logged updates. Saves are recorded in the edit log below.
         </p>
       </div>
 
+      {!thesis.trim() ? (
+        <p className="rounded-lg border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">
+          <span className="font-semibold">Step 1:</span> Draft why you&apos;re watching{" "}
+          {symbol.toUpperCase()} — use <span className="font-semibold">Draft with AI</span> for a
+          starter pack, edit it, then click <span className="font-semibold">Save journal</span>.
+          Research review below stress-tests your draft; it does not replace the thesis field.
+        </p>
+      ) : null}
+
       <div>
-        <Label htmlFor="journal-thesis">Why am I watching this?</Label>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Label htmlFor="journal-thesis">Why am I watching this?</Label>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={
+              drafting || usage?.configured === false || (usage?.remaining ?? 0) <= 0
+            }
+            onClick={() => void draftWithAi()}
+            className="gap-1.5"
+          >
+            <Sparkles className="h-3.5 w-3.5" aria-hidden />
+            {drafting ? "Drafting…" : "Draft with AI"}
+          </Button>
+        </div>
+        {usage ? (
+          <p className="mt-1 text-[10px] text-[var(--pf-gray-500)]">
+            {usage.configured
+              ? `${usage.remaining}/${usage.limit} AI journal uses left this month (draft + review share quota)`
+              : "AI not configured"}
+          </p>
+        ) : null}
+        {draftApplied ? (
+          <p className="mt-1 text-xs font-semibold text-emerald-700">
+            Draft applied — edit anything you want, then save journal.
+          </p>
+        ) : null}
         <Textarea
           id="journal-thesis"
           value={thesis}
