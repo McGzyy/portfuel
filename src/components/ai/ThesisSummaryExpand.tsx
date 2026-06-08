@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
+import { PRO_BILLING_HREF } from "@/lib/billing/upgrade-href";
 import { AI_SUMMARY_DISCLAIMER } from "@/lib/ai/config";
 
 export function ThesisSummaryExpand({
@@ -92,7 +93,7 @@ export function ThesisSummaryExpand({
         <p className="mt-2 text-xs text-[var(--pf-gray-600)]">
           {error}{" "}
           {showUpgrade ? (
-            <Link href="/settings" className="font-semibold text-[var(--pf-red)] hover:underline">
+            <Link href={PRO_BILLING_HREF} className="font-semibold text-[var(--pf-red)] hover:underline">
               Upgrade to Pro
             </Link>
           ) : null}

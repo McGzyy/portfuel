@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ProUpgradeProrationHint } from "@/components/billing/ProUpgradeProrationHint";
+import { PRO_BILLING_HREF } from "@/lib/billing/upgrade-href";
 import { formatTierPrice } from "@/lib/marketing/plans";
 
 /** Slim overview upsell — full list stays on profile / join. */
@@ -18,9 +20,12 @@ export function ProUpgradeBanner() {
           </p>
         </div>
       </div>
-      <Link href="/settings" className="shrink-0">
-        <Button size="sm">Upgrade</Button>
-      </Link>
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        <Link href={PRO_BILLING_HREF}>
+          <Button size="sm">Upgrade</Button>
+        </Link>
+        <ProUpgradeProrationHint className="max-w-[11rem] text-right" />
+      </div>
     </div>
   );
 }

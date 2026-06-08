@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PRO_BILLING_HREF } from "@/lib/billing/upgrade-href";
 import { formatProIntelligenceLabel, PRO_VALUE_BULLETS } from "@/lib/marketing/plans";
 
 export function ProValueCard({ className }: { className?: string }) {
@@ -31,8 +32,8 @@ export function ProValueCard({ className }: { className?: string }) {
               </li>
             ))}
           </ul>
-          <Link href="/settings" className="mt-5 inline-block">
-            <Button size="sm">View upgrade on profile</Button>
+          <Link href={PRO_BILLING_HREF} className="mt-5 inline-block">
+            <Button size="sm">Review upgrade in billing</Button>
           </Link>
         </div>
       </div>

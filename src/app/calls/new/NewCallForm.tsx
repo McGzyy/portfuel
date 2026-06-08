@@ -247,7 +247,7 @@ export function NewCallForm({
         } else if (data.error === "quota_exceeded") {
           setError(
             showUpgrade
-              ? `Weekly limit reached (${data.quota} calls this week). Upgrade to Pro on your profile for 6 calls/week.`
+              ? `Weekly limit reached (${data.quota} calls this week). Upgrade to Pro in billing for 6 calls/week.`
               : `Weekly limit reached (${data.quota} calls this week). Your quota resets on a rolling 7-day window.`
           );
         } else {
@@ -571,7 +571,7 @@ export function NewCallForm({
               <p className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2 text-sm text-[var(--pf-gray-600)]">
                 Weekly call limit reached ({weeklyQuota.used}/{weeklyQuota.limit}).{" "}
                 {showUpgrade
-                  ? "Upgrade to Pro in Settings for 6 calls/week."
+                  ? "Upgrade to Pro in billing for 6 calls/week."
                   : "Your quota resets on a rolling 7-day window."}
               </p>
             ) : null}

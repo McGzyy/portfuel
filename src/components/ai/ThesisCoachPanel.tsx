@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PRO_BILLING_HREF } from "@/lib/billing/upgrade-href";
 import { AI_COACH_DISCLAIMER, AI_COACH_MONTHLY_LIMIT } from "@/lib/ai/config";
 import type { ThesisCoachResponse } from "@/lib/ai/types";
 import type { AiCoachUsageStatus } from "@/lib/ai/usage";
@@ -182,7 +183,7 @@ export function ThesisCoachPanel({
         <p className="mt-3 text-xs text-[var(--pf-gray-500)]">
           Pro adds track-record context and {AI_COACH_MONTHLY_LIMIT.pro} reviews/month vs{" "}
           {AI_COACH_MONTHLY_LIMIT.member} on Member.{" "}
-          <Link href="/settings" className="font-semibold text-[var(--pf-red)] hover:underline">
+          <Link href={PRO_BILLING_HREF} className="font-semibold text-[var(--pf-red)] hover:underline">
             Upgrade to Pro
           </Link>
         </p>

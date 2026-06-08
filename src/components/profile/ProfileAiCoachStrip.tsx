@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
+import { PRO_BILLING_HREF } from "@/lib/billing/upgrade-href";
 import type { AiCoachUsageStatus } from "@/lib/ai/usage";
 import { AI_COACH_MONTHLY_LIMIT } from "@/lib/ai/config";
 import { COPY } from "@/lib/copy";
@@ -28,7 +29,7 @@ export function ProfileAiCoachStrip({ usage }: { usage: AiCoachUsageStatus }) {
         {usage.tier !== "pro" && usage.remaining === 0 ? (
           <p className="mt-2 text-xs text-[var(--pf-gray-500)]">
             Member limit is {AI_COACH_MONTHLY_LIMIT.member}/month.{" "}
-            <Link href="/settings" className="font-semibold text-[var(--pf-red)] hover:underline">
+            <Link href={PRO_BILLING_HREF} className="font-semibold text-[var(--pf-red)] hover:underline">
               Upgrade to Pro
             </Link>{" "}
             for {AI_COACH_MONTHLY_LIMIT.pro}/month and track-record context.
