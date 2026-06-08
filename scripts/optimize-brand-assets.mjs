@@ -213,33 +213,75 @@ async function buildMaskableIcon(gaugeMaster, size, preset) {
   return sharp(bg).composite([{ input: gauge, left, top }]);
 }
 
+function dilateMask(mask, width, height, radius) {
+  const out = new Uint8Array(width * height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let hit = 0;
+      for (let dy = -radius; dy <= radius && !hit; dy++) {
+        for (let dx = -radius; dx <= radius && !hit; dx++) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          if (mask[ny * width + nx]) hit = 1;
+        }
+      }
+      out[y * width + x] = hit;
+    }
+  }
+  return out;
+}
+
 async function buildLogoLight() {
   const { data, info } = await sharp(logoPath)
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
+  const { width, height } = info;
   const px = data;
-  for (let i = 0; i < px.length; i += 4) {
-    const r = px[i];
-    const g = px[i + 1];
-    const b = px[i + 2];
-    const a = px[i + 3];
-    if (a < 20) continue;
-    const isRed = r > 130 && r > g * 1.3 && r > b * 1.3;
-    if (isRed) continue;
-    if (r < 90 && g < 90 && b < 90) {
-      px[i] = 255;
-      px[i + 1] = 255;
-      px[i + 2] = 255;
-    } else if (r < 200 && g < 200 && b < 200) {
-      px[i] = 245;
-      px[i + 1] = 245;
-      px[i + 2] = 245;
-    }
+  const sourceMask = new Uint8Array(width * height);
+  for (let i = 0; i < width * height; i++) {
+    sourceMask[i] = px[i * 4 + 3] >= 20 ? 1 : 0;
   }
-  await sharp(Buffer.from(px), {
-    raw: { width: info.width, height: info.height, channels: 4 },
-  })
+  const dilated = dilateMask(sourceMask, width, height, 2);
+
+  const out = Buffer.alloc(px.length);
+  for (let i = 0; i < width * height; i++) {
+    const o = i * 4;
+    const isOutline = dilated[i] && !sourceMask[i];
+    if (isOutline) {
+      out[o] = 15;
+      out[o + 1] = 20;
+      out[o + 2] = 25;
+      out[o + 3] = 255;
+      continue;
+    }
+    if (!sourceMask[i]) continue;
+
+    const r = px[o];
+    const g = px[o + 1];
+    const b = px[o + 2];
+    const isRed = r > 130 && r > g * 1.3 && r > b * 1.3;
+    if (isRed) {
+      out[o] = r;
+      out[o + 1] = g;
+      out[o + 2] = b;
+      out[o + 3] = 255;
+      continue;
+    }
+    if (r < 90 && g < 90 && b < 90) {
+      out[o] = 255;
+      out[o + 1] = 255;
+      out[o + 2] = 255;
+    } else {
+      out[o] = 245;
+      out[o + 1] = 245;
+      out[o + 2] = 245;
+    }
+    out[o + 3] = 255;
+  }
+
+  await sharp(out, { raw: { width, height, channels: 4 } })
     .png({ compressionLevel: 9 })
     .toFile(join(root, "public/logo-light.png"));
 }

@@ -11,6 +11,7 @@ export function SettingsAccountSummary({
   billingInterval,
   emailVerified,
   memberSince,
+  role,
 }: {
   username: string;
   displayName: string | null;
@@ -19,22 +20,28 @@ export function SettingsAccountSummary({
   billingInterval: BillingInterval | null;
   emailVerified: boolean;
   memberSince: string;
+  role?: "admin" | "member";
 }) {
+  const isStaffAdmin = role === "admin";
   const tierLabel =
-    membershipTier === "pro"
-      ? "Pro Intelligence"
-      : membershipTier === "member"
-        ? "Member"
-        : subscriptionStatus === "cancelled"
-          ? "Cancelled"
-          : "Pending";
+    isStaffAdmin && !membershipTier
+      ? "Admin"
+      : membershipTier === "pro"
+        ? "Pro Intelligence"
+        : membershipTier === "member"
+          ? "Member"
+          : subscriptionStatus === "cancelled"
+            ? "Cancelled"
+            : "Pending";
 
   const statusTone =
-    subscriptionStatus === "active"
-      ? "bg-emerald-100 text-emerald-800"
-      : subscriptionStatus === "cancelled"
-        ? "bg-rose-100 text-rose-800"
-        : "bg-amber-100 text-amber-900";
+    isStaffAdmin && subscriptionStatus === "pending"
+      ? "bg-sky-100 text-sky-800"
+      : subscriptionStatus === "active"
+        ? "bg-emerald-100 text-emerald-800"
+        : subscriptionStatus === "cancelled"
+          ? "bg-rose-100 text-rose-800"
+          : "bg-amber-100 text-amber-900";
 
   return (
     <section className="pf-workspace-panel p-4 sm:p-6">
@@ -58,9 +65,18 @@ export function SettingsAccountSummary({
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
           <span className={cn("rounded-full px-2.5 py-1 text-center text-xs font-bold sm:text-left", statusTone)}>
-            {subscriptionStatus === "active" ? "Active" : subscriptionStatus}
+            {isStaffAdmin && subscriptionStatus === "pending"
+              ? "Staff access"
+              : subscriptionStatus === "active"
+                ? "Active"
+                : subscriptionStatus}
           </span>
-          <span className="rounded-full bg-[var(--pf-red)] px-2.5 py-1 text-center text-xs font-bold text-white sm:text-left">
+          <span
+            className={cn(
+              "rounded-full px-2.5 py-1 text-center text-xs font-bold text-white sm:text-left",
+              isStaffAdmin && !membershipTier ? "bg-sky-600" : "bg-[var(--pf-red)]"
+            )}
+          >
             {tierLabel}
           </span>
           {billingInterval === "annual" ? (
@@ -71,9 +87,7 @@ export function SettingsAccountSummary({
           <span
             className={cn(
               "col-span-2 rounded-full px-2.5 py-1 text-center text-xs font-semibold sm:col-span-1 sm:text-left",
-              emailVerified
-                ? "bg-emerald-50 text-emerald-800"
-                : "bg-amber-50 text-amber-900"
+              emailVerified ? "pf-badge-emerald" : "bg-amber-100 text-amber-900"
             )}
           >
             {emailVerified ? "Email verified" : "Email not verified"}

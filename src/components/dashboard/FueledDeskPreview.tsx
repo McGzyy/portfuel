@@ -72,11 +72,11 @@ export function FueledDeskPreview({
           <p className="font-medium text-slate-300">No desk thesis yet</p>
           <p className="mt-1 text-xs leading-relaxed">
             House research appears here when published. Browse the{" "}
-            <Link href="/dashboard/desk" className="font-semibold text-red-300 hover:text-red-200 hover:underline">
+            <Link href="/dashboard/desk" className="font-semibold text-sky-300 hover:text-sky-200 hover:underline">
               Fueled desk
             </Link>{" "}
             or the{" "}
-            <Link href="/dashboard/feed" className="font-semibold text-red-300 hover:text-red-200 hover:underline">
+            <Link href="/dashboard/feed" className="font-semibold text-sky-300 hover:text-sky-200 hover:underline">
               member feed
             </Link>{" "}
             for community ideas.

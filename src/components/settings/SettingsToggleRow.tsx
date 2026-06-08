@@ -103,7 +103,7 @@ export function SettingsPanelActions({
         type="button"
         onClick={onSave}
         disabled={saving}
-        className="w-full rounded-lg bg-[var(--pf-navy)] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto sm:py-2"
+        className="w-full rounded-lg px-4 py-2.5 text-sm font-semibold pf-settings-save disabled:opacity-60 sm:w-auto sm:py-2"
       >
         {saving ? "Saving…" : saveLabel}
       </button>

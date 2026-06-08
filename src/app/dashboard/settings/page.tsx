@@ -86,6 +86,7 @@ export default async function DashboardSettingsPage({
           billingInterval={profile.billingInterval}
           emailVerified={session.emailVerified}
           memberSince={profile.member.created_at}
+          role={session.role}
         />
 
         <SettingsNavMobile active={section} />
@@ -106,6 +107,7 @@ export default async function DashboardSettingsPage({
                 <SettingsMembershipOverview
                   userId={session.userId}
                   emailVerified={session.emailVerified}
+                  role={session.role}
                 />
                 <ProfileBillingSection
                   subscriptionStatus={profile.subscriptionStatus}

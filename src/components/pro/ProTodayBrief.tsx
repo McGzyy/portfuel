@@ -42,13 +42,13 @@ function ProTodayBriefCard({ brief, interactive = true }: { brief: ProTodayBrief
 
   return (
     <section
-      className="overflow-hidden rounded-[var(--pf-radius-lg)] border border-indigo-200/80 bg-gradient-to-br from-indigo-950 via-[#0f1419] to-[#1a1520] shadow-[var(--pf-shadow-lg)]"
+      className="pf-pro-brief pf-keep-blue overflow-hidden rounded-[var(--pf-radius-lg)] border border-sky-500/30 bg-gradient-to-br from-sky-950 via-[#0a0a0a] to-slate-950 shadow-[var(--pf-shadow-lg)]"
       aria-label="Pro Today brief"
     >
       <div className="border-b border-white/10 px-5 py-4 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-indigo-300">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">
               Pro Today
             </p>
             <h2 className="mt-1 text-lg font-bold tracking-tight text-white sm:text-xl">
@@ -59,12 +59,12 @@ function ProTodayBriefCard({ brief, interactive = true }: { brief: ProTodayBrief
           {interactive ? (
             <Link
               href={buildResearchHubHref("screener")}
-              className="text-xs font-semibold text-indigo-300 hover:text-indigo-200 hover:underline"
+              className="text-xs font-semibold text-sky-300 hover:text-sky-200 hover:underline"
             >
               Research tools →
             </Link>
           ) : (
-            <span className="text-xs font-semibold text-indigo-300/60">Research tools</span>
+            <span className="text-xs font-semibold text-sky-300/60">Research tools</span>
           )}
         </div>
       </div>
@@ -74,7 +74,7 @@ function ProTodayBriefCard({ brief, interactive = true }: { brief: ProTodayBrief
           const Icon = rowIcon(row.accent);
           const inner = (
             <>
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-indigo-200">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-500/10 text-sky-200">
                 <Icon className="h-4 w-4" strokeWidth={2.25} />
               </span>
               <span className="min-w-0 flex-1">

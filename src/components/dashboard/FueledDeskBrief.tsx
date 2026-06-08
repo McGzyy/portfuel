@@ -10,7 +10,7 @@ export function FueledDeskBrief({ brief }: { brief: DeskBrief }) {
 
   return (
     <section
-      className="pf-workspace-panel overflow-hidden border-l-4 border-l-[var(--pf-red)]"
+      className="pf-workspace-panel overflow-hidden border-l-4 border-l-sky-500"
       aria-label="Desk note"
     >
       <div className="border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-5 py-4">

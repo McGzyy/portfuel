@@ -25,7 +25,7 @@ export function FueledDeskHero({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           <Logo href="/dashboard/desk" size="sm" variant="light" className="opacity-95" />
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--pf-red)] text-white">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-sky-500 text-white">
             <Flame className="h-5 w-5" strokeWidth={2.25} />
           </span>
           <div>
@@ -57,7 +57,7 @@ export function FueledDeskHero({
 
       {weeklyNote ? (
         <p className="mt-5 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm leading-relaxed text-slate-300">
-          <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-red-300/90">
+          <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-sky-300/90">
             Desk note · this week
           </span>
           {weeklyNote.length > 220 ? `${weeklyNote.slice(0, 217)}…` : weeklyNote}
@@ -67,7 +67,7 @@ export function FueledDeskHero({
       {featured ? (
         <Link
           href={`/ticker/${featured.symbol}`}
-          className="mt-6 block rounded-xl border border-white/10 bg-white/5 p-5 transition-colors hover:border-red-400/40 hover:bg-white/[0.08]"
+          className="mt-6 block rounded-xl border border-sky-400/20 bg-white/5 p-5 transition-colors hover:border-sky-400/35 hover:bg-white/[0.08]"
         >
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="fueled">Fueled</Badge>

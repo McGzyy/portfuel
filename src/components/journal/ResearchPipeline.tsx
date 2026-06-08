@@ -79,8 +79,10 @@ export function ResearchPipeline({
             key={step.id}
             href={href}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors sm:rounded-none sm:px-4 sm:py-3.5",
-              active ? "pf-pipeline-step-active" : "hover:bg-[var(--pf-gray-50)]",
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors sm:px-4 sm:py-3.5",
+              active
+                ? "pf-pipeline-step-active mx-0.5 my-0.5 sm:mx-1 sm:my-1"
+                : "hover:bg-[var(--pf-gray-50)]",
               isPublish && !active && "sm:border-l-0"
             )}
             aria-current={active ? "step" : undefined}

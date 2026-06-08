@@ -46,9 +46,7 @@ function BadgeChip({ kind }: { kind: MembershipBadge }) {
     );
   }
   if (kind === "email_verified") {
-    return (
-      <Badge className="border border-emerald-200 bg-emerald-50 text-emerald-800">{text}</Badge>
-    );
+    return <Badge className="pf-badge-emerald">{text}</Badge>;
   }
   return <Badge variant={variant}>{text}</Badge>;
 }
@@ -79,7 +77,13 @@ function StatCell({
   );
 }
 
-function OverviewBody({ overview }: { overview: MembershipOverview }) {
+function OverviewBody({
+  overview,
+  isStaffAdmin,
+}: {
+  overview: MembershipOverview;
+  isStaffAdmin?: boolean;
+}) {
   const isActive = overview.subscriptionStatus === "active";
   const cadence =
     overview.billingInterval === "annual"
@@ -88,21 +92,30 @@ function OverviewBody({ overview }: { overview: MembershipOverview }) {
         ? "Monthly billing"
         : null;
 
-  const statusLabel = overview.cancelAtPeriodEnd
-    ? "Cancelling"
-    : overview.subscriptionStatus === "active"
-      ? "Active"
-      : overview.subscriptionStatus === "cancelled"
-        ? "Cancelled"
-        : "Pending";
+  const statusLabel = isStaffAdmin && overview.subscriptionStatus === "pending"
+    ? "Staff access"
+    : overview.cancelAtPeriodEnd
+      ? "Cancelling"
+      : overview.subscriptionStatus === "active"
+        ? "Active"
+        : overview.subscriptionStatus === "cancelled"
+          ? "Cancelled"
+          : "Pending";
 
-  const statusTone = overview.cancelAtPeriodEnd
-    ? "bg-amber-100 text-amber-900"
-    : overview.subscriptionStatus === "active"
-      ? "bg-emerald-100 text-emerald-800"
-      : overview.subscriptionStatus === "cancelled"
-        ? "bg-rose-100 text-rose-800"
-        : "bg-[var(--pf-gray-100)] text-[var(--pf-gray-600)]";
+  const statusTone = isStaffAdmin && overview.subscriptionStatus === "pending"
+    ? "bg-sky-100 text-sky-800"
+    : overview.cancelAtPeriodEnd
+      ? "bg-amber-100 text-amber-900"
+      : overview.subscriptionStatus === "active"
+        ? "bg-emerald-100 text-emerald-800"
+        : overview.subscriptionStatus === "cancelled"
+          ? "bg-rose-100 text-rose-800"
+          : "bg-[var(--pf-gray-100)] text-[var(--pf-gray-600)]";
+
+  const planHeading =
+    isStaffAdmin && !overview.effectiveTier && overview.subscriptionStatus === "pending"
+      ? "Staff admin access"
+      : overview.planLabel;
 
   const tierTenureLabel =
     overview.effectiveTier === "pro"
@@ -130,10 +143,14 @@ function OverviewBody({ overview }: { overview: MembershipOverview }) {
               </span>
             ) : null}
           </div>
-          <h3 className="mt-3 text-xl font-bold tracking-tight text-[var(--pf-black)] sm:text-2xl">
-            {overview.planLabel}
+          <h3 className="mt-3 text-xl font-bold tracking-tight text-[var(--foreground)] sm:text-2xl">
+            {planHeading}
           </h3>
-          {overview.planPrice ? (
+          {isStaffAdmin && !overview.effectiveTier && overview.subscriptionStatus === "pending" ? (
+            <p className="mt-1 text-sm font-semibold text-[var(--pf-gray-600)]">
+              No paid subscription — full workspace via admin role
+            </p>
+          ) : overview.planPrice ? (
             <p className="mt-1 text-sm font-semibold text-[var(--pf-gray-600)]">
               {overview.planPrice}
             </p>
@@ -250,7 +267,15 @@ function OverviewBody({ overview }: { overview: MembershipOverview }) {
         </p>
       ) : null}
 
-      {overview.subscriptionStatus === "pending" ? (
+      {isStaffAdmin && !overview.effectiveTier && overview.subscriptionStatus === "pending" ? (
+        <p className="mt-4 text-sm leading-relaxed text-[var(--pf-gray-600)]">
+          Admin accounts skip Stripe billing. You have full workspace access — member feed, desk,
+          journal, settings, and admin tools. Billing below only applies if you add a personal
+          subscription for testing checkout.
+        </p>
+      ) : null}
+
+      {overview.subscriptionStatus === "pending" && !isStaffAdmin ? (
         <p className="mt-4 text-sm leading-relaxed text-[var(--pf-gray-600)]">
           Complete checkout to activate your membership and unlock the workspace.
         </p>
@@ -262,13 +287,21 @@ function OverviewBody({ overview }: { overview: MembershipOverview }) {
 export async function SettingsMembershipOverview({
   userId,
   emailVerified,
+  role,
 }: {
   userId: string;
   emailVerified: boolean;
+  role?: "admin" | "member";
 }) {
   const overview = await fetchMembershipOverview(userId, { emailVerified });
+  const isStaffAdmin = role === "admin";
 
-  if (!overview.stripeConfigured && !overview.effectiveTier && overview.subscriptionStatus === "pending") {
+  if (
+    !isStaffAdmin &&
+    !overview.stripeConfigured &&
+    !overview.effectiveTier &&
+    overview.subscriptionStatus === "pending"
+  ) {
     return null;
   }
 
@@ -277,7 +310,7 @@ export async function SettingsMembershipOverview({
       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
         Your plan
       </p>
-      <OverviewBody overview={overview} />
+      <OverviewBody overview={overview} isStaffAdmin={isStaffAdmin} />
     </section>
   );
 }
