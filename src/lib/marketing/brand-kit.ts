@@ -1,7 +1,7 @@
 /** Single source for marketing colors, sizes, and AI prompt templates. */
 
 /** PortFuel marketing palette — neutral charcoal + red (no blue-navy). */
-export const MARKETING_RENDER_REVISION = 3;
+export const MARKETING_RENDER_REVISION = 4;
 
 export const MARKETING_BRAND = {
   bg: "#0f1419",
@@ -80,7 +80,7 @@ export const MARKETING_OG_COPY: Record<
     sub: "Two lanes: curated desk theses and attributed community calls.",
     bullets: [
       "Fueled model portfolio with live marks",
-      "Member rankings and verified track records",
+      "Member rankings and public track records",
       "Same chart language from desk to ticker",
     ],
   },
@@ -102,7 +102,7 @@ export const MARKETING_AD_COPY: Record<
 > = {
   proof: {
     headline: "Calls on record. Returns tracked.",
-    sub: "Verified member performance with live marks — charts from real call data.",
+    sub: "Member performance on record with live marks — charts from real call data.",
     cta: "Join PortFuel",
   },
   structure: {

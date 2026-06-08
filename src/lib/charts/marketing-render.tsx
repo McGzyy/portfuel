@@ -16,37 +16,17 @@ import {
 /** Upward trend — y as fraction of plot height (0 = top, 1 = bottom). */
 const TREND_Y = [0.78, 0.76, 0.73, 0.7, 0.66, 0.62, 0.58, 0.52, 0.46, 0.4, 0.34, 0.28, 0.22, 0.16, 0.12];
 
-type Posture = "researching" | "building" | "active" | "trimming";
-
-const POSTURE_STYLE: Record<
-  Posture,
-  { label: string; bg: string; color: string; border: string }
-> = {
-  researching: {
-    label: "Researching",
-    bg: "rgba(255, 255, 255, 0.06)",
-    color: "#d1d5db",
-    border: "rgba(255, 255, 255, 0.12)",
-  },
-  building: {
-    label: "Building",
-    bg: "rgba(227, 27, 35, 0.12)",
-    color: "#fecaca",
-    border: "rgba(227, 27, 35, 0.32)",
-  },
-  active: {
-    label: "Active",
-    bg: "rgba(5, 150, 105, 0.14)",
-    color: "#6ee7b7",
-    border: "rgba(5, 150, 105, 0.38)",
-  },
-  trimming: {
-    label: "Trimming",
-    bg: "rgba(217, 119, 6, 0.14)",
-    color: "#fcd34d",
-    border: "rgba(217, 119, 6, 0.38)",
-  },
-};
+/** Matches track record share cards — black base, charcoal mid, warm red corner. */
+function cardBackground(up = true): string {
+  const perfGlow = up
+    ? "radial-gradient(ellipse 85% 65% at 16% 40%, rgba(5,150,105,0.12) 0%, transparent 58%)"
+    : "radial-gradient(ellipse 85% 65% at 16% 40%, rgba(227,27,35,0.11) 0%, transparent 58%)";
+  const brandGlow =
+    "radial-gradient(ellipse 55% 45% at 100% 8%, rgba(227,27,35,0.10) 0%, transparent 52%)";
+  const base =
+    "linear-gradient(168deg, #000000 0%, #080808 42%, #0f0f0f 72%, #140909 100%)";
+  return `${perfGlow}, ${brandGlow}, ${base}`;
+}
 
 function sparkPath(
   points: number[],
@@ -97,8 +77,8 @@ function MarketingSparkline({
   targetLabel?: string;
   stopLabel?: string;
 }) {
-  const padX = 12;
-  const padY = 14;
+  const padX = 8;
+  const padY = 12;
   const innerW = width - padX * 2;
   const innerH = height - padY * 2;
   const entryX = padX + (entryIndex / (TREND_Y.length - 1)) * innerW;
@@ -113,26 +93,15 @@ function MarketingSparkline({
         viewBox={`0 0 ${width} ${height}`}
         style={{ display: "flex" }}
       >
-        {[0.25, 0.5, 0.75].map((pct) => (
-          <line
-            key={pct}
-            x1={padX}
-            y1={padY + pct * innerH}
-            x2={width - padX}
-            y2={padY + pct * innerH}
-            stroke={T.chartGrid}
-            strokeWidth={1}
-          />
-        ))}
         <line
           x1={padX}
           y1={targetLineY}
           x2={width - padX}
           y2={targetLineY}
           stroke={T.target}
-          strokeWidth={1.5}
-          strokeDasharray="6 4"
-          opacity={0.75}
+          strokeWidth={1.25}
+          strokeDasharray="5 4"
+          opacity={0.55}
         />
         <path d={sparkAreaPath(TREND_Y, width, height, padX, padY)} fill={T.areaUp} />
         <path
@@ -143,16 +112,16 @@ function MarketingSparkline({
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <circle cx={entryX} cy={entryY} r={5} fill={T.accentRed} stroke="#fff" strokeWidth={1.5} />
+        <circle cx={entryX} cy={entryY} r={4.5} fill={T.accentRed} stroke="#fff" strokeWidth={1.25} />
       </svg>
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
-          marginTop: 8,
+          marginTop: 10,
           fontSize: 10,
           fontWeight: 600,
-          color: T.textMuted,
+          color: T.textDim,
         }}
       >
         <span style={{ display: "flex", color: T.accentRed }}>{entryLabel}</span>
@@ -167,10 +136,12 @@ function BackgroundShell({
   width,
   height,
   children,
+  up = true,
 }: {
   width: number;
   height: number;
   children: ReactNode;
+  up?: boolean;
 }) {
   return (
     <div
@@ -179,76 +150,24 @@ function BackgroundShell({
         height,
         display: "flex",
         flexDirection: "column",
-        position: "relative",
-        background: T.bgGradient,
+        background: cardBackground(up),
         fontFamily: "Inter",
         overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 4,
-          background: T.accentRed,
-          display: "flex",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          top: -120,
-          right: -60,
-          width: 480,
-          height: 480,
-          borderRadius: "50%",
-          background: "rgba(227, 27, 35, 0.14)",
-          display: "flex",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          bottom: -40,
-          left: -80,
-          width: 420,
-          height: 420,
-          borderRadius: "50%",
-          background: "rgba(227, 27, 35, 0.07)",
-          display: "flex",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-          display: "flex",
-        }}
-      />
       {children}
     </div>
   );
 }
 
-function EyebrowPill({ label }: { label: string }) {
+function EyebrowLabel({ label }: { label: string }) {
   return (
     <div
       style={{
         display: "flex",
-        alignItems: "center",
-        alignSelf: "flex-start",
-        padding: "6px 14px",
-        borderRadius: 999,
-        border: `1px solid rgba(227, 27, 35, 0.35)`,
-        background: "rgba(227, 27, 35, 0.12)",
         fontSize: 10,
-        fontWeight: 700,
-        color: T.textBright,
+        fontWeight: 600,
+        color: T.textDim,
         letterSpacing: 1.6,
       }}
     >
@@ -257,55 +176,9 @@ function EyebrowPill({ label }: { label: string }) {
   );
 }
 
-function PostureChip({ posture }: { posture: Posture }) {
-  const s = POSTURE_STYLE[posture];
-  return (
-    <div
-      style={{
-        display: "flex",
-        padding: "4px 10px",
-        borderRadius: 999,
-        background: s.bg,
-        border: `1px solid ${s.border}`,
-        fontSize: 9,
-        fontWeight: 700,
-        color: s.color,
-        letterSpacing: 0.8,
-      }}
-    >
-      {s.label.toUpperCase()}
-    </div>
-  );
-}
-
-function StatStrip() {
-  const items = ["Live marks", "Private journal", "Ranked calls"];
-  return (
-    <div style={{ display: "flex", gap: 8, marginTop: 20, flexWrap: "wrap" }}>
-      {items.map((item) => (
-        <div
-          key={item}
-          style={{
-            display: "flex",
-            padding: "5px 12px",
-            borderRadius: 999,
-            background: T.chipBg,
-            border: `1px solid ${T.chipBorder}`,
-            fontSize: 10,
-            fontWeight: 600,
-            color: T.chipText,
-          }}
-        >
-          {item}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function BulletList({ lines }: { lines: string[] }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {lines.map((line) => (
         <div
           key={line}
@@ -322,42 +195,17 @@ function BulletList({ lines }: { lines: string[] }) {
           <div
             style={{
               display: "flex",
-              width: 8,
-              height: 8,
-              borderRadius: 2,
+              width: 6,
+              height: 6,
+              borderRadius: 999,
               background: T.up,
               flexShrink: 0,
-              marginTop: 8,
+              marginTop: 9,
             }}
           />
           {line}
         </div>
       ))}
-    </div>
-  );
-}
-
-function LogoMark({ size = 22 }: { size?: number }) {
-  return (
-    <div style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
-      <span style={{ display: "flex", fontSize: size, fontWeight: 700, color: T.textBright }}>
-        Port
-      </span>
-      <span style={{ display: "flex", fontSize: size, fontWeight: 700, color: T.accentRed }}>
-        Fuel
-      </span>
-      <span
-        style={{
-          display: "flex",
-          fontSize: Math.max(10, size * 0.42),
-          fontWeight: 700,
-          color: T.textMuted,
-          letterSpacing: 1.2,
-          marginLeft: 4,
-        }}
-      >
-        .PRO
-      </span>
     </div>
   );
 }
@@ -378,125 +226,102 @@ function FooterBar({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        height: compact ? 56 : 72,
+        height: compact ? 64 : 72,
         padding: `0 ${pad}px`,
         borderTop: `1px solid ${T.rule}`,
-        background: T.surfaceRaised,
+        background: "transparent",
+        flexShrink: 0,
       }}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-        <div style={{ display: "flex", fontSize: compact ? 10 : 11, color: T.text }}>
-          Not investment advice · portfuel.pro
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{ display: "flex", fontSize: compact ? 10 : 11, fontWeight: 500, color: T.text }}>
+          {`Not investment advice · As of ${asOf}`}
         </div>
         <div style={{ display: "flex", fontSize: 10, fontWeight: 500, color: T.textDim }}>
-          {`As of ${asOf}`}
+          portfuel.pro
         </div>
       </div>
       {logoSrc ? (
-        <img
-          src={logoSrc}
-          height={compact ? 28 : 36}
-          alt=""
-          style={{ display: "flex" }}
-        />
-      ) : (
-        <LogoMark size={compact ? 18 : 22} />
-      )}
+        <img src={logoSrc} height={compact ? 36 : 46} alt="" style={{ display: "flex" }} />
+      ) : null}
     </div>
   );
 }
 
-function MockChartCard({
-  symbol = "NVDA",
-  returnPct = "+24.6%",
-  label = "Member call",
-  chartHeight = 180,
-  compact = false,
-  insight = "18d on board · 3 community calls",
+type SparkHeroMeta = {
+  symbol: string;
+  returnPct: string;
+  laneLabel: string;
+  insight: string;
+  lane: "member" | "desk";
+  entryLabel: string;
+  targetLabel: string;
+  stopLabel: string;
+};
+
+function PosterSparkHero({
+  symbol,
+  returnPct,
+  laneLabel,
+  insight,
   lane = "member",
-  posture = "active",
-  entryLabel = "Entry $128.40",
-  targetLabel = "Target $165",
-  stopLabel = "Stop $118",
-}: {
-  symbol?: string;
-  returnPct?: string;
-  label?: string;
+  entryLabel,
+  targetLabel,
+  stopLabel,
+  chartWidth = 460,
+  chartHeight = 148,
+  compact = false,
+}: SparkHeroMeta & {
+  chartWidth?: number;
   chartHeight?: number;
   compact?: boolean;
-  insight?: string;
-  lane?: "member" | "desk";
-  posture?: Posture;
-  entryLabel?: string;
-  targetLabel?: string;
-  stopLabel?: string;
 }) {
-  const laneColor = lane === "desk" ? T.accentRed : T.textMuted;
   const up = returnPct.startsWith("+");
+  const laneColor = lane === "desk" ? T.accentRed : T.textDim;
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-        borderRadius: 18,
-        border: `1px solid ${lane === "desk" ? "rgba(227, 27, 35, 0.35)" : T.rule}`,
-        background: T.surface,
-        padding: compact ? 16 : 20,
-        boxShadow: "0 24px 60px rgba(0,0,0,0.45)",
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <div
-              style={{
-                display: "flex",
-                padding: "4px 10px",
-                borderRadius: 999,
-                background: lane === "desk" ? "rgba(227, 27, 35, 0.14)" : T.chipBg,
-                border: `1px solid ${lane === "desk" ? "rgba(227, 27, 35, 0.35)" : T.chipBorder}`,
-                fontSize: 9,
-                fontWeight: 700,
-                color: laneColor,
-                letterSpacing: 1.1,
-              }}
-            >
-              {lane === "desk" ? "FUELED DESK" : label.toUpperCase()}
-            </div>
-            <PostureChip posture={posture} />
-          </div>
-          <div
-            style={{
-              display: "flex",
-              fontSize: compact ? 28 : 34,
-              fontWeight: 700,
-              color: T.textBright,
-              letterSpacing: -1,
-            }}
-          >
-            {symbol}
-          </div>
-          <div style={{ display: "flex", fontSize: 11, fontWeight: 500, color: T.text }}>
-            {insight}
-          </div>
-        </div>
+    <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+      <div
+        style={{
+          display: "flex",
+          fontSize: 10,
+          fontWeight: 600,
+          color: laneColor,
+          letterSpacing: 1.4,
+        }}
+      >
+        {laneLabel}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          width: "100%",
+          marginTop: 14,
+        }}
+      >
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            gap: 4,
+            fontSize: compact ? 44 : 52,
+            fontWeight: 700,
+            color: T.textBright,
+            letterSpacing: -2,
+            lineHeight: 1,
           }}
         >
+          {symbol}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
           <div
             style={{
               display: "flex",
-              fontSize: compact ? 22 : 28,
+              fontSize: compact ? 36 : 44,
               fontWeight: 700,
               color: up ? T.up : T.down,
-              letterSpacing: -1,
+              letterSpacing: -2,
+              lineHeight: 1,
             }}
           >
             {returnPct}
@@ -508,89 +333,61 @@ function MockChartCard({
               fontWeight: 600,
               color: T.textDim,
               letterSpacing: 1.1,
+              marginTop: 6,
             }}
           >
             SINCE PUBLICATION
           </div>
         </div>
       </div>
-
       <div
         style={{
           display: "flex",
-          flexDirection: "column",
-          marginTop: 16,
-          borderRadius: 12,
-          background: T.bgDeep,
-          border: `1px solid ${T.rule}`,
-          padding: "12px 12px 8px",
+          fontSize: 12,
+          fontWeight: 500,
+          color: T.text,
+          marginTop: 12,
         }}
       >
+        {insight}
+      </div>
+      <div style={{ display: "flex", width: "100%", marginTop: 28 }}>
         <MarketingSparkline
-          width={compact ? 420 : 480}
-          height={chartHeight - 36}
+          width={chartWidth}
+          height={chartHeight}
           entryLabel={entryLabel}
           targetLabel={targetLabel}
           stopLabel={stopLabel}
         />
       </div>
-
-      <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-        {["On record", "Live mark", lane === "desk" ? "House thesis" : "Member thesis"].map(
-          (tag) => (
-            <div
-              key={tag}
-              style={{
-                display: "flex",
-                padding: "4px 10px",
-                borderRadius: 999,
-                background: T.chipBg,
-                border: `1px solid ${T.chipBorder}`,
-                fontSize: 10,
-                fontWeight: 600,
-                color: T.text,
-              }}
-            >
-              {tag}
-            </div>
-          )
-        )}
-      </div>
     </div>
   );
 }
 
-function MiniFeedPreview() {
+function MiniFeedPreview({ compact = false }: { compact?: boolean }) {
   const rows = [
-    {
-      sym: "NVDA",
-      ret: "+24.6%",
-      dir: "LONG",
-      rank: 1,
-      lane: "member" as const,
-      posture: "trimming" as Posture,
-    },
-    {
-      sym: "META",
-      ret: "+11.2%",
-      dir: "LONG",
-      rank: 2,
-      lane: "member" as const,
-      posture: "active" as Posture,
-    },
-    {
-      sym: "CRWD",
-      ret: "+18.4%",
-      dir: "LONG",
-      rank: "Desk",
-      lane: "desk" as const,
-      posture: "active" as Posture,
-    },
+    { sym: "NVDA", ret: "+24.6%", meta: "LONG · Member call", lane: "member" as const },
+    { sym: "META", ret: "+11.2%", meta: "LONG · Member call", lane: "member" as const },
+    { sym: "CRWD", ret: "+18.4%", meta: "LONG · Fueled desk", lane: "desk" as const },
   ];
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
-      {rows.map((row) => {
+    <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+      <div
+        style={{
+          display: "flex",
+          fontSize: 10,
+          fontWeight: 600,
+          color: T.textDim,
+          letterSpacing: 1.2,
+          marginBottom: 14,
+        }}
+      >
+        LIVE FEED PREVIEW
+      </div>
+      {rows.map((row, i) => {
         const up = row.ret.startsWith("+");
+        const border = i < rows.length - 1 ? `1px solid ${T.rule}` : "none";
         return (
           <div
             key={row.sym}
@@ -598,56 +395,42 @@ function MiniFeedPreview() {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: "14px 16px",
-              borderRadius: 14,
-              border: `1px solid ${row.lane === "desk" ? "rgba(227, 27, 35, 0.28)" : T.rule}`,
-              background: T.surface,
+              width: "100%",
+              paddingTop: i === 0 ? 0 : 16,
+              paddingBottom: i < rows.length - 1 ? 16 : 0,
+              borderBottom: border,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <div
                 style={{
                   display: "flex",
-                  width: 28,
-                  height: 28,
-                  borderRadius: 8,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background:
-                    row.lane === "desk" ? "rgba(227, 27, 35, 0.16)" : T.chipBg,
-                  border: `1px solid ${row.lane === "desk" ? "rgba(227, 27, 35, 0.35)" : T.chipBorder}`,
-                  fontSize: 10,
+                  fontSize: compact ? 20 : 24,
                   fontWeight: 700,
-                  color: row.lane === "desk" ? T.accentRed : T.text,
+                  color: T.textBright,
+                  letterSpacing: -0.5,
                 }}
               >
-                {String(row.rank)}
+                {row.sym}
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      fontSize: 18,
-                      fontWeight: 700,
-                      color: T.textBright,
-                    }}
-                  >
-                    {row.sym}
-                  </div>
-                  <PostureChip posture={row.posture} />
-                </div>
-                <div style={{ display: "flex", fontSize: 11, fontWeight: 600, color: T.text }}>
-                  {row.lane === "desk" ? "Fueled desk · LONG" : `${row.dir} · Member call`}
-                </div>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: row.lane === "desk" ? T.accentRed : T.textDim,
+                }}
+              >
+                {row.meta}
               </div>
             </div>
             <div
               style={{
                 display: "flex",
-                fontSize: 16,
+                fontSize: compact ? 20 : 24,
                 fontWeight: 700,
                 color: up ? T.up : T.down,
+                letterSpacing: -0.5,
               }}
             >
               {row.ret}
@@ -659,75 +442,53 @@ function MiniFeedPreview() {
   );
 }
 
+const PROOF_SPARK: SparkHeroMeta = {
+  symbol: "NVDA",
+  returnPct: "+24.6%",
+  laneLabel: "MEMBER CALL",
+  insight: "18d on board · ranked caller",
+  lane: "member",
+  entryLabel: "Entry $128.40",
+  targetLabel: "Target $165",
+  stopLabel: "Stop $118",
+};
+
+const DESK_SPARK: SparkHeroMeta = {
+  symbol: "CRWD",
+  returnPct: "+18.4%",
+  laneLabel: "FUELED DESK",
+  insight: "House thesis · live marks",
+  lane: "desk",
+  entryLabel: "Entry $312.00",
+  targetLabel: "Target $380",
+  stopLabel: "Stop $285",
+};
+
 function ogVisual(variant: MarketingOgVariant) {
-  if (variant === "home" || variant === "join") {
+  if (variant === "home" || variant === "join" || variant === "demo") {
     return <MiniFeedPreview />;
   }
   if (variant === "desk") {
-    return (
-      <MockChartCard
-        symbol="CRWD"
-        returnPct="+18.4%"
-        label="Fueled desk"
-        insight="House thesis · live marks"
-        lane="desk"
-        posture="active"
-        entryLabel="Entry $312.00"
-        targetLabel="Target $380"
-        stopLabel="Stop $285"
-        chartHeight={168}
-        compact
-      />
-    );
+    return <PosterSparkHero {...DESK_SPARK} compact />;
   }
-  return (
-    <MockChartCard
-      chartHeight={200}
-      insight="18d on board · ranked caller"
-      posture="active"
-      compact={false}
-    />
-  );
+  return <PosterSparkHero {...PROOF_SPARK} />;
 }
 
-function adChartMeta(variant: MarketingAdVariant) {
-  if (variant === "desk") {
-    return {
-      symbol: "CRWD",
-      returnPct: "+18.4%",
-      label: "Fueled desk",
-      insight: "House thesis · live marks",
-      lane: "desk" as const,
-      posture: "active" as Posture,
-      entryLabel: "Entry $312.00",
-      targetLabel: "Target $380",
-      stopLabel: "Stop $285",
-    };
-  }
+function adChartMeta(variant: MarketingAdVariant): SparkHeroMeta {
+  if (variant === "desk") return DESK_SPARK;
   if (variant === "structure") {
     return {
       symbol: "AAPL",
       returnPct: "+12.8%",
-      label: "Member thesis",
+      laneLabel: "MEMBER THESIS",
       insight: "Building · entry zone set in journal",
-      lane: "member" as const,
-      posture: "building" as Posture,
+      lane: "member",
       entryLabel: "Entry $228.50",
       targetLabel: "Target $255",
       stopLabel: "Stop $218",
     };
   }
-  return {
-    symbol: "NVDA",
-    returnPct: "+24.6%",
-    label: "Member call",
-    insight: "Trimming into strength · call on record",
-    lane: "member" as const,
-    posture: "trimming" as Posture,
-    entryLabel: "Entry $128.40",
-    targetLabel: "Target $165",
-    stopLabel: "Stop $118",
-  };
+  return PROOF_SPARK;
 }
 
 function logoDataUri(): string | null {
@@ -751,20 +512,19 @@ export async function renderMarketingOgPng(
             display: "flex",
             flexDirection: "row",
             flex: 1,
-            padding: `${pad}px ${pad}px 28px`,
-            gap: 36,
+            padding: `${pad}px ${pad}px 24px`,
+            gap: 40,
           }}
         >
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              width: 620,
+              width: 600,
               justifyContent: "center",
-              gap: 0,
             }}
           >
-            <EyebrowPill label={c.eyebrow} />
+            <EyebrowLabel label={c.eyebrow} />
             <div
               style={{
                 display: "flex",
@@ -772,7 +532,7 @@ export async function renderMarketingOgPng(
                 fontSize: 44,
                 fontWeight: 700,
                 color: T.textBright,
-                marginTop: 18,
+                marginTop: 14,
                 letterSpacing: -1.4,
                 lineHeight: 1.06,
               }}
@@ -792,8 +552,7 @@ export async function renderMarketingOgPng(
             >
               {c.sub}
             </div>
-            <StatStrip />
-            <div style={{ display: "flex", flexDirection: "column", marginTop: 24 }}>
+            <div style={{ display: "flex", flexDirection: "column", marginTop: 28 }}>
               <BulletList lines={c.bullets} />
             </div>
           </div>
@@ -829,7 +588,7 @@ function AdCopyBlock({
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-      <EyebrowPill label="PORTFUEL" />
+      <EyebrowLabel label="PORTFUEL" />
       <div
         style={{
           display: "flex",
@@ -837,7 +596,7 @@ function AdCopyBlock({
           fontSize: compactHeadline ? 38 : 42,
           fontWeight: 700,
           color: T.textBright,
-          marginTop: 16,
+          marginTop: 14,
           letterSpacing: -1.2,
           lineHeight: 1.08,
         }}
@@ -851,7 +610,7 @@ function AdCopyBlock({
           fontSize: compactHeadline ? 20 : 18,
           fontWeight: 500,
           color: T.text,
-          marginTop: 14,
+          marginTop: 12,
           lineHeight: 1.4,
         }}
       >
@@ -874,7 +633,6 @@ function AdCtaButton({ label, fullWidth = false }: { label: string; fullWidth?: 
         color: T.textBright,
         alignSelf: fullWidth ? "stretch" : "flex-start",
         justifyContent: fullWidth ? "center" : "flex-start",
-        boxShadow: "0 10px 30px rgba(227, 27, 35, 0.35)",
       }}
     >
       {label}
@@ -910,19 +668,7 @@ export async function renderMarketingAdPng(opts: {
             }}
           >
             <AdCopyBlock headline={headline} sub={copy.sub} compactHeadline />
-            <MockChartCard
-              symbol={chartMeta.symbol}
-              returnPct={chartMeta.returnPct}
-              label={chartMeta.label}
-              insight={chartMeta.insight}
-              lane={chartMeta.lane}
-              posture={chartMeta.posture}
-              entryLabel={chartMeta.entryLabel}
-              targetLabel={chartMeta.targetLabel}
-              stopLabel={chartMeta.stopLabel}
-              chartHeight={280}
-              compact
-            />
+            <PosterSparkHero {...chartMeta} chartWidth={960} chartHeight={200} compact />
             <AdCtaButton label={copy.cta} fullWidth />
           </div>
         ) : (
@@ -931,8 +677,8 @@ export async function renderMarketingAdPng(opts: {
               display: "flex",
               flexDirection: "column",
               flex: 1,
-              padding: `${pad}px ${pad}px 24px`,
-              gap: 24,
+              padding: `${pad}px ${pad}px 20px`,
+              gap: 20,
             }}
           >
             <div
@@ -940,7 +686,7 @@ export async function renderMarketingAdPng(opts: {
                 display: "flex",
                 flexDirection: "row",
                 flex: 1,
-                gap: 36,
+                gap: 40,
                 alignItems: "center",
               }}
             >
@@ -963,18 +709,7 @@ export async function renderMarketingAdPng(opts: {
                   justifyContent: "center",
                 }}
               >
-                <MockChartCard
-                  symbol={chartMeta.symbol}
-                  returnPct={chartMeta.returnPct}
-                  label={chartMeta.label}
-                  insight={chartMeta.insight}
-                  lane={chartMeta.lane}
-                  posture={chartMeta.posture}
-                  entryLabel={chartMeta.entryLabel}
-                  targetLabel={chartMeta.targetLabel}
-                  stopLabel={chartMeta.stopLabel}
-                  chartHeight={260}
-                />
+                <PosterSparkHero {...chartMeta} chartWidth={440} chartHeight={160} compact />
               </div>
             </div>
 
