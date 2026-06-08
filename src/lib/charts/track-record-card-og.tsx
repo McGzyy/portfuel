@@ -2,45 +2,88 @@ import { ImageResponse } from "next/og";
 import type { TrackRecordCardPayload } from "@/lib/charts/track-record-card-data";
 import { socialChartOgFonts } from "@/lib/charts/social-chart-og-fonts";
 import { fmtSocialAsOf } from "@/lib/charts/social-chart-format";
-import {
-  renderTrackRecordPlotPng,
-  TRACK_RECORD_PLOT_SIZE,
-} from "@/lib/charts/track-record-card-plot";
+import { renderTrackRecordSparkPng, SPARK_H, SPARK_W } from "@/lib/charts/track-record-card-spark";
 import { SOCIAL_CHART_FOOTER_H } from "@/lib/charts/social-chart-logo";
-import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
+import { MARKETING_BRAND as B } from "@/lib/marketing/brand-kit";
 
 const W = 1200;
 const H = 675;
+const PAD = 56;
+
+/** Subtle PortFuel atmosphere — black base, charcoal mid, warm red corner. */
+function cardBackground(up: boolean): string {
+  const perfGlow = up
+    ? "radial-gradient(ellipse 85% 65% at 16% 40%, rgba(5,150,105,0.12) 0%, transparent 58%)"
+    : "radial-gradient(ellipse 85% 65% at 16% 40%, rgba(227,27,35,0.11) 0%, transparent 58%)";
+  const brandGlow =
+    "radial-gradient(ellipse 55% 45% at 100% 8%, rgba(227,27,35,0.10) 0%, transparent 52%)";
+  const base =
+    "linear-gradient(168deg, #000000 0%, #080808 42%, #0f0f0f 72%, #140909 100%)";
+  return `${perfGlow}, ${brandGlow}, ${base}`;
+}
 
 function fmtPct(n: number | null): string {
   if (n == null) return "—";
   return `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
 }
 
+function fmtShortDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  } catch {
+    return "";
+  }
+}
+
+function StatBlock({ value, label }: { value: string; label: string }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+      <div
+        style={{
+          display: "flex",
+          fontSize: 36,
+          fontWeight: 700,
+          color: B.textBright,
+          letterSpacing: -1,
+          lineHeight: 1,
+        }}
+      >
+        {value}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          fontSize: 10,
+          fontWeight: 600,
+          color: B.textDim,
+          marginTop: 6,
+          letterSpacing: 1.2,
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
+
 export async function renderTrackRecordCardOgPng(
   payload: TrackRecordCardPayload
 ): Promise<Buffer> {
-  const plotPng = await renderTrackRecordPlotPng({
-    equityCurve: payload.equityCurve,
-    highlights: payload.highlights,
-    callCount: payload.callCount,
-    winRatePct: payload.winRatePct,
-    avgReturnPct: payload.avgReturnPct,
-    bestReturnPct: payload.bestReturnPct,
-    rankScore: payload.rankScore,
-  });
-  const plotSrc = `data:image/png;base64,${plotPng.toString("base64")}`;
+  const hero =
+    payload.avgReturnPct ??
+    (payload.equityCurve.length > 0 ? payload.equityCurve[payload.equityCurve.length - 1]! : null);
+  const up = (hero ?? 0) >= 0;
+  const heroColor = up ? B.up : B.down;
+  const winRate = payload.winRatePct != null ? `${payload.winRatePct}%` : "—";
 
-  const totalReturn =
-    payload.equityCurve.length > 0
-      ? payload.equityCurve[payload.equityCurve.length - 1]!
-      : payload.avgReturnPct;
-  const heroValue = fmtPct(totalReturn ?? null);
-  const heroColor =
-    totalReturn != null ? (totalReturn >= 0 ? T.lineUp : T.lineDown) : T.textBright;
+  const sparkPng = await renderTrackRecordSparkPng(payload.equityCurve, up);
+  const sparkSrc = `data:image/png;base64,${sparkPng.toString("base64")}`;
 
   const asOf = fmtSocialAsOf();
-  const callLine = `${payload.callCount} verified call${payload.callCount === 1 ? "" : "s"}`;
+  const highlights = payload.highlights.slice(0, 3);
+  const totalReturn = fmtPct(
+    payload.equityCurve.length > 0 ? payload.equityCurve[payload.equityCurve.length - 1]! : hero
+  );
 
   const response = new ImageResponse(
     (
@@ -50,204 +93,218 @@ export async function renderTrackRecordCardOgPng(
           height: H,
           display: "flex",
           flexDirection: "column",
-          background: "linear-gradient(145deg, #0a0c10 0%, #0f1419 52%, #15101a 100%)",
+          background: cardBackground(up),
           fontFamily: "Inter",
         }}
       >
         <div
           style={{
             display: "flex",
-            width: W,
-            height: 3,
-            background: "#e31b23",
-          }}
-        />
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            padding: "38px 56px 0",
-            height: 205,
+            flexDirection: "column",
+            flex: 1,
+            padding: `${40}px ${PAD}px 0`,
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", maxWidth: 700 }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginBottom: 14,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: T.textDim,
-                  letterSpacing: 1.4,
-                }}
-              >
-                PORTFUEL
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  fontSize: 11,
-                  fontWeight: 500,
-                  color: T.textDim,
-                  marginLeft: 8,
-                  marginRight: 8,
-                }}
-              >
-                ·
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: T.textDim,
-                  letterSpacing: 1.2,
-                }}
-              >
-                VERIFIED TRACK RECORD
-              </div>
-              {payload.trusted ? (
-                <div
-                  style={{
-                    display: "flex",
-                    fontSize: 9,
-                    fontWeight: 700,
-                    color: T.accent,
-                    background: T.accentFill,
-                    border: `1px solid ${T.accentBorder}`,
-                    borderRadius: 999,
-                    padding: "4px 10px",
-                    letterSpacing: 0.4,
-                    marginLeft: 14,
-                  }}
-                >
-                  TRUSTED
-                </div>
-              ) : null}
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                fontSize: 54,
-                fontWeight: 700,
-                color: T.textBright,
-                letterSpacing: -2.2,
-                lineHeight: 1,
-              }}
-            >
-              @{payload.username}
-            </div>
-
-            {payload.displayName !== payload.username ? (
-              <div
-                style={{
-                  display: "flex",
-                  fontSize: 21,
-                  fontWeight: 500,
-                  color: T.text,
-                  marginTop: 8,
-                  letterSpacing: -0.2,
-                }}
-              >
-                {payload.displayName}
-              </div>
-            ) : null}
-
-            <div
-              style={{
-                display: "flex",
-                fontSize: 13,
-                fontWeight: 500,
-                color: T.textDim,
-                marginTop: 10,
-              }}
-            >
-              {callLine}
-              <span style={{ display: "flex", marginLeft: 8, marginRight: 8 }}>·</span>
-              timestamped theses
-              <span style={{ display: "flex", marginLeft: 8, marginRight: 8 }}>·</span>
-              live marks
-            </div>
-          </div>
-
+          {/* Identity + rank / win */}
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
+              justifyContent: "space-between",
               alignItems: "flex-end",
-              paddingTop: 28,
+              width: "100%",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                fontSize: 58,
-                fontWeight: 700,
-                color: heroColor,
-                letterSpacing: -2.8,
-                lineHeight: 1,
-              }}
-            >
-              {heroValue}
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 42,
+                  fontWeight: 700,
+                  color: B.textBright,
+                  letterSpacing: -1.2,
+                  lineHeight: 1,
+                }}
+              >
+                @{payload.username}
+              </div>
+              {payload.displayName !== payload.username ? (
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 17,
+                    fontWeight: 500,
+                    color: B.text,
+                    marginTop: 6,
+                  }}
+                >
+                  {payload.displayName}
+                </div>
+              ) : null}
             </div>
+            <div style={{ display: "flex", gap: 44 }}>
+              <StatBlock value={`#${Math.round(payload.rankScore)}`} label="RANK" />
+              <StatBlock value={winRate} label="WIN RATE" />
+            </div>
+          </div>
+
+          {/* Hero — Binance-style flex number */}
+          <div style={{ display: "flex", flexDirection: "column", marginTop: 44, width: "100%" }}>
             <div
               style={{
                 display: "flex",
                 fontSize: 11,
                 fontWeight: 600,
-                color: T.textDim,
-                marginTop: 8,
-                letterSpacing: 1.3,
+                color: B.textDim,
+                letterSpacing: 1.6,
+                marginBottom: 10,
               }}
             >
-              AVG RETURN
+              AVG RETURN PER CALL
+            </div>
+            <div
+              style={{
+                display: "flex",
+                fontSize: 108,
+                fontWeight: 700,
+                color: heroColor,
+                letterSpacing: -5,
+                lineHeight: 0.95,
+              }}
+            >
+              {fmtPct(hero)}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                fontSize: 15,
+                fontWeight: 500,
+                color: B.textMuted,
+                marginTop: 16,
+              }}
+            >
+              {payload.callCount} closed call{payload.callCount === 1 ? "" : "s"} · {totalReturn}{" "}
+              cumulative · {fmtPct(payload.bestReturnPct)} best
             </div>
           </div>
+
+          {/* Equity curve */}
+          <div style={{ display: "flex", width: "100%", marginTop: 28 }}>
+            <img src={sparkSrc} width={SPARK_W} height={SPARK_H} alt="" />
+          </div>
+
+          {/* Top calls — inline columns, no boxes */}
+          {highlights.length > 1 ? (
+            <div style={{ display: "flex", flexDirection: "column", marginTop: 32, width: "100%" }}>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: B.textDim,
+                  letterSpacing: 1.2,
+                  marginBottom: 14,
+                }}
+              >
+                TOP CALLS
+              </div>
+              <div style={{ display: "flex", width: "100%", gap: 0 }}>
+                {highlights.map((h, i) => {
+                  const retUp = (h.returnPct ?? 0) >= 0;
+                  const dirColor = h.direction === "long" ? B.up : B.down;
+                  const border =
+                    i < highlights.length - 1
+                      ? `1px solid ${B.rule}`
+                      : "none";
+                  return (
+                    <div
+                      key={`${h.symbol}-${h.calledAt}`}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        flex: 1,
+                        paddingRight: i < highlights.length - 1 ? 20 : 0,
+                        paddingLeft: i > 0 ? 20 : 0,
+                        borderRight: border,
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          width: "100%",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            fontSize: 24,
+                            fontWeight: 700,
+                            color: B.textBright,
+                          }}
+                        >
+                          ${h.symbol}
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            fontSize: 24,
+                            fontWeight: 700,
+                            color: retUp ? B.up : B.down,
+                            letterSpacing: -0.5,
+                          }}
+                        >
+                          {fmtPct(h.returnPct)}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: B.textDim,
+                          marginTop: 6,
+                        }}
+                      >
+                        <span style={{ display: "flex", color: dirColor, marginRight: 6 }}>
+                          {h.direction.toUpperCase()}
+                        </span>
+                        {h.calledAt ? fmtShortDate(h.calledAt) : ""}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
         </div>
 
+        {/* Footer */}
         <div
           style={{
             display: "flex",
-            height: TRACK_RECORD_PLOT_SIZE.height,
-            flexShrink: 0,
-          }}
-        >
-          <img
-            src={plotSrc}
-            width={TRACK_RECORD_PLOT_SIZE.width}
-            height={TRACK_RECORD_PLOT_SIZE.height}
-            alt=""
-          />
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            flexDirection: "column",
+            justifyContent: "center",
             height: SOCIAL_CHART_FOOTER_H,
             flexShrink: 0,
-            padding: "0 56px",
-            borderTop: `1px solid ${T.rule}`,
-            background: T.surface,
+            padding: `0 ${PAD}px`,
+            borderTop: `1px solid ${B.rule}`,
+            background: "transparent",
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <div style={{ display: "flex", fontSize: 11, fontWeight: 500, color: T.textDim }}>
-              Not investment advice · community verified performance
-            </div>
-            <div style={{ display: "flex", fontSize: 10, fontWeight: 500, color: T.textDim }}>
-              {`Track record as of ${asOf} · download & share from your profile`}
-            </div>
+          <div style={{ display: "flex", fontSize: 11, fontWeight: 500, color: B.text }}>
+            {`Not investment advice · As of ${asOf}`}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              fontSize: 10,
+              fontWeight: 500,
+              color: B.textDim,
+              marginTop: 5,
+            }}
+          >
+            {`${payload.siteHost}/member/${payload.username}`}
           </div>
         </div>
       </div>

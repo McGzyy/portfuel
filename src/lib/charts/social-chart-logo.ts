@@ -3,12 +3,12 @@ import { join } from "node:path";
 import sharp from "sharp";
 import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
 
-/** Light mark for dark social charts; falls back to chrome source. */
-const LOGO_FILES = ["logo-social-light.png", "logo-social-dark.png", "logo.png"] as const;
+/** Site wordmark on dark backgrounds (matches Logo variant="light"); social chrome as fallback. */
+const LOGO_FILES = ["logo-light.png", "logo.png", "logo-social-light.png", "logo-social-dark.png"] as const;
 
 export const SOCIAL_CHART_PAD_X = 56;
 export const SOCIAL_CHART_FOOTER_H = 92;
-export const SOCIAL_CHART_LOGO_HEIGHT = 40;
+export const SOCIAL_CHART_LOGO_HEIGHT = 46;
 
 export function socialChartLogoPath(): string | null {
   for (const file of LOGO_FILES) {
@@ -61,28 +61,8 @@ export async function compositeSocialChartLogo(chartPng: Buffer): Promise<Buffer
     .png()
     .toBuffer();
 
-  // Soft glow so the light mark reads on dark footer.
-  const alpha = await sharp(logoBuf).ensureAlpha().extractChannel(3).png().toBuffer();
-  const shadowMask = await sharp(alpha).blur(8).png().toBuffer();
-  const shadowLayer = await sharp({
-    create: {
-      width: logoW,
-      height: logoH,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0.35 },
-    },
-  })
-    .composite([{ input: shadowMask, blend: "dest-in" }])
-    .png()
-    .toBuffer();
-
   return sharp(chartPng)
-    .composite([
-      // shadow (slightly down-right)
-      { input: shadowLayer, left: left + 2, top: top + 3, blend: "over" },
-      // logo
-      { input: logoBuf, left, top, blend: "over" },
-    ])
+    .composite([{ input: logoBuf, left, top, blend: "over" }])
     .png()
     .toBuffer();
 }
