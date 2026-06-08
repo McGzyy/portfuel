@@ -16,6 +16,7 @@ import {
   isSchemaDriftError,
   WATCHLIST_BASIC_SELECT,
   WATCHLIST_FULL_SELECT,
+  WATCHLIST_JOURNAL_SELECT,
 } from "@/lib/watchlist/db-select";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 
@@ -37,7 +38,18 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
   let error = primary.error;
 
   if (error && isSchemaDriftError(error)) {
-    console.warn("[watchlist/fetch] journal columns missing — using basic select");
+    console.warn("[watchlist/fetch] journal columns missing — trying journal select");
+    const journalFallback = await db
+      .from("user_watchlist")
+      .select(WATCHLIST_JOURNAL_SELECT)
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    data = journalFallback.data as WatchlistEntry[] | null;
+    error = journalFallback.error;
+  }
+
+  if (error && isSchemaDriftError(error)) {
+    console.warn("[watchlist/fetch] falling back to basic select");
     const fallback = await db
       .from("user_watchlist")
       .select(WATCHLIST_BASIC_SELECT)

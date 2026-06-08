@@ -82,6 +82,10 @@ export function attachJournalHubProgress(
       },
       stats
     );
-    return { ...item, journal_progress: progress };
+    return {
+      ...item,
+      has_thesis: Boolean(row.thesis?.trim()),
+      journal_progress: progress,
+    };
   });
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireActiveMember } from "@/lib/auth/session";
 import {
@@ -79,6 +80,8 @@ export async function PATCH(request: Request, context: RouteContext) {
             : 400;
       return NextResponse.json({ error: result.error }, { status });
     }
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/journal");
     return NextResponse.json({ ok: true, journal: result.journal });
   } catch (e) {
     if (e instanceof z.ZodError) {

@@ -81,6 +81,8 @@ export const metadata: Metadata = {
   title: "Overview",
 };
 
+export const dynamic = "force-dynamic";
+
 type OwnCallRow = Awaited<ReturnType<typeof fetchUserRecentCalls>>[number];
 
 function toOwnStripCard(

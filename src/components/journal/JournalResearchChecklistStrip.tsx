@@ -63,7 +63,7 @@ export function JournalResearchChecklistStrip({
                 <span
                   className={cn(
                     "block text-[11px] font-semibold",
-                    item.done ? "text-emerald-900" : "text-[var(--pf-gray-800)]"
+                    item.done ? "pf-checklist-item-done-title" : "text-[var(--pf-gray-800)]"
                   )}
                 >
                   {item.label}
@@ -85,7 +85,7 @@ export function JournalResearchChecklistStrip({
                   href={href}
                   className={cn(
                     "flex items-start gap-2 rounded-lg border px-3 py-2.5 transition-colors hover:border-indigo-200 hover:bg-indigo-50/40",
-                    "border-[var(--pf-border)] bg-[var(--pf-gray-50)]"
+                    "pf-checklist-item-pending"
                   )}
                 >
                   {inner}
@@ -94,9 +94,7 @@ export function JournalResearchChecklistStrip({
                 <div
                   className={cn(
                     "flex items-start gap-2 rounded-lg border px-3 py-2.5",
-                    item.done
-                      ? "border-emerald-200/80 bg-emerald-50/50"
-                      : "border-[var(--pf-border)] bg-[var(--pf-gray-50)]"
+                    item.done ? "pf-checklist-item-done" : "pf-checklist-item-pending"
                   )}
                 >
                   {inner}

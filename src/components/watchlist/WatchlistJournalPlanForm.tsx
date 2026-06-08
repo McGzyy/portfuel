@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +68,7 @@ export function WatchlistJournalPlanForm({
   const [saved, setSaved] = useState(false);
   const [draftApplied, setDraftApplied] = useState(false);
   const thesisRef = useRef<HTMLTextAreaElement>(null);
+  const router = useRouter();
 
   const loadUsage = useCallback(async () => {
     try {
@@ -189,6 +191,7 @@ export function WatchlistJournalPlanForm({
       }
       onSaved(data.journal as WatchlistJournal);
       setSaved(true);
+      router.refresh();
     } catch {
       setError("Could not save plan.");
     } finally {

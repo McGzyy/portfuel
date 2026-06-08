@@ -1,4 +1,4 @@
-import { journalSymbolPath } from "@/lib/journal/paths";
+import { journalSymbolPath, type JournalSection } from "@/lib/journal/paths";
 import { buildPublishUrlFromHubEntry } from "@/lib/watchlist/journal-call-url";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 
@@ -24,6 +24,47 @@ const POSTURE_RANK: Record<string, number> = {
   building: 1,
 };
 
+function entryHasThesis(item: WatchlistEntry): boolean {
+  return Boolean(item.has_thesis ?? item.thesis?.trim());
+}
+
+function nextResearchGap(item: WatchlistEntry): {
+  label: string;
+  section: JournalSection;
+} | null {
+  if (!entryHasThesis(item)) {
+    return { label: "draft your thesis on the plan form", section: "plan" };
+  }
+  const hasCatalystsOrRisks =
+    (item.catalysts?.length ?? 0) > 0 || Boolean(item.risk_factors?.trim());
+  if (!hasCatalystsOrRisks) {
+    return { label: "add catalyst tags or risk factors", section: "plan" };
+  }
+  const hasPlan =
+    item.entry_price != null &&
+    item.entry_price > 0 &&
+    item.target_price != null &&
+    item.target_price > 0;
+  if (!hasPlan) {
+    return { label: "set entry and target on your plan", section: "plan" };
+  }
+  const manual = item.journal_progress?.manual_entry_count ?? 0;
+  if (manual < 2) {
+    const need = 2 - manual;
+    return {
+      label: `log ${need} more price-action or news ${need === 1 ? "entry" : "entries"}`,
+      section: "entries",
+    };
+  }
+  return null;
+}
+
+function progressLabel(item: WatchlistEntry): string {
+  const done = item.journal_progress?.required_completed ?? 0;
+  const total = item.journal_progress?.required_total ?? 4;
+  return `${done}/${total} research steps done`;
+}
+
 /** Best symbol to nudge the user toward next — publish when ready, posture, thesis, active, broken. */
 export function pickJournalNextUp(items: WatchlistEntry[]): JournalNextUp | null {
   if (items.length === 0) return null;
@@ -44,17 +85,34 @@ export function pickJournalNextUp(items: WatchlistEntry[]): JournalNextUp | null
     };
   }
 
-  const noThesis = items.filter((i) => !i.has_thesis);
-  if (noThesis.length > 0) {
-    const row = noThesis[0]!;
-    return {
-      symbol: row.symbol,
-      reason: "draft_thesis",
-      title: `$${row.symbol} needs a thesis`,
-      detail: "Use Draft with AI on the journal plan form, edit it, then save — catalysts and levels come next.",
-      href: journalSymbolPath(row.symbol, { setup: true, section: "plan" }),
-      cta: "Open journal",
-    };
+  const incomplete = items.filter((i) => !i.journal_progress?.ready_to_publish);
+  if (incomplete.length > 0) {
+    const row = [...incomplete].sort(
+      (a, b) =>
+        (a.journal_progress?.required_completed ?? 0) -
+        (b.journal_progress?.required_completed ?? 0)
+    )[0]!;
+    const gap = nextResearchGap(row);
+    if (gap) {
+      if (!entryHasThesis(row)) {
+        return {
+          symbol: row.symbol,
+          reason: "draft_thesis",
+          title: `$${row.symbol} needs a thesis`,
+          detail: "Use Draft with AI on the journal plan form, edit it, then save.",
+          href: journalSymbolPath(row.symbol, { setup: true, section: "plan" }),
+          cta: "Open journal",
+        };
+      }
+      return {
+        symbol: row.symbol,
+        reason: "continue_research",
+        title: `Continue $${row.symbol} research`,
+        detail: `Thesis saved — ${gap.label} (${progressLabel(row)}).`,
+        href: journalSymbolPath(row.symbol, { section: gap.section }),
+        cta: "Continue",
+      };
+    }
   }
 
   const postureNudge = items.filter(
@@ -115,5 +173,5 @@ export function pickJournalNextUp(items: WatchlistEntry[]): JournalNextUp | null
 }
 
 export function countNeedsThesis(items: WatchlistEntry[]): number {
-  return items.filter((i) => !i.has_thesis).length;
+  return items.filter((i) => !entryHasThesis(i)).length;
 }

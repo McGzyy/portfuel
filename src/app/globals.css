@@ -1897,6 +1897,33 @@ body {
   color: #fda4af;
 }
 
+.pf-checklist-item-pending {
+  border-color: var(--pf-border);
+  background-color: var(--pf-gray-50);
+}
+
+.pf-checklist-item-done {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: linear-gradient(135deg, rgb(236 253 245) 0%, var(--pf-surface) 100%);
+}
+
+.pf-checklist-item-done-title {
+  color: rgb(6 78 59);
+}
+
+[data-theme="dark"] .pf-checklist-item-pending {
+  background-color: var(--pf-gray-50);
+}
+
+[data-theme="dark"] .pf-checklist-item-done {
+  border-color: rgba(52, 211, 153, 0.32);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, var(--pf-surface) 100%);
+}
+
+[data-theme="dark"] .pf-checklist-item-done-title {
+  color: #6ee7b7;
+}
+
 .pf-hot-ticker-chip {
   display: inline-flex;
   align-items: center;
