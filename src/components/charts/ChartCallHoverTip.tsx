@@ -21,7 +21,7 @@ export function ChartCallHoverTip({
   const name = call.users.display_name ?? call.users.pin;
   const ret = call.return_pct;
   const retClass =
-    ret == null ? "text-[var(--pf-gray-500)]" : ret >= 0 ? "text-emerald-600" : "text-rose-600";
+    ret == null ? "text-[var(--pf-gray-500)]" : ret >= 0 ? "pf-return-up" : "pf-return-down";
 
   const left = Math.min(Math.max(x + 12, 8), 280);
   const top = Math.max(y - 8, 8);
@@ -29,7 +29,7 @@ export function ChartCallHoverTip({
   return (
     <div
       className={cn(
-        "pointer-events-none absolute z-20 w-[min(17rem,calc(100%-1rem))] rounded-lg border border-[var(--pf-border)] bg-white p-3 shadow-lg",
+        "pf-chart-hover-tip pointer-events-none absolute z-20 w-[min(17rem,calc(100%-1rem))] rounded-lg border border-[var(--pf-border)] p-3 shadow-lg",
         className
       )}
       style={{ left, top }}

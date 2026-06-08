@@ -19,11 +19,7 @@ function StatRow({ label, value }: { label: string; value: string }) {
 
 function ReturnRow({ label, value }: { label: string; value: number | null }) {
   const retClass =
-    value == null
-      ? "text-[var(--pf-gray-500)]"
-      : value >= 0
-        ? "text-emerald-600"
-        : "text-rose-600";
+    value == null ? "text-[var(--pf-gray-500)]" : value >= 0 ? "pf-return-up" : "pf-return-down";
   return (
     <div className="flex items-baseline justify-between gap-3 rounded-lg bg-[var(--pf-gray-50)] px-3 py-2">
       <span className="text-[var(--pf-gray-500)]">{label}</span>
@@ -72,9 +68,7 @@ export function CryptoIntelPanel({ intel }: { intel: TickerIntel }) {
               <dd className="font-semibold tabular-nums">
                 ${intel.quote.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}{" "}
                 <span
-                  className={
-                    intel.quote.changePct >= 0 ? "text-emerald-600" : "text-rose-600"
-                  }
+                  className={intel.quote.changePct >= 0 ? "pf-return-up" : "pf-return-down"}
                 >
                   {intel.quote.changePct >= 0 ? "+" : ""}
                   {intel.quote.changePct.toFixed(2)}%

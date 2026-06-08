@@ -87,7 +87,7 @@ function ResearchPulseTeaser({
         {pills.map((p) => (
           <span
             key={p}
-            className="rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-0.5 text-xs font-medium text-[var(--pf-gray-700)]"
+            className="pf-chip-action text-xs font-medium"
           >
             {p}
           </span>
@@ -151,7 +151,7 @@ function ResearchPulseCards({
             <>
               {screenerLine}
               {topProgress?.return_pct != null ? (
-                <span className="ml-1 font-semibold text-emerald-700">
+                <span className="pf-return-up ml-1 font-semibold">
                   · {formatPct(topProgress.return_pct)}
                 </span>
               ) : null}
@@ -163,7 +163,7 @@ function ResearchPulseCards({
           <PulseLink
             href={`/ticker/${topReturn.symbol}`}
             icon={TrendingUp}
-            iconClass="text-emerald-600"
+            iconClass="pf-return-up"
             title="Best 30d return"
             detail={`${topReturn.symbol} ${formatPct(topReturn.return_pct)} · @${topReturn.username}`}
             interactive={interactive}
@@ -206,8 +206,7 @@ function PulseLink({
   detail: ReactNode;
   interactive?: boolean;
 }) {
-  const className =
-    "flex min-w-0 items-start gap-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-3 transition-colors hover:border-[var(--pf-gray-300)] hover:bg-white";
+  const className = "pf-pulse-card";
 
   const inner = (
     <>

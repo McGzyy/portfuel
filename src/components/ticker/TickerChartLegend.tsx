@@ -25,7 +25,7 @@ export function TickerChartLegend({
     <div
       className={cn(
         "flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 text-xs text-[var(--pf-gray-500)]",
-        !embedded && "border-t border-[var(--pf-border)] bg-white"
+        !embedded && "border-t border-[var(--pf-border)] bg-[var(--pf-surface)]"
       )}
     >
       {callCount > 0 ? (

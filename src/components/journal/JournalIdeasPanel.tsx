@@ -8,7 +8,7 @@ import { compareJournalHubIncomplete } from "@/lib/journal/hub-summary";
 import { journalSymbolPath } from "@/lib/journal/paths";
 import { outcomeLabel, type JournalCatalyst } from "@/lib/watchlist/journal-meta";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
-import { formatPct, formatPrice } from "@/lib/utils";
+import { cn, formatPct, formatPrice } from "@/lib/utils";
 
 type FilterMode = "all" | "high" | "broken" | "needs_thesis" | "ready";
 
@@ -102,7 +102,7 @@ export function JournalIdeasPanel({
             Progress bars show thesis, plan, and logged updates — open any row to continue where
             you left off.
             {readyCount > 0 ? (
-              <span className="font-semibold text-emerald-700">
+              <span className="pf-return-up font-semibold">
                 {" "}
                 · {readyCount} ready to publish
               </span>
@@ -132,7 +132,8 @@ export function JournalIdeasPanel({
                 key={id}
                 type="button"
                 onClick={() => setFilter(id)}
-                className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-[10px] font-semibold",
                   filter === id
                     ? id === "broken"
                       ? "bg-rose-700 text-white"
@@ -141,8 +142,8 @@ export function JournalIdeasPanel({
                         : id === "ready"
                           ? "bg-emerald-600 text-white"
                           : "bg-[var(--pf-black)] text-white"
-                    : "border border-[var(--pf-border)] text-[var(--pf-gray-600)]"
-                }`}
+                    : "pf-pill-inactive border px-2.5 py-1"
+                )}
               >
                 {label}
               </button>
@@ -160,11 +161,12 @@ export function JournalIdeasPanel({
                   onClick={() =>
                     setCatalystFilter((prev) => (prev === c ? null : (c as JournalCatalyst)))
                   }
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-[10px] font-semibold",
                     catalystFilter === c
                       ? "bg-indigo-100 text-indigo-900 ring-1 ring-indigo-300"
-                      : "border border-[var(--pf-border)] bg-white text-[var(--pf-gray-600)]"
-                  }`}
+                      : "pf-pill-inactive border px-2 py-0.5"
+                  )}
                 >
                   {c}
                 </button>
@@ -204,7 +206,7 @@ export function JournalIdeasPanel({
             <li key={item.symbol}>
               <Link
                 href={journalRowHref(item)}
-                className="block rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3.5 py-3 transition-colors hover:border-[var(--pf-gray-300)] hover:bg-white"
+                className="pf-journal-idea-row"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <span className="flex flex-wrap items-center gap-2">
@@ -221,14 +223,10 @@ export function JournalIdeasPanel({
                         Draft thesis
                       </span>
                     ) : item.journal_progress?.ready_to_publish ? (
-                      <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
-                        Ready
-                      </span>
+                      <span className="pf-badge-ready">Ready</span>
                     ) : null}
                     {item.outcome && item.outcome !== "watching" ? (
-                      <span className="rounded-full bg-white px-1.5 py-0.5 text-[10px] font-semibold text-[var(--pf-gray-600)] ring-1 ring-[var(--pf-border)]">
-                        {outcomeLabel(item.outcome)}
-                      </span>
+                      <span className="pf-outcome-badge">{outcomeLabel(item.outcome)}</span>
                     ) : null}
                   </span>
                   <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-700">
@@ -245,7 +243,7 @@ export function JournalIdeasPanel({
                     {item.change_since_add_pct != null ? (
                       <span
                         className={
-                          item.change_since_add_pct >= 0 ? " text-emerald-700" : " text-rose-700"
+                          item.change_since_add_pct >= 0 ? " pf-return-up" : " pf-return-down"
                         }
                       >
                         {" "}
@@ -261,7 +259,7 @@ export function JournalIdeasPanel({
                     {(item.catalysts ?? []).map((c) => (
                       <span
                         key={c}
-                        className="rounded-full bg-white px-1.5 py-0.5 text-[10px] font-semibold text-indigo-800 ring-1 ring-indigo-100"
+                        className="rounded-full bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-800 ring-1 ring-indigo-100"
                       >
                         {c}
                       </span>

@@ -27,7 +27,7 @@ export function ProIntelDiscoverStrip({
   ] as const;
 
   return (
-    <section className="rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-4 py-3 shadow-[var(--pf-shadow-sm)]">
+    <section className="pf-pro-discover-strip">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
@@ -47,7 +47,7 @@ export function ProIntelDiscoverStrip({
             <Link
               key={label}
               href={href}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-1.5 text-xs font-semibold text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-white"
+              className="pf-chip-action gap-1.5 px-3 py-1.5 text-xs"
             >
               <Icon className="h-3.5 w-3.5" />
               {label}
