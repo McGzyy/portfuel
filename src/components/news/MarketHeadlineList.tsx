@@ -41,7 +41,7 @@ export function MarketHeadlineList({
           key={item.id}
           className={cn(
             compact
-              ? "rounded-lg border border-[var(--pf-border)] bg-white px-3 py-2.5"
+              ? "pf-headline-card px-3 py-2.5"
               : "py-3 first:pt-0"
           )}
         >
@@ -77,7 +77,7 @@ export function MarketHeadlineList({
                 <Link
                   key={`${item.id}-${sym}`}
                   href={`/ticker/${sym}`}
-                  className="rounded-full border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-white"
+                  className="rounded-full border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-surface)]"
                 >
                   {sym}
                 </Link>

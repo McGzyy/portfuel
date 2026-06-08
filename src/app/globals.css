@@ -1965,6 +1965,89 @@ body {
   border-color: rgba(251, 113, 133, 0.45);
 }
 
+.pf-popover-panel {
+  background-color: var(--pf-surface);
+}
+
+.pf-icon-btn {
+  border: 1px solid var(--pf-border);
+  background-color: var(--pf-surface);
+  color: var(--pf-gray-600);
+  box-shadow: var(--pf-shadow-sm);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.pf-icon-btn:hover {
+  background-color: var(--pf-gray-50);
+  color: var(--pf-black);
+}
+
+.pf-guide-modal {
+  background-color: var(--pf-surface);
+}
+
+.pf-guide-card {
+  display: flex;
+  height: 100%;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border-radius: var(--pf-radius-lg);
+  border: 1px solid var(--pf-border);
+  background: color-mix(in srgb, var(--pf-gray-50) 40%, transparent);
+  padding: 0.875rem;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.pf-guide-card:hover {
+  border-color: var(--pf-gray-300);
+  background-color: var(--pf-surface);
+  box-shadow: var(--pf-shadow-sm);
+}
+
+[data-theme="dark"] .pf-guide-card:hover {
+  border-color: var(--pf-gray-200);
+  background-color: var(--pf-gray-50);
+}
+
+.pf-guide-icon {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--pf-radius);
+  background-color: var(--pf-surface);
+  color: var(--pf-gray-600);
+  box-shadow:
+    var(--pf-shadow-sm),
+    inset 0 0 0 1px var(--pf-border);
+  transition: color 0.15s ease;
+}
+
+.pf-guide-card:hover .pf-guide-icon {
+  color: var(--pf-red);
+}
+
+.pf-chart-modal-shell {
+  background: color-mix(in srgb, var(--pf-gray-50) 50%, var(--pf-surface));
+}
+
+.pf-chart-modal-bar {
+  background-color: var(--pf-surface);
+}
+
+.pf-headline-card {
+  border-radius: var(--pf-radius);
+  border: 1px solid var(--pf-border);
+  background-color: var(--pf-surface);
+}
+
 [data-theme="dark"] .ring-sky-100,
 [data-theme="dark"] .ring-violet-100,
 [data-theme="dark"] .ring-amber-100,

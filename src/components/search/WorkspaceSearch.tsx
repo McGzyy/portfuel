@@ -113,7 +113,7 @@ export function WorkspaceSearchTrigger({ className }: { className?: string }) {
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "flex h-9 w-full min-w-0 items-center gap-2 rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 text-sm text-[var(--pf-gray-500)] shadow-[var(--pf-shadow-sm)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-white sm:hidden",
+          "flex h-9 w-full min-w-0 items-center gap-2 rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 text-sm text-[var(--pf-gray-500)] shadow-[var(--pf-shadow-sm)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-surface)] sm:hidden",
           className
         )}
         aria-label="Search workspace"
@@ -125,7 +125,7 @@ export function WorkspaceSearchTrigger({ className }: { className?: string }) {
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "hidden h-9 w-full max-w-md items-center gap-2.5 rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 text-sm text-[var(--pf-gray-500)] shadow-[var(--pf-shadow-sm)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-white sm:flex",
+          "hidden h-9 w-full max-w-md items-center gap-2.5 rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 text-sm text-[var(--pf-gray-500)] shadow-[var(--pf-shadow-sm)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-surface)] sm:flex",
           className
         )}
       >
@@ -363,7 +363,7 @@ function WorkspaceCommandPalette({
         role="dialog"
         aria-modal="true"
         aria-label="Search workspace"
-        className="flex max-h-[min(32rem,calc(100dvh-1.5rem))] w-full max-w-xl flex-col overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-2xl"
+        className="pf-popover-panel flex max-h-[min(32rem,calc(100dvh-1.5rem))] w-full max-w-xl flex-col overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] shadow-2xl"
       >
         <div className="flex items-center gap-3 border-b border-[var(--pf-border)] px-4 py-3">
           <Search className="h-5 w-5 shrink-0 text-[var(--pf-gray-400)]" strokeWidth={2.25} />
@@ -673,7 +673,7 @@ function SymbolRow({
             e.stopPropagation();
             onRemove();
           }}
-          className="shrink-0 rounded-md p-1.5 text-[var(--pf-gray-400)] transition-colors hover:bg-white hover:text-[var(--pf-black)]"
+          className="shrink-0 rounded-md p-1.5 text-[var(--pf-gray-400)] transition-colors hover:bg-[var(--pf-surface)] hover:text-[var(--pf-black)]"
           aria-label={`Remove ${item.symbol} from recent`}
         >
           <X className="h-3.5 w-3.5" />
@@ -683,7 +683,7 @@ function SymbolRow({
         <button
           type="button"
           onClick={onIntel}
-          className="shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-[var(--pf-gray-500)] hover:bg-white hover:text-[var(--pf-black)]"
+          className="shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-[var(--pf-gray-500)] hover:bg-[var(--pf-surface)] hover:text-[var(--pf-black)]"
           title="Open community intel page"
         >
           Intel

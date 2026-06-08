@@ -63,7 +63,7 @@ export function ShareTrackRecordCard({
         <a
           href={cardUrl}
           download={`portfuel-${username}-track-record.png`}
-          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-[var(--pf-border)] bg-white px-3 text-sm font-semibold text-[var(--pf-gray-700)] shadow-[var(--pf-shadow-sm)] hover:bg-[var(--pf-gray-50)]"
+          className="pf-chip-action h-9 gap-1.5 px-3 text-sm shadow-[var(--pf-shadow-sm)]"
         >
           <Download className="h-4 w-4" strokeWidth={2.25} />
           Download PNG

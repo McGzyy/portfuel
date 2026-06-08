@@ -20,7 +20,7 @@ export function MemberProfileNav({ isSelf = false }: { isSelf?: boolean }) {
         <Link
           key={item.href}
           href={item.href}
-          className="shrink-0 rounded-full border border-[var(--pf-border)] bg-white px-3.5 py-1.5 text-xs font-semibold text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
+          className="pf-chip-action shrink-0 px-3.5 py-1.5 text-xs"
         >
           {item.label}
         </Link>
@@ -28,7 +28,7 @@ export function MemberProfileNav({ isSelf = false }: { isSelf?: boolean }) {
       {isSelf ? (
         <Link
           href="/settings"
-          className="ml-auto shrink-0 rounded-full border border-[var(--pf-border)] bg-white px-3.5 py-1.5 text-xs font-semibold text-[var(--pf-gray-600)] hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
+          className="pf-chip-action ml-auto shrink-0 px-3.5 py-1.5 text-xs text-[var(--pf-gray-600)]"
         >
           Settings
         </Link>

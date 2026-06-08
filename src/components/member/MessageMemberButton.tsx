@@ -7,7 +7,7 @@ export function MessageMemberButton({ username }: { username: string }) {
   return (
     <Link
       href={`/dashboard/messages?with=${encodeURIComponent(username)}`}
-      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--pf-border)] bg-white px-3 text-sm font-medium text-[var(--pf-black)] hover:bg-[var(--pf-gray-50)]"
+      className="pf-chip-action h-9 gap-1.5 px-3 text-sm font-medium text-[var(--pf-black)]"
     >
       <MessageCircle className="h-4 w-4" />
       Message

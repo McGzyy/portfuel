@@ -46,8 +46,8 @@ export function ChartCallDayPickerModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="flex max-h-[min(80dvh,28rem)] w-full max-w-md flex-col overflow-hidden rounded-t-[1.25rem] border border-[var(--pf-border)] bg-white shadow-xl sm:rounded-[var(--pf-radius-lg)]">
-        <div className="flex shrink-0 items-center justify-between border-b border-[var(--pf-border)] px-4 py-3">
+      <div className="pf-chart-modal-shell flex max-h-[min(80dvh,28rem)] w-full max-w-md flex-col overflow-hidden rounded-t-[1.25rem] border border-[var(--pf-border)] shadow-xl sm:rounded-[var(--pf-radius-lg)]">
+        <div className="pf-chart-modal-bar flex shrink-0 items-center justify-between border-b border-[var(--pf-border)] px-4 py-3">
           <div>
             <p id="chart-call-picker-title" className="text-sm font-bold text-[var(--pf-black)]">
               {rows.length} calls this day
@@ -71,8 +71,8 @@ export function ChartCallDayPickerModal({
               ret == null
                 ? "text-[var(--pf-gray-500)]"
                 : ret >= 0
-                  ? "text-emerald-600"
-                  : "text-rose-600";
+                  ? "pf-return-up"
+                  : "pf-return-down";
             const focused = call.id === focusCallId;
 
             return (

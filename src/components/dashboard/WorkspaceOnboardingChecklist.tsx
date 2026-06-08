@@ -101,7 +101,7 @@ export function WorkspaceOnboardingChecklist({
         <button
           type="button"
           onClick={dismiss}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--pf-gray-500)] hover:bg-white hover:text-[var(--pf-black)]"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--pf-gray-500)] hover:bg-[var(--pf-surface)] hover:text-[var(--pf-black)]"
           aria-label="Dismiss checklist"
         >
           <X className="h-4 w-4" strokeWidth={2.25} />

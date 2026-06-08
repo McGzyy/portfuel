@@ -115,7 +115,7 @@ export function NotificationBell() {
           setOpen((o) => !o);
           if (!open) load();
         }}
-        className="relative inline-flex h-9 w-9 items-center justify-center rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-white text-[var(--pf-gray-600)] shadow-[var(--pf-shadow-sm)] hover:bg-[var(--pf-gray-50)] hover:text-[var(--pf-black)]"
+        className="pf-icon-btn relative inline-flex h-9 w-9 items-center justify-center rounded-[var(--pf-radius)]"
         aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ""}`}
       >
         <Bell className="h-4 w-4" strokeWidth={2.25} />
@@ -127,7 +127,7 @@ export function NotificationBell() {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-lg)]">
+        <div className="pf-popover-panel absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] shadow-[var(--pf-shadow-lg)]">
           <div className="flex items-center justify-between border-b border-[var(--pf-border)] px-4 py-3">
             <p className="text-sm font-bold text-[var(--pf-black)]">Notifications</p>
             {unread > 0 ? (

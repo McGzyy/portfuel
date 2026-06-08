@@ -64,8 +64,8 @@ export function ChartCallDetailModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="flex max-h-[min(90dvh,42rem)] w-full max-w-lg flex-col overflow-hidden rounded-t-[1.25rem] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] shadow-xl sm:rounded-[var(--pf-radius-lg)]">
-        <div className="flex shrink-0 items-center justify-between border-b border-[var(--pf-border)] bg-white px-4 py-3">
+      <div className="pf-chart-modal-shell flex max-h-[min(90dvh,42rem)] w-full max-w-lg flex-col overflow-hidden rounded-t-[1.25rem] border border-[var(--pf-border)] shadow-xl sm:rounded-[var(--pf-radius-lg)]">
+        <div className="pf-chart-modal-bar flex shrink-0 items-center justify-between border-b border-[var(--pf-border)] px-4 py-3">
           <div>
             <p
               id="chart-call-modal-title"
@@ -105,7 +105,7 @@ export function ChartCallDetailModal({
             isAdmin={isAdmin}
           />
         </div>
-        <div className="shrink-0 border-t border-[var(--pf-border)] bg-white px-4 py-3">
+        <div className="pf-chart-modal-bar shrink-0 border-t border-[var(--pf-border)] px-4 py-3">
           <button
             type="button"
             onClick={scrollToThread}
@@ -149,13 +149,24 @@ function ChartCallSiblingStrip({
               className={cn(
                 "shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
                 active
-                  ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white"
-                  : "border-[var(--pf-border)] bg-white text-[var(--pf-gray-600)] hover:border-[var(--pf-gray-300)]"
+                  ? "pf-pill-active border"
+                  : "pf-pill-inactive border hover:border-[var(--pf-gray-300)]"
               )}
             >
               {name}
               {ret != null ? (
-                <span className={cn("ml-1 tabular-nums", active ? "opacity-80" : "text-[var(--pf-gray-400)]")}>
+                <span
+                  className={cn(
+                    "ml-1 tabular-nums",
+                    active
+                      ? "opacity-80"
+                      : ret != null && ret >= 0
+                        ? "pf-return-up"
+                        : ret != null
+                          ? "pf-return-down"
+                          : "text-[var(--pf-gray-400)]"
+                  )}
+                >
                   {formatPct(ret)}
                 </span>
               ) : null}

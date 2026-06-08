@@ -44,8 +44,8 @@ export function ChartDepthToolbar({
               className={cn(
                 "rounded-md px-2.5 py-1 text-xs font-semibold transition-colors",
                 active
-                  ? "bg-[var(--pf-black)] text-white"
-                  : "text-[var(--pf-gray-600)] hover:bg-white",
+                  ? "pf-pill-active"
+                  : "text-[var(--pf-gray-600)] hover:bg-[var(--pf-surface)]",
                 locked && "cursor-not-allowed opacity-40"
               )}
               title={locked ? "Pro Intelligence required" : undefined}
@@ -62,7 +62,7 @@ export function ChartDepthToolbar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-1 text-xs font-semibold text-[var(--pf-gray-600)]">
+        <label className="pf-chip-action cursor-pointer gap-1.5 px-2.5 py-1 text-xs">
           <input
             type="checkbox"
             className="accent-[var(--pf-red)]"
@@ -74,8 +74,8 @@ export function ChartDepthToolbar({
         </label>
         <label
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-1 text-xs font-semibold",
-            proUnlocked ? "cursor-pointer text-[var(--pf-gray-600)]" : "cursor-not-allowed opacity-40"
+            "pf-chip-action cursor-pointer gap-1.5 px-2.5 py-1 text-xs",
+            !proUnlocked && "cursor-not-allowed opacity-40"
           )}
         >
           <input
@@ -89,9 +89,9 @@ export function ChartDepthToolbar({
         </label>
         <label
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-1 text-xs font-semibold",
+            "pf-chip-action gap-1.5 px-2.5 py-1 text-xs",
             proUnlocked && volumeAvailable
-              ? "cursor-pointer text-[var(--pf-gray-600)]"
+              ? "cursor-pointer"
               : "cursor-not-allowed opacity-40"
           )}
         >

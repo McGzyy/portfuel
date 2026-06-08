@@ -121,7 +121,7 @@ export function WorkspaceGuide({
         if (e.target === e.currentTarget) void dismissGuide();
       }}
     >
-      <div className="flex max-h-[min(92dvh,720px)] w-full max-w-2xl flex-col overflow-hidden rounded-t-[1.25rem] border border-[var(--pf-border)] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.18)] sm:max-h-[88vh] sm:rounded-[var(--pf-radius-lg)]">
+      <div className="pf-guide-modal flex max-h-[min(92dvh,720px)] w-full max-w-2xl flex-col overflow-hidden rounded-t-[1.25rem] border border-[var(--pf-border)] shadow-[0_24px_80px_rgba(15,23,42,0.18)] sm:max-h-[88vh] sm:rounded-[var(--pf-radius-lg)]">
         <div className="relative shrink-0 overflow-hidden border-b border-[var(--pf-border)] px-5 pb-5 pt-6 sm:px-6 sm:pt-7">
           <div
             className="pointer-events-none absolute inset-0 opacity-[0.07]"
@@ -132,7 +132,7 @@ export function WorkspaceGuide({
           />
           <div className="relative flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--pf-border)] bg-white/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--pf-gray-500)] backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--pf-border)] bg-[color-mix(in_srgb,var(--pf-surface)_80%,transparent)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--pf-gray-500)] backdrop-blur-sm">
                 <Map className="h-3 w-3 text-[var(--pf-red)]" />
                 Workspace map
               </div>
@@ -175,9 +175,9 @@ export function WorkspaceGuide({
                     <Link
                       href={item.href}
                       onClick={() => void dismissGuide()}
-                      className="group flex h-full items-start gap-3 rounded-xl border border-[var(--pf-border)] bg-[var(--pf-gray-50)]/40 p-3.5 transition-all hover:border-[var(--pf-gray-300)] hover:bg-white hover:shadow-[var(--pf-shadow-sm)]"
+                      className="pf-guide-card group"
                     >
-                      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[var(--pf-gray-600)] shadow-sm ring-1 ring-[var(--pf-border)] transition-colors group-hover:text-[var(--pf-red)]">
+                      <span className="pf-guide-icon mt-0.5">
                         <GuideItemIcon href={item.href} />
                       </span>
                       <span className="min-w-0 flex-1">

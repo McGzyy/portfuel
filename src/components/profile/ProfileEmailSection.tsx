@@ -126,7 +126,7 @@ export function ProfileEmailSection() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className="mt-1.5 w-full max-w-md rounded-lg border border-[var(--pf-border)] bg-white px-3 py-2 text-sm font-normal"
+          className="mt-1.5 w-full max-w-md rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-2 text-sm font-normal"
         />
       </label>
       <p className="mt-1.5 text-xs text-[var(--pf-gray-500)]">

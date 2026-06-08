@@ -30,7 +30,7 @@ export function TickerActionBar({
         </Link>
         <Link
           href={feedHref}
-          className="inline-flex h-9 items-center gap-1.5 rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-white px-3.5 text-xs font-semibold text-[var(--pf-gray-700)] hover:bg-[var(--pf-gray-50)]"
+          className="pf-chip-action h-9 gap-1.5 rounded-[var(--pf-radius)] px-3.5 text-xs"
         >
           <Rows3 className="h-3.5 w-3.5" strokeWidth={2.25} />
           Feed · {symbol}
@@ -38,7 +38,7 @@ export function TickerActionBar({
         {!proLocked ? (
           <Link
             href={buildCompareHref([symbol])}
-            className="inline-flex h-9 items-center gap-1.5 rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-white px-3.5 text-xs font-semibold text-[var(--pf-gray-700)] hover:bg-[var(--pf-gray-50)]"
+            className="pf-chip-action h-9 gap-1.5 rounded-[var(--pf-radius)] px-3.5 text-xs"
           >
             <GitCompare className="h-3.5 w-3.5" strokeWidth={2.25} />
             Compare
