@@ -1,7 +1,7 @@
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import { TickerIntelPanel } from "@/components/ticker/TickerIntelPanel";
 import { TickerIntelTeaser } from "@/components/ticker/TickerIntelTeaser";
-import { formatProIntelligenceLabel } from "@/lib/marketing/plans";
+import { buildTickerIntelGateDescription } from "@/lib/pro/upgrade-prompt";
 import type { TickerIntel } from "@/lib/market/ticker-intel";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import type { IntelTeaserSummary } from "@/lib/market/intel-teaser";
@@ -44,11 +44,7 @@ export function TickerIntelSection({
         cta={proGateCta}
         variant="preview"
         title={isEquity ? "Unlock full market intel" : "Unlock crypto headlines"}
-        description={
-          isEquity
-            ? `Read headlines, earnings, and SEC filings on every equity ticker — included with ${formatProIntelligenceLabel()}.`
-            : `Read venue context and symbol-filtered crypto headlines on listed pairs — included with ${formatProIntelligenceLabel()}.`
-        }
+        description={buildTickerIntelGateDescription(intel.symbol, intel.assetClass)}
         teaser={
           locked ? (
             <TickerIntelTeaser summary={teaser} assetClass={intel.assetClass} />

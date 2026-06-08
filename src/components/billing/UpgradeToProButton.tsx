@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatMoneyFromCents } from "@/lib/stripe/format-money";
 import { PLAN_BY_TIER } from "@/lib/marketing/plans";
+import { buildProMembershipHook } from "@/lib/pro/upgrade-prompt";
 import type { MemberToProUpgradePreview } from "@/lib/stripe/upgrade-preview";
 
 function formatPeriodEnd(iso: string): string {
@@ -15,7 +16,13 @@ function formatPeriodEnd(iso: string): string {
   });
 }
 
-export function UpgradeToProButton({ className }: { className?: string }) {
+export function UpgradeToProButton({
+  className,
+  watchlistSymbols = [],
+}: {
+  className?: string;
+  watchlistSymbols?: string[];
+}) {
   const router = useRouter();
   const [preview, setPreview] = useState<MemberToProUpgradePreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(true);
@@ -108,6 +115,7 @@ export function UpgradeToProButton({ className }: { className?: string }) {
   );
   const periodEnd = formatPeriodEnd(preview.currentPeriodEnd);
   const isCredit = preview.prorationCents < 0;
+  const personalizedHook = buildProMembershipHook(watchlistSymbols);
 
   return (
     <div className={className}>
@@ -115,6 +123,9 @@ export function UpgradeToProButton({ className }: { className?: string }) {
         <p className="text-sm font-semibold text-[var(--pf-black)]">
           Upgrade to Pro Intelligence — {proMonthly}/mo
         </p>
+        {personalizedHook ? (
+          <p className="mt-2 text-xs leading-relaxed text-[var(--pf-gray-600)]">{personalizedHook}</p>
+        ) : null}
         <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
           {isCredit ? (
             <>

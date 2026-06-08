@@ -30,6 +30,7 @@ import {
 } from "@/lib/features/pro-intelligence";
 import { fetchReferralStats } from "@/lib/referrals/service";
 import { toReferralInvitePrompt, canShowReferralInvite } from "@/lib/referrals/prompt";
+import { fetchWatchlist } from "@/lib/watchlist/service";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +101,7 @@ export default async function TickerPage({
   });
 
   let publishReferralPrompt = null;
+  let tickerWatchlistSymbols: string[] = [];
   if (session?.subscriptionStatus === "active") {
     try {
       const referralStats = await fetchReferralStats(session.userId, session.username);
@@ -109,6 +111,14 @@ export default async function TickerPage({
       }
     } catch {
       /* optional */
+    }
+    if (proLocked) {
+      try {
+        const wl = await fetchWatchlist(session.userId);
+        tickerWatchlistSymbols = wl.map((w) => w.symbol);
+      } catch {
+        /* optional */
+      }
     }
   }
 
@@ -151,7 +161,11 @@ export default async function TickerPage({
       ) : null}
 
       {session && proLocked ? (
-        <ProIntelDiscoverStrip symbol={symbol} assetClass={intelData.assetClass} />
+        <ProIntelDiscoverStrip
+          symbol={symbol}
+          assetClass={intelData.assetClass}
+          watchlistSymbols={tickerWatchlistSymbols}
+        />
       ) : null}
 
       <section id="chart" className="scroll-mt-24">

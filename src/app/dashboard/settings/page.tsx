@@ -125,6 +125,7 @@ export default async function DashboardSettingsPage({
                   membershipTier={profile.membershipTier}
                   billingInterval={profile.billingInterval}
                   stripeCustomerId={profile.stripeCustomerId}
+                  watchlistSymbols={watchlistSymbols}
                 />
                 <ProfileVouchersSection
                   subscriptionStatus={profile.subscriptionStatus}

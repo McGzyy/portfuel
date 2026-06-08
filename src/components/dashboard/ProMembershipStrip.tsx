@@ -48,8 +48,8 @@ export function ProMembershipStrip({
             </ul>
           </div>
         </div>
-        <Link href="/pricing" className="shrink-0 self-center">
-          <Button size="sm">View plans</Button>
+        <Link href="/dashboard/settings?section=billing" className="shrink-0 self-center">
+          <Button size="sm">Upgrade</Button>
         </Link>
       </div>
     );

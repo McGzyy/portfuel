@@ -81,3 +81,19 @@ export function watchlistScreenerHits(
   }
   return hits.slice(0, 4);
 }
+
+export function buildTickerIntelGateDescription(
+  symbol: string,
+  assetClass: "equity" | "crypto"
+): string {
+  if (assetClass === "crypto") {
+    return `Unlock headlines, venue context, and community stats on ${symbol} — included with Pro Intelligence.`;
+  }
+  return `Read news, earnings, and SEC filings on ${symbol} and every equity you track — included with Pro Intelligence.`;
+}
+
+export function buildBillingUpgradeHook(watchlistSymbols: string[]): string {
+  const personalized = buildProMembershipHook(watchlistSymbols);
+  if (personalized) return personalized;
+  return "Move to Pro Intelligence for research tools, SMS alerts, and a higher call quota.";
+}

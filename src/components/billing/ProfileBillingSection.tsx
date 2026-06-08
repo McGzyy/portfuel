@@ -10,17 +10,20 @@ import { Input } from "@/components/ui/input";
 import { formatTierPriceLong } from "@/lib/marketing/plans";
 import type { BillingInterval } from "@/lib/stripe/config";
 import { isStripeConfigured } from "@/lib/stripe/config";
+import { buildBillingUpgradeHook } from "@/lib/pro/upgrade-prompt";
 
 export function ProfileBillingSection({
   subscriptionStatus,
   membershipTier,
   billingInterval,
   stripeCustomerId,
+  watchlistSymbols = [],
 }: {
   subscriptionStatus: "pending" | "active" | "cancelled";
   membershipTier: "member" | "pro" | null;
   billingInterval?: BillingInterval | null;
   stripeCustomerId: string | null;
+  watchlistSymbols?: string[];
 }) {
   const [checkoutPromo, setCheckoutPromo] = useState("");
   const [checkoutInterval, setCheckoutInterval] = useState<BillingInterval>("monthly");
@@ -50,10 +53,12 @@ export function ProfileBillingSection({
       <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
         {showCheckout
           ? "Choose a plan and complete checkout through Stripe."
-          : "Move to Pro Intelligence for research tools, SMS alerts, and higher call quota."}
+          : buildBillingUpgradeHook(watchlistSymbols)}
       </p>
 
-      {showUpgrade ? <UpgradeToProButton className="mt-4 max-w-md" /> : null}
+      {showUpgrade ? (
+        <UpgradeToProButton className="mt-4 max-w-md" watchlistSymbols={watchlistSymbols} />
+      ) : null}
 
       {showCheckout ? (
         <>
