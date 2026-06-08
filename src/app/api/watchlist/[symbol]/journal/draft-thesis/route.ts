@@ -3,8 +3,10 @@ import { requireActiveMember } from "@/lib/auth/session";
 import { runJournalThesisDraft } from "@/lib/ai/journal-thesis-draft";
 import { fetchJournalResearchUsage } from "@/lib/ai/journal-research-usage";
 import { isAiCoachConfigured } from "@/lib/ai/config";
+import { fetchJournalDraftMarketContext } from "@/lib/market/draft-context";
 import { fetchWatchlistJournal } from "@/lib/watchlist/journal";
-import { loadTickerIntel } from "@/lib/market/ticker-intel";
+
+export const maxDuration = 60;
 
 type RouteContext = { params: Promise<{ symbol: string }> };
 
@@ -40,7 +42,11 @@ export async function POST(_request: Request, context: RouteContext) {
       return NextResponse.json({ error: "not_on_watchlist" }, { status: 404 });
     }
 
-    const intel = await loadTickerIntel(symbol, { assetClass: journal.asset_class });
+    const market = await fetchJournalDraftMarketContext(
+      symbol,
+      journal.asset_class,
+      journal.last_price ?? null
+    );
 
     const result = await runJournalThesisDraft({
       userId: session.userId,
@@ -48,9 +54,9 @@ export async function POST(_request: Request, context: RouteContext) {
       role: session.role,
       symbol: journal.symbol,
       assetClass: journal.asset_class,
-      companyName: intel.companyName,
-      lastPrice: intel.quote?.price ?? journal.last_price ?? null,
-      changePct: intel.quote?.changePct ?? null,
+      companyName: market.companyName,
+      lastPrice: market.lastPrice,
+      changePct: market.changePct,
       usageBefore: {
         used: usage.used,
         limit: usage.limit,
@@ -63,7 +69,10 @@ export async function POST(_request: Request, context: RouteContext) {
     if (e instanceof Error && e.message === "unauthorized") {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
-    if (e instanceof Error && e.message === "ai_empty_response") {
+    if (
+      e instanceof Error &&
+      (e.message === "ai_empty_response" || e.message === "ai_generation_failed")
+    ) {
       return NextResponse.json({ error: "ai_unavailable" }, { status: 503 });
     }
     console.error("[journal draft-thesis POST]", e);

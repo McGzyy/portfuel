@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,6 +66,7 @@ export function WatchlistJournalPlanForm({
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [draftApplied, setDraftApplied] = useState(false);
+  const thesisRef = useRef<HTMLTextAreaElement>(null);
 
   const loadUsage = useCallback(async () => {
     try {
@@ -95,34 +96,61 @@ export function WatchlistJournalPlanForm({
         `/api/watchlist/${encodeURIComponent(symbol)}/journal/draft-thesis`,
         { method: "POST" }
       );
-      const data = await res.json();
+      let data: Record<string, unknown> = {};
+      try {
+        data = (await res.json()) as Record<string, unknown>;
+      } catch {
+        setError("Draft request failed — try again in a moment.");
+        return;
+      }
       if (!res.ok) {
-        if (data.error === "quota_exceeded") {
+        const code = typeof data.error === "string" ? data.error : "";
+        if (code === "quota_exceeded") {
           setError("Monthly AI limit reached — try again next month.");
-        } else if (data.error === "ai_not_configured") {
+        } else if (code === "ai_not_configured") {
           setError("AI is not configured in this environment.");
+        } else if (code === "ai_unavailable") {
+          setError("AI could not generate a draft — try again.");
+        } else if (code === "not_on_watchlist") {
+          setError("Symbol not on your watchlist.");
         } else {
-          setError("Could not draft thesis.");
+          setError("Could not draft thesis — try again.");
         }
         return;
       }
-      setThesis(data.thesis ?? "");
-      if (Array.isArray(data.catalysts)) setCatalysts(data.catalysts);
-      if (data.risk_factors) setRiskFactors(data.risk_factors);
+      const draftThesis = typeof data.thesis === "string" ? data.thesis.trim() : "";
+      if (!draftThesis) {
+        setError("AI returned an empty draft — try again.");
+        return;
+      }
+      setThesis(draftThesis);
+      if (Array.isArray(data.catalysts)) {
+        setCatalysts(data.catalysts as typeof catalysts);
+      }
+      if (typeof data.risk_factors === "string") setRiskFactors(data.risk_factors);
       if (data.conviction != null) setConviction(String(data.conviction));
-      if (data.entry_note) setEntryNote(data.entry_note);
-      setUsage((u) =>
-        u
-          ? {
-              ...u,
-              used: data.usage.used,
-              remaining: data.usage.remaining,
-            }
-          : u
-      );
+      if (typeof data.entry_note === "string") setEntryNote(data.entry_note);
+      const usagePayload = data.usage as { used?: number; remaining?: number } | undefined;
+      if (usagePayload?.used != null && usagePayload?.remaining != null) {
+        setUsage((u) =>
+          u
+            ? {
+                ...u,
+                used: usagePayload.used!,
+                remaining: usagePayload.remaining!,
+              }
+            : u
+        );
+      } else {
+        void loadUsage();
+      }
       setDraftApplied(true);
+      requestAnimationFrame(() => {
+        thesisRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        thesisRef.current?.focus();
+      });
     } catch {
-      setError("Could not draft thesis.");
+      setError("Could not draft thesis — check your connection and try again.");
     } finally {
       setDrafting(false);
     }
@@ -180,6 +208,12 @@ export function WatchlistJournalPlanForm({
         </p>
       </div>
 
+      {error && !thesis.trim() ? (
+        <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700" role="alert">
+          {error}
+        </p>
+      ) : null}
+
       {!thesis.trim() ? (
         <p className="rounded-lg border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">
           <span className="font-semibold">Step 1:</span> Draft why you&apos;re watching{" "}
@@ -218,7 +252,13 @@ export function WatchlistJournalPlanForm({
             Draft applied — edit anything you want, then save journal.
           </p>
         ) : null}
+        {error ? (
+          <p className="mt-1 text-xs font-semibold text-rose-600" role="alert">
+            {error}
+          </p>
+        ) : null}
         <Textarea
+          ref={thesisRef}
           id="journal-thesis"
           value={thesis}
           onChange={(e) => setThesis(e.target.value)}
@@ -427,10 +467,14 @@ export function WatchlistJournalPlanForm({
         </div>
       </div>
 
-      {error ? <p className="text-xs text-rose-600">{error}</p> : null}
       {saved ? (
         <p className="text-xs font-semibold text-emerald-700">
           Saved — changes recorded in the plan edit log below.
+        </p>
+      ) : null}
+      {error && thesis.trim() ? (
+        <p className="text-xs font-semibold text-rose-600" role="alert">
+          {error}
         </p>
       ) : null}
 
