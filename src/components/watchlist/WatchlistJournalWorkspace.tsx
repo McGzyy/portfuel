@@ -128,7 +128,7 @@ export function WatchlistJournalWorkspace({
         publishHref={checklist.readyToPublish ? publishUrl : undefined}
       />
 
-      <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
+      <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">

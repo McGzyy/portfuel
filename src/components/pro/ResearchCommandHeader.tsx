@@ -15,7 +15,7 @@ export function ResearchCommandHeader({
   const activeTab = RESEARCH_HUB_TABS.find((t) => t.id === tab) ?? RESEARCH_HUB_TABS[0]!;
 
   return (
-    <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
+    <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
       <div className="max-w-3xl">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
           Pro Intelligence · Research hub
