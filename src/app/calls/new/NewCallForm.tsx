@@ -21,6 +21,7 @@ import type { HeaderUser } from "@/lib/auth/session-user";
 import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import type { TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
 import { formatFueledThesisForPublish } from "@/lib/ai/fueled-analysis-format";
+import { journalSymbolPath } from "@/lib/journal/paths";
 import { COPY } from "@/lib/copy";
 import { formatPrice } from "@/lib/utils";
 
@@ -74,6 +75,8 @@ export function NewCallForm({
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryDraft = readPublishQuery(searchParams);
+  const fromJournal = queryDraft.fromJournal;
+  const journalPrefilled = fromJournal && queryDraft.thesis.trim().length >= 10;
   const initialAsset =
     searchParams.get("asset") === "crypto" ? "crypto" : "equity";
   const initialSymbol = (searchParams.get("symbol") ?? "").toUpperCase();
@@ -264,14 +267,24 @@ export function NewCallForm({
     }
   }
 
+  const showFeedPreview =
+    symbol.trim().length > 0 && thesis.trim().length >= 10;
+  const showTradeSetup =
+    Boolean(entryPrice || targetPrice || stopPrice) &&
+    (showFeedPreview || journalPrefilled);
+
   return (
-    <AppShell user={user} width="narrow">
+    <AppShell user={user} width="default">
       <Link
-        href="/dashboard"
+        href={
+          fromJournal && initialSymbol
+            ? journalSymbolPath(initialSymbol)
+            : "/dashboard"
+        }
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-red)]"
       >
         <ArrowLeft className="h-4 w-4" strokeWidth={2} />
-        Back to dashboard
+        {fromJournal && initialSymbol ? `Back to ${initialSymbol} journal` : "Back to dashboard"}
       </Link>
 
       <NewCallPageHeader
@@ -296,34 +309,83 @@ export function NewCallForm({
         </div>
       ) : null}
 
-      {queryDraft.fromJournal && !thesis.trim() ? (
+      {journalPrefilled ? (
+        <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-indigo-200/80 bg-indigo-50 px-4 py-3 text-sm text-indigo-950 dark:border-indigo-500/30 dark:bg-indigo-950/40 dark:text-indigo-100">
+          <span className="font-semibold">From your journal.</span> Research and AI review stay
+          private — trim the thesis for the community, confirm levels, then publish. No need to
+          re-run Deepen+ or thesis coach here.
+        </div>
+      ) : fromJournal && !thesis.trim() ? (
         <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
           Prefilled from your private watchlist journal — add your thesis and levels below before
           publishing to the community.
         </div>
       ) : null}
 
-      <PublishCallCardPreview
-        user={user}
-        symbol={symbol}
-        assetClass={assetClass}
-        direction={direction}
-        thesis={thesis}
-        entryPrice={entryPrice}
-        targetPrice={targetPrice}
-        stopPrice={stopPrice}
-        timeframeTag={timeframeTag}
-        lastPrice={marketPrice}
-        publishFueled={publishFueled}
-        fromJournal={queryDraft.fromJournal}
-        conviction={queryDraft.conviction}
-        catalysts={queryDraft.catalysts}
-        contextNotes={aiNotes}
-      />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
+        <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+          {showFeedPreview ? (
+            <PublishCallCardPreview
+              user={user}
+              symbol={symbol}
+              assetClass={assetClass}
+              direction={direction}
+              thesis={thesis}
+              entryPrice={entryPrice}
+              targetPrice={targetPrice}
+              stopPrice={stopPrice}
+              timeframeTag={timeframeTag}
+              lastPrice={marketPrice}
+              publishFueled={publishFueled}
+              fromJournal={fromJournal}
+              conviction={queryDraft.conviction}
+              catalysts={queryDraft.catalysts}
+              contextNotes={aiNotes}
+              className="mb-0"
+            />
+          ) : (
+            <div className="rounded-[var(--pf-radius-lg)] border border-dashed border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-5 text-sm text-[var(--pf-gray-600)]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-500)]">
+                Live feed preview
+              </p>
+              <p className="mt-2 text-xs leading-relaxed">
+                Enter a symbol and at least 10 characters of thesis to see how your call will look
+                on the member feed.
+              </p>
+            </div>
+          )}
 
-      <div className="pf-workspace-panel p-5 sm:p-6">
+          {showTradeSetup ? (
+            <TradeSetupPreview
+              direction={direction}
+              entryPrice={entryPrice}
+              targetPrice={targetPrice}
+              stopPrice={stopPrice}
+            />
+          ) : null}
+
+          {!journalPrefilled ? (
+            <ThesisCoachPanel
+              isPro={isPro}
+              showUpgrade={showUpgrade}
+              draft={() => ({
+                symbol,
+                assetClass,
+                direction,
+                thesis,
+                entryPrice: entryPrice ? parseFloat(entryPrice) : null,
+                targetPrice: targetPrice ? parseFloat(targetPrice) : null,
+                stopPrice: stopPrice ? parseFloat(stopPrice) : null,
+                timeframeTag: timeframeTag || null,
+              })}
+            />
+          ) : null}
+        </aside>
+
+        <div className="pf-workspace-panel p-5 sm:p-6">
           <form onSubmit={handleSubmit} className="space-y-8">
             {isAdmin || isPro ? (
+              !journalPrefilled ? (
               <section className="space-y-3 rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -389,10 +451,12 @@ export function NewCallForm({
                   </p>
                 </div>
               </section>
+              ) : null
             ) : null}
 
             <section className="space-y-4">
               <p className="pf-eyebrow">Setup</p>
+              <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label>Asset type</Label>
                 <SegmentedControl
@@ -414,6 +478,7 @@ export function NewCallForm({
                     { value: "short", label: "Short" },
                   ]}
                 />
+              </div>
               </div>
               {isAdmin ? (
                 <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2.5 text-sm">
@@ -544,28 +609,7 @@ export function NewCallForm({
                   placeholder="e.g. Swing · 2–4 weeks"
                 />
               </div>
-              <TradeSetupPreview
-                direction={direction}
-                entryPrice={entryPrice}
-                targetPrice={targetPrice}
-                stopPrice={stopPrice}
-              />
             </section>
-
-            <ThesisCoachPanel
-              isPro={isPro}
-              showUpgrade={showUpgrade}
-              draft={() => ({
-                symbol,
-                assetClass,
-                direction,
-                thesis,
-                entryPrice: entryPrice ? parseFloat(entryPrice) : null,
-                targetPrice: targetPrice ? parseFloat(targetPrice) : null,
-                stopPrice: stopPrice ? parseFloat(stopPrice) : null,
-                timeframeTag: timeframeTag || null,
-              })}
-            />
 
             {quotaBlocked ? (
               <p className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2 text-sm text-[var(--pf-gray-600)]">
@@ -591,6 +635,7 @@ export function NewCallForm({
               {loading ? COPY.publishingCall : COPY.publishCall}
             </Button>
           </form>
+        </div>
       </div>
     </AppShell>
   );
