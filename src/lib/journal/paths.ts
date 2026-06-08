@@ -9,7 +9,14 @@ export type JournalSection = "checklist" | "plan" | "entries" | "research" | "ch
 
 export type JournalPrefillEntry = Extract<
   JournalEntryType,
-  "note" | "price_action" | "earnings" | "news" | "thesis_update"
+  | "note"
+  | "price_action"
+  | "building"
+  | "trimming"
+  | "exit"
+  | "earnings"
+  | "news"
+  | "thesis_update"
 >;
 
 export function journalSymbolPath(

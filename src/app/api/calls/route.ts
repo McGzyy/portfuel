@@ -20,6 +20,7 @@ import {
   attachCachedResearchSnapshotToCall,
   attachSocialResearchSnapshotToCall,
 } from "@/lib/calls/research-snapshot";
+import { markWatchlistActiveOnPublish } from "@/lib/watchlist/position-intent";
 
 const createSchema = z.object({
   symbol: z.string().min(1).max(12),
@@ -215,6 +216,10 @@ export async function POST(request: Request) {
 
     void refreshQuotesForSymbols([resolvedSymbol]).catch((e) =>
       console.error("[calls POST refresh-quotes]", e)
+    );
+
+    void markWatchlistActiveOnPublish(session.userId, resolvedSymbol).catch((e) =>
+      console.error("[calls POST watchlist-intent]", e)
     );
 
     return NextResponse.json({ ok: true, call });

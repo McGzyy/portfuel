@@ -36,6 +36,7 @@ function demoJournal(symbol: string): WatchlistJournal | null {
         catalysts: ["Earnings", "Product launch", "AI exposure"],
         risk_factors: "Export controls, customer concentration, multiple compression if capex slows.",
         outcome: "developing",
+        position_intent: "trimming",
         bull_case_price: 180,
         base_case_price: 165,
         bear_case_price: 110,
@@ -54,6 +55,7 @@ function demoJournal(symbol: string): WatchlistJournal | null {
         catalysts: ["Earnings", "Partnership"],
         risk_factors: "Execution on datacenter GPU roadmap.",
         outcome: "watching",
+        position_intent: "building",
       };
     case "SPY":
       return {
@@ -67,6 +69,7 @@ function demoJournal(symbol: string): WatchlistJournal | null {
         entry_price: null,
         target_price: null,
         outcome: "watching",
+        position_intent: "researching",
       };
     case "BTC":
       return {
@@ -83,6 +86,7 @@ function demoJournal(symbol: string): WatchlistJournal | null {
         catalysts: ["Fed decision", "Crypto exposure"],
         risk_factors: "Macro risk-off, regulatory headlines.",
         outcome: "watching",
+        position_intent: "active",
       };
     default:
       return null;

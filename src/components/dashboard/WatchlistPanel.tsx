@@ -9,7 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { JournalProgressMini } from "@/components/journal/JournalProgressMini";
 import { WatchlistMoveAlerts } from "@/components/dashboard/WatchlistMoveAlerts";
+import { WatchlistPositionIntentControl } from "@/components/watchlist/WatchlistPositionIntentControl";
+import { PositionIntentBadge } from "@/components/watchlist/PositionIntentBadge";
 import { WatchlistPriceAlertControl } from "@/components/watchlist/WatchlistPriceAlertControl";
+import type { PositionIntent } from "@/lib/watchlist/position-intent";
 import { WatchlistIntelSnippet } from "@/components/watchlist/WatchlistIntelSnippet";
 import { MiniSparkline } from "@/components/charts/MiniSparkline";
 import type { LinePoint } from "@/lib/charts/types";
@@ -97,6 +100,16 @@ export function WatchlistPanel({
     setItems((prev) => {
       const next = prev.map((i) =>
         i.symbol === symbol ? { ...i, price_alert_pct: priceAlertPct } : i
+      );
+      watchlistCtx?.setItems(next);
+      return next;
+    });
+  }
+
+  function patchItemPositionIntent(symbol: string, positionIntent: PositionIntent) {
+    setItems((prev) => {
+      const next = prev.map((i) =>
+        i.symbol === symbol ? { ...i, position_intent: positionIntent } : i
       );
       watchlistCtx?.setItems(next);
       return next;
@@ -346,6 +359,9 @@ export function WatchlistPanel({
                           ) : item.journal_progress?.ready_to_publish ? (
                             <span className="pf-badge-ready">Ready</span>
                           ) : null}
+                          {item.position_intent && item.position_intent !== "researching" ? (
+                            <PositionIntentBadge intent={item.position_intent} />
+                          ) : null}
                         </div>
                         <p className="mt-1 text-sm font-semibold tabular-nums text-[var(--pf-black)]">
                           {formatWatchlistPrice(
@@ -400,13 +416,20 @@ export function WatchlistPanel({
                   </Link>
 
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--pf-border)]/70 pt-2">
-                    <WatchlistPriceAlertControl
-                      item={item}
-                      globalPrefs={globalPrefs}
-                      proUnlocked={proUnlocked}
-                      demoMode={demoMode}
-                      onUpdated={patchItemPriceAlert}
-                    />
+                    <div className="flex min-w-0 flex-col gap-1.5">
+                      <WatchlistPositionIntentControl
+                        item={item}
+                        demoMode={demoMode}
+                        onUpdated={patchItemPositionIntent}
+                      />
+                      <WatchlistPriceAlertControl
+                        item={item}
+                        globalPrefs={globalPrefs}
+                        proUnlocked={proUnlocked}
+                        demoMode={demoMode}
+                        onUpdated={patchItemPriceAlert}
+                      />
+                    </div>
                     <div className="flex items-center gap-1.5">
                       <Link
                         href={journalSymbolPath(item.symbol)}

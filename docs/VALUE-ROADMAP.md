@@ -44,7 +44,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 | **Calendar** | Earnings, macro, IPO | Earnings list on ticker only |
 | **Screeners / heatmaps** | Sector, volume, gaps | None |
 | **Alerts** | Price, % move, news, earnings | None |
-| **Portfolio / P&L** | Broker sync or manual positions | Own calls only (no portfolio) |
+| **Portfolio / P&L** | Broker sync or manual positions | **Position intent** on watchlist (building → trimming → exited) + calls on record |
 | **Community / ideas** | Ideas feed, sentiment | **Core strength** — calls + votes + rankings |
 | **House research** | Analyst notes | **Fueled desk** — under-marketed |
 | **Education / webinars** | Scheduled content | None |
@@ -108,12 +108,13 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 | P2 | ✅ **Messaging v2** | Read receipts, unread badges, thread polling, DM typing indicator (`dm_typing` + heartbeat poll). |
 | P3 | ✅ **Launch / marketing pass** | Landing feature grid + `plans.ts` as source of truth; tier table prices from plans; join/success copy; Pro gate labels synced. |
 | P4 | ✅ **Dashboard walkthrough gaps** | Feed “new since visit” banner + filter, watchlist → ticker intel cross-links, rankings trusted explainer, overview tips card, onboarding tour steps. |
+| P5 | ✅ **Position intent (“what am I doing”)** | Private `position_intent` on watchlist — researching, building, active, trimming, exited, passed. Row picker + journal plan field; auto-active on call publish; journal entries for posture changes. |
 
 ### Later (platform & monetization)
 - **Admin: Tweet → Fueled call (AI draft)** — paste tweet, pick ticker, edit, publish. Spec: [BACKLOG.md](./BACKLOG.md).
 - Real-time quotes (paid Finnhub tier).
 - Mobile PWA + push.
-- Broker read-only sync (Plaid) for “your book vs calls.”
+- **Broker read-only sync** (Plaid) — optional overlay vs position intent + calls on record.
 - Group / thread messaging (only if DMs prove usage).
 
 ---
@@ -125,7 +126,7 @@ Reference set: **Benzinga Pro**, **TradingView Premium**, **Koyfin**, **TrendSpi
 | Overview | ✅ Hot tickers + open calls panels, quota, Pro card, desk promo | — |
 | Feed | Strong cards | Hype badge, ✅ “new since last visit,” Pro analytics table |
 | Desk | ✅ Light workspace panels + weekly note | Pinned thesis card matches member UI |
-| Watchlist | Functional | Live % change column, alerts (Pro) |
+| Watchlist | ✅ Posture + alerts | Position intent picker, live % since add, Pro move alerts |
 | Ticker | Best page | ✅ Pro preview blur; **graphs** — entry/target/stop lines, desk markers (see below) |
 | Rankings | Clean | Member sparklines, ✅ trusted badge explainer |
 | Profile | Good | Quota, tier benefits, upgrade |

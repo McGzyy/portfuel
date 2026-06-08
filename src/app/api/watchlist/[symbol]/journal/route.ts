@@ -4,9 +4,11 @@ import { requireActiveMember } from "@/lib/auth/session";
 import {
   JOURNAL_CATALYST_OPTIONS,
   JOURNAL_OUTCOMES,
+  POSITION_INTENTS,
   normalizeCatalysts,
   normalizePersonalTags,
   type JournalOutcome,
+  type PositionIntent,
 } from "@/lib/watchlist/journal-meta";
 import type { WatchlistJournalPatch } from "@/lib/watchlist/journal-types";
 import {
@@ -31,6 +33,7 @@ const patchSchema = z.object({
   risk_factors: z.string().max(2000).nullable().optional(),
   personal_tags: z.array(z.string().max(24)).max(12).optional(),
   outcome: z.enum(outcomeValues).optional(),
+  position_intent: z.enum(POSITION_INTENTS).optional(),
   bull_case_price: z.number().positive().nullable().optional(),
   base_case_price: z.number().positive().nullable().optional(),
   bear_case_price: z.number().positive().nullable().optional(),
@@ -64,6 +67,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       catalysts: body.catalysts ? normalizeCatalysts(body.catalysts) : undefined,
       personal_tags: body.personal_tags ? normalizePersonalTags(body.personal_tags) : undefined,
       outcome: body.outcome as JournalOutcome | undefined,
+      position_intent: body.position_intent as PositionIntent | undefined,
     };
     const result = await updateWatchlistJournal(session.userId, symbol, patch);
     if ("error" in result) {

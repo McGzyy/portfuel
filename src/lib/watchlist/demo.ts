@@ -94,6 +94,14 @@ export function getDemoWatchlist(_userId: string): WatchlistEntry[] {
       change_since_add_pct,
       community_calls_7d: s.symbol === "NVDA" ? 3 : s.symbol === "BTC" ? 1 : 0,
       has_unread_call_alert: s.symbol === "NVDA",
+      position_intent:
+        s.symbol === "NVDA"
+          ? "trimming"
+          : s.symbol === "AMD"
+            ? "building"
+            : s.symbol === "BTC"
+              ? "active"
+              : "researching",
       ...journal,
     };
   });

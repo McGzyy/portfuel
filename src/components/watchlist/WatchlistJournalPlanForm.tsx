@@ -12,7 +12,9 @@ import {
   parseTagsInput,
   type JournalCatalyst,
   type JournalOutcome,
+  type PositionIntent,
 } from "@/lib/watchlist/journal-meta";
+import { POSITION_INTENT_OPTIONS } from "@/lib/watchlist/position-intent";
 import type { WatchlistJournal } from "@/lib/watchlist/journal-types";
 import { COPY } from "@/lib/copy";
 import { cn } from "@/lib/utils";
@@ -44,6 +46,9 @@ export function WatchlistJournalPlanForm({
   const [riskFactors, setRiskFactors] = useState(initial.risk_factors ?? "");
   const [tagsInput, setTagsInput] = useState((initial.personal_tags ?? []).join(", "));
   const [outcome, setOutcome] = useState<JournalOutcome>(initial.outcome ?? "watching");
+  const [positionIntent, setPositionIntent] = useState<PositionIntent>(
+    initial.position_intent ?? "researching"
+  );
   const [bullPrice, setBullPrice] = useState(
     initial.bull_case_price != null ? String(initial.bull_case_price) : ""
   );
@@ -83,6 +88,7 @@ export function WatchlistJournalPlanForm({
           risk_factors: riskFactors.trim() || null,
           personal_tags: parseTagsInput(tagsInput),
           outcome,
+          position_intent: positionIntent,
           bull_case_price: bullPrice ? Number(bullPrice) : null,
           base_case_price: basePrice ? Number(basePrice) : null,
           bear_case_price: bearPrice ? Number(bearPrice) : null,
@@ -126,7 +132,7 @@ export function WatchlistJournalPlanForm({
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div>
           <Label htmlFor="journal-conviction">Conviction (1–10)</Label>
           <Select
@@ -156,6 +162,24 @@ export function WatchlistJournalPlanForm({
               </option>
             ))}
           </Select>
+        </div>
+        <div>
+          <Label htmlFor="journal-posture">Trade posture</Label>
+          <Select
+            id="journal-posture"
+            value={positionIntent}
+            onChange={(e) => setPositionIntent(e.target.value as PositionIntent)}
+            className="mt-1.5 h-10 font-semibold"
+          >
+            {POSITION_INTENT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </Select>
+          <p className="mt-1 text-[10px] text-[var(--pf-gray-500)]">
+            {POSITION_INTENT_OPTIONS.find((o) => o.value === positionIntent)?.hint}
+          </p>
         </div>
       </div>
 

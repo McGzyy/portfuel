@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { outcomeLabel } from "@/lib/watchlist/journal-meta";
+import { positionIntentLabel } from "@/lib/watchlist/position-intent";
 import type { WatchlistJournal, WatchlistJournalPatch } from "@/lib/watchlist/journal-types";
 
 export type JournalPlanRevision = {
@@ -23,6 +24,7 @@ const FIELD_LABELS: Record<string, string> = {
   risk_factors: "Risk factors",
   personal_tags: "Tags",
   outcome: "Outcome",
+  position_intent: "Trade posture",
   bull_case_price: "Bull case",
   base_case_price: "Base case",
   bear_case_price: "Bear case",
@@ -70,6 +72,8 @@ function serializeField(
       return fmtList(journal.personal_tags);
     case "outcome":
       return outcomeLabel(journal.outcome);
+    case "position_intent":
+      return positionIntentLabel(journal.position_intent);
     case "bull_case_price":
       return fmtPrice(journal.bull_case_price);
     case "base_case_price":
@@ -99,6 +103,7 @@ function serializePatchValue(
     risk_factors: patch.risk_factors,
     personal_tags: patch.personal_tags,
     outcome: patch.outcome,
+    position_intent: patch.position_intent,
     bull_case_price: patch.bull_case_price,
     base_case_price: patch.base_case_price,
     bear_case_price: patch.bear_case_price,
@@ -117,6 +122,7 @@ const TRACKED_FIELDS: (keyof WatchlistJournalPatch)[] = [
   "risk_factors",
   "personal_tags",
   "outcome",
+  "position_intent",
   "bull_case_price",
   "base_case_price",
   "bear_case_price",
