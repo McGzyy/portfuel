@@ -215,10 +215,6 @@ export default async function DashboardOverviewPage({
 
   const displayLabel = session.displayName ?? session.username;
 
-  const avgPulse = communityPulse.avgReturnPct;
-  const avgAccent =
-    avgPulse == null ? undefined : avgPulse >= 0 ? ("positive" as const) : ("negative" as const);
-
   let journalIdeas: Awaited<ReturnType<typeof fetchJournalHighlights>> = [];
   try {
     journalIdeas = await fetchJournalHighlights(session.userId);
@@ -273,9 +269,8 @@ export default async function DashboardOverviewPage({
         rankScore={memberStats?.rank_score != null ? Number(memberStats.rank_score) : null}
         callsCount={memberStats?.calls_count}
         quota={weeklyQuota}
-        communityCount={communityPulse.count > 0 ? communityPulse.count : undefined}
-        communityAvgReturn={communityPulse.count > 0 ? formatPct(avgPulse) : undefined}
-        communityAvgAccent={avgAccent}
+        watchlistCount={watchlistCount}
+        watchlistThesisCount={journalThesisCount}
       />
 
       <FueledTrackRecordPanel record={fueledTrackRecord} />

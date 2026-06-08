@@ -1,29 +1,36 @@
 import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { WorkspaceStatCard } from "@/components/dashboard/WorkspaceStatCard";
 
+const MAX_WATCHLIST = 24;
+
 export function WorkspaceOverviewStats({
   username,
   winRate,
   rankScore,
   callsCount,
   quota,
-  communityCount,
-  communityAvgReturn,
-  communityAvgAccent,
+  watchlistCount = 0,
+  watchlistThesisCount = 0,
 }: {
   username: string;
   winRate: number | null | undefined;
   rankScore: number | null | undefined;
   callsCount?: number | null;
   quota?: WeeklyQuotaStatus;
-  communityCount?: number;
-  communityAvgReturn?: string;
-  communityAvgAccent?: "positive" | "negative";
+  watchlistCount?: number;
+  watchlistThesisCount?: number;
 }) {
   const quotaHint =
     quota && quota.limit > 0
       ? `${quota.remaining} left · ${quota.tierLabel}`
       : undefined;
+
+  const watchlistHint =
+    watchlistCount === 0
+      ? "Add symbols to research"
+      : watchlistThesisCount > 0
+        ? `${watchlistThesisCount} with thesis`
+        : `${watchlistCount} of ${MAX_WATCHLIST} slots`;
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -45,18 +52,20 @@ export function WorkspaceOverviewStats({
           value={`${quota.used}/${quota.limit}`}
           hint={quotaHint}
         />
-      ) : callsCount != null ? (
-        <WorkspaceStatCard label="Total calls" value={String(callsCount)} hint="On your book" />
-      ) : null}
-      {communityCount != null && communityCount > 0 ? (
+      ) : (
         <WorkspaceStatCard
-          label="Community · 30d"
-          value={communityAvgReturn ?? String(communityCount)}
-          hint={`${communityCount} active calls`}
-          href="/dashboard/feed"
-          accent={communityAvgAccent}
+          label="Total calls"
+          value={callsCount != null ? String(callsCount) : "—"}
+          hint="On your book"
+          href={`/member/${username}`}
         />
-      ) : null}
+      )}
+      <WorkspaceStatCard
+        label="Watchlist"
+        value={String(watchlistCount)}
+        hint={watchlistHint}
+        href="/dashboard/watchlist"
+      />
     </div>
   );
 }

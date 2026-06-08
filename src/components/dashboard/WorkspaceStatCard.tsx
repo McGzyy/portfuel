@@ -23,7 +23,7 @@ export function WorkspaceStatCard({
       </p>
       <p
         className={cn(
-          "mt-1.5 text-2xl font-bold tabular-nums tracking-tight text-[var(--pf-black)]",
+          "mt-1.5 text-2xl font-bold tabular-nums tracking-tight text-[var(--foreground)]",
           accent === "positive" && "text-[var(--pf-positive)]",
           accent === "negative" && "text-[var(--pf-negative)]"
         )}
