@@ -225,38 +225,7 @@ function luminance(r, g, b) {
   return 0.299 * r + 0.587 * g + 0.114 * b;
 }
 
-function edgeAlpha(lum, coreMax, fadeMax) {
-  if (lum <= coreMax) return 255;
-  if (lum >= fadeMax) return 0;
-  return Math.round(((fadeMax - lum) / (fadeMax - coreMax)) * 255);
-}
-
-function erodeAlphaOnce(out, width, height) {
-  const count = width * height;
-  const alpha = new Uint8Array(count);
-  for (let i = 0; i < count; i++) alpha[i] = out[i * 4 + 3];
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const i = y * width + x;
-      if (!alpha[i]) continue;
-      let border = false;
-      for (let dy = -1; dy <= 1 && !border; dy++) {
-        for (let dx = -1; dx <= 1 && !border; dx++) {
-          if (!dx && !dy) continue;
-          const nx = x + dx;
-          const ny = y + dy;
-          if (nx < 0 || ny < 0 || nx >= width || ny >= height || !alpha[ny * width + nx]) {
-            border = true;
-          }
-        }
-      }
-      if (border) out[i * 4 + 3] = Math.min(out[i * 4 + 3], 210);
-    }
-  }
-}
-
-/** Dark-mode wordmark: flatten on black first to kill white-matte fringe, then recolor. */
+/** Dark-mode wordmark: flatten on black, then solid white + brand red (bright, no stroke). */
 async function buildLogoLight() {
   const BRAND_RED = { r: 227, g: 27, b: 35 };
   const { data, info } = await sharp(logoPath)
@@ -274,30 +243,29 @@ async function buildLogoLight() {
     const b = data[o + 2];
     const lum = luminance(r, g, b);
 
-    if (lum < 16) continue;
+    if (lum < 18) continue;
 
     const rs = redScore(r, g, b);
-    const isRed = isBrandRed(r, g, b) || (rs > 32 && r > 95);
+    const isRed = isBrandRed(r, g, b) || (rs > 24 && r > 80);
 
     if (isRed) {
-      const alpha = edgeAlpha(lum, 54, 98);
-      if (!alpha) continue;
       out[o] = BRAND_RED.r;
       out[o + 1] = BRAND_RED.g;
       out[o + 2] = BRAND_RED.b;
-      out[o + 3] = alpha;
+      // Brand red is ~lum 88 on black — keep it fully opaque; only the outer rim softens.
+      out[o + 3] = lum >= 150 ? Math.round(((172 - lum) / 22) * 255) : 255;
+      if (out[o + 3] < 16) continue;
       continue;
     }
 
-    const alpha = edgeAlpha(lum, 58, 102);
-    if (!alpha) continue;
+    if (lum >= 170) continue;
+
     out[o] = 255;
     out[o + 1] = 255;
     out[o + 2] = 255;
-    out[o + 3] = alpha;
+    out[o + 3] = lum >= 142 ? Math.round(((170 - lum) / 28) * 255) : 255;
+    if (out[o + 3] < 16) continue;
   }
-
-  erodeAlphaOnce(out, width, height);
 
   await sharp(out, { raw: { width, height, channels: 4 } })
     .png({ compressionLevel: 9 })
