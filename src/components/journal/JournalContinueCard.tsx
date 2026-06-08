@@ -1,9 +1,32 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Megaphone, Sparkles } from "lucide-react";
-import type { JournalNextUp } from "@/lib/journal/next-up";
+import { pickJournalNextUp, type JournalNextUp } from "@/lib/journal/next-up";
+import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { cn } from "@/lib/utils";
 
-export function JournalContinueCard({ nextUp }: { nextUp: JournalNextUp }) {
+export function JournalContinueCard({ nextUp: initialNextUp }: { nextUp: JournalNextUp }) {
+  const [nextUp, setNextUp] = useState(initialNextUp);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/watchlist")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { items?: WatchlistEntry[] } | null) => {
+        if (cancelled || !data?.items?.length) return;
+        const fresh = pickJournalNextUp(data.items);
+        if (fresh) setNextUp(fresh);
+      })
+      .catch(() => {
+        /* keep SSR snapshot */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const isPublish = nextUp.reason === "publish_call";
   const isPosture = nextUp.reason === "manage_posture";
 
@@ -20,7 +43,11 @@ export function JournalContinueCard({ nextUp }: { nextUp: JournalNextUp }) {
           <p
             className={cn(
               "flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em]",
-              isPublish ? "text-emerald-800" : isPosture ? "text-amber-800" : "text-[var(--pf-red)]"
+              isPublish
+                ? "text-emerald-800"
+                : isPosture
+                  ? "text-amber-800"
+                  : "text-[var(--pf-red)]"
             )}
           >
             {isPublish ? (

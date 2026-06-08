@@ -30,6 +30,7 @@ import {
   isSchemaDriftError,
   JOURNAL_BASIC_SELECT,
   JOURNAL_FULL_SELECT,
+  JOURNAL_PLAN_SELECT,
 } from "@/lib/watchlist/db-select";
 
 const JOURNAL_SELECT = JOURNAL_FULL_SELECT;
@@ -123,6 +124,18 @@ export async function fetchWatchlistJournal(
 
   let data: WatchlistRow | null = primary.data as WatchlistRow | null;
   let error = primary.error;
+
+  if (error && isSchemaDriftError(error)) {
+    console.warn("[watchlist/journal] full select failed — trying plan select");
+    const planFallback = await db
+      .from("user_watchlist")
+      .select(JOURNAL_PLAN_SELECT)
+      .eq("user_id", userId)
+      .eq("symbol", sym)
+      .maybeSingle();
+    data = planFallback.data as WatchlistRow | null;
+    error = planFallback.error;
+  }
 
   if (error && isSchemaDriftError(error)) {
     const fallback = await db

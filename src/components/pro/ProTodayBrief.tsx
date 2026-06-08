@@ -67,7 +67,7 @@ function ProTodayBriefCard({ brief, interactive = true }: { brief: ProTodayBrief
             <h2 className="mt-1 text-lg font-bold tracking-tight text-white sm:text-xl">
               {briefTitle}
             </h2>
-            <p className="mt-1 text-sm text-slate-400">{today}</p>
+            <p className="mt-1 text-sm pf-pro-brief-meta">{today}</p>
           </div>
           {interactive ? (
             <Link
@@ -92,7 +92,7 @@ function ProTodayBriefCard({ brief, interactive = true }: { brief: ProTodayBrief
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-bold text-white">{row.title}</span>
-                <span className="mt-1 block text-xs leading-relaxed text-slate-400">
+                <span className="mt-1 block text-xs leading-relaxed pf-pro-brief-detail">
                   {row.detail}
                 </span>
               </span>

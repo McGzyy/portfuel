@@ -1924,6 +1924,48 @@ body {
   color: #6ee7b7;
 }
 
+.pf-edit-log-old {
+  border-radius: var(--pf-radius);
+  background-color: var(--pf-gray-50);
+  color: var(--pf-gray-500);
+  text-decoration-color: var(--pf-gray-300);
+}
+
+.pf-edit-log-new {
+  border-radius: var(--pf-radius);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: linear-gradient(135deg, rgb(236 253 245) 0%, var(--pf-surface) 100%);
+  color: rgb(6 78 59);
+}
+
+[data-theme="dark"] .pf-edit-log-old {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--pf-gray-400);
+  text-decoration-color: var(--pf-gray-500);
+}
+
+[data-theme="dark"] .pf-edit-log-new {
+  border-color: rgba(52, 211, 153, 0.32);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, var(--pf-surface) 100%);
+  color: #a7f3d0;
+}
+
+.pf-pro-brief-meta {
+  color: rgb(148 163 184);
+}
+
+.pf-pro-brief-detail {
+  color: rgb(203 213 225);
+}
+
+[data-theme="dark"] .pf-pro-brief-meta {
+  color: rgb(186 196 214);
+}
+
+[data-theme="dark"] .pf-pro-brief-detail {
+  color: rgb(226 232 240);
+}
+
 .pf-hot-ticker-chip {
   display: inline-flex;
   align-items: center;

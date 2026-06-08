@@ -23,4 +23,8 @@ export const WATCHLIST_BASIC_SELECT = "symbol, asset_class, created_at, baseline
 export const JOURNAL_FULL_SELECT =
   "symbol, asset_class, created_at, baseline_price, thesis, conviction, entry_price, stop_price, target_price, entry_note, journal_updated_at, catalysts, risk_factors, personal_tags, outcome, position_intent, bull_case_price, base_case_price, bear_case_price";
 
+/** When position_intent column is missing but other journal fields exist. */
+export const JOURNAL_PLAN_SELECT =
+  "symbol, asset_class, created_at, baseline_price, thesis, conviction, entry_price, stop_price, target_price, entry_note, journal_updated_at, catalysts, risk_factors, personal_tags, outcome, bull_case_price, base_case_price, bear_case_price";
+
 export const JOURNAL_BASIC_SELECT = "symbol, asset_class, created_at, baseline_price";
