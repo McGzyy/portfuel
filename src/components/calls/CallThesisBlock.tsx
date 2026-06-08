@@ -7,7 +7,7 @@ import { CallEngagement } from "@/components/calls/CallEngagement";
 import { CallPriceMetrics } from "@/components/calls/CallPriceMetrics";
 import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
-import { formatPct, timeAgo } from "@/lib/utils";
+import { cn, formatPct, timeAgo } from "@/lib/utils";
 
 type ThesisCall = {
   id: string;
@@ -65,14 +65,17 @@ export function CallThesisBlock({
   const name = call.users.display_name ?? `Trader ${handle}`;
   const ret = call.return_pct;
   const retClass =
-    ret == null ? "text-[var(--pf-gray-500)]" : ret >= 0 ? "text-emerald-600" : "text-rose-600";
+    ret == null ? "text-[var(--pf-gray-500)]" : ret >= 0 ? "pf-return-up" : "pf-return-down";
   const prices = normalizeCallCardPrices(call);
 
   return (
     <article
-      className={`rounded-[var(--pf-radius-lg)] border bg-white p-5 shadow-[var(--pf-shadow-sm)] ${
-        call.is_fueled ? "border-[var(--pf-red)] ring-1 ring-[var(--pf-red)]/15" : "border-[var(--pf-border)]"
-      }`}
+      className={cn(
+        "pf-call-card-premium rounded-[var(--pf-radius-lg)] border p-5 shadow-[var(--pf-shadow-sm)]",
+        call.is_fueled
+          ? "border-[var(--pf-red)] ring-1 ring-[var(--pf-red)]/15"
+          : "border-[var(--pf-border)]"
+      )}
     >
       <div className="flex flex-wrap items-center gap-2">
         {call.symbol ? (

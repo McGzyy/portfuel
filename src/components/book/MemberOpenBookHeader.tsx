@@ -15,9 +15,9 @@ function Stat({
 }) {
   const valueClass =
     accent === "positive"
-      ? "text-emerald-600"
+      ? "pf-return-up"
       : accent === "negative"
-        ? "text-rose-600"
+        ? "pf-return-down"
         : "text-[var(--pf-black)]";
 
   return (

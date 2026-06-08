@@ -77,8 +77,8 @@ export function CallPreviewRow({
                     ? "text-slate-500"
                     : "text-[var(--pf-gray-400)]"
                   : ret >= 0
-                    ? "text-emerald-500"
-                    : "text-rose-500"
+                    ? "pf-return-up"
+                    : "pf-return-down"
               )}
             >
               {formatPct(ret)}

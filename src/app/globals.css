@@ -1815,3 +1815,28 @@ body {
   padding-left: 0.875rem;
   padding-right: 0.875rem;
 }
+
+[data-theme="dark"] .text-amber-800 {
+  color: #fde68a;
+}
+
+[data-theme="dark"] .border-emerald-200\/90 {
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+[data-theme="dark"] .bg-emerald-50\/90 {
+  background-color: rgba(52, 211, 153, 0.1);
+}
+
+[data-theme="dark"] .text-emerald-950 {
+  color: #a7f3d0;
+}
+
+[data-theme="dark"] .text-emerald-900\/85 {
+  color: rgba(167, 243, 208, 0.85);
+}
+
+[data-theme="dark"] .pf-publish-success-banner {
+  border-color: rgba(52, 211, 153, 0.35);
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.1) 0%, var(--pf-surface) 100%);
+}

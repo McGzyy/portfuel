@@ -32,10 +32,10 @@ export function PublishSuccessBanner({
 
   return (
     <div
-      className="mb-6 flex items-start gap-3 rounded-[var(--pf-radius-lg)] border border-emerald-200/90 bg-emerald-50/90 px-4 py-3 shadow-[var(--pf-shadow-sm)]"
+      className="pf-publish-success-banner mb-6 flex items-start gap-3 rounded-[var(--pf-radius-lg)] border border-emerald-200/90 bg-emerald-50/90 px-4 py-3 shadow-[var(--pf-shadow-sm)]"
       role="status"
     >
-      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" strokeWidth={2.25} />
+      <CheckCircle2 className="pf-return-up mt-0.5 h-5 w-5 shrink-0" strokeWidth={2.25} />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-bold text-emerald-950">Call published on record</p>
         <p className="mt-0.5 text-xs leading-relaxed text-emerald-900/85">

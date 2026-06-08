@@ -125,7 +125,7 @@ export function PublishCallCardPreview({
       )}
       aria-label="Live feed preview"
     >
-      <div className="border-b border-[var(--pf-border)] bg-white px-4 py-3 sm:px-5">
+      <div className="border-b border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-3 sm:px-5">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-500)]">
           Live feed preview
         </p>
@@ -164,7 +164,7 @@ export function PublishCallCardPreview({
         ) : null}
 
         {fromJournal && contextNotes?.trim() ? (
-          <p className="mt-3 rounded-lg border border-dashed border-[var(--pf-border)] bg-white px-3 py-2 text-[11px] leading-relaxed text-[var(--pf-gray-600)]">
+          <p className="mt-3 rounded-lg border border-dashed border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-2 text-[11px] leading-relaxed text-[var(--pf-gray-600)]">
             <span className="font-semibold text-[var(--pf-gray-500)]">
               Private context (not published):{" "}
             </span>

@@ -48,13 +48,13 @@ export function TradeSetupPreview({
           <dt className="text-[10px] font-medium uppercase text-[var(--pf-gray-400)]">
             Upside
           </dt>
-          <dd className="font-bold tabular-nums text-emerald-600">{fmt(rewardPct)}</dd>
+          <dd className="font-bold tabular-nums pf-return-up">{fmt(rewardPct)}</dd>
         </div>
         <div>
           <dt className="text-[10px] font-medium uppercase text-[var(--pf-gray-400)]">
             Risk
           </dt>
-          <dd className="font-bold tabular-nums text-rose-600">{fmt(riskPct)}</dd>
+          <dd className="font-bold tabular-nums pf-return-down">{fmt(riskPct)}</dd>
         </div>
         <div>
           <dt className="text-[10px] font-medium uppercase text-[var(--pf-gray-400)]">

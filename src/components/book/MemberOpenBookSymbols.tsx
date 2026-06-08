@@ -38,7 +38,7 @@ export function MemberOpenBookSymbols({ rows }: { rows: MemberBookSymbolRow[] })
               <span
                 className={cn(
                   "ml-auto text-xs font-bold tabular-nums",
-                  row.avgReturnPct >= 0 ? "text-emerald-600" : "text-rose-600"
+                  row.avgReturnPct >= 0 ? "pf-return-up" : "pf-return-down"
                 )}
               >
                 {formatPct(row.avgReturnPct)} avg

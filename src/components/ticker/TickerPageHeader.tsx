@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MarketDataNote } from "@/components/market/MarketDataNote";
 import { journalSymbolPath } from "@/lib/journal/paths";
-import { formatPct, formatPrice } from "@/lib/utils";
+import { cn, formatPct, formatPrice } from "@/lib/utils";
 import { TickerWatchlistChip } from "@/components/ticker/TickerWatchlistChip";
 import type { loadTickerIntel } from "@/lib/market/ticker-intel";
 
@@ -86,11 +86,10 @@ export function TickerPageHeader({
               </p>
               {change != null ? (
                 <span
-                  className={
-                    changeAccent === "positive"
-                      ? "text-lg font-bold tabular-nums text-emerald-600"
-                      : "text-lg font-bold tabular-nums text-rose-600"
-                  }
+                  className={cn(
+                    "text-lg font-bold tabular-nums",
+                    changeAccent === "positive" ? "pf-return-up" : "pf-return-down"
+                  )}
                 >
                   {formatPct(change)}
                 </span>

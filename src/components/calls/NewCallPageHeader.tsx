@@ -14,7 +14,7 @@ export function NewCallPageHeader({
   const { remaining, limit, tier } = weeklyQuota;
 
   return (
-    <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
+    <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
         {fueledMode ? "Admin · Fueled desk" : "Workspace · Publish"}
       </p>

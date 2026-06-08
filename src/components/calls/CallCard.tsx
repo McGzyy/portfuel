@@ -82,11 +82,7 @@ export function CallCard({
   const name = call.display_name ?? `Trader ${handle}`;
   const ret = call.return_pct;
   const retClass =
-    ret == null
-      ? "text-[var(--pf-gray-500)]"
-      : ret >= 0
-        ? "text-emerald-600"
-        : "text-rose-600";
+    ret == null ? "text-[var(--pf-gray-500)]" : ret >= 0 ? "pf-return-up" : "pf-return-down";
 
   const accent =
     call.direction === "long" ? "pf-call-accent-long" : "pf-call-accent-short";
