@@ -1,6 +1,10 @@
 import { createServiceClient, hasSupabaseConfig, type CallWithUser } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { getDemoTopCallsByReturn } from "@/lib/demo/fixtures";
+import {
+  renderMarketingCallSparkPng,
+  sparkPngToDataUri,
+} from "@/lib/charts/marketing-call-spark";
 
 function useDemoCalls(): boolean {
   return isDemoMode() || !hasSupabaseConfig();
@@ -15,6 +19,8 @@ export type MarketingSparkHero = {
   entryLabel: string;
   targetLabel: string;
   stopLabel: string;
+  /** Real price-path spark PNG when loaded from call data. */
+  sparkSrc?: string;
 };
 
 export type MarketingFeedRow = {
@@ -142,33 +148,68 @@ function callToRankRow(call: CallWithUser, rank: number): MarketingRankRow {
   };
 }
 
-function buildContextFromCalls(calls: CallWithUser[]): MarketingCallContext {
+function buildContextFromCalls(calls: CallWithUser[]): {
+  ctx: Omit<MarketingCallContext, never>;
+  sparkCalls: { topMember: CallWithUser; topFueled: CallWithUser; structure: CallWithUser };
+} {
   const memberCalls = calls.filter((c) => !c.is_fueled);
   const fueledCalls = calls.filter((c) => c.is_fueled);
   const topMemberCall = memberCalls[0] ?? calls[0]!;
   const topFueledCall = fueledCalls[0] ?? calls[0]!;
   const spotlight = calls.slice(0, 3);
-  const structureCall = memberCalls[1];
+  const structureCall = memberCalls[1] ?? topMemberCall;
 
   return {
-    topMember: callToSparkHero(topMemberCall, "MEMBER CALL"),
-    topFueled: callToSparkHero(topFueledCall, "FUELED DESK"),
-    structureSpark: structureCall
-      ? {
-          ...callToSparkHero(structureCall, "MEMBER THESIS"),
-          insight: "Building · entry zone set in journal",
-        }
-      : {
-          ...callToSparkHero(topMemberCall, "MEMBER THESIS"),
-          insight: "Building · entry zone set in journal",
-        },
-    feedRows:
-      spotlight.length > 0 ? spotlight.map(callToFeedRow) : FALLBACK.feedRows,
-    rankRows:
-      spotlight.length > 0
-        ? spotlight.map((c, i) => callToRankRow(c, i + 1))
-        : FALLBACK.rankRows,
+    ctx: {
+      topMember: callToSparkHero(topMemberCall, "MEMBER CALL"),
+      topFueled: callToSparkHero(topFueledCall, "FUELED DESK"),
+      structureSpark: structureCall
+        ? {
+            ...callToSparkHero(structureCall, "MEMBER THESIS"),
+            insight: "Building · entry zone set in journal",
+          }
+        : {
+            ...callToSparkHero(topMemberCall, "MEMBER THESIS"),
+            insight: "Building · entry zone set in journal",
+          },
+      feedRows:
+        spotlight.length > 0 ? spotlight.map(callToFeedRow) : FALLBACK.feedRows,
+      rankRows:
+        spotlight.length > 0
+          ? spotlight.map((c, i) => callToRankRow(c, i + 1))
+          : FALLBACK.rankRows,
+    },
+    sparkCalls: {
+      topMember: topMemberCall,
+      topFueled: topFueledCall,
+      structure: structureCall,
+    },
   };
+}
+
+async function attachSparkHero(
+  hero: MarketingSparkHero,
+  call: CallWithUser
+): Promise<MarketingSparkHero> {
+  try {
+    const png = await renderMarketingCallSparkPng(call);
+    return { ...hero, sparkSrc: sparkPngToDataUri(png) };
+  } catch (e) {
+    console.error("[marketing-call-data] spark", call.id, e);
+    return hero;
+  }
+}
+
+async function enrichWithSparks(
+  draft: ReturnType<typeof buildContextFromCalls>
+): Promise<MarketingCallContext> {
+  const { ctx, sparkCalls } = draft;
+  const [topMember, topFueled, structureSpark] = await Promise.all([
+    attachSparkHero(ctx.topMember, sparkCalls.topMember),
+    attachSparkHero(ctx.topFueled, sparkCalls.topFueled),
+    attachSparkHero(ctx.structureSpark, sparkCalls.structure),
+  ]);
+  return { ...ctx, topMember, topFueled, structureSpark };
 }
 
 async function fetchTopPerformingCalls(limit: number): Promise<CallWithUser[]> {
@@ -196,7 +237,7 @@ export async function loadMarketingCallContext(): Promise<MarketingCallContext> 
   try {
     const calls = await fetchTopPerformingCalls(12);
     if (calls.length === 0) return FALLBACK;
-    return buildContextFromCalls(calls);
+    return enrichWithSparks(buildContextFromCalls(calls));
   } catch (e) {
     console.error("[marketing-call-data]", e);
     return FALLBACK;

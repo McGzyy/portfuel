@@ -267,6 +267,7 @@ function PosterSparkHero({
   entryLabel,
   targetLabel,
   stopLabel,
+  sparkSrc,
   chartWidth = 460,
   chartHeight = 148,
   compact = false,
@@ -350,14 +351,40 @@ function PosterSparkHero({
       >
         {insight}
       </div>
-      <div style={{ display: "flex", width: "100%", marginTop: 28 }}>
-        <MarketingSparkline
-          width={chartWidth}
-          height={chartHeight}
-          entryLabel={entryLabel}
-          targetLabel={targetLabel}
-          stopLabel={stopLabel}
-        />
+      <div style={{ display: "flex", width: "100%", marginTop: 28, flexDirection: "column" }}>
+        {sparkSrc ? (
+          <img
+            src={sparkSrc}
+            width={chartWidth}
+            height={chartHeight - 32}
+            alt=""
+            style={{ display: "flex" }}
+          />
+        ) : (
+          <MarketingSparkline
+            width={chartWidth}
+            height={chartHeight}
+            entryLabel={entryLabel}
+            targetLabel={targetLabel}
+            stopLabel={stopLabel}
+          />
+        )}
+        {sparkSrc ? (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: 10,
+              fontSize: 10,
+              fontWeight: 600,
+              color: T.textDim,
+            }}
+          >
+            <span style={{ display: "flex", color: T.accentRed }}>{entryLabel}</span>
+            <span style={{ display: "flex", color: T.up }}>{targetLabel}</span>
+            <span style={{ display: "flex" }}>{stopLabel}</span>
+          </div>
+        ) : null}
       </div>
     </div>
   );
