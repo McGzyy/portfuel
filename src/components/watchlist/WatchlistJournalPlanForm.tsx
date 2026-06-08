@@ -200,7 +200,7 @@ export function WatchlistJournalPlanForm({
   }
 
   return (
-    <form onSubmit={save} className="pf-workspace-panel space-y-5 p-4 sm:p-5">
+    <form onSubmit={save} className="pf-workspace-panel space-y-6 p-5 sm:space-y-7 sm:p-6 lg:p-7">
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
           Thesis &amp; plan
@@ -266,12 +266,12 @@ export function WatchlistJournalPlanForm({
           value={thesis}
           onChange={(e) => setThesis(e.target.value)}
           placeholder="AI infrastructure growth, earnings turnaround, theme exposure…"
-          className="mt-1.5 min-h-[88px]"
+          className="mt-2 min-h-[128px] resize-y sm:min-h-[140px]"
           maxLength={4000}
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         <div>
           <Label htmlFor="journal-conviction">Conviction (1–10)</Label>
           <Select
@@ -324,7 +324,7 @@ export function WatchlistJournalPlanForm({
 
       <div>
         <Label>Catalysts</Label>
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="mt-2.5 flex flex-wrap gap-2">
           {JOURNAL_CATALYST_OPTIONS.map((c) => {
             const on = catalysts.includes(c);
             return (
@@ -333,7 +333,7 @@ export function WatchlistJournalPlanForm({
                 type="button"
                 onClick={() => toggleCatalyst(c)}
                 className={cn(
-                  "rounded-full border px-2.5 py-1 text-[10px] font-semibold transition-colors",
+                  "rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-colors",
                   on
                     ? "border-[var(--pf-red)] bg-[var(--pf-red)]/10 text-[var(--pf-red)]"
                     : "pf-pill-inactive border hover:border-[var(--pf-gray-300)]"
@@ -353,7 +353,7 @@ export function WatchlistJournalPlanForm({
           value={riskFactors}
           onChange={(e) => setRiskFactors(e.target.value)}
           placeholder="Revenue slowdown, valuation, customer concentration, regulatory risk…"
-          className="mt-1.5 min-h-[72px]"
+          className="mt-2 min-h-[96px] resize-y sm:min-h-[108px]"
           maxLength={2000}
         />
       </div>
@@ -386,7 +386,7 @@ export function WatchlistJournalPlanForm({
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
           Trade plan ($)
         </p>
-        <div className="mt-2 grid gap-3 sm:grid-cols-3">
+        <div className="mt-3 grid gap-4 sm:grid-cols-3">
           <div>
             <Label htmlFor="journal-entry">Entry</Label>
             <Input
@@ -430,7 +430,7 @@ export function WatchlistJournalPlanForm({
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
           Bull / base / bear ($)
         </p>
-        <div className="mt-2 grid gap-3 sm:grid-cols-3">
+        <div className="mt-3 grid gap-4 sm:grid-cols-3">
           <div>
             <Label htmlFor="journal-bull">Bull case</Label>
             <Input

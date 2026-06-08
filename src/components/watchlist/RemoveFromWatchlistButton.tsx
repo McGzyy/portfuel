@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Trash2, X } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import type { WatchlistRemoveSummary } from "@/lib/watchlist/journal-archive";
@@ -137,7 +137,7 @@ export function RemoveFromWatchlistButton({
           aria-label={`Remove ${sym} from watchlist`}
           title="Remove from watchlist"
         >
-          <X className="h-3.5 w-3.5" />
+          <Trash2 className="h-3.5 w-3.5" />
         </button>
       ) : (
         <Button

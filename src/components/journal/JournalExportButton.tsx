@@ -65,7 +65,7 @@ export function JournalExportButton({
   }
 
   return (
-    <div className={cn("flex flex-col items-end gap-1", className)}>
+    <div className={cn("flex flex-col items-stretch gap-1 sm:flex-row sm:items-center sm:justify-end sm:gap-1", className)}>
       <Button
         type="button"
         size="sm"
@@ -81,7 +81,7 @@ export function JournalExportButton({
         )}
         {symbol ? "Export symbol" : "Export notebook"}
       </Button>
-      {error ? <span className="text-[10px] text-rose-600">{error}</span> : null}
+      {error ? <p className="text-[10px] text-rose-600">{error}</p> : null}
     </div>
   );
 }

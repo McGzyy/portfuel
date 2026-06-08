@@ -122,7 +122,7 @@ export function WatchlistJournalWorkspace({
   }, [scrollToHash]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 lg:space-y-10">
       <ResearchPipeline
         current={checklist.readyToPublish ? "publish" : setupMode ? "research" : "log"}
         logHref={journalSymbolPath(journal.symbol, { section: "entries" })}
@@ -130,80 +130,88 @@ export function WatchlistJournalWorkspace({
       />
 
       <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-2xl">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-              Research · Journal
-            </p>
-            <div className="mt-1.5 flex flex-wrap items-center gap-2">
-              <h1 className="font-mono text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
-                ${journal.symbol}
-              </h1>
-              {journal.position_intent && journal.position_intent !== "researching" ? (
-                <PositionIntentBadge intent={journal.position_intent} />
-              ) : null}
-            </div>
-            <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
-              {intel.companyName !== journal.symbol ? intel.companyName : "Your research notebook"}{" "}
-              — thesis, catalysts, plan levels, and AI research stay private until you publish a
-              call.
-            </p>
-            {setupMode ? (
-              <p className="mt-2 text-xs font-semibold text-[var(--pf-red)]">
-                New watchlist symbol — add your thesis and plan below. Use{" "}
-                <span className="text-[var(--pf-black)]">{COPY.journalAddEntry}</span> on the
-                timeline for price-action notes (not a community call).
-              </p>
-            ) : null}
-            <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold">
-              <Link
-                href={journalHubPath()}
-                className="inline-flex items-center gap-1 text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] hover:underline"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Journal
-              </Link>
-              <Link
-                href="/dashboard/watchlist"
-                className="text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] hover:underline"
-              >
-                Watchlist
-              </Link>
-              <Link
-                href={`/ticker/${journal.symbol}`}
-                className="inline-flex items-center gap-1 text-[var(--pf-red)] hover:underline"
-              >
-                <LineChart className="h-3.5 w-3.5" />
-                Community intel
-              </Link>
-            </div>
-          </div>
-          <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href={journalHubPath()}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--pf-gray-600)] transition-colors hover:text-[var(--pf-black)]"
+          >
+            <ArrowLeft className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+            Journal
+          </Link>
+          <div className="flex flex-wrap items-center gap-2">
             <JournalExportButton symbol={journal.symbol} proUnlocked={proUnlocked} />
             <RemoveFromWatchlistButton
               symbol={journal.symbol}
-              variant="button"
+              variant="icon"
               redirectTo={journalHubPath()}
+              className="rounded-lg border border-transparent p-2 hover:border-[var(--pf-border)] hover:bg-[var(--pf-gray-50)]"
             />
+            {setupMode ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2 text-xs font-semibold text-[var(--pf-gray-600)]">
+                <NotebookPen className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+                Save plan first
+              </span>
+            ) : checklist.readyToPublish ? (
+              <Link
+                href={publishUrl}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--pf-red)] px-3.5 py-2 text-xs font-semibold text-white shadow-[var(--pf-shadow-sm)] transition-colors hover:bg-[var(--pf-red-hover)] sm:text-sm sm:px-4 sm:py-2.5"
+              >
+                <Megaphone className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" strokeWidth={2.25} />
+                {COPY.publishFromJournal}
+              </Link>
+            ) : (
+              <Link
+                href="#journal-checklist"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2 text-xs font-semibold text-[var(--pf-gray-600)] transition-colors hover:border-[var(--pf-gray-300)] hover:text-[var(--pf-black)] sm:text-sm sm:px-3.5 sm:py-2.5"
+              >
+                <Megaphone className="h-3.5 w-3.5 shrink-0 opacity-60" strokeWidth={2.25} />
+                {checklist.requiredCompleted}/{checklist.requiredTotal} · Publish when ready
+              </Link>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-5 border-t border-[var(--pf-border)] pt-5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
+            Research · Journal
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <h1 className="font-mono text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-3xl">
+              ${journal.symbol}
+            </h1>
+            {intel.companyName !== journal.symbol ? (
+              <span className="text-sm font-medium text-[var(--pf-gray-500)] sm:text-base">
+                {intel.companyName}
+              </span>
+            ) : null}
+            {journal.position_intent && journal.position_intent !== "researching" ? (
+              <PositionIntentBadge intent={journal.position_intent} />
+            ) : null}
+          </div>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-500)]">
+            Thesis, catalysts, and plan levels stay private until you publish a call.
+          </p>
           {setupMode ? (
-            <div className="inline-flex items-center gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-2.5 text-sm font-semibold text-[var(--pf-gray-600)]">
-              <NotebookPen className="h-4 w-4 shrink-0" strokeWidth={2.25} />
-              {COPY.journalSavePlan} first
-            </div>
-          ) : checklist.readyToPublish ? (
+            <p className="mt-2 text-xs font-semibold text-[var(--pf-red)]">
+              New watchlist symbol — draft your thesis below, then use{" "}
+              <span className="text-[var(--pf-black)]">{COPY.journalAddEntry}</span> on the timeline
+              for price-action notes.
+            </p>
+          ) : null}
+          <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold">
             <Link
-              href={publishUrl}
-              className="inline-flex items-center gap-2 rounded-lg bg-[var(--pf-red)] px-4 py-2.5 text-sm font-semibold text-white shadow-[var(--pf-shadow-sm)] transition-colors hover:bg-[var(--pf-red-hover)]"
+              href="/dashboard/watchlist"
+              className="text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] hover:underline"
             >
-              <Megaphone className="h-4 w-4" strokeWidth={2.25} />
-              {COPY.publishFromJournal}
+              Watchlist
             </Link>
-          ) : (
-            <div className="inline-flex items-center gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-2.5 text-sm font-semibold text-[var(--pf-gray-500)]">
-              <Megaphone className="h-4 w-4 shrink-0 opacity-50" strokeWidth={2.25} />
-              Finish checklist to publish
-            </div>
-          )}
+            <Link
+              href={`/ticker/${journal.symbol}`}
+              className="inline-flex items-center gap-1 text-[var(--pf-red)] hover:underline"
+            >
+              <LineChart className="h-3.5 w-3.5" strokeWidth={2.25} />
+              Community intel
+            </Link>
           </div>
         </div>
       </header>
@@ -229,7 +237,7 @@ export function WatchlistJournalWorkspace({
 
       <WatchlistJournalStats intel={intel} />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="flex flex-col gap-8 lg:gap-10">
         {!setupMode ? (
           <div id="journal-plan">
             <WatchlistJournalPlanForm
@@ -239,7 +247,7 @@ export function WatchlistJournalWorkspace({
             />
           </div>
         ) : null}
-        <div className={setupMode ? "lg:col-span-2" : undefined} id="journal-entries">
+        <div id="journal-entries">
           <WatchlistJournalTimeline
             symbol={journal.symbol}
             entries={entries}

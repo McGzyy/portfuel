@@ -142,17 +142,17 @@ export function WatchlistJournalTimeline({
   }
 
   return (
-    <section className="pf-workspace-panel p-4 sm:p-5">
+    <section className="pf-workspace-panel p-5 sm:p-6 lg:p-7">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
         Journal timeline
       </p>
-      <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
+      <p className="mt-1.5 text-sm leading-relaxed text-[var(--pf-gray-500)]">
         Log earnings, news, and price action — each update can pin a marker on your chart. AI
         research saves here automatically.
       </p>
 
       {usedTypes.length > 1 ? (
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-4 flex flex-wrap gap-2">
           <FilterChip active={filter === "all"} onClick={() => setFilter("all")} label="All" />
           {usedTypes.map((t) => (
             <FilterChip
@@ -172,7 +172,7 @@ export function WatchlistJournalTimeline({
       ) : visible.length === 0 ? (
         <p className="mt-4 text-sm text-[var(--pf-gray-500)]">No entries match this filter.</p>
       ) : (
-        <ul className="mt-4 space-y-3">
+        <ul className="mt-5 space-y-4">
           {visible.map((entry) => {
             const parent = entry.reply_to_id ? byId.get(entry.reply_to_id) : null;
             const isSystem = entry.entry_type === "system";
@@ -188,7 +188,7 @@ export function WatchlistJournalTimeline({
               >
                 <div
                   className={cn(
-                    "rounded-lg border px-3.5 py-3",
+                    "rounded-lg border px-4 py-4 sm:px-5 sm:py-4",
                     isSystem
                       ? "border-transparent bg-transparent px-1 py-1"
                       : "border-[var(--pf-border)] bg-[var(--pf-gray-50)]"
@@ -257,7 +257,7 @@ export function WatchlistJournalTimeline({
         </ul>
       )}
 
-      <form onSubmit={postEntry} className="mt-4 space-y-2 border-t border-[var(--pf-border)] pt-4">
+      <form onSubmit={postEntry} className="mt-6 space-y-3 border-t border-[var(--pf-border)] pt-6">
         {replyTo ? (
           <p className="text-xs text-[var(--pf-gray-600)]">
             Replying to an update.{" "}
