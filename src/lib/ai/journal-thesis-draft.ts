@@ -17,8 +17,9 @@ const journalThesisDraftRawSchema = z.object({
   thesis: z.string().min(40).max(2000),
   catalysts: z.array(z.string()).max(4),
   risk_factors: z.string().min(12).max(800),
-  conviction: z.coerce.number().min(1).max(10),
-  entry_note: z.string().max(300).optional(),
+  conviction: z.number().min(1).max(10),
+  /** Required in OpenAI JSON schema — use empty string when not applicable. */
+  entry_note: z.string().max(300),
 });
 
 export type JournalThesisDraftResponse = {
@@ -93,9 +94,9 @@ export async function runJournalThesisDraft(opts: {
 
 ${priceLine}
 
-Allowed catalyst tags (pick 1–3, exact spelling): ${JOURNAL_CATALYST_OPTIONS.join(", ")}
+Allowed catalyst tags (pick 1–3 — copy exact strings into the catalysts array): ${JOURNAL_CATALYST_OPTIONS.join(", ")}
 
-Return thesis (why watch this name now), catalysts, risk_factors, conviction, and optional entry_note.`,
+Return thesis (why watch this name now), catalysts, risk_factors, conviction (integer 1-10), and entry_note (empty string if none).`,
       output: Output.object({ schema: journalThesisDraftRawSchema }),
     });
     output = result.output;
@@ -108,10 +109,14 @@ Return thesis (why watch this name now), catalysts, risk_factors, conviction, an
 
   const used = await consumeJournalResearch(opts.userId);
   const conviction = Math.round(Math.min(10, Math.max(1, output.conviction)));
+  let catalysts = normalizeCatalysts(output.catalysts);
+  if (catalysts.length === 0 && opts.assetClass === "crypto") {
+    catalysts = ["Crypto exposure"];
+  }
 
   return {
     thesis: output.thesis.trim(),
-    catalysts: normalizeCatalysts(output.catalysts),
+    catalysts,
     risk_factors: output.risk_factors.trim(),
     conviction,
     entry_note: output.entry_note?.trim() || undefined,
