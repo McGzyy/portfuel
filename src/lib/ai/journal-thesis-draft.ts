@@ -55,7 +55,8 @@ Rules (strict):
 - NEVER use vague filler: "gaining traction", "asset to watch", "significantly enhance", "well-positioned", "burgeoning", "positioned for growth", "competitive landscape", "in general", "high scalability", "growing ecosystem", "DeFi and NFT projects", "differentiated edge lies in", "underlying strength", "recent increase in developer activity" without naming a source or metric.
 - thesis must be prose only — never append conviction scores or numbers at the end.
 - Pick catalyst tags only from the allowed list — exact spelling, 1–3 tags.
-- risk_factors: a full paragraph (3–5 sentences) with concrete falsifiers — not a single line.
+- risk_factors: a full paragraph (3–5 sentences) with concrete falsifiers — include at least one time-bound trigger (e.g. "two weeks below X", "failed-tx rate above Y%").
+- thesis must include at least one measurable verify step and one numeric or time-bound invalidation in prose.
 - conviction: integer 1–10 for how developed the research is (first drafts usually 4–6).
 - entry_note: ideal entry zone in words only — no duplicate of numeric prices (empty string if none).
 - personal_tags: 2–4 short lowercase tags for the user's own filters (e.g. "on-chain", "swing", "earnings").

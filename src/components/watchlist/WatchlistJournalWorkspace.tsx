@@ -258,8 +258,10 @@ export function WatchlistJournalWorkspace({
         <div id="journal-research">
           <JournalResearchPanel
             symbol={journal.symbol}
+            journal={journal}
             hasThesis={Boolean(journal.thesis?.trim())}
             onEntrySaved={handleEntryAdded}
+            onPlanUpdated={handlePlanSaved}
           />
         </div>
 

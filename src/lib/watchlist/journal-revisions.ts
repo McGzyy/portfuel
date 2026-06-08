@@ -22,6 +22,7 @@ const FIELD_LABELS: Record<string, string> = {
   entry_note: "Entry note",
   catalysts: "Catalysts",
   risk_factors: "Risk factors",
+  research_followups: "Open research",
   personal_tags: "Tags",
   outcome: "Outcome",
   position_intent: "Trade posture",
@@ -68,6 +69,8 @@ function serializeField(
       return fmtList(journal.catalysts);
     case "risk_factors":
       return fmtText(journal.risk_factors, 160);
+    case "research_followups":
+      return fmtText(journal.research_followups, 160);
     case "personal_tags":
       return fmtList(journal.personal_tags);
     case "outcome":
@@ -101,6 +104,7 @@ function serializePatchValue(
     entry_note: patch.entry_note,
     catalysts: patch.catalysts,
     risk_factors: patch.risk_factors,
+    research_followups: patch.research_followups,
     personal_tags: patch.personal_tags,
     outcome: patch.outcome,
     position_intent: patch.position_intent,
@@ -120,6 +124,7 @@ const TRACKED_FIELDS: (keyof WatchlistJournalPatch)[] = [
   "entry_note",
   "catalysts",
   "risk_factors",
+  "research_followups",
   "personal_tags",
   "outcome",
   "position_intent",

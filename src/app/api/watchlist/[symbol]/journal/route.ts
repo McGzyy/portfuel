@@ -32,6 +32,7 @@ const patchSchema = z.object({
     .array(z.enum([...JOURNAL_CATALYST_OPTIONS] as [string, ...string[]]))
     .optional(),
   risk_factors: z.string().max(2000).nullable().optional(),
+  research_followups: z.string().max(2000).nullable().optional(),
   personal_tags: z.array(z.string().max(24)).max(12).optional(),
   outcome: z.enum(outcomeValues).optional(),
   position_intent: z.enum(POSITION_INTENTS).optional(),

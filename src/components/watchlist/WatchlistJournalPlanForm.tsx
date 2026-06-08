@@ -47,6 +47,7 @@ export function WatchlistJournalPlanForm({
   const [entryNote, setEntryNote] = useState(initial.entry_note ?? "");
   const [catalysts, setCatalysts] = useState<JournalCatalyst[]>(initial.catalysts ?? []);
   const [riskFactors, setRiskFactors] = useState(initial.risk_factors ?? "");
+  const [researchFollowups, setResearchFollowups] = useState(initial.research_followups ?? "");
   const [tagsInput, setTagsInput] = useState((initial.personal_tags ?? []).join(", "));
   const [outcome, setOutcome] = useState<JournalOutcome>(initial.outcome ?? "watching");
   const [positionIntent, setPositionIntent] = useState<PositionIntent>(
@@ -66,6 +67,7 @@ export function WatchlistJournalPlanForm({
   const [usage, setUsage] = useState<JournalResearchUsageStatus | null>(null);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [researchNudge, setResearchNudge] = useState(false);
   const [draftApplied, setDraftApplied] = useState(false);
   const thesisRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
@@ -82,6 +84,11 @@ export function WatchlistJournalPlanForm({
   useEffect(() => {
     void loadUsage();
   }, [loadUsage]);
+
+  useEffect(() => {
+    setRiskFactors(initial.risk_factors ?? "");
+    setResearchFollowups(initial.research_followups ?? "");
+  }, [initial.risk_factors, initial.research_followups, initial.journal_updated_at]);
 
   function toggleCatalyst(c: JournalCatalyst) {
     setCatalysts((prev) =>
@@ -176,6 +183,7 @@ export function WatchlistJournalPlanForm({
     setSaving(true);
     setError("");
     setSaved(false);
+    setResearchNudge(false);
     try {
       const res = await fetch(`/api/watchlist/${encodeURIComponent(symbol)}/journal`, {
         method: "PATCH",
@@ -189,6 +197,7 @@ export function WatchlistJournalPlanForm({
           entry_note: entryNote.trim() || null,
           catalysts,
           risk_factors: riskFactors.trim() || null,
+          research_followups: researchFollowups.trim() || null,
           personal_tags: parseTagsInput(tagsInput),
           outcome,
           position_intent: positionIntent,
@@ -204,6 +213,9 @@ export function WatchlistJournalPlanForm({
       }
       onSaved(data.journal as WatchlistJournal);
       setSaved(true);
+      if (thesis.trim()) {
+        setResearchNudge(true);
+      }
       router.refresh();
     } catch {
       setError("Could not save plan.");
@@ -373,6 +385,23 @@ export function WatchlistJournalPlanForm({
       </div>
 
       <div>
+        <Label htmlFor="journal-followups">Open research items</Label>
+        <Textarea
+          id="journal-followups"
+          value={researchFollowups}
+          onChange={(e) => setResearchFollowups(e.target.value)}
+          placeholder={"• Check SOL/BTC ratio vs prior cycle\n• Verify DEX volume trend on Solscan…"}
+          className="mt-2 min-h-[88px] resize-y font-mono text-xs sm:min-h-[96px] sm:text-sm"
+          maxLength={2000}
+        />
+        <p className="mt-1 text-[10px] text-[var(--pf-gray-500)]">
+          Homework from AI research review — bullet list of gaps to verify. Your thesis stays clean;
+          use <span className="font-semibold">Apply feedback to plan</span> after a review to merge
+          new items here.
+        </p>
+      </div>
+
+      <div>
         <Label htmlFor="journal-tags">Personal tags</Label>
         <Input
           id="journal-tags"
@@ -485,9 +514,20 @@ export function WatchlistJournalPlanForm({
       </div>
 
       {saved ? (
-        <p className="text-xs font-semibold text-emerald-700">
-          Saved — changes recorded in the plan edit log below.
-        </p>
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-emerald-700">
+            Saved — changes recorded in the plan edit log below.
+          </p>
+          {researchNudge ? (
+            <p className="text-xs text-[var(--pf-gray-600)]">
+              Next: run{" "}
+              <a href="#journal-research" className="font-semibold text-indigo-700 hover:underline">
+                AI research review
+              </a>{" "}
+              to stress-test your thesis and capture open items without rewriting your draft.
+            </p>
+          ) : null}
+        </div>
       ) : null}
       {error && thesis.trim() ? (
         <p className="text-xs font-semibold text-rose-600" role="alert">

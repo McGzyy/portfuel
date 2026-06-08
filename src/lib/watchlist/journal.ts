@@ -49,6 +49,7 @@ type WatchlistRow = {
   journal_updated_at: string | null;
   catalysts: string[] | null;
   risk_factors: string | null;
+  research_followups?: string | null;
   personal_tags: string[] | null;
   outcome: JournalOutcome;
   position_intent: PositionIntent | null;
@@ -72,6 +73,7 @@ function mapJournalRow(row: WatchlistRow, lastPrice?: number | null): WatchlistJ
     entry_note: row.entry_note,
     catalysts: normalizeCatalysts(row.catalysts),
     risk_factors: row.risk_factors,
+    research_followups: row.research_followups ?? null,
     personal_tags: normalizePersonalTags(row.personal_tags),
     outcome: row.outcome ?? "watching",
     position_intent: normalizePositionIntent(row.position_intent),
@@ -202,6 +204,10 @@ export async function updateWatchlistJournal(
   if (patch.risk_factors !== undefined) {
     const r = patch.risk_factors?.trim() ?? "";
     updates.risk_factors = r.length > 0 ? r.slice(0, 2000) : null;
+  }
+  if (patch.research_followups !== undefined) {
+    const f = patch.research_followups?.trim() ?? "";
+    updates.research_followups = f.length > 0 ? f.slice(0, 2000) : null;
   }
   if (patch.personal_tags !== undefined) {
     updates.personal_tags = normalizePersonalTags(patch.personal_tags);

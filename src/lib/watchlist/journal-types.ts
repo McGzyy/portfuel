@@ -20,6 +20,7 @@ export type WatchlistJournal = {
   entry_note?: string | null;
   catalysts?: JournalCatalyst[];
   risk_factors?: string | null;
+  research_followups?: string | null;
   personal_tags?: string[];
   outcome?: JournalOutcome;
   position_intent?: PositionIntent;
@@ -49,6 +50,7 @@ export type WatchlistJournalPatch = {
   entry_note?: string | null;
   catalysts?: JournalCatalyst[];
   risk_factors?: string | null;
+  research_followups?: string | null;
   personal_tags?: string[];
   outcome?: JournalOutcome;
   position_intent?: PositionIntent;

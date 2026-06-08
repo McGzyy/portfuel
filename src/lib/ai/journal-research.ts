@@ -21,7 +21,8 @@ Rules (strict):
 - DO help the author think like a research analyst: what evidence is missing, what could falsify the thesis, what to read or watch next.
 - Reference their catalysts, risks, and plan levels only as process checks — not trade advice.
 - Be specific to the symbol and thesis text provided.
-- Short, scannable bullets.`;
+- Short, scannable bullets — each gap/question should be a concrete homework item the user can look up.
+- Do NOT repeat the thesis verbatim; add net-new checks the author may have missed.`;
 
 function formatInput(input: JournalResearchInput): string {
   const levels: string[] = [];

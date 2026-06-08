@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { AI_JOURNAL_RESEARCH_DISCLAIMER } from "@/lib/ai/config";
 import type { JournalResearchResponse } from "@/lib/ai/journal-research-types";
 import type { JournalResearchUsageStatus } from "@/lib/ai/journal-research-usage";
+import { buildResearchFeedbackPatch } from "@/lib/journal/apply-research-feedback";
 import type { JournalResearchSnapshot } from "@/lib/journal/research-entry";
-import type { WatchlistJournalEntry } from "@/lib/watchlist/journal-types";
+import type { WatchlistJournal, WatchlistJournalEntry } from "@/lib/watchlist/journal-types";
 
 type ResearchApiResponse = JournalResearchResponse & {
   entry?: WatchlistJournalEntry | null;
@@ -15,17 +16,23 @@ type ResearchApiResponse = JournalResearchResponse & {
 
 export function JournalResearchPanel({
   symbol,
+  journal,
   hasThesis = true,
   onEntrySaved,
+  onPlanUpdated,
 }: {
   symbol: string;
+  journal: Pick<WatchlistJournal, "risk_factors" | "research_followups">;
   hasThesis?: boolean;
   onEntrySaved?: (entry: WatchlistJournalEntry) => void;
+  onPlanUpdated?: (journal: WatchlistJournal) => void;
 }) {
   const [usage, setUsage] = useState<JournalResearchUsageStatus | null>(null);
   const [loading, setLoading] = useState(false);
+  const [applying, setApplying] = useState(false);
   const [result, setResult] = useState<JournalResearchSnapshot | null>(null);
   const [savedNotice, setSavedNotice] = useState(false);
+  const [appliedNotice, setAppliedNotice] = useState(false);
   const [error, setError] = useState("");
 
   const loadUsage = useCallback(async () => {
@@ -45,6 +52,7 @@ export function JournalResearchPanel({
     setLoading(true);
     setError("");
     setSavedNotice(false);
+    setAppliedNotice(false);
     try {
       const res = await fetch(
         `/api/watchlist/${encodeURIComponent(symbol)}/journal/research`,
@@ -90,6 +98,38 @@ export function JournalResearchPanel({
     }
   }
 
+  async function applyFeedbackToPlan() {
+    if (!result) return;
+    const patch = buildResearchFeedbackPatch(journal, result);
+    if (Object.keys(patch).length === 0) {
+      setError("Nothing new to add — your plan already covers these review items.");
+      return;
+    }
+
+    setApplying(true);
+    setError("");
+    setAppliedNotice(false);
+    try {
+      const res = await fetch(`/api/watchlist/${encodeURIComponent(symbol)}/journal`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      const data = (await res.json()) as { journal?: WatchlistJournal; error?: string };
+      if (!res.ok || !data.journal) {
+        setError("Could not apply feedback to your plan.");
+        return;
+      }
+      onPlanUpdated?.(data.journal);
+      setAppliedNotice(true);
+      document.getElementById("journal-followups")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    } catch {
+      setError("Could not apply feedback to your plan.");
+    } finally {
+      setApplying(false);
+    }
+  }
+
   return (
     <section className="pf-workspace-panel p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -100,7 +140,7 @@ export function JournalResearchPanel({
           </p>
           <p className="mt-1 max-w-xl text-xs text-[var(--pf-gray-500)]">
             {hasThesis
-              ? "Stress-tests your saved thesis — results save automatically to your journal timeline."
+              ? "Stress-tests your saved thesis — timeline log below. Use Apply feedback to merge gaps into Open research without rewriting your thesis."
               : "Draft your thesis in Thesis & plan first (use Draft with AI). This review finds gaps — it does not write your thesis for you."}
           </p>
         </div>
@@ -129,10 +169,30 @@ export function JournalResearchPanel({
         </p>
       ) : null}
 
+      {appliedNotice ? (
+        <p className="mt-2 text-xs font-semibold text-emerald-700">
+          Applied to Open research and risk factors in Thesis &amp; plan — thesis unchanged.
+        </p>
+      ) : null}
+
       {error ? <p className="mt-2 text-xs text-rose-600">{error}</p> : null}
 
       {result ? (
         <div className="mt-4 space-y-4 border-t border-[var(--pf-border)] pt-4 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
+              Review results
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={applying}
+              onClick={() => void applyFeedbackToPlan()}
+            >
+              {applying ? "Applying…" : "Apply feedback to plan"}
+            </Button>
+          </div>
           <p className="leading-relaxed text-[var(--pf-gray-800)]">{result.read}</p>
 
           <ResearchBlock title="Strengths" items={result.strengths} tone="emerald" />
