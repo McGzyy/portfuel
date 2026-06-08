@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { loadTrackRecordCardPayload } from "@/lib/charts/track-record-card-data";
-import { renderTrackRecordCardOgPng } from "@/lib/charts/track-record-card-og";
+import { renderTrackRecordCardPng } from "@/lib/charts/track-record-card-render";
 
 export async function GET(
   _request: Request,
@@ -13,7 +13,7 @@ export async function GET(
       return NextResponse.json({ error: loaded.error }, { status: 404 });
     }
 
-    const png = await renderTrackRecordCardOgPng(loaded.payload);
+    const png = await renderTrackRecordCardPng(loaded.payload);
     return new NextResponse(new Uint8Array(png), {
       headers: {
         "Content-Type": "image/png",
