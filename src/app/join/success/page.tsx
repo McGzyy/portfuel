@@ -73,7 +73,7 @@ export default function JoinSuccessPage() {
 
   return (
     <div className="min-h-screen bg-[var(--pf-gray-50)]">
-      <div className="border-b border-[var(--pf-border)] bg-white px-4 py-5">
+      <div className="border-b border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-5">
         <div className="mx-auto flex max-w-lg justify-center">
           <Logo size="lg" />
         </div>

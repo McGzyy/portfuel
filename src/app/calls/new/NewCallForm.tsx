@@ -455,7 +455,7 @@ export function NewCallForm({
                     </span>
                     <button
                       type="button"
-                      className="rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-1 text-[11px] font-semibold text-[var(--pf-gray-700)] hover:bg-[var(--pf-gray-50)]"
+                      className="pf-chip-action px-2.5 py-1 text-[11px]"
                       onClick={() => setEntryPrice(String(marketPrice))}
                     >
                       Use as entry
@@ -465,7 +465,7 @@ export function NewCallForm({
                 {symbolHint ? (
                   <p
                     className={`mt-1.5 text-xs font-medium ${
-                      symbolValid ? "text-emerald-600" : "text-rose-600"
+                      symbolValid ? "pf-return-up" : "pf-return-down"
                     }`}
                   >
                     {symbolHint}

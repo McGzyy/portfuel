@@ -38,7 +38,7 @@ export function PublicHighlightCard({ call }: { call: TeaserCallRow }) {
             Full thesis and live levels are for members only. Join to read the complete call and
             track performance in real time.
           </p>
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/70 backdrop-blur-[2px]">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[color-mix(in_srgb,var(--pf-surface)_70%,transparent)] backdrop-blur-[2px]">
             <Lock className="h-5 w-5 text-[var(--pf-red)]" strokeWidth={2} />
             <p className="text-xs font-semibold text-[var(--pf-gray-700)]">Members-only thesis</p>
             <Link href="/join">

@@ -216,7 +216,7 @@ export default function JoinPage() {
 
   return (
     <div className="min-h-screen bg-[var(--pf-gray-50)]">
-      <div className="border-b border-[var(--pf-border)] bg-white px-4 py-5 shadow-[var(--pf-shadow-sm)]">
+      <div className="border-b border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-5 shadow-[var(--pf-shadow-sm)]">
         <div className="mx-auto flex max-w-4xl justify-center">
           <Logo size="lg" />
         </div>
@@ -599,10 +599,10 @@ function PlanCard({
         "w-full rounded-[var(--pf-radius-lg)] border p-5 text-left transition-all",
         selected
           ? "border-[var(--pf-red)] ring-2 ring-[var(--pf-red)]/30 shadow-[var(--pf-shadow-md)]"
-          : "border-[var(--pf-border)] bg-white hover:border-[var(--pf-gray-300)]",
+          : "border-[var(--pf-border)] bg-[var(--pf-surface)] hover:border-[var(--pf-gray-300)]",
         highlight &&
           !selected &&
-          "border-[var(--pf-red)]/40 bg-gradient-to-b from-[var(--pf-red-muted)] to-white"
+          "border-[var(--pf-red)]/40 bg-gradient-to-b from-[var(--pf-red-muted)] to-[var(--pf-surface)]"
       )}
     >
       {highlight ? (
@@ -610,7 +610,7 @@ function PlanCard({
           Best for research
         </span>
       ) : (
-        <span className="inline-block rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--pf-gray-500)]">
+        <span className="inline-block rounded-full border border-[var(--pf-border)] bg-[var(--pf-surface)] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--pf-gray-500)]">
           Full workspace
         </span>
       )}

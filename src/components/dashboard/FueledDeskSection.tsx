@@ -36,7 +36,7 @@ export function FueledDeskSection({
       </div>
       <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {calls.slice(0, 3).map((call) => (
-          <div key={call.id} className="[&_.group]:border-white/10 [&_.group]:bg-white/95">
+          <div key={call.id} className="[&_.group]:border-[var(--pf-border)] [&_.group]:bg-[var(--pf-surface)]">
             <CallCard
               call={call}
               interactive={!readOnly}

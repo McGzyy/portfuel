@@ -69,7 +69,7 @@ export default function TwoFactorSetupPage() {
       <div className="space-y-6">
         <EmailUnlockSteps current="2fa" />
         {qr ? (
-          <div className="flex justify-center rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-4 shadow-[var(--pf-shadow-sm)]">
+          <div className="pf-card-elevated flex justify-center p-4">
             <Image src={qr} alt="TOTP QR code" width={200} height={200} unoptimized />
           </div>
         ) : (

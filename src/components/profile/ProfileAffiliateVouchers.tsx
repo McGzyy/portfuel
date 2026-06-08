@@ -84,7 +84,7 @@ export function ProfileAffiliateVouchers() {
               <input
                 readOnly
                 value={v.shareUrl}
-                className="min-w-0 flex-1 rounded-lg border border-[var(--pf-border)] bg-white px-3 py-2 text-xs text-[var(--pf-gray-700)]"
+                className="min-w-0 flex-1 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-2 text-xs text-[var(--pf-gray-700)]"
                 aria-label={`Share link for ${v.code}`}
               />
               <button
