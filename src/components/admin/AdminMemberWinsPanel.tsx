@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  AdminXPostPreview,
+  type AdminXPostPreviewData,
+} from "@/components/admin/AdminXPostPreview";
 
 type Candidate = {
   callId: string;
@@ -14,11 +18,28 @@ type Candidate = {
   status: "ready" | "waiting_sustain";
 };
 
+function formatPostError(error: string): string {
+  switch (error) {
+    case "already_posted":
+      return "Already published for this call.";
+    case "no_content":
+      return "This call does not meet publish criteria yet.";
+    case "chart_failed":
+      return "Chart render failed — check server logs.";
+    case "disabled":
+      return "X API is disabled — set X_API_ENABLED=true in env.";
+    default:
+      return error.startsWith("http_") || error === "no_token"
+        ? `X API error: ${error}`
+        : "Publish failed.";
+  }
+}
+
 export function AdminMemberWinsPanel() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [rulesSummary, setRulesSummary] = useState("");
-  const [previewText, setPreviewText] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [postPreview, setPostPreview] = useState<AdminXPostPreviewData | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -40,10 +61,40 @@ export function AdminMemberWinsPanel() {
     void load();
   }, [load]);
 
+  function applyPreviewResponse(json: {
+    text: string;
+    lead?: string;
+    tail?: string;
+    chartUrl?: string;
+    dryRun?: boolean;
+    chartGenerated?: boolean;
+    chartSizeBytes?: number;
+  }) {
+    if (!json.chartUrl) return;
+    setPostPreview({
+      lead: json.lead ?? json.text,
+      tail: json.tail ?? "",
+      text: json.text,
+      chartUrl: json.chartUrl,
+      cacheKey: String(Date.now()),
+      chartAlt: "Member win chart",
+    });
+    if (json.dryRun) {
+      const kb =
+        json.chartSizeBytes != null ? `${Math.round(json.chartSizeBytes / 1024)} KB` : null;
+      setMessage(
+        json.chartGenerated
+          ? `Dry run OK — chart rendered${kb ? ` (${kb})` : ""}; tweet not sent to X.`
+          : "Dry run OK — copy only; chart did not render."
+      );
+    }
+  }
+
   async function preview(callId: string) {
     setLoading(true);
     setMessage("");
     setSelectedId(callId);
+    setPostPreview(null);
     try {
       const res = await fetch("/api/admin/social/member-wins", {
         method: "POST",
@@ -52,15 +103,10 @@ export function AdminMemberWinsPanel() {
       });
       const json = await res.json();
       if (!res.ok) {
-        setPreviewText("");
-        setMessage(
-          json.error === "no_content"
-            ? "This call does not meet publish criteria yet."
-            : "Preview failed."
-        );
+        setMessage(formatPostError(json.error as string));
         return;
       }
-      setPreviewText(json.text as string);
+      applyPreviewResponse(json);
       setMessage(`Preview ready · ${json.charCount} characters`);
     } finally {
       setLoading(false);
@@ -70,6 +116,7 @@ export function AdminMemberWinsPanel() {
   async function post(callId: string, dryRun: boolean) {
     setLoading(true);
     setMessage("");
+    setSelectedId(callId);
     try {
       const res = await fetch("/api/admin/social/member-wins", {
         method: "POST",
@@ -78,24 +125,25 @@ export function AdminMemberWinsPanel() {
       });
       const json = await res.json();
       if (!res.ok) {
-        setMessage(
-          json.error === "already_posted"
-            ? "Already published for this call."
-            : (json.error ?? "Publish failed.")
-        );
+        setMessage(formatPostError(json.error as string));
         return;
       }
-      setPreviewText(json.text ?? previewText);
-      setMessage(
-        json.dryRun
-          ? "Dry run complete — logged server-side, not sent to X."
-          : `Published to X (id ${json.tweetId ?? "—"}).`
-      );
+      if (dryRun) {
+        applyPreviewResponse({ ...json, dryRun: true });
+      } else {
+        setMessage(`Published to X (id ${json.tweetId ?? "—"}).`);
+        setPostPreview(null);
+      }
       void load();
     } finally {
       setLoading(false);
     }
   }
+
+  const selected = candidates.find((c) => c.callId === selectedId);
+  const chartUrl = selectedId
+    ? `/api/social/chart/${selectedId}?format=png&memberWin=1`
+    : null;
 
   return (
     <section className="pf-workspace-panel p-6">
@@ -122,7 +170,7 @@ export function AdminMemberWinsPanel() {
 
       {candidates.length === 0 ? (
         <p className="mt-6 text-sm text-[var(--pf-gray-500)]">
-          No calls in the publish queue. Members must opt in on Profile, and calls must pass gate +
+          No calls in the publish queue. Members must opt in on Settings, and calls must pass gate +
           sustain timers after quote refresh.
         </p>
       ) : (
@@ -148,9 +196,7 @@ export function AdminMemberWinsPanel() {
                 </p>
                 <span
                   className={`mt-2 inline-block rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                    c.status === "ready"
-                      ? "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200/80"
-                      : "bg-amber-50 text-amber-900 ring-1 ring-amber-200/80"
+                    c.status === "ready" ? "pf-badge-emerald" : "pf-badge-attention"
                   }`}
                 >
                   {c.status === "ready" ? "Ready to publish" : "Review window"}
@@ -189,32 +235,47 @@ export function AdminMemberWinsPanel() {
         </ul>
       )}
 
-      {previewText ? (
-        <div className="mt-6">
+      {selected && chartUrl && !postPreview ? (
+        <div className="mt-6 space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+              Chart · ${selected.symbol}
+            </p>
+            <div className="flex flex-wrap gap-3 text-xs font-semibold">
+              <a
+                href={chartUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--pf-red)] hover:underline"
+              >
+                Open PNG
+              </a>
+              <a href={`${chartUrl}&download=1`} download className="text-[var(--pf-gray-700)] hover:underline">
+                Download PNG
+              </a>
+            </div>
+          </div>
+          <div className="overflow-hidden rounded-lg border border-[var(--pf-border)] bg-[#0f1419]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`${chartUrl}&t=${selected.callId}`}
+              alt={`${selected.symbol} member win chart`}
+              className="w-full"
+            />
+          </div>
+        </div>
+      ) : null}
+
+      {postPreview ? (
+        <div className="mt-6 space-y-2">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-            Post preview
+            Full X post preview
           </p>
-          <pre className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-4 font-sans text-sm leading-relaxed text-[var(--pf-gray-800)]">
-            {previewText}
-          </pre>
+          <AdminXPostPreview preview={postPreview} />
         </div>
       ) : null}
 
       {message ? <p className="mt-3 text-sm text-[var(--pf-gray-600)]">{message}</p> : null}
-
-      {selectedId ? (
-        <p className="mt-3 text-xs text-[var(--pf-gray-500)]">
-          Chart asset:{" "}
-          <a
-            href={`/api/social/chart/${selectedId}?format=png&memberWin=1`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-[var(--pf-red)] hover:underline"
-          >
-            Open 1200×675 PNG
-          </a>
-        </p>
-      ) : null}
     </section>
   );
 }

@@ -7,6 +7,10 @@ import { uploadXMedia } from "@/lib/social/x-media";
 import { hasSocialPostBeenSent, recordSocialPost } from "@/lib/social/post-log";
 import { pickNextMemberWinCallId } from "@/lib/social/member-win-scan";
 
+export function memberWinChartUrl(callId: string): string {
+  return `/api/social/chart/${callId}?format=png&memberWin=1`;
+}
+
 export async function postMemberWin(opts?: {
   callId?: string;
   dryRun?: boolean;
@@ -19,6 +23,10 @@ export async function postMemberWin(opts?: {
       text: string;
       tweetId?: string;
       callId: string;
+      chartUrl: string;
+      chartGenerated: boolean;
+      chartSizeBytes?: number;
+      mediaAttached: boolean;
     }
   | { ok: false; error: string; text?: string }
 > {
@@ -41,23 +49,45 @@ export async function postMemberWin(opts?: {
   const dryRun = opts?.dryRun === true || config.dryRun || !config.bearerToken;
 
   let mediaIds: string[] | undefined;
+  const chartUrl = memberWinChartUrl(callId);
+  let chartGenerated = false;
+  let chartSizeBytes: number | undefined;
+
   const chartPayload = await loadSocialChartPayload(callId, null, { memberWin: true });
-  if (!("error" in chartPayload)) {
-    try {
-      const png = await renderSocialChartPng(chartPayload);
-      if (!dryRun) {
-        const uploaded = await uploadXMedia(png);
-        if (uploaded.ok) mediaIds = [uploaded.mediaId];
-        else console.error("[x-member-win-post] upload", uploaded.error);
-      }
-    } catch (e) {
-      console.error("[x-member-win-post] chart", e);
+  if ("error" in chartPayload) {
+    return { ok: false, error: "chart_failed", text: composed.text };
+  }
+
+  try {
+    const png = await renderSocialChartPng(chartPayload);
+    chartGenerated = true;
+    chartSizeBytes = png.length;
+    if (!dryRun) {
+      const uploaded = await uploadXMedia(png);
+      if (uploaded.ok) mediaIds = [uploaded.mediaId];
+      else console.error("[x-member-win-post] upload", uploaded.error);
     }
+  } catch (e) {
+    console.error("[x-member-win-post] chart", e);
+    return { ok: false, error: "chart_failed", text: composed.text };
   }
 
   if (dryRun) {
-    console.info("[x-member-win-post dry-run]", composed.text);
-    return { ok: true, dryRun: true, text: composed.text, callId };
+    console.info(
+      "[x-member-win-post dry-run]",
+      composed.text,
+      chartSizeBytes ? `(chart ${chartSizeBytes}b)` : ""
+    );
+    return {
+      ok: true,
+      dryRun: true,
+      text: composed.text,
+      callId,
+      chartUrl,
+      chartGenerated,
+      chartSizeBytes,
+      mediaAttached: false,
+    };
   }
 
   const posted = await postToX(composed.text, mediaIds);
@@ -78,5 +108,9 @@ export async function postMemberWin(opts?: {
     text: composed.text,
     tweetId: posted.tweetId,
     callId,
+    chartUrl,
+    chartGenerated,
+    chartSizeBytes,
+    mediaAttached: Boolean(mediaIds?.length),
   };
 }

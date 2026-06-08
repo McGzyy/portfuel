@@ -82,8 +82,15 @@ export async function POST(request: Request) {
         dryRun: result.dryRun,
         tweetId: result.tweetId,
         text: result.text,
+        lead: result.text,
+        tail: "",
         refId: body.callId,
+        callId: result.callId,
         withChart: true,
+        chartUrl: result.chartUrl,
+        chartGenerated: result.chartGenerated,
+        chartSizeBytes: result.chartSizeBytes,
+        mediaAttached: result.mediaAttached,
         config: xConfigSummary(),
       });
     }

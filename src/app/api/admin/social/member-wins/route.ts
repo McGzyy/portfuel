@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
 import { fetchMemberWinCandidates } from "@/lib/social/member-win-scan";
 import { composeMemberWinPost } from "@/lib/social/x-compose";
-import { postMemberWin } from "@/lib/social/x-member-win-post";
+import { memberWinChartUrl, postMemberWin } from "@/lib/social/x-member-win-post";
 import { describeMemberWinRules } from "@/lib/social/member-win-eligibility";
 import { getMemberWinGateConfig } from "@/lib/social/member-win-config";
 import { xConfigSummary } from "@/lib/social/x-config";
@@ -51,8 +51,10 @@ export async function POST(request: Request) {
       }
       return NextResponse.json({
         text: composed.text,
+        lead: composed.text,
+        tail: "",
         charCount: composed.text.length,
-        chartUrl: `/api/social/chart/${body.callId}?format=png&memberWin=1`,
+        chartUrl: memberWinChartUrl(body.callId),
       });
     }
 
@@ -69,7 +71,9 @@ export async function POST(request: Request) {
           ? 409
           : result.error === "no_content"
             ? 404
-            : 502;
+            : result.error === "chart_failed"
+              ? 502
+              : 502;
       return NextResponse.json({ error: result.error, text: result.text }, { status });
     }
 
@@ -77,8 +81,15 @@ export async function POST(request: Request) {
       ok: true,
       dryRun: result.dryRun,
       text: result.text,
+      lead: result.text,
+      tail: "",
       tweetId: result.tweetId,
       callId: result.callId,
+      chartUrl: result.chartUrl,
+      chartGenerated: result.chartGenerated,
+      chartSizeBytes: result.chartSizeBytes,
+      mediaAttached: result.mediaAttached,
+      config: xConfigSummary(),
     });
   } catch (e) {
     if (e instanceof z.ZodError) {

@@ -12,6 +12,10 @@ import {
   composeMilestonePostText,
   type SocialPostCopy,
 } from "@/lib/social/copy-templates";
+import {
+  AdminXPostPreview,
+  type AdminXPostPreviewData,
+} from "@/components/admin/AdminXPostPreview";
 
 type MilestoneKey = "return_10" | "return_25" | "target_reached";
 
@@ -51,13 +55,7 @@ const DEMO_PREVIEW = {
 const DEMO_LINK = "https://portfuel.pro/ticker/NVDA?utm_source=x&utm_medium=social&utm_campaign=fueled_milestone";
 const DEMO_CALL_ID = "demo-call-001";
 
-type PostPreview = {
-  lead: string;
-  tail: string;
-  text: string;
-  chartUrl: string;
-  cacheKey: string;
-};
+type PostPreview = AdminXPostPreviewData;
 
 function formatPostError(error: string): string {
   switch (error) {
@@ -76,36 +74,6 @@ function formatPostError(error: string): string {
         ? `X API error: ${error}`
         : "Post failed.";
   }
-}
-
-function XPostLayout({ preview }: { preview: PostPreview }) {
-  return (
-    <div className="overflow-hidden rounded-xl border border-[var(--pf-border)] bg-[#0a0a0a] shadow-lg">
-      <div className="border-b border-white/10 bg-[#111] px-4 py-3">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-white/40">
-          X post preview
-        </p>
-        <pre className="mt-2 text-sm leading-relaxed whitespace-pre-wrap text-white">{preview.lead}</pre>
-        <p className="mt-2 text-[10px] uppercase tracking-wide text-white/30">
-          ↓ chart image attached below ↓
-        </p>
-      </div>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={`${preview.chartUrl}&k=${preview.cacheKey}`}
-        alt="Milestone chart"
-        className="w-full"
-      />
-      {preview.tail ? (
-        <div className="border-t border-white/10 bg-[#111] px-4 py-3">
-          <pre className="text-xs leading-relaxed whitespace-pre-wrap text-white/70">{preview.tail}</pre>
-          <p className="mt-2 text-[10px] text-white/35">
-            Full tweet · {preview.text.length} / 280 chars
-          </p>
-        </div>
-      ) : null}
-    </div>
-  );
 }
 
 export function AdminSocialMilestonePanel() {
@@ -538,7 +506,7 @@ export function AdminSocialMilestonePanel() {
           <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
             Server dry-run / live preview
           </p>
-          <XPostLayout preview={postPreview} />
+          <AdminXPostPreview preview={postPreview} />
         </div>
       ) : null}
 
