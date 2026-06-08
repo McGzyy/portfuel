@@ -1,6 +1,8 @@
 "use client";
 
+import { useIsDarkMode } from "@/components/appearance/AppearanceProvider";
 import { sparklinePath } from "@/lib/charts/sparkline";
+import { activeChartTheme } from "@/lib/charts/theme";
 import type { LinePoint } from "@/lib/charts/types";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +17,8 @@ export function MiniSparkline({
   height?: number;
   className?: string;
 }) {
+  const theme = activeChartTheme(useIsDarkMode());
+
   if (points.length < 2) {
     return (
       <span
@@ -40,7 +44,7 @@ export function MiniSparkline({
       <path
         d={path}
         fill="none"
-        stroke={up ? "#059669" : "#e31b23"}
+        stroke={up ? theme.candle.up : theme.candle.down}
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"

@@ -17,7 +17,7 @@ export function JournalProgressMini({
           Research {progress.required_completed}/{progress.required_total}
         </span>
         {progress.ready_to_publish ? (
-          <span className="text-emerald-700">Ready to publish</span>
+          <span className="pf-return-up">Ready to publish</span>
         ) : progress.has_ai_research ? (
           <span className="text-indigo-700">AI saved</span>
         ) : null}

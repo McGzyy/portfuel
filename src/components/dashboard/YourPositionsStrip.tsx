@@ -49,7 +49,7 @@ export function YourPositionsStrip({
                     <SymbolSparkline symbol={c.symbol} width={40} height={18} />
                     <span
                       className={`text-xs font-bold tabular-nums ${
-                        (c.return_pct ?? 0) >= 0 ? "text-emerald-600" : "text-rose-600"
+                        (c.return_pct ?? 0) >= 0 ? "pf-return-up" : "pf-return-down"
                       }`}
                     >
                       {formatPct(c.return_pct)}

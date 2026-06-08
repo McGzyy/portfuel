@@ -58,7 +58,7 @@ export function HotTickersStrip({
           <Link
             key={t.symbol}
             href={`/ticker/${t.symbol}`}
-            className="inline-flex items-center gap-2.5 rounded-full border border-[var(--pf-border)] bg-white py-1.5 pl-3 pr-3.5 text-xs font-semibold shadow-[var(--pf-shadow-sm)] transition-colors hover:border-[var(--pf-gray-200)] hover:bg-[var(--pf-gray-50)]"
+            className="pf-hot-ticker-chip"
           >
             <MiniSparkline points={series[t.symbol] ?? []} />
             <span className="font-mono text-[var(--pf-black)]">{t.symbol}</span>
@@ -68,7 +68,7 @@ export function HotTickersStrip({
             {t.avgReturnPct != null ? (
               <span
                 className={`tabular-nums ${
-                  t.avgReturnPct >= 0 ? "text-emerald-600" : "text-rose-600"
+                  t.avgReturnPct >= 0 ? "pf-return-up" : "pf-return-down"
                 }`}
               >
                 {t.avgReturnPct >= 0 ? "+" : ""}

@@ -313,7 +313,7 @@ export function WatchlistPanel({
             return (
             <li
               key={item.symbol}
-              className="group rounded-xl border border-[var(--pf-border)] bg-[var(--pf-gray-50)]/50 p-3 transition-colors hover:border-[var(--pf-gray-300)] hover:bg-white"
+              className="group pf-watchlist-row rounded-xl p-3"
             >
               <div className="flex items-start gap-3">
                 <MiniSparkline
@@ -344,9 +344,7 @@ export function WatchlistPanel({
                               Needs thesis
                             </span>
                           ) : item.journal_progress?.ready_to_publish ? (
-                            <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
-                              Ready
-                            </span>
+                            <span className="pf-badge-ready">Ready</span>
                           ) : null}
                         </div>
                         <p className="mt-1 text-sm font-semibold tabular-nums text-[var(--pf-black)]">
@@ -359,7 +357,7 @@ export function WatchlistPanel({
                         {item.change_since_add_pct != null ? (
                           <span
                             className={`text-xs font-semibold tabular-nums ${
-                              item.change_since_add_pct >= 0 ? "text-emerald-600" : "text-rose-600"
+                              item.change_since_add_pct >= 0 ? "pf-return-up" : "pf-return-down"
                             }`}
                             title="Change since added to watchlist"
                           >
@@ -412,7 +410,7 @@ export function WatchlistPanel({
                     <div className="flex items-center gap-1.5">
                       <Link
                         href={journalSymbolPath(item.symbol)}
-                        className="inline-flex items-center gap-1 rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-1 text-[10px] font-semibold text-[var(--pf-gray-700)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
+                        className="pf-chip-action"
                         title={`${item.symbol} research journal`}
                       >
                         <BookOpen className="h-3 w-3" aria-hidden />
@@ -420,7 +418,7 @@ export function WatchlistPanel({
                       </Link>
                       <Link
                         href={`/ticker/${item.symbol}${isCrypto ? "?asset=crypto" : ""}`}
-                        className="inline-flex items-center gap-1 rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-1 text-[10px] font-semibold text-[var(--pf-gray-500)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
+                        className="pf-chip-action pf-chip-action-muted"
                         title={`${item.symbol} community intel`}
                       >
                         <LineChart className="h-3 w-3" aria-hidden />

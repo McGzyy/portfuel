@@ -15,7 +15,7 @@ export function OverviewPerformanceChart({
 }) {
   const last = points[points.length - 1]?.value;
   const lastAccent =
-    last == null ? "text-[var(--pf-gray-400)]" : last >= 0 ? "text-emerald-600" : "text-rose-600";
+    last == null ? "text-[var(--pf-gray-400)]" : last >= 0 ? "pf-return-up" : "pf-return-down";
 
   return (
     <section className="pf-workspace-panel overflow-hidden">
