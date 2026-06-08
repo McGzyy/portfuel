@@ -10,6 +10,7 @@ import { PositionIntentBadge } from "@/components/watchlist/PositionIntentBadge"
 import { ACTIVE_INTENTS } from "@/lib/watchlist/position-intent";
 import { outcomeLabel, type JournalCatalyst } from "@/lib/watchlist/journal-meta";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
+import { tickerPagePath } from "@/lib/market/ticker-path";
 import { cn, formatPct, formatPrice } from "@/lib/utils";
 
 type FilterMode = "all" | "in_book" | "high" | "broken" | "needs_thesis" | "ready";
@@ -239,9 +240,10 @@ export function JournalIdeasPanel({
         <ul className="mt-4 space-y-2">
           {filtered.map((item) => (
             <li key={item.symbol}>
+              <div className="pf-journal-idea-row">
               <Link
                 href={journalRowHref(item)}
-                className="pf-journal-idea-row"
+                className="block"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <span className="flex flex-wrap items-center gap-2">
@@ -290,18 +292,6 @@ export function JournalIdeasPanel({
                         since add
                       </span>
                     ) : null}
-                    {item.user_call?.return_pct != null ? (
-                      <span
-                        className={
-                          item.user_call.return_pct >= 0 ? " pf-return-up" : " pf-return-down"
-                        }
-                      >
-                        {" "}
-                        · Your call{" "}
-                        {(item.user_call.return_pct >= 0 ? "+" : "") +
-                          formatPct(item.user_call.return_pct)}
-                      </span>
-                    ) : null}
                   </p>
                 ) : null}
                 {(item.catalysts ?? []).length > 0 ? (
@@ -321,6 +311,22 @@ export function JournalIdeasPanel({
                   Open journal →
                 </p>
               </Link>
+              {item.user_call?.return_pct != null ? (
+                <Link
+                  href={tickerPagePath(item.symbol, item.asset_class)}
+                  className={cn(
+                    "mt-2 inline-flex text-[10px] font-semibold tabular-nums hover:underline",
+                    item.user_call.return_pct >= 0 ? "pf-return-up" : "pf-return-down"
+                  )}
+                  title="Open your call on ticker intel"
+                >
+                  Your call{" "}
+                  {(item.user_call.return_pct >= 0 ? "+" : "") +
+                    formatPct(item.user_call.return_pct)}{" "}
+                  →
+                </Link>
+              ) : null}
+              </div>
             </li>
           ))}
         </ul>

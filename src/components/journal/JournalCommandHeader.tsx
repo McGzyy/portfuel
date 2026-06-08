@@ -50,10 +50,16 @@ export function JournalCommandHeader({
               </span>
             ) : null}
             {postureLine ? (
-              <span className="font-medium text-[var(--pf-gray-600)]">
+              <>
                 {" "}
-                · Book: {postureLine}
-              </span>
+                ·{" "}
+                <Link
+                  href="/dashboard/journal?filter=in_book#journal-ideas"
+                  className="font-medium text-[var(--pf-gray-600)] hover:text-[var(--pf-red)] hover:underline"
+                >
+                  Book: {postureLine}
+                </Link>
+              </>
             ) : null}
           </p>
           <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold">

@@ -19,6 +19,7 @@ import type { LinePoint } from "@/lib/charts/types";
 import { formatPct, formatPrice } from "@/lib/utils";
 import { COPY } from "@/lib/copy";
 import { journalSymbolPath } from "@/lib/journal/paths";
+import { tickerPagePath } from "@/lib/market/ticker-path";
 import { resolvePriceMoveThreshold } from "@/lib/alerts/price-threshold";
 import type { WatchlistAlertPrefs } from "@/lib/alerts/preferences";
 import { DEFAULT_WATCHLIST_ALERT_PREFS } from "@/lib/alerts/preferences";
@@ -336,70 +337,75 @@ export function WatchlistPanel({
                   className="pf-sparkline-pad mt-0.5 shrink-0"
                 />
                 <div className="min-w-0 flex-1 space-y-2">
-                  <Link href={journalSymbolPath(item.symbol)} className="block">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
-                            {item.symbol}
+                  <div className="flex items-start justify-between gap-3">
+                    <Link href={journalSymbolPath(item.symbol)} className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
+                          {item.symbol}
+                        </span>
+                        {isCrypto ? (
+                          <span className="rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-800">
+                            Crypto
                           </span>
-                          {isCrypto ? (
-                            <span className="rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-800">
-                              Crypto
-                            </span>
-                          ) : (
-                            <span className="rounded-full bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-800">
-                              Stock
-                            </span>
-                          )}
-                          {!item.has_thesis ? (
-                            <span className="pf-badge-attention">
-                              Needs thesis
-                            </span>
-                          ) : item.journal_progress?.ready_to_publish ? (
-                            <span className="pf-badge-ready">Ready</span>
-                          ) : null}
-                          {item.position_intent && item.position_intent !== "researching" ? (
-                            <PositionIntentBadge intent={item.position_intent} />
-                          ) : null}
-                        </div>
-                        <p className="mt-1 text-sm font-semibold tabular-nums text-[var(--pf-black)]">
-                          {formatWatchlistPrice(
-                            item.last_price != null ? Number(item.last_price) : null
-                          )}
-                        </p>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        {item.change_since_add_pct != null ? (
-                          <span
-                            className={`text-xs font-semibold tabular-nums ${
-                              item.change_since_add_pct >= 0 ? "pf-return-up" : "pf-return-down"
-                            }`}
-                            title="Change since added to watchlist"
-                          >
-                            {(item.change_since_add_pct >= 0 ? "+" : "") +
-                              formatPct(item.change_since_add_pct)}{" "}
-                            <span className="font-medium text-[var(--pf-gray-400)]">since add</span>
+                        ) : (
+                          <span className="rounded-full bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-800">
+                            Stock
                           </span>
+                        )}
+                        {!item.has_thesis ? (
+                          <span className="pf-badge-attention">
+                            Needs thesis
+                          </span>
+                        ) : item.journal_progress?.ready_to_publish ? (
+                          <span className="pf-badge-ready">Ready</span>
                         ) : null}
-                        {item.user_call?.return_pct != null ? (
-                          <p
-                            className={`mt-0.5 text-[10px] font-semibold tabular-nums ${
-                              item.user_call.return_pct >= 0 ? "pf-return-up" : "pf-return-down"
-                            }`}
-                            title="Your latest call on this symbol"
-                          >
-                            Your call{" "}
-                            {(item.user_call.return_pct >= 0 ? "+" : "") +
-                              formatPct(item.user_call.return_pct)}
-                          </p>
-                        ) : item.return_pct != null ? (
-                          <p className="mt-0.5 text-[10px] font-medium tabular-nums text-[var(--pf-gray-500)]">
-                            Community {formatPct(item.return_pct)}
-                          </p>
+                        {item.position_intent && item.position_intent !== "researching" ? (
+                          <PositionIntentBadge intent={item.position_intent} />
                         ) : null}
                       </div>
+                      <p className="mt-1 text-sm font-semibold tabular-nums text-[var(--pf-black)]">
+                        {formatWatchlistPrice(
+                          item.last_price != null ? Number(item.last_price) : null
+                        )}
+                      </p>
+                    </Link>
+                    <div className="shrink-0 text-right">
+                      {item.change_since_add_pct != null ? (
+                        <span
+                          className={`text-xs font-semibold tabular-nums ${
+                            item.change_since_add_pct >= 0 ? "pf-return-up" : "pf-return-down"
+                          }`}
+                          title="Change since added to watchlist"
+                        >
+                          {(item.change_since_add_pct >= 0 ? "+" : "") +
+                            formatPct(item.change_since_add_pct)}{" "}
+                          <span className="font-medium text-[var(--pf-gray-400)]">since add</span>
+                        </span>
+                      ) : null}
+                      {item.user_call?.return_pct != null ? (
+                        <Link
+                          href={tickerPagePath(item.symbol, item.asset_class)}
+                          className={`mt-0.5 block text-[10px] font-semibold tabular-nums hover:underline ${
+                            item.user_call.return_pct >= 0 ? "pf-return-up" : "pf-return-down"
+                          }`}
+                          title="Open your call on ticker intel"
+                        >
+                          Your call{" "}
+                          {(item.user_call.return_pct >= 0 ? "+" : "") +
+                            formatPct(item.user_call.return_pct)}
+                        </Link>
+                      ) : item.return_pct != null ? (
+                        <Link
+                          href={tickerPagePath(item.symbol, item.asset_class)}
+                          className="mt-0.5 block text-[10px] font-medium tabular-nums text-[var(--pf-gray-500)] hover:underline"
+                          title="Community calls on this symbol"
+                        >
+                          Community {formatPct(item.return_pct)}
+                        </Link>
+                      ) : null}
                     </div>
+                  </div>
+                  <Link href={journalSymbolPath(item.symbol)} className="block">
 
                     {item.has_unread_call_alert || (item.community_calls_7d ?? 0) > 0 || showMoveHint ? (
                       <p className="mt-1.5 text-[10px] text-[var(--pf-gray-500)]">
@@ -451,7 +457,7 @@ export function WatchlistPanel({
                         Journal
                       </Link>
                       <Link
-                        href={`/ticker/${item.symbol}${isCrypto ? "?asset=crypto" : ""}`}
+                        href={tickerPagePath(item.symbol, item.asset_class)}
                         className="pf-chip-action pf-chip-action-muted"
                         title={`${item.symbol} community intel`}
                       >

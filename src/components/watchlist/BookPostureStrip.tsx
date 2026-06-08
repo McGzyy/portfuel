@@ -1,12 +1,18 @@
 import Link from "next/link";
 import { journalSymbolPath } from "@/lib/journal/paths";
 import { summarizeBookPosture } from "@/lib/watchlist/book-posture";
+import { ACTIVE_INTENTS } from "@/lib/watchlist/position-intent";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { PositionIntentBadge } from "@/components/watchlist/PositionIntentBadge";
 
 export function BookPostureStrip({ items }: { items: WatchlistEntry[] }) {
   const posture = summarizeBookPosture(items);
   if (posture.inBook === 0) return null;
+
+  const inBookCount = items.filter((i) =>
+    ACTIVE_INTENTS.has(i.position_intent ?? "researching")
+  ).length;
+  const readyCount = items.filter((i) => i.journal_progress?.ready_to_publish).length;
 
   const parts: string[] = [];
   if (posture.active > 0) {
@@ -31,20 +37,28 @@ export function BookPostureStrip({ items }: { items: WatchlistEntry[] }) {
             <span className="font-semibold text-[var(--pf-black)]">{parts.join(" · ")}</span>
           </p>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <Link
+          href="/dashboard/watchlist"
+          className="text-xs font-semibold text-[var(--pf-gray-600)] hover:underline"
+        >
+          Watchlist →
+        </Link>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <Link
+          href="/dashboard/journal?filter=in_book#journal-ideas"
+          className="rounded-full bg-amber-600 px-2.5 py-1 text-[10px] font-semibold text-white transition-opacity hover:opacity-90"
+        >
+          In book ({inBookCount})
+        </Link>
+        {readyCount > 0 ? (
           <Link
-            href="/dashboard/journal?filter=in_book#journal-ideas"
-            className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
+            href="/dashboard/journal?filter=ready#journal-ideas"
+            className="rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white transition-opacity hover:opacity-90"
           >
-            Journal filter →
+            Ready ({readyCount})
           </Link>
-          <Link
-            href="/dashboard/watchlist"
-            className="text-xs font-semibold text-[var(--pf-gray-600)] hover:underline"
-          >
-            Watchlist
-          </Link>
-        </div>
+        ) : null}
       </div>
       <ul className="mt-3 flex flex-wrap gap-2">
         {posture.rows.slice(0, 8).map((row) => (

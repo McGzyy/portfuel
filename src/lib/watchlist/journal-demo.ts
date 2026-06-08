@@ -118,6 +118,16 @@ function demoEntries(symbol: string): WatchlistJournalEntry[] {
         created_at: daysAgo(2),
       },
       {
+        id: "demo-entry-nvda-trim",
+        body: "Posture set to trimming — taking partial profits into strength, keeping core for earnings.",
+        entry_type: "trimming",
+        metadata: null,
+        reply_to_id: null,
+        conviction_after: null,
+        marker_price: 168,
+        created_at: daysAgo(1),
+      },
+      {
         id: "demo-entry-nvda-ai",
         body: "AI research snapshot saved.",
         entry_type: "ai_research",
