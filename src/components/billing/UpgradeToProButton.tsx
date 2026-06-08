@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatMoneyFromCents } from "@/lib/stripe/format-money";
+import { formatUpgradeProrationHint } from "@/lib/stripe/format-upgrade-preview";
 import { PLAN_BY_TIER } from "@/lib/marketing/plans";
 import { buildProMembershipHook } from "@/lib/pro/upgrade-prompt";
 import type { MemberToProUpgradePreview } from "@/lib/stripe/upgrade-preview";
@@ -109,12 +110,8 @@ export function UpgradeToProButton({
 
   if (!preview) return null;
 
-  const prorationLabel = formatMoneyFromCents(
-    Math.abs(preview.prorationCents),
-    preview.currency
-  );
   const periodEnd = formatPeriodEnd(preview.currentPeriodEnd);
-  const isCredit = preview.prorationCents < 0;
+  const prorationHint = formatUpgradeProrationHint(preview);
   const personalizedHook = buildProMembershipHook(watchlistSymbols);
 
   return (
@@ -126,21 +123,7 @@ export function UpgradeToProButton({
         {personalizedHook ? (
           <p className="mt-2 text-xs leading-relaxed text-[var(--pf-gray-600)]">{personalizedHook}</p>
         ) : null}
-        <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
-          {isCredit ? (
-            <>
-              Estimated credit for unused Member time:{" "}
-              <span className="font-semibold text-[var(--pf-black)]">{prorationLabel}</span>
-            </>
-          ) : preview.prorationCents > 0 ? (
-            <>
-              Estimated proration for the rest of this billing period:{" "}
-              <span className="font-semibold text-[var(--pf-black)]">~{prorationLabel}</span>
-            </>
-          ) : (
-            <>No proration charge estimated for the current period.</>
-          )}
-        </p>
+        <p className="mt-2 text-sm text-[var(--pf-gray-600)]">{prorationHint}</p>
         <p className="mt-1.5 text-xs text-[var(--pf-gray-500)]">
           Stripe applies proration on your next invoice (around {periodEnd}). Your card may be
           charged immediately in some cases. Estimate only — final amount from Stripe.

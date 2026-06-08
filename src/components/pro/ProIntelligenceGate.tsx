@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ProUpgradeGateActions } from "@/components/billing/ProUpgradeGateActions";
 import { COPY } from "@/lib/copy";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
-import { formatProUpgradeCta } from "@/lib/marketing/plans";
 import { cn } from "@/lib/utils";
 
 export function ProIntelligenceGate({
@@ -74,16 +74,7 @@ export function ProIntelligenceGate({
 
 function ProGateActions({ cta }: { cta: ProGateCta }) {
   if (cta === "upgrade") {
-    return (
-      <>
-        <Link href="/settings" className="mt-4 inline-block">
-          <Button size="sm">{formatProUpgradeCta()}</Button>
-        </Link>
-        <p className="mt-2 text-center text-xs text-[var(--pf-gray-500)]">
-          Prorated when you upgrade from Member.
-        </p>
-      </>
-    );
+    return <ProUpgradeGateActions />;
   }
 
   if (cta === "checkout") {
