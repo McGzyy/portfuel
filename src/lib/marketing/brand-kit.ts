@@ -1,7 +1,7 @@
 /** Single source for marketing colors, sizes, and AI prompt templates. */
 
 /** PortFuel marketing palette — neutral charcoal + red (no blue-navy). */
-export const MARKETING_RENDER_REVISION = 4;
+export const MARKETING_RENDER_REVISION = 5;
 
 export const MARKETING_BRAND = {
   bg: "#0f1419",

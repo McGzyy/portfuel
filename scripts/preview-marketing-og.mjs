@@ -10,8 +10,10 @@ for (const variant of ogVariants) {
 }
 
 for (const variant of ["proof", "structure", "desk"]) {
-  const png = await renderMarketingAdPng({ variant, size: "x" });
-  const file = `marketing-preview-ad-${variant}.png`;
-  writeFileSync(file, png);
-  console.log("wrote", file, png.length, "bytes");
+  for (const size of ["x", "square"]) {
+    const png = await renderMarketingAdPng({ variant, size });
+    const file = `marketing-preview-ad-${variant}-${size}.png`;
+    writeFileSync(file, png);
+    console.log("wrote", file, png.length, "bytes");
+  }
 }

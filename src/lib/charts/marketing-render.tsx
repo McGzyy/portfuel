@@ -364,7 +364,13 @@ function PosterSparkHero({
   );
 }
 
-function MiniFeedPreview({ compact = false }: { compact?: boolean }) {
+function MiniFeedPreview({
+  compact = false,
+  title = "LIVE FEED PREVIEW",
+}: {
+  compact?: boolean;
+  title?: string;
+}) {
   const rows = [
     { sym: "NVDA", ret: "+24.6%", meta: "LONG · Member call", lane: "member" as const },
     { sym: "META", ret: "+11.2%", meta: "LONG · Member call", lane: "member" as const },
@@ -383,7 +389,7 @@ function MiniFeedPreview({ compact = false }: { compact?: boolean }) {
           marginBottom: 14,
         }}
       >
-        LIVE FEED PREVIEW
+        {title}
       </div>
       {rows.map((row, i) => {
         const up = row.ret.startsWith("+");
@@ -442,6 +448,109 @@ function MiniFeedPreview({ compact = false }: { compact?: boolean }) {
   );
 }
 
+function RankingsPreview() {
+  const rows = [
+    { rank: "1", sym: "NVDA", ret: "+24.6%", meta: "Member call · LONG" },
+    { rank: "2", sym: "META", ret: "+11.2%", meta: "Member call · LONG" },
+    { rank: "3", sym: "CRWD", ret: "+18.4%", meta: "Fueled desk · LONG", desk: true },
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+      <div
+        style={{
+          display: "flex",
+          fontSize: 10,
+          fontWeight: 600,
+          color: T.textDim,
+          letterSpacing: 1.2,
+          marginBottom: 14,
+        }}
+      >
+        MEMBER RANKINGS
+      </div>
+      {rows.map((row, i) => {
+        const up = row.ret.startsWith("+");
+        const border = i < rows.length - 1 ? `1px solid ${T.rule}` : "none";
+        return (
+          <div
+            key={row.sym}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              width: "100%",
+              paddingTop: i === 0 ? 0 : 16,
+              paddingBottom: i < rows.length - 1 ? 16 : 0,
+              borderBottom: border,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 28,
+                  fontWeight: 700,
+                  color: row.desk ? T.accentRed : T.textBright,
+                  letterSpacing: -1,
+                  width: 36,
+                }}
+              >
+                #{row.rank}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 24,
+                    fontWeight: 700,
+                    color: T.textBright,
+                    letterSpacing: -0.5,
+                  }}
+                >
+                  {row.sym}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: row.desk ? T.accentRed : T.textDim,
+                  }}
+                >
+                  {row.meta}
+                </div>
+              </div>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                fontSize: 24,
+                fontWeight: 700,
+                color: up ? T.up : T.down,
+                letterSpacing: -0.5,
+              }}
+            >
+              {row.ret}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const JOIN_SPARK: SparkHeroMeta = {
+  symbol: "AAPL",
+  returnPct: "+12.8%",
+  laneLabel: "YOUR MEMBER CALL",
+  insight: "Entry, target, stop · tracked live",
+  lane: "member",
+  entryLabel: "Entry $228.50",
+  targetLabel: "Target $255",
+  stopLabel: "Stop $218",
+};
+
 const PROOF_SPARK: SparkHeroMeta = {
   symbol: "NVDA",
   returnPct: "+24.6%",
@@ -465,8 +574,14 @@ const DESK_SPARK: SparkHeroMeta = {
 };
 
 function ogVisual(variant: MarketingOgVariant) {
-  if (variant === "home" || variant === "join" || variant === "demo") {
-    return <MiniFeedPreview />;
+  if (variant === "home") {
+    return <RankingsPreview />;
+  }
+  if (variant === "join") {
+    return <PosterSparkHero {...JOIN_SPARK} compact />;
+  }
+  if (variant === "demo") {
+    return <MiniFeedPreview title="DEMO WORKSPACE · READ ONLY" />;
   }
   if (variant === "desk") {
     return <PosterSparkHero {...DESK_SPARK} compact />;
