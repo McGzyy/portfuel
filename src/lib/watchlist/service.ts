@@ -6,7 +6,7 @@ import { getCoreCryptoAsset } from "@/lib/market/crypto-allowlist";
 import { getDemoWatchlist } from "@/lib/watchlist/demo";
 import { resolveWatchlistSymbol } from "@/lib/market/validate-symbol";
 import { enrichWatchlistActivity } from "@/lib/watchlist/activity";
-import { normalizeCatalysts } from "@/lib/watchlist/journal-meta";
+import { normalizeCatalysts, normalizePositionIntent } from "@/lib/watchlist/journal-meta";
 import { addJournalEntry, resolveBaselinePrice } from "@/lib/watchlist/journal";
 import {
   restoreWatchlistJournalArchive,
@@ -56,7 +56,8 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
     enrichWatchlistActivity(userId, withQuotes),
     fetchJournalEntryStats(userId),
   ]);
-  return attachJournalHubProgress(withActivity, entryStats);
+  const withCalls = await enrichUserCalls(userId, withActivity);
+  return attachJournalHubProgress(withCalls, entryStats);
 }
 
 export async function addToWatchlist(
@@ -343,6 +344,42 @@ async function reconcileWatchlistAssetClasses(
   return out;
 }
 
+async function enrichUserCalls(
+  userId: string,
+  entries: WatchlistEntry[]
+): Promise<WatchlistEntry[]> {
+  if (entries.length === 0 || isDemoMode()) return entries;
+
+  const symbols = entries.map((e) => e.symbol);
+  const db = createServiceClient();
+  const { data: calls } = await db
+    .from("calls")
+    .select("id, symbol, called_at, return_pct")
+    .eq("user_id", userId)
+    .in("symbol", symbols)
+    .order("called_at", { ascending: false });
+
+  const callMap = new Map<
+    string,
+    { id: string; called_at: string; return_pct: number | null }
+  >();
+  for (const c of calls ?? []) {
+    const sym = (c as { symbol: string }).symbol;
+    if (!callMap.has(sym)) {
+      callMap.set(sym, {
+        id: (c as { id: string }).id,
+        called_at: (c as { called_at: string }).called_at,
+        return_pct: (c as { return_pct: number | null }).return_pct,
+      });
+    }
+  }
+
+  return entries.map((e) => ({
+    ...e,
+    user_call: callMap.get(e.symbol) ?? null,
+  }));
+}
+
 async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<WatchlistEntry[]> {
   if (entries.length === 0) return entries;
 
@@ -395,6 +432,7 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
       conviction?: number | null;
       journal_updated_at?: string | null;
       outcome?: string | null;
+      position_intent?: string | null;
       catalysts?: string[] | null;
       entry_price?: number | null;
       target_price?: number | null;
@@ -408,6 +446,7 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
       return_pct: returnMap.get(e.symbol) ?? null,
       change_since_add_pct,
       has_thesis: Boolean(row.thesis?.trim()),
+      position_intent: normalizePositionIntent(row.position_intent),
       catalyst_count: row.catalysts?.length ?? 0,
       catalysts: normalizeCatalysts(row.catalysts),
       entry_price: row.entry_price != null ? Number(row.entry_price) : null,

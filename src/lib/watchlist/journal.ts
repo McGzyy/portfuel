@@ -5,9 +5,12 @@ import {
   normalizeCatalysts,
   normalizeJournalEntryType,
   normalizePersonalTags,
+  normalizePositionIntent,
   type JournalEntryType,
   type JournalOutcome,
+  type PositionIntent,
 } from "@/lib/watchlist/journal-meta";
+import { setWatchlistPositionIntent } from "@/lib/watchlist/position-intent";
 import { parseResearchMetadata } from "@/lib/journal/research-entry";
 import {
   getDemoJournalEntries,
@@ -47,6 +50,7 @@ type WatchlistRow = {
   risk_factors: string | null;
   personal_tags: string[] | null;
   outcome: JournalOutcome;
+  position_intent: PositionIntent | null;
   bull_case_price: number | null;
   base_case_price: number | null;
   bear_case_price: number | null;
@@ -69,6 +73,7 @@ function mapJournalRow(row: WatchlistRow, lastPrice?: number | null): WatchlistJ
     risk_factors: row.risk_factors,
     personal_tags: normalizePersonalTags(row.personal_tags),
     outcome: row.outcome ?? "watching",
+    position_intent: normalizePositionIntent(row.position_intent),
     bull_case_price: row.bull_case_price != null ? Number(row.bull_case_price) : null,
     base_case_price: row.base_case_price != null ? Number(row.base_case_price) : null,
     bear_case_price: row.bear_case_price != null ? Number(row.bear_case_price) : null,
@@ -191,6 +196,10 @@ export async function updateWatchlistJournal(
   if (patch.outcome !== undefined) {
     updates.outcome = patch.outcome;
   }
+  const intentAfter =
+    patch.position_intent !== undefined
+      ? normalizePositionIntent(patch.position_intent)
+      : undefined;
   if (patch.bull_case_price !== undefined) {
     updates.bull_case_price = normalizePrice(patch.bull_case_price);
   }
@@ -236,6 +245,10 @@ export async function updateWatchlistJournal(
       body: `Outcome set to ${outcomeAfter.replace(/_/g, " ")}.`,
       entry_type: "system",
     });
+  }
+
+  if (intentAfter !== undefined && intentAfter !== existing.position_intent) {
+    await setWatchlistPositionIntent(userId, sym, intentAfter);
   }
 
   const journal = await fetchWatchlistJournal(userId, sym);

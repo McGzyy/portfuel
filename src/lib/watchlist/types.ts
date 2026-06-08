@@ -1,3 +1,5 @@
+import type { PositionIntent } from "@/lib/watchlist/journal-meta";
+
 export type WatchlistEntry = {
   symbol: string;
   asset_class: "equity" | "crypto";
@@ -18,6 +20,14 @@ export type WatchlistEntry = {
   /** Private journal last update */
   journal_updated_at?: string | null;
   outcome?: string | null;
+  /** Private trade posture — researching through trimming/exited */
+  position_intent?: PositionIntent;
+  /** Member's latest call on this symbol (if any) */
+  user_call?: {
+    id: string;
+    called_at: string;
+    return_pct: number | null;
+  } | null;
   catalyst_count?: number;
   /** Preset catalyst tags from journal */
   catalysts?: string[];

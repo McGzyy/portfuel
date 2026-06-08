@@ -1,5 +1,9 @@
 import { ImageResponse } from "next/og";
 import type { ReactNode } from "react";
+import { fmtSocialAsOf } from "@/lib/charts/social-chart-format";
+import { loadSocialChartLogoBase64 } from "@/lib/charts/social-chart-logo";
+import { socialChartOgFonts } from "@/lib/charts/social-chart-og-fonts";
+import { PF_CHART_SOCIAL as C } from "@/lib/charts/theme";
 import {
   MARKETING_AD_COPY,
   MARKETING_BRAND as T,
@@ -9,9 +13,159 @@ import {
   type MarketingOgVariant,
   type MarketingSizeKey,
 } from "@/lib/marketing/brand-kit";
-import { socialChartOgFonts } from "@/lib/charts/social-chart-og-fonts";
 
-const SPARK_HEIGHTS = [38, 44, 41, 52, 48, 58, 54, 68, 72, 78, 85, 92, 88, 96, 100];
+/** Upward trend — y as fraction of plot height (0 = top, 1 = bottom). */
+const TREND_Y = [0.78, 0.76, 0.73, 0.7, 0.66, 0.62, 0.58, 0.52, 0.46, 0.4, 0.34, 0.28, 0.22, 0.16, 0.12];
+
+type Posture = "researching" | "building" | "active" | "trimming";
+
+const POSTURE_STYLE: Record<
+  Posture,
+  { label: string; bg: string; color: string; border: string }
+> = {
+  researching: {
+    label: "Researching",
+    bg: "rgba(100, 116, 139, 0.18)",
+    color: "#cbd5e1",
+    border: "rgba(148, 163, 184, 0.35)",
+  },
+  building: {
+    label: "Building",
+    bg: "rgba(56, 189, 248, 0.12)",
+    color: "#7dd3fc",
+    border: "rgba(56, 189, 248, 0.35)",
+  },
+  active: {
+    label: "Active",
+    bg: "rgba(52, 211, 153, 0.14)",
+    color: C.lineUp,
+    border: "rgba(52, 211, 153, 0.4)",
+  },
+  trimming: {
+    label: "Trimming",
+    bg: "rgba(251, 191, 36, 0.14)",
+    color: "#fcd34d",
+    border: "rgba(251, 191, 36, 0.4)",
+  },
+};
+
+function sparkPath(
+  points: number[],
+  width: number,
+  height: number,
+  padX: number,
+  padY: number
+): string {
+  const innerW = width - padX * 2;
+  const innerH = height - padY * 2;
+  return points
+    .map((yNorm, i) => {
+      const x = padX + (i / (points.length - 1)) * innerW;
+      const y = padY + yNorm * innerH;
+      return `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
+
+function sparkAreaPath(
+  points: number[],
+  width: number,
+  height: number,
+  padX: number,
+  padY: number
+): string {
+  const line = sparkPath(points, width, height, padX, padY);
+  const innerW = width - padX * 2;
+  const bottom = height - padY;
+  const rightX = padX + innerW;
+  return `${line} L ${rightX.toFixed(1)} ${bottom} L ${padX} ${bottom} Z`;
+}
+
+function MarketingSparkline({
+  width,
+  height,
+  entryIndex = 2,
+  targetY = 0.28,
+  entryLabel = "Entry $128.40",
+  targetLabel = "Target $165",
+  stopLabel = "Stop $118",
+}: {
+  width: number;
+  height: number;
+  entryIndex?: number;
+  targetY?: number;
+  entryLabel?: string;
+  targetLabel?: string;
+  stopLabel?: string;
+}) {
+  const padX = 12;
+  const padY = 14;
+  const innerW = width - padX * 2;
+  const innerH = height - padY * 2;
+  const entryX = padX + (entryIndex / (TREND_Y.length - 1)) * innerW;
+  const entryY = padY + TREND_Y[entryIndex]! * innerH;
+  const targetLineY = padY + targetY * innerH;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+      <svg
+        width={width}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        style={{ display: "flex" }}
+      >
+        {[0.25, 0.5, 0.75].map((pct) => (
+          <line
+            key={pct}
+            x1={padX}
+            y1={padY + pct * innerH}
+            x2={width - padX}
+            y2={padY + pct * innerH}
+            stroke="rgba(148, 163, 184, 0.12)"
+            strokeWidth={1}
+          />
+        ))}
+        <line
+          x1={padX}
+          y1={targetLineY}
+          x2={width - padX}
+          y2={targetLineY}
+          stroke={C.target}
+          strokeWidth={1.5}
+          strokeDasharray="6 4"
+          opacity={0.75}
+        />
+        <path
+          d={sparkAreaPath(TREND_Y, width, height, padX, padY)}
+          fill={C.areaUp}
+        />
+        <path
+          d={sparkPath(TREND_Y, width, height, padX, padY)}
+          fill="none"
+          stroke={C.lineUp}
+          strokeWidth={2.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx={entryX} cy={entryY} r={5} fill={T.accentRed} stroke="#fff" strokeWidth={1.5} />
+      </svg>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginTop: 8,
+          fontSize: 10,
+          fontWeight: 600,
+          color: T.textMuted,
+        }}
+      >
+        <span style={{ display: "flex", color: T.accentRed }}>{entryLabel}</span>
+        <span style={{ display: "flex", color: T.up }}>{targetLabel}</span>
+        <span style={{ display: "flex" }}>{stopLabel}</span>
+      </div>
+    </div>
+  );
+}
 
 function BackgroundShell({
   width,
@@ -30,7 +184,7 @@ function BackgroundShell({
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        background: `linear-gradient(145deg, ${T.bg} 0%, #121820 42%, #0c1018 100%)`,
+        background: `linear-gradient(145deg, ${C.bg} 0%, #0f1419 52%, #15101a 100%)`,
         fontFamily: "Inter",
         overflow: "hidden",
       }}
@@ -42,7 +196,7 @@ function BackgroundShell({
           left: 0,
           right: 0,
           height: 4,
-          background: T.accent,
+          background: T.accentRed,
           display: "flex",
         }}
       />
@@ -54,7 +208,7 @@ function BackgroundShell({
           width: 480,
           height: 480,
           borderRadius: "50%",
-          background: "rgba(227, 27, 35, 0.11)",
+          background: "rgba(227, 27, 35, 0.09)",
           display: "flex",
         }}
       />
@@ -66,7 +220,7 @@ function BackgroundShell({
           width: 360,
           height: 360,
           borderRadius: "50%",
-          background: "rgba(5, 150, 105, 0.06)",
+          background: "rgba(52, 211, 153, 0.05)",
           display: "flex",
         }}
       />
@@ -75,7 +229,7 @@ function BackgroundShell({
           position: "absolute",
           inset: 0,
           backgroundImage:
-            "linear-gradient(rgba(148,163,184,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.04) 1px, transparent 1px)",
+            "linear-gradient(rgba(148,163,184,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.035) 1px, transparent 1px)",
           backgroundSize: "48px 48px",
           display: "flex",
         }}
@@ -103,6 +257,52 @@ function EyebrowPill({ label }: { label: string }) {
       }}
     >
       {label}
+    </div>
+  );
+}
+
+function PostureChip({ posture }: { posture: Posture }) {
+  const s = POSTURE_STYLE[posture];
+  return (
+    <div
+      style={{
+        display: "flex",
+        padding: "4px 10px",
+        borderRadius: 999,
+        background: s.bg,
+        border: `1px solid ${s.border}`,
+        fontSize: 9,
+        fontWeight: 700,
+        color: s.color,
+        letterSpacing: 0.8,
+      }}
+    >
+      {s.label.toUpperCase()}
+    </div>
+  );
+}
+
+function StatStrip() {
+  const items = ["Live marks", "Private journal", "Ranked calls"];
+  return (
+    <div style={{ display: "flex", gap: 8, marginTop: 20, flexWrap: "wrap" }}>
+      {items.map((item) => (
+        <div
+          key={item}
+          style={{
+            display: "flex",
+            padding: "5px 12px",
+            borderRadius: 999,
+            background: C.chipBg,
+            border: `1px solid ${C.chipBorder}`,
+            fontSize: 10,
+            fontWeight: 600,
+            color: C.chipText,
+          }}
+        >
+          {item}
+        </div>
+      ))}
     </div>
   );
 }
@@ -147,7 +347,7 @@ function LogoMark({ size = 22 }: { size?: number }) {
       <span style={{ display: "flex", fontSize: size, fontWeight: 700, color: T.textBright }}>
         Port
       </span>
-      <span style={{ display: "flex", fontSize: size, fontWeight: 700, color: T.accent }}>
+      <span style={{ display: "flex", fontSize: size, fontWeight: 700, color: T.accentRed }}>
         Fuel
       </span>
       <span
@@ -166,23 +366,46 @@ function LogoMark({ size = 22 }: { size?: number }) {
   );
 }
 
-function FooterBar({ pad, compact = false }: { pad: number; compact?: boolean }) {
+function FooterBar({
+  pad,
+  compact = false,
+  logoSrc,
+}: {
+  pad: number;
+  compact?: boolean;
+  logoSrc: string | null;
+}) {
+  const asOf = fmtSocialAsOf();
   return (
     <div
       style={{
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        height: compact ? 52 : 72,
+        height: compact ? 56 : 72,
         padding: `0 ${pad}px`,
         borderTop: `1px solid ${T.rule}`,
-        background: "rgba(26, 35, 50, 0.92)",
+        background: C.surface,
       }}
     >
-      <div style={{ display: "flex", fontSize: compact ? 10 : 11, color: T.textMuted }}>
-        Not investment advice · portfuel.pro
+      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        <div style={{ display: "flex", fontSize: compact ? 10 : 11, color: T.text }}>
+          Not investment advice · portfuel.pro
+        </div>
+        <div style={{ display: "flex", fontSize: 10, fontWeight: 500, color: C.textDim }}>
+          {`As of ${asOf}`}
+        </div>
       </div>
-      <LogoMark size={compact ? 18 : 22} />
+      {logoSrc ? (
+        <img
+          src={logoSrc}
+          height={compact ? 28 : 36}
+          alt=""
+          style={{ display: "flex" }}
+        />
+      ) : (
+        <LogoMark size={compact ? 18 : 22} />
+      )}
     </div>
   );
 }
@@ -195,6 +418,10 @@ function MockChartCard({
   compact = false,
   insight = "18d on board · 3 community calls",
   lane = "member",
+  posture = "active",
+  entryLabel = "Entry $128.40",
+  targetLabel = "Target $165",
+  stopLabel = "Stop $118",
 }: {
   symbol?: string;
   returnPct?: string;
@@ -203,8 +430,13 @@ function MockChartCard({
   compact?: boolean;
   insight?: string;
   lane?: "member" | "desk";
+  posture?: Posture;
+  entryLabel?: string;
+  targetLabel?: string;
+  stopLabel?: string;
 }) {
-  const laneColor = lane === "desk" ? T.accent : T.textMuted;
+  const laneColor = lane === "desk" ? T.accentRed : T.textMuted;
+  const up = returnPct.startsWith("+");
 
   return (
     <div
@@ -214,21 +446,21 @@ function MockChartCard({
         width: "100%",
         borderRadius: 18,
         border: `1px solid ${lane === "desk" ? "rgba(227, 27, 35, 0.35)" : T.rule}`,
-        background: "rgba(26, 35, 50, 0.92)",
+        background: "rgba(20, 24, 32, 0.96)",
         padding: compact ? 16 : 20,
-        boxShadow: "0 24px 60px rgba(0,0,0,0.35)",
+        boxShadow: "0 24px 60px rgba(0,0,0,0.4)",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <div
               style={{
                 display: "flex",
                 padding: "4px 10px",
                 borderRadius: 999,
-                background: lane === "desk" ? "rgba(227, 27, 35, 0.14)" : "rgba(15, 20, 25, 0.55)",
-                border: `1px solid ${lane === "desk" ? "rgba(227, 27, 35, 0.35)" : T.rule}`,
+                background: lane === "desk" ? "rgba(227, 27, 35, 0.14)" : C.chipBg,
+                border: `1px solid ${lane === "desk" ? "rgba(227, 27, 35, 0.35)" : C.chipBorder}`,
                 fontSize: 9,
                 fontWeight: 700,
                 color: laneColor,
@@ -237,27 +469,53 @@ function MockChartCard({
             >
               {lane === "desk" ? "FUELED DESK" : label.toUpperCase()}
             </div>
+            <PostureChip posture={posture} />
           </div>
-          <div style={{ display: "flex", fontSize: compact ? 24 : 28, fontWeight: 700, color: T.textBright }}>
+          <div
+            style={{
+              display: "flex",
+              fontSize: compact ? 28 : 34,
+              fontWeight: 700,
+              color: T.textBright,
+              letterSpacing: -1,
+            }}
+          >
             {symbol}
           </div>
-          <div style={{ display: "flex", fontSize: 11, fontWeight: 500, color: T.textMuted }}>
+          <div style={{ display: "flex", fontSize: 11, fontWeight: 500, color: T.text }}>
             {insight}
           </div>
         </div>
         <div
           style={{
             display: "flex",
-            padding: "8px 14px",
-            borderRadius: 999,
-            background: "rgba(5, 150, 105, 0.14)",
-            border: `1px solid rgba(5, 150, 105, 0.35)`,
-            fontSize: compact ? 16 : 18,
-            fontWeight: 700,
-            color: T.up,
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: 4,
           }}
         >
-          {returnPct}
+          <div
+            style={{
+              display: "flex",
+              fontSize: compact ? 22 : 28,
+              fontWeight: 700,
+              color: up ? T.up : T.down,
+              letterSpacing: -1,
+            }}
+          >
+            {returnPct}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              fontSize: 9,
+              fontWeight: 600,
+              color: C.textDim,
+              letterSpacing: 1.1,
+            }}
+          >
+            SINCE PUBLICATION
+          </div>
         </div>
       </div>
 
@@ -265,122 +523,42 @@ function MockChartCard({
         style={{
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-end",
-          height: chartHeight,
           marginTop: 16,
           borderRadius: 12,
-          background: T.surfaceAlt,
+          background: C.bg,
           border: `1px solid ${T.rule}`,
-          padding: "14px 16px 12px",
-          position: "relative",
+          padding: "12px 12px 8px",
         }}
       >
-        {[0.25, 0.5, 0.75].map((pct) => (
-          <div
-            key={pct}
-            style={{
-              position: "absolute",
-              left: 16,
-              right: 16,
-              top: `${pct * 100}%`,
-              height: 1,
-              background: "rgba(148, 163, 184, 0.12)",
-              display: "flex",
-            }}
-          />
-        ))}
-        <div
-          style={{
-            position: "absolute",
-            left: 16,
-            right: 16,
-            top: "58%",
-            height: 2,
-            background: T.accent,
-            opacity: 0.85,
-            display: "flex",
-          }}
+        <MarketingSparkline
+          width={compact ? 420 : 480}
+          height={chartHeight - 36}
+          entryLabel={entryLabel}
+          targetLabel={targetLabel}
+          stopLabel={stopLabel}
         />
-        <div
-          style={{
-            position: "absolute",
-            left: 16,
-            right: 16,
-            top: "28%",
-            height: 1,
-            borderTop: "2px dashed rgba(148, 163, 184, 0.35)",
-            display: "flex",
-          }}
-        />
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-end",
-            gap: 6,
-            height: chartHeight - 40,
-            position: "relative",
-          }}
-        >
-          {SPARK_HEIGHTS.map((h, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                flex: 1,
-                height: `${h}%`,
-                borderRadius: 3,
-                background:
-                  i >= SPARK_HEIGHTS.length - 4
-                    ? T.up
-                    : i >= SPARK_HEIGHTS.length - 7
-                      ? "rgba(5, 150, 105, 0.55)"
-                      : "rgba(148, 163, 184, 0.32)",
-                opacity: i >= SPARK_HEIGHTS.length - 6 ? 1 : 0.85,
-              }}
-            />
-          ))}
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: 10,
-            fontSize: 10,
-            fontWeight: 600,
-            color: T.textMuted,
-          }}
-        >
-          <span style={{ display: "flex", color: T.accent }}>Entry $128.40</span>
-          <span style={{ display: "flex", color: T.up }}>Target $165</span>
-          <span style={{ display: "flex" }}>Stop $118</span>
-        </div>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          marginTop: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        {["Since publication", "On record", "Live mark"].map((tag) => (
-          <div
-            key={tag}
-            style={{
-              display: "flex",
-              padding: "4px 10px",
-              borderRadius: 999,
-              background: "rgba(15, 20, 25, 0.55)",
-              border: `1px solid ${T.rule}`,
-              fontSize: 10,
-              fontWeight: 600,
-              color: T.textMuted,
-            }}
-          >
-            {tag}
-          </div>
-        ))}
+      <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+        {["On record", "Live mark", lane === "desk" ? "House thesis" : "Member thesis"].map(
+          (tag) => (
+            <div
+              key={tag}
+              style={{
+                display: "flex",
+                padding: "4px 10px",
+                borderRadius: 999,
+                background: C.chipBg,
+                border: `1px solid ${C.chipBorder}`,
+                fontSize: 10,
+                fontWeight: 600,
+                color: T.text,
+              }}
+            >
+              {tag}
+            </div>
+          )
+        )}
       </div>
     </div>
   );
@@ -388,19 +566,33 @@ function MockChartCard({
 
 function MiniFeedPreview() {
   const rows = [
-    { sym: "NVDA", ret: "+24.6%", dir: "LONG", rank: 1, lane: "member" as const },
-    { sym: "META", ret: "+11.2%", dir: "LONG", rank: 2, lane: "member" as const },
-    { sym: "CRWD", ret: "+18.4%", dir: "LONG", rank: "Desk", lane: "desk" as const },
+    {
+      sym: "NVDA",
+      ret: "+24.6%",
+      dir: "LONG",
+      rank: 1,
+      lane: "member" as const,
+      posture: "trimming" as Posture,
+    },
+    {
+      sym: "META",
+      ret: "+11.2%",
+      dir: "LONG",
+      rank: 2,
+      lane: "member" as const,
+      posture: "active" as Posture,
+    },
+    {
+      sym: "CRWD",
+      ret: "+18.4%",
+      dir: "LONG",
+      rank: "Desk",
+      lane: "desk" as const,
+      posture: "active" as Posture,
+    },
   ];
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        width: "100%",
-      }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
       {rows.map((row) => {
         const up = row.ret.startsWith("+");
         return (
@@ -413,7 +605,7 @@ function MiniFeedPreview() {
               padding: "14px 16px",
               borderRadius: 14,
               border: `1px solid ${row.lane === "desk" ? "rgba(227, 27, 35, 0.28)" : T.rule}`,
-              background: "rgba(26, 35, 50, 0.92)",
+              background: "rgba(20, 24, 32, 0.96)",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -426,20 +618,30 @@ function MiniFeedPreview() {
                   alignItems: "center",
                   justifyContent: "center",
                   background:
-                    row.lane === "desk" ? "rgba(227, 27, 35, 0.16)" : "rgba(15, 20, 25, 0.55)",
-                  border: `1px solid ${row.lane === "desk" ? "rgba(227, 27, 35, 0.35)" : T.rule}`,
+                    row.lane === "desk" ? "rgba(227, 27, 35, 0.16)" : C.chipBg,
+                  border: `1px solid ${row.lane === "desk" ? "rgba(227, 27, 35, 0.35)" : C.chipBorder}`,
                   fontSize: 10,
                   fontWeight: 700,
-                  color: row.lane === "desk" ? T.accent : T.textMuted,
+                  color: row.lane === "desk" ? T.accentRed : T.text,
                 }}
               >
                 {String(row.rank)}
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <div style={{ display: "flex", fontSize: 18, fontWeight: 700, color: T.textBright }}>
-                  {row.sym}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: 18,
+                      fontWeight: 700,
+                      color: T.textBright,
+                    }}
+                  >
+                    {row.sym}
+                  </div>
+                  <PostureChip posture={row.posture} />
                 </div>
-                <div style={{ display: "flex", fontSize: 11, fontWeight: 600, color: T.textMuted }}>
+                <div style={{ display: "flex", fontSize: 11, fontWeight: 600, color: T.text }}>
                   {row.lane === "desk" ? "Fueled desk · LONG" : `${row.dir} · Member call`}
                 </div>
               </div>
@@ -473,12 +675,23 @@ function ogVisual(variant: MarketingOgVariant) {
         label="Fueled desk"
         insight="House thesis · live marks"
         lane="desk"
-        chartHeight={160}
+        posture="active"
+        entryLabel="Entry $312.00"
+        targetLabel="Target $380"
+        stopLabel="Stop $285"
+        chartHeight={168}
         compact
       />
     );
   }
-  return <MockChartCard chartHeight={200} insight="18d on board · ranked caller" compact={false} />;
+  return (
+    <MockChartCard
+      chartHeight={200}
+      insight="18d on board · ranked caller"
+      posture="active"
+      compact={false}
+    />
+  );
 }
 
 function adChartMeta(variant: MarketingAdVariant) {
@@ -489,6 +702,10 @@ function adChartMeta(variant: MarketingAdVariant) {
       label: "Fueled desk",
       insight: "House thesis · live marks",
       lane: "desk" as const,
+      posture: "active" as Posture,
+      entryLabel: "Entry $312.00",
+      targetLabel: "Target $380",
+      stopLabel: "Stop $285",
     };
   }
   if (variant === "structure") {
@@ -496,17 +713,30 @@ function adChartMeta(variant: MarketingAdVariant) {
       symbol: "AAPL",
       returnPct: "+12.8%",
       label: "Member thesis",
-      insight: "Entry / target / stop on record",
+      insight: "Building · entry zone set in journal",
       lane: "member" as const,
+      posture: "building" as Posture,
+      entryLabel: "Entry $228.50",
+      targetLabel: "Target $255",
+      stopLabel: "Stop $218",
     };
   }
   return {
     symbol: "NVDA",
     returnPct: "+24.6%",
     label: "Member call",
-    insight: "18d on board · ranked caller",
+    insight: "Trimming into strength · call on record",
     lane: "member" as const,
+    posture: "trimming" as Posture,
+    entryLabel: "Entry $128.40",
+    targetLabel: "Target $165",
+    stopLabel: "Stop $118",
   };
+}
+
+function logoDataUri(): string | null {
+  const b64 = loadSocialChartLogoBase64();
+  return b64 ? `data:image/png;base64,${b64}` : null;
 }
 
 export async function renderMarketingOgPng(
@@ -515,6 +745,7 @@ export async function renderMarketingOgPng(
   const { width, height } = MARKETING_SIZES.og;
   const c = MARKETING_OG_COPY[variant];
   const pad = 52;
+  const logoSrc = logoDataUri();
 
   const response = new ImageResponse(
     (
@@ -565,7 +796,8 @@ export async function renderMarketingOgPng(
             >
               {c.sub}
             </div>
-            <div style={{ display: "flex", flexDirection: "column", marginTop: 28 }}>
+            <StatStrip />
+            <div style={{ display: "flex", flexDirection: "column", marginTop: 24 }}>
               <BulletList lines={c.bullets} />
             </div>
           </div>
@@ -581,7 +813,7 @@ export async function renderMarketingOgPng(
             {ogVisual(variant)}
           </div>
         </div>
-        <FooterBar pad={pad} />
+        <FooterBar pad={pad} logoSrc={logoSrc} />
       </BackgroundShell>
     ),
     { width, height, fonts: socialChartOgFonts() }
@@ -639,7 +871,7 @@ function AdCtaButton({ label, fullWidth = false }: { label: string; fullWidth?: 
       style={{
         display: "flex",
         padding: fullWidth ? "16px 28px" : "14px 26px",
-        background: T.accent,
+        background: T.accentRed,
         borderRadius: 12,
         fontSize: fullWidth ? 20 : 17,
         fontWeight: 700,
@@ -666,6 +898,7 @@ export async function renderMarketingAdPng(opts: {
   const pad = sizeKey === "square" ? 48 : 52;
   const isSquare = sizeKey === "square";
   const chartMeta = adChartMeta(opts.variant);
+  const logoSrc = logoDataUri();
 
   const response = new ImageResponse(
     (
@@ -687,6 +920,10 @@ export async function renderMarketingAdPng(opts: {
               label={chartMeta.label}
               insight={chartMeta.insight}
               lane={chartMeta.lane}
+              posture={chartMeta.posture}
+              entryLabel={chartMeta.entryLabel}
+              targetLabel={chartMeta.targetLabel}
+              stopLabel={chartMeta.stopLabel}
               chartHeight={280}
               compact
             />
@@ -736,6 +973,10 @@ export async function renderMarketingAdPng(opts: {
                   label={chartMeta.label}
                   insight={chartMeta.insight}
                   lane={chartMeta.lane}
+                  posture={chartMeta.posture}
+                  entryLabel={chartMeta.entryLabel}
+                  targetLabel={chartMeta.targetLabel}
+                  stopLabel={chartMeta.stopLabel}
                   chartHeight={260}
                 />
               </div>
@@ -745,7 +986,7 @@ export async function renderMarketingAdPng(opts: {
           </div>
         )}
 
-        <FooterBar pad={pad} compact={isSquare} />
+        <FooterBar pad={pad} compact={isSquare} logoSrc={logoSrc} />
       </BackgroundShell>
     ),
     { width, height, fonts: socialChartOgFonts() }

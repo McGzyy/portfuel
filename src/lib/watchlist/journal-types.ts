@@ -1,4 +1,9 @@
-import type { JournalCatalyst, JournalEntryType, JournalOutcome } from "@/lib/watchlist/journal-meta";
+import type {
+  JournalCatalyst,
+  JournalEntryType,
+  JournalOutcome,
+  PositionIntent,
+} from "@/lib/watchlist/journal-meta";
 import type { JournalResearchSnapshot } from "@/lib/journal/research-entry";
 
 export type WatchlistJournal = {
@@ -17,6 +22,7 @@ export type WatchlistJournal = {
   risk_factors?: string | null;
   personal_tags?: string[];
   outcome?: JournalOutcome;
+  position_intent?: PositionIntent;
   bull_case_price?: number | null;
   base_case_price?: number | null;
   bear_case_price?: number | null;
@@ -45,6 +51,7 @@ export type WatchlistJournalPatch = {
   risk_factors?: string | null;
   personal_tags?: string[];
   outcome?: JournalOutcome;
+  position_intent?: PositionIntent;
   bull_case_price?: number | null;
   base_case_price?: number | null;
   bear_case_price?: number | null;

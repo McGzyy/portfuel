@@ -1,17 +1,20 @@
 /** Single source for marketing colors, sizes, and AI prompt templates. */
 
+import { PF_CHART_SOCIAL } from "@/lib/charts/theme";
+
+/** Chart/surface tokens — match social milestone PNGs. Brand CTAs use accentRed. */
 export const MARKETING_BRAND = {
-  bg: "#0f1419",
-  surface: "#1a2332",
-  surfaceAlt: "#243044",
-  text: "#94a3b8",
-  textBright: "#f8fafc",
-  textMuted: "#cbd5e1",
-  accent: "#e31b23",
-  accentHover: "#ff4d55",
-  rule: "#2d3748",
-  up: "#059669",
-  down: "#e31b23",
+  bg: PF_CHART_SOCIAL.bg,
+  surface: PF_CHART_SOCIAL.surface,
+  surfaceAlt: "#1a2030",
+  text: PF_CHART_SOCIAL.text,
+  textBright: PF_CHART_SOCIAL.textBright,
+  textMuted: PF_CHART_SOCIAL.chipText,
+  accentRed: "#e31b23",
+  accent: PF_CHART_SOCIAL.accent,
+  rule: PF_CHART_SOCIAL.rule,
+  up: PF_CHART_SOCIAL.lineUp,
+  down: PF_CHART_SOCIAL.lineDown,
   font: "Inter, ui-sans-serif, system-ui, sans-serif",
 } as const;
 
@@ -34,27 +37,27 @@ export const MARKETING_OG_COPY: Record<
   home: {
     eyebrow: "PORTFUEL",
     headline: "Intelligence for serious traders",
-    sub: "Attributed calls · live performance · community rankings",
+    sub: "Attributed calls · live performance · private research journal",
     bullets: [
-      "Publish theses with entry, target, and stop",
-      "Public highlights only after performance gates",
-      "Fueled desk research + member track records",
+      "Publish theses with entry, target, and stop on record",
+      "Track posture — building, active, trimming — in your journal",
+      "Fueled desk research + member rankings on one chart",
     ],
   },
   join: {
     eyebrow: "PORTFUEL",
     headline: "Join the member workspace",
-    sub: "Track calls. Build reputation. Prove results on record.",
+    sub: "Track calls. Log your book. Build reputation on record.",
     bullets: [
       "Live return % on every published call",
-      "Ticker intel, rankings, and Pro research tools",
+      "Private journal for thesis, levels, and trade posture",
       "Optional X spotlight when your call qualifies",
     ],
   },
   proof: {
     eyebrow: "PORTFUEL · ON RECORD",
     headline: "Calls on record. Returns tracked.",
-    sub: "Member and Fueled desk theses with live performance — not anonymous tips.",
+    sub: "Member and Fueled desk theses with live marks — not anonymous tips.",
     bullets: [
       "Entry, target, and stop on every published call",
       "Public proof only after strict performance gates",
@@ -68,7 +71,7 @@ export const MARKETING_OG_COPY: Record<
     bullets: [
       "Fueled model portfolio with live marks",
       "Member rankings and verified track records",
-      "One workspace — structure, not noise",
+      "Same chart language from desk to ticker",
     ],
   },
   demo: {
@@ -77,7 +80,7 @@ export const MARKETING_OG_COPY: Record<
     sub: "Preview feed, desk, and rankings before you join.",
     bullets: [
       "Read-only tour at portfuel.pro/demo",
-      "Same chart language as the live product",
+      "Watchlist journal + call feed in one workspace",
       "Join when you're ready to publish calls",
     ],
   },
@@ -89,17 +92,17 @@ export const MARKETING_AD_COPY: Record<
 > = {
   proof: {
     headline: "Calls on record. Returns tracked.",
-    sub: "Verified member performance with live marks — not anonymous tips.",
+    sub: "Verified member performance with live marks — charts from real call data.",
     cta: "Join PortFuel",
   },
   structure: {
     headline: "Publish your thesis. Prove results.",
-    sub: "Entry, target, stop, and live return % on every call you publish.",
+    sub: "Entry, target, stop, and private posture — building through trimming — on every idea.",
     cta: "Get member access",
   },
   desk: {
     headline: "Fueled desk + member rankings",
-    sub: "House research and attributed community calls in one workspace.",
+    sub: "House research and attributed community calls — one visual language.",
     cta: "Explore the workspace",
   },
 };

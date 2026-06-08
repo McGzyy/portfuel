@@ -23,6 +23,24 @@ export const JOURNAL_OUTCOMES = [
 
 export type JournalOutcome = (typeof JOURNAL_OUTCOMES)[number]["value"];
 
+export const POSITION_INTENTS = [
+  "researching",
+  "building",
+  "active",
+  "trimming",
+  "exited",
+  "passed",
+] as const;
+
+export type PositionIntent = (typeof POSITION_INTENTS)[number];
+
+export function normalizePositionIntent(raw: string | null | undefined): PositionIntent {
+  if (raw && (POSITION_INTENTS as readonly string[]).includes(raw)) {
+    return raw as PositionIntent;
+  }
+  return "researching";
+}
+
 const MAX_TAGS = 12;
 const MAX_TAG_LEN = 24;
 
@@ -58,6 +76,9 @@ export function outcomeLabel(outcome: JournalOutcome | string | null | undefined
 export const JOURNAL_ENTRY_TYPES = [
   { value: "note", label: "General note" },
   { value: "price_action", label: "Price action" },
+  { value: "building", label: "Building / adding" },
+  { value: "trimming", label: "Trimming / reducing" },
+  { value: "exit", label: "Exit note" },
   { value: "earnings", label: "Earnings" },
   { value: "news", label: "News / filing" },
   { value: "thesis_update", label: "Thesis update" },
@@ -79,6 +100,9 @@ export function normalizeJournalEntryType(raw: string | null | undefined): Journ
 export function journalEntryTypeLabel(type: JournalEntryType | string | null | undefined): string {
   if (type === "ai_research") return "AI research";
   if (type === "system") return "System";
+  if (type === "building") return "Building";
+  if (type === "trimming") return "Trimming";
+  if (type === "exit") return "Exit";
   const row = JOURNAL_ENTRY_TYPES.find((t) => t.value === type);
   return row?.label ?? "Note";
 }
@@ -88,6 +112,9 @@ export const JOURNAL_ENTRY_PLACEHOLDERS: Partial<
 > = {
   note: "What changed your view — catalyst, risk, or conviction shift…",
   price_action: "Price moved to $X — volume spike, broke support/resistance…",
+  building: "Adding size or tightening plan — entry zone, sizing, catalyst…",
+  trimming: "Taking partial profits or cutting risk — what you sold and why…",
+  exit: "Fully out — final price, what worked, what you'd do differently…",
   earnings: "Earnings reported — revenue, guidance, margins, and what changed your view…",
   news: "Headline or filing — what it means for your thesis…",
   thesis_update: "Thesis update — what you got right/wrong and what you're watching next…",
