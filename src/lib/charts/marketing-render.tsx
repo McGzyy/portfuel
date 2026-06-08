@@ -38,6 +38,17 @@ function BackgroundShell({
       <div
         style={{
           position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 4,
+          background: T.accent,
+          display: "flex",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
           top: -120,
           right: -60,
           width: 480,
@@ -132,12 +143,24 @@ function BulletList({ lines }: { lines: string[] }) {
 
 function LogoMark({ size = 22 }: { size?: number }) {
   return (
-    <div style={{ display: "flex", alignItems: "baseline" }}>
+    <div style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
       <span style={{ display: "flex", fontSize: size, fontWeight: 700, color: T.textBright }}>
         Port
       </span>
       <span style={{ display: "flex", fontSize: size, fontWeight: 700, color: T.accent }}>
         Fuel
+      </span>
+      <span
+        style={{
+          display: "flex",
+          fontSize: Math.max(10, size * 0.42),
+          fontWeight: 700,
+          color: T.textMuted,
+          letterSpacing: 1.2,
+          marginLeft: 4,
+        }}
+      >
+        .PRO
       </span>
     </div>
   );
@@ -156,7 +179,7 @@ function FooterBar({ pad, compact = false }: { pad: number; compact?: boolean })
         background: "rgba(26, 35, 50, 0.92)",
       }}
     >
-      <div style={{ display: "flex", fontSize: compact ? 10 : 11, color: T.text }}>
+      <div style={{ display: "flex", fontSize: compact ? 10 : 11, color: T.textMuted }}>
         Not investment advice · portfuel.pro
       </div>
       <LogoMark size={compact ? 18 : 22} />
@@ -170,13 +193,19 @@ function MockChartCard({
   label = "Member call",
   chartHeight = 180,
   compact = false,
+  insight = "18d on board · 3 community calls",
+  lane = "member",
 }: {
   symbol?: string;
   returnPct?: string;
   label?: string;
   chartHeight?: number;
   compact?: boolean;
+  insight?: string;
+  lane?: "member" | "desk";
 }) {
+  const laneColor = lane === "desk" ? T.accent : T.textMuted;
+
   return (
     <div
       style={{
@@ -184,19 +213,36 @@ function MockChartCard({
         flexDirection: "column",
         width: "100%",
         borderRadius: 18,
-        border: `1px solid ${T.rule}`,
-        background: "rgba(26, 35, 50, 0.88)",
+        border: `1px solid ${lane === "desk" ? "rgba(227, 27, 35, 0.35)" : T.rule}`,
+        background: "rgba(26, 35, 50, 0.92)",
         padding: compact ? 16 : 20,
         boxShadow: "0 24px 60px rgba(0,0,0,0.35)",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <div style={{ display: "flex", fontSize: compact ? 12 : 13, fontWeight: 600, color: T.text }}>
-            {label.toUpperCase()}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div
+              style={{
+                display: "flex",
+                padding: "4px 10px",
+                borderRadius: 999,
+                background: lane === "desk" ? "rgba(227, 27, 35, 0.14)" : "rgba(15, 20, 25, 0.55)",
+                border: `1px solid ${lane === "desk" ? "rgba(227, 27, 35, 0.35)" : T.rule}`,
+                fontSize: 9,
+                fontWeight: 700,
+                color: laneColor,
+                letterSpacing: 1.1,
+              }}
+            >
+              {lane === "desk" ? "FUELED DESK" : label.toUpperCase()}
+            </div>
           </div>
           <div style={{ display: "flex", fontSize: compact ? 24 : 28, fontWeight: 700, color: T.textBright }}>
             {symbol}
+          </div>
+          <div style={{ display: "flex", fontSize: 11, fontWeight: 500, color: T.textMuted }}>
+            {insight}
           </div>
         </div>
         <div
@@ -245,6 +291,29 @@ function MockChartCard({
         ))}
         <div
           style={{
+            position: "absolute",
+            left: 16,
+            right: 16,
+            top: "58%",
+            height: 2,
+            background: T.accent,
+            opacity: 0.85,
+            display: "flex",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            left: 16,
+            right: 16,
+            top: "28%",
+            height: 1,
+            borderTop: "2px dashed rgba(148, 163, 184, 0.35)",
+            display: "flex",
+          }}
+        />
+        <div
+          style={{
             display: "flex",
             alignItems: "flex-end",
             gap: 6,
@@ -260,8 +329,13 @@ function MockChartCard({
                 flex: 1,
                 height: `${h}%`,
                 borderRadius: 3,
-                background: i >= SPARK_HEIGHTS.length - 4 ? T.up : "rgba(148, 163, 184, 0.35)",
-                opacity: i >= SPARK_HEIGHTS.length - 6 ? 1 : 0.75,
+                background:
+                  i >= SPARK_HEIGHTS.length - 4
+                    ? T.up
+                    : i >= SPARK_HEIGHTS.length - 7
+                      ? "rgba(5, 150, 105, 0.55)"
+                      : "rgba(148, 163, 184, 0.32)",
+                opacity: i >= SPARK_HEIGHTS.length - 6 ? 1 : 0.85,
               }}
             />
           ))}
@@ -273,10 +347,10 @@ function MockChartCard({
             marginTop: 10,
             fontSize: 10,
             fontWeight: 600,
-            color: T.text,
+            color: T.textMuted,
           }}
         >
-          <span style={{ display: "flex" }}>Entry $128.40</span>
+          <span style={{ display: "flex", color: T.accent }}>Entry $128.40</span>
           <span style={{ display: "flex", color: T.up }}>Target $165</span>
           <span style={{ display: "flex" }}>Stop $118</span>
         </div>
@@ -301,7 +375,7 @@ function MockChartCard({
               border: `1px solid ${T.rule}`,
               fontSize: 10,
               fontWeight: 600,
-              color: T.text,
+              color: T.textMuted,
             }}
           >
             {tag}
@@ -314,9 +388,9 @@ function MockChartCard({
 
 function MiniFeedPreview() {
   const rows = [
-    { sym: "NVDA", ret: "+24.6%", dir: "LONG" },
-    { sym: "META", ret: "+11.2%", dir: "LONG" },
-    { sym: "TSLA", ret: "-4.1%", dir: "SHORT" },
+    { sym: "NVDA", ret: "+24.6%", dir: "LONG", rank: 1, lane: "member" as const },
+    { sym: "META", ret: "+11.2%", dir: "LONG", rank: 2, lane: "member" as const },
+    { sym: "CRWD", ret: "+18.4%", dir: "LONG", rank: "Desk", lane: "desk" as const },
   ];
   return (
     <div
@@ -338,16 +412,36 @@ function MiniFeedPreview() {
               alignItems: "center",
               padding: "14px 16px",
               borderRadius: 14,
-              border: `1px solid ${T.rule}`,
-              background: "rgba(26, 35, 50, 0.88)",
+              border: `1px solid ${row.lane === "desk" ? "rgba(227, 27, 35, 0.28)" : T.rule}`,
+              background: "rgba(26, 35, 50, 0.92)",
             }}
           >
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <div style={{ display: "flex", fontSize: 18, fontWeight: 700, color: T.textBright }}>
-                {row.sym}
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                style={{
+                  display: "flex",
+                  width: 28,
+                  height: 28,
+                  borderRadius: 8,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background:
+                    row.lane === "desk" ? "rgba(227, 27, 35, 0.16)" : "rgba(15, 20, 25, 0.55)",
+                  border: `1px solid ${row.lane === "desk" ? "rgba(227, 27, 35, 0.35)" : T.rule}`,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: row.lane === "desk" ? T.accent : T.textMuted,
+                }}
+              >
+                {String(row.rank)}
               </div>
-              <div style={{ display: "flex", fontSize: 11, fontWeight: 600, color: T.text }}>
-                {row.dir} · Member call
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{ display: "flex", fontSize: 18, fontWeight: 700, color: T.textBright }}>
+                  {row.sym}
+                </div>
+                <div style={{ display: "flex", fontSize: 11, fontWeight: 600, color: T.textMuted }}>
+                  {row.lane === "desk" ? "Fueled desk · LONG" : `${row.dir} · Member call`}
+                </div>
               </div>
             </div>
             <div
@@ -374,25 +468,45 @@ function ogVisual(variant: MarketingOgVariant) {
   if (variant === "desk") {
     return (
       <MockChartCard
-        symbol="DESK"
-        returnPct="Fueled"
-        label="Model portfolio"
+        symbol="CRWD"
+        returnPct="+18.4%"
+        label="Fueled desk"
+        insight="House thesis · live marks"
+        lane="desk"
         chartHeight={160}
         compact
       />
     );
   }
-  return <MockChartCard chartHeight={200} compact={false} />;
+  return <MockChartCard chartHeight={200} insight="18d on board · ranked caller" compact={false} />;
 }
 
 function adChartMeta(variant: MarketingAdVariant) {
   if (variant === "desk") {
-    return { symbol: "CRWD", returnPct: "+18.4%", label: "Fueled desk" };
+    return {
+      symbol: "CRWD",
+      returnPct: "+18.4%",
+      label: "Fueled desk",
+      insight: "House thesis · live marks",
+      lane: "desk" as const,
+    };
   }
   if (variant === "structure") {
-    return { symbol: "AAPL", returnPct: "+12.8%", label: "Member thesis" };
+    return {
+      symbol: "AAPL",
+      returnPct: "+12.8%",
+      label: "Member thesis",
+      insight: "Entry / target / stop on record",
+      lane: "member" as const,
+    };
   }
-  return { symbol: "NVDA", returnPct: "+24.6%", label: "Member call" };
+  return {
+    symbol: "NVDA",
+    returnPct: "+24.6%",
+    label: "Member call",
+    insight: "18d on board · ranked caller",
+    lane: "member" as const,
+  };
 }
 
 export async function renderMarketingOgPng(
@@ -571,6 +685,8 @@ export async function renderMarketingAdPng(opts: {
               symbol={chartMeta.symbol}
               returnPct={chartMeta.returnPct}
               label={chartMeta.label}
+              insight={chartMeta.insight}
+              lane={chartMeta.lane}
               chartHeight={280}
               compact
             />
@@ -618,6 +734,8 @@ export async function renderMarketingAdPng(opts: {
                   symbol={chartMeta.symbol}
                   returnPct={chartMeta.returnPct}
                   label={chartMeta.label}
+                  insight={chartMeta.insight}
+                  lane={chartMeta.lane}
                   chartHeight={260}
                 />
               </div>

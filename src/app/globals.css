@@ -27,6 +27,7 @@
   --pf-gray-500: #64748b;
   --pf-gray-600: #475569;
   --pf-gray-700: #334155;
+  --pf-gray-800: #1e293b;
   --pf-border: #e2e8f0;
   --pf-surface: #ffffff;
   --pf-surface-muted: #f8fafc;
@@ -1156,6 +1157,7 @@ body {
   --pf-gray-500: #a3a3a3;
   --pf-gray-600: #d4d4d4;
   --pf-gray-700: #e5e5e5;
+  --pf-gray-800: #d4d4d4;
   --pf-border: #2a2a2a;
   --pf-surface: #111111;
   --pf-surface-muted: #0d0d0d;
@@ -1459,6 +1461,30 @@ body {
 /* Primary body copy that still references brand black */
 [data-theme="dark"] .text-\[var\(--pf-black\)\] {
   color: var(--foreground);
+}
+
+[data-theme="dark"] .pf-metrics-strip-value {
+  color: var(--foreground);
+}
+
+[data-theme="dark"] .pf-metrics-strip-label,
+[data-theme="dark"] .pf-metrics-strip-hint,
+[data-theme="dark"] .pf-metrics-strip-eyebrow {
+  color: var(--pf-gray-500);
+}
+
+[data-theme="dark"] .text-\[var\(--pf-gray-400\)\] {
+  color: var(--pf-gray-500);
+}
+
+[data-theme="dark"] .pf-admin-preview {
+  color: var(--pf-gray-700);
+  background: var(--pf-gray-100);
+  border-color: var(--pf-border);
+}
+
+[data-theme="dark"] .text-\[var\(--pf-gray-800\)\] {
+  color: var(--pf-gray-700);
 }
 
 [data-theme="dark"] .to-white {

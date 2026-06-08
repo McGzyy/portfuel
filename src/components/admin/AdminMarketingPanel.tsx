@@ -72,7 +72,7 @@ function AssetCard({
     <div className="overflow-hidden rounded-xl border border-[var(--pf-border)] bg-white">
       <div className="border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2">
         <p className="text-sm font-semibold text-[var(--pf-black)]">{title}</p>
-        <p className="text-xs text-[var(--pf-gray-500)]">{subtitle}</p>
+        <p className="text-xs text-[var(--pf-gray-600)]">{subtitle}</p>
       </div>
       <div className="bg-[var(--pf-gray-100)] p-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -136,7 +136,7 @@ export function AdminMarketingPanel() {
             Refresh previews
           </Button>
         </div>
-        <p className="mt-3 text-xs text-[var(--pf-gray-500)]">
+        <p className="mt-3 text-xs text-[var(--pf-gray-600)]">
           Full workflow in repo: <code className="rounded bg-[var(--pf-gray-100)] px-1">docs/BRAND-KIT.md</code>
           {" · "}
           <code className="rounded bg-[var(--pf-gray-100)] px-1">npm run marketing:export</code>
@@ -145,7 +145,7 @@ export function AdminMarketingPanel() {
 
       <section>
         <h3 className="text-sm font-bold text-[var(--pf-black)]">Link preview cards (1200×630)</h3>
-        <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
+        <p className="mt-1 text-xs text-[var(--pf-gray-600)]">
           {MARKETING_SIZES.og.label} — homepage, join, proof, desk, demo angles.
         </p>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -164,7 +164,7 @@ export function AdminMarketingPanel() {
 
       <section>
         <h3 className="text-sm font-bold text-[var(--pf-black)]">Paid social ad cards</h3>
-        <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
+        <p className="mt-1 text-xs text-[var(--pf-gray-600)]">
           Landscape (1200×675) and square (1080×1080). Drop a real chart PNG into Figma over the
           placeholder, or pair with{" "}
           <code className="rounded bg-[var(--pf-gray-100)] px-1">/api/social/chart/&#123;callId&#125;</code>.
@@ -275,7 +275,7 @@ export function AdminMarketingPanel() {
       <section className="grid gap-6 lg:grid-cols-2">
         <div className="pf-workspace-panel p-5 sm:p-6">
           <h3 className="text-sm font-bold text-[var(--pf-black)]">AI background prompts</h3>
-          <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
+          <p className="mt-1 text-xs text-[var(--pf-gray-600)]">
             Use only for backdrop plates — composite product PNGs on top in Figma. Lock style with
             Midjourney <code className="rounded bg-[var(--pf-gray-100)] px-1">--sref</code> from one
             approved master image.

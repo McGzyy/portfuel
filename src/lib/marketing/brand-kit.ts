@@ -6,6 +6,7 @@ export const MARKETING_BRAND = {
   surfaceAlt: "#243044",
   text: "#94a3b8",
   textBright: "#f8fafc",
+  textMuted: "#cbd5e1",
   accent: "#e31b23",
   accentHover: "#ff4d55",
   rule: "#2d3748",
@@ -55,7 +56,7 @@ export const MARKETING_OG_COPY: Record<
     headline: "Calls on record. Returns tracked.",
     sub: "Member and Fueled desk theses with live performance — not anonymous tips.",
     bullets: [
-      "Entry, target, and stop on every call",
+      "Entry, target, and stop on every published call",
       "Public proof only after strict performance gates",
       "Charts generated from real PortFuel data",
     ],
@@ -88,17 +89,17 @@ export const MARKETING_AD_COPY: Record<
 > = {
   proof: {
     headline: "Calls on record. Returns tracked.",
-    sub: "Verified member performance on PortFuel — not hot tips.",
+    sub: "Verified member performance with live marks — not anonymous tips.",
     cta: "Join PortFuel",
   },
   structure: {
     headline: "Publish your thesis. Prove results.",
-    sub: "Entry, target, stop, and live return % on every call.",
+    sub: "Entry, target, stop, and live return % on every call you publish.",
     cta: "Get member access",
   },
   desk: {
     headline: "Fueled desk + member rankings",
-    sub: "House research and community intelligence in one workspace.",
+    sub: "House research and attributed community calls in one workspace.",
     cta: "Explore the workspace",
   },
 };

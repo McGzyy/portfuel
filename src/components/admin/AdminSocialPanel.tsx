@@ -103,7 +103,7 @@ export function AdminSocialPanel() {
   return (
     <div className="mt-8 space-y-8">
       <section className="pf-workspace-panel p-6">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
           Social
         </p>
         <h2 className="mt-1 text-lg font-bold text-[var(--pf-black)]">
@@ -197,7 +197,7 @@ export function AdminSocialPanel() {
         {xMessage ? <p className="mt-3 text-xs text-[var(--pf-gray-600)]">{xMessage}</p> : null}
 
         {previewText ? (
-          <pre className="mt-4 max-h-48 overflow-auto rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-4 text-xs leading-relaxed whitespace-pre-wrap text-[var(--pf-gray-800)]">
+          <pre className="pf-admin-preview mt-4 max-h-48 overflow-auto rounded-lg border p-4 text-xs leading-relaxed whitespace-pre-wrap">
             {previewText}
           </pre>
         ) : null}

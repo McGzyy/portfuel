@@ -529,7 +529,7 @@ export function AdminSocialMilestonePanel() {
               <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
                 Copy preview
               </p>
-              <pre className="mt-2 text-xs leading-relaxed whitespace-pre-wrap text-[var(--pf-gray-800)]">
+              <pre className="pf-admin-preview mt-2 text-xs leading-relaxed whitespace-pre-wrap">
                 {previewLead}
               </pre>
             </div>
@@ -561,7 +561,7 @@ export function AdminSocialMilestonePanel() {
           ) : null}
 
           {selected && previewTail && !postPreview ? (
-            <pre className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-3 text-xs leading-relaxed whitespace-pre-wrap text-[var(--pf-gray-700)]">
+            <pre className="pf-admin-preview rounded-lg border p-3 text-xs leading-relaxed whitespace-pre-wrap">
               {previewTail}
             </pre>
           ) : null}
@@ -600,7 +600,7 @@ export function AdminSocialMilestonePanel() {
           </div>
 
           {previewText && !postPreview ? (
-            <pre className="max-h-32 overflow-auto rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-3 text-xs whitespace-pre-wrap">
+            <pre className="pf-admin-preview max-h-32 overflow-auto rounded-lg border p-3 text-xs whitespace-pre-wrap">
               {previewText}
             </pre>
           ) : null}
