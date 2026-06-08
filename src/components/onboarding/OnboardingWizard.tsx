@@ -164,7 +164,7 @@ export function OnboardingWizard() {
                   "rounded-full border px-3 py-1.5 font-mono text-sm font-semibold transition-colors",
                   on
                     ? "border-[var(--pf-red)] bg-[var(--pf-red-muted)] text-[var(--pf-red)]"
-                    : "border-[var(--pf-border)] bg-white text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-400)]"
+                    : "pf-pill-inactive border hover:border-[var(--pf-gray-400)]"
                 )}
               >
                 {sym}
@@ -209,7 +209,7 @@ export function OnboardingWizard() {
       title="Quick tour"
       subtitle={`${tourIndex + 1} of ${ONBOARDING_TOUR_STEPS.length} — quick tour`}
     >
-      <div className="rounded-xl border border-[var(--pf-border)] bg-white p-5">
+      <div className="pf-workspace-panel p-5">
         <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
           <TourIcon className="h-5 w-5" />
         </span>

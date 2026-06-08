@@ -320,7 +320,7 @@ export function WatchlistPanel({
                   points={sparklines[item.symbol] ?? []}
                   width={56}
                   height={28}
-                  className="mt-0.5 shrink-0 rounded-md bg-white/80 p-0.5"
+                  className="pf-sparkline-pad mt-0.5 shrink-0"
                 />
                 <div className="min-w-0 flex-1 space-y-2">
                   <Link href={journalSymbolPath(item.symbol)} className="block">

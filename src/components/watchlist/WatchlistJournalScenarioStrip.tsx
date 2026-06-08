@@ -53,7 +53,7 @@ export function WatchlistJournalScenarioStrip({ journal }: { journal: WatchlistJ
           </div>
         ) : null}
         {journal.base_case_price != null ? (
-          <div className="rounded-lg border border-[var(--pf-border)] bg-white px-3 py-2.5">
+          <div className="pf-scenario-tile">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
               Base
             </p>

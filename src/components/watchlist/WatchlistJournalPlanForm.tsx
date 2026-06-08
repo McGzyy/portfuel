@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import {
   JOURNAL_CATALYST_OPTIONS,
   JOURNAL_OUTCOMES,
@@ -128,33 +129,33 @@ export function WatchlistJournalPlanForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="journal-conviction">Conviction (1–10)</Label>
-          <select
+          <Select
             id="journal-conviction"
             value={conviction}
             onChange={(e) => setConviction(e.target.value)}
-            className="mt-1.5 w-full rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-white px-3 py-2 text-sm font-semibold"
+            className="mt-1.5 h-10 font-semibold"
           >
             {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
               <option key={n} value={String(n)}>
                 {n}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <Label htmlFor="journal-outcome">Outcome</Label>
-          <select
+          <Select
             id="journal-outcome"
             value={outcome}
             onChange={(e) => setOutcome(e.target.value as JournalOutcome)}
-            className="mt-1.5 w-full rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-white px-3 py-2 text-sm font-semibold"
+            className="mt-1.5 h-10 font-semibold"
           >
             {JOURNAL_OUTCOMES.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 
@@ -172,7 +173,7 @@ export function WatchlistJournalPlanForm({
                   "rounded-full border px-2.5 py-1 text-[10px] font-semibold transition-colors",
                   on
                     ? "border-[var(--pf-red)] bg-[var(--pf-red)]/10 text-[var(--pf-red)]"
-                    : "border-[var(--pf-border)] bg-white text-[var(--pf-gray-600)] hover:border-[var(--pf-gray-300)]"
+                    : "pf-pill-inactive border hover:border-[var(--pf-gray-300)]"
                 )}
               >
                 {c}

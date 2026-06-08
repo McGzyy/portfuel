@@ -129,7 +129,7 @@ export function WorkspaceOnboardingChecklist({
                   "flex items-start gap-3 rounded-lg border px-3 py-3 transition-colors",
                   done
                     ? "border-emerald-200/80 bg-emerald-50/60"
-                    : "border-[var(--pf-border)] bg-white hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
+                    : "pf-checklist-step-pending hover:border-[var(--pf-gray-300)]"
                 )}
               >
                 <span

@@ -106,7 +106,7 @@ export function WatchlistJournalReviewPanel({
               <li key={row.symbol}>
                 <Link
                   href={journalSymbolPath(row.symbol)}
-                  className="inline-flex flex-col rounded-lg border border-[var(--pf-border)] bg-white px-3 py-2 transition-colors hover:border-[var(--pf-gray-300)]"
+                  className="pf-pulse-card inline-flex flex-col px-3 py-2"
                 >
                   <span className="font-mono text-xs font-bold text-[var(--pf-black)]">
                     {row.symbol}
@@ -114,7 +114,7 @@ export function WatchlistJournalReviewPanel({
                   <span
                     className={`text-[10px] font-semibold tabular-nums ${
                       (row.target_progress_pct ?? 0) >= 50
-                        ? "text-emerald-700"
+                        ? "pf-return-up"
                         : "text-[var(--pf-gray-600)]"
                     }`}
                   >
@@ -146,7 +146,7 @@ export function WatchlistJournalReviewPanel({
                     <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
                       {row.symbol}
                     </span>
-                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-rose-800">
+                    <span className="pf-outcome-badge text-rose-800">
                       {row.outcome_label}
                     </span>
                   </div>

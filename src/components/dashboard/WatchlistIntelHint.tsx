@@ -4,7 +4,7 @@ import { BookOpen } from "lucide-react";
 export function WatchlistIntelHint() {
   return (
     <div className="flex gap-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-3">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[var(--pf-red)] shadow-[var(--pf-shadow-sm)]">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--pf-surface)] text-[var(--pf-red)] shadow-[var(--pf-shadow-sm)]">
         <BookOpen className="h-4 w-4" aria-hidden />
       </span>
       <div className="min-w-0 text-sm text-[var(--pf-gray-600)]">

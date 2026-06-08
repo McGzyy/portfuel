@@ -78,7 +78,7 @@ export function TrackWorkflowGuide() {
         })}
       </ol>
 
-      <div className="mt-4 flex gap-3 rounded-lg border border-dashed border-[var(--pf-border)] bg-white px-3 py-3">
+      <div className="mt-4 flex gap-3 rounded-lg border border-dashed border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-3">
         <Search className="mt-0.5 h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" aria-hidden />
         <div className="min-w-0 text-xs text-[var(--pf-gray-600)]">
           <span className="font-semibold text-[var(--pf-black)]">Symbol lookup</span> opens chart

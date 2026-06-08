@@ -1911,3 +1911,64 @@ body {
   color: var(--pf-gray-600);
   box-shadow: inset 0 0 0 1px var(--pf-border);
 }
+
+.pf-modal-sheet {
+  background-color: var(--pf-surface);
+}
+
+.pf-conviction-badge {
+  border-radius: 9999px;
+  background-color: var(--pf-red-muted);
+  padding: 0.125rem 0.5rem;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pf-red);
+}
+
+.pf-scenario-tile {
+  border-radius: var(--pf-radius);
+  border: 1px solid var(--pf-border);
+  background-color: var(--pf-surface);
+  padding: 0.625rem 0.75rem;
+}
+
+.pf-sparkline-pad {
+  border-radius: var(--pf-radius);
+  background-color: color-mix(in srgb, var(--pf-surface) 85%, transparent);
+  padding: 0.125rem;
+}
+
+.pf-checklist-step-pending {
+  border: 1px solid var(--pf-border);
+  background-color: var(--pf-surface);
+}
+
+.pf-checklist-step-pending:hover {
+  border-color: var(--pf-gray-300);
+  background-color: var(--pf-gray-50);
+}
+
+[data-theme="dark"] .text-rose-800 {
+  color: #fda4af;
+}
+
+[data-theme="dark"] .border-rose-200\/80 {
+  border-color: rgba(251, 113, 133, 0.35);
+}
+
+[data-theme="dark"] .bg-rose-50\/50,
+[data-theme="dark"] .hover\:bg-rose-50:hover {
+  background-color: rgba(251, 113, 133, 0.1);
+}
+
+[data-theme="dark"] .hover\:border-rose-300:hover {
+  border-color: rgba(251, 113, 133, 0.45);
+}
+
+[data-theme="dark"] .ring-sky-100,
+[data-theme="dark"] .ring-violet-100,
+[data-theme="dark"] .ring-amber-100,
+[data-theme="dark"] .ring-indigo-100,
+[data-theme="dark"] .ring-indigo-200 {
+  --tw-ring-color: var(--pf-border);
+}

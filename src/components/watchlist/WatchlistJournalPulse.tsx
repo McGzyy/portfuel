@@ -24,7 +24,7 @@ export function WatchlistJournalPulse({ ideas }: { ideas: JournalHighlightRow[] 
           <li key={idea.symbol}>
             <Link
               href={journalSymbolPath(idea.symbol)}
-              className="flex min-w-[10rem] flex-col rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2.5 transition-colors hover:border-[var(--pf-gray-300)] hover:bg-white"
+              className="pf-pulse-card min-w-[10rem] flex-col px-3 py-2.5"
             >
               <span className="flex items-center justify-between gap-2">
                 <span className="font-mono text-sm font-bold text-[var(--pf-black)]">

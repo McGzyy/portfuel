@@ -200,8 +200,7 @@ export function WatchlistJournalTimeline({
                         <span
                           className={cn(
                             "rounded-full px-2 py-0.5 text-[10px] font-bold ring-1",
-                            TYPE_CHIP_STYLE[entry.entry_type] ??
-                              "bg-white text-[var(--pf-gray-700)] ring-[var(--pf-border)]"
+                            TYPE_CHIP_STYLE[entry.entry_type] ?? "pf-outcome-badge ring-1"
                           )}
                         >
                           {journalEntryTypeLabel(entry.entry_type)}
@@ -213,7 +212,7 @@ export function WatchlistJournalTimeline({
                         </span>
                       ) : null}
                       {entry.conviction_after != null ? (
-                        <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-[var(--pf-red)]">
+                        <span className="pf-conviction-badge">
                           Conviction {entry.conviction_after}/10
                         </span>
                       ) : null}

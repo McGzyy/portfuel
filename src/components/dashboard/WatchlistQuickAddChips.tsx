@@ -82,8 +82,7 @@ export function WatchlistQuickAddChips({
             disabled={busy === sym}
             onClick={() => void add(sym)}
             className={cn(
-              "rounded-full border border-[var(--pf-border)] bg-white px-3 py-1 font-mono text-xs font-semibold text-[var(--pf-gray-700)]",
-              "hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)] disabled:opacity-50"
+              "pf-pill-inactive rounded-full border px-3 py-1 font-mono text-xs font-semibold disabled:opacity-50"
             )}
           >
             {busy === sym ? "Adding…" : `+ ${sym}`}

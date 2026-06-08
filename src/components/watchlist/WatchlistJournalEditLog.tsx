@@ -70,7 +70,7 @@ export function WatchlistJournalEditLog({
                         {item.field_label}
                       </span>
                       <div className="mt-1 grid gap-1 sm:grid-cols-2">
-                        <p className="rounded-md bg-white px-2 py-1.5 text-[11px] leading-snug text-[var(--pf-gray-500)] line-through decoration-[var(--pf-gray-300)]">
+                        <p className="rounded-md bg-[var(--pf-gray-50)] px-2 py-1.5 text-[11px] leading-snug text-[var(--pf-gray-500)] line-through decoration-[var(--pf-gray-300)]">
                           {item.old_value ?? "—"}
                         </p>
                         <p className="rounded-md border border-emerald-100 bg-emerald-50/80 px-2 py-1.5 text-[11px] leading-snug text-emerald-900">

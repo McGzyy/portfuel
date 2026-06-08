@@ -13,7 +13,7 @@ export function AdminCommunityHint({ className }: { className?: string }) {
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white shadow-[var(--pf-shadow-sm)]">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--pf-surface)] shadow-[var(--pf-shadow-sm)]">
             <Sprout className="h-4 w-4 text-[var(--pf-positive)]" strokeWidth={2.25} />
           </span>
           <div>

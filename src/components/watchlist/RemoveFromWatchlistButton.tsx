@@ -165,7 +165,7 @@ export function RemoveFromWatchlistButton({
             if (e.target === e.currentTarget) close();
           }}
         >
-          <div className="w-full max-w-md rounded-t-[1.25rem] border border-[var(--pf-border)] bg-white p-5 shadow-xl sm:rounded-[var(--pf-radius-lg)]">
+          <div className="pf-modal-sheet w-full max-w-md rounded-t-[1.25rem] border border-[var(--pf-border)] p-5 shadow-xl sm:rounded-[var(--pf-radius-lg)]">
             {loadingSummary ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-[var(--pf-red)]" />

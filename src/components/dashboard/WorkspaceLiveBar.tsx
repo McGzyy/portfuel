@@ -70,14 +70,14 @@ export function WorkspaceLiveBar({
   return (
     <div
       className={cn(
-        "pf-live-bar overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]",
+        "pf-live-bar overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] shadow-[var(--pf-shadow-sm)]",
         compact && "pf-live-bar-compact"
       )}
     >
       <div
         className={cn(
           "flex flex-wrap items-center justify-between gap-3 px-4 py-2.5",
-          compact ? "bg-white" : "border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)]"
+          compact ? "bg-[var(--pf-surface)]" : "border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)]"
         )}
       >
         <div className="flex items-center gap-2">

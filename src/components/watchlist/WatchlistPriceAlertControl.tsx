@@ -119,7 +119,7 @@ export function WatchlistPriceAlertControl({
             const v = e.target.value;
             void save(v === "" ? null : Number(v));
           }}
-          className="rounded border border-[var(--pf-border)] bg-white px-1.5 py-0.5 text-[10px] font-semibold text-[var(--pf-gray-700)]"
+          className="rounded border border-[var(--pf-border)] bg-[var(--pf-surface)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--pf-gray-700)]"
           aria-label={`Price alert threshold for ${item.symbol}`}
         >
           <option value="">Global ±{prefs.price_move_pct}%</option>
