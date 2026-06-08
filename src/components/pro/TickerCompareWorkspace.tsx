@@ -13,6 +13,7 @@ import { candlesToNormalizedLine, normalizePriceLines } from "@/lib/charts/norma
 import type { CallWithUser } from "@/lib/db/supabase";
 import type { CandlePoint, LinePoint, PriceLine } from "@/lib/charts/types";
 import { formatPct } from "@/lib/utils";
+import { buildComparePreviewLabel, formatSymbolSample } from "@/lib/pro/upgrade-prompt";
 
 type CompareSlot = {
   symbol: string;
@@ -263,9 +264,7 @@ export function TickerCompareWorkspace({
                 {slot.changePct != null ? (
                   <span
                     className={
-                      slot.changePct >= 0
-                        ? "text-xs font-bold tabular-nums text-emerald-600"
-                        : "text-xs font-bold tabular-nums text-rose-600"
+                      slot.changePct >= 0 ? "text-xs font-bold tabular-nums pf-return-up" : "text-xs font-bold tabular-nums pf-return-down"
                     }
                   >
                     {formatPct(slot.changePct)}
@@ -290,14 +289,59 @@ export function TickerCompareWorkspace({
     </div>
   );
 
+  const previewSymbols = (initialSymbols?.length ? initialSymbols : watchlistSymbols).slice(
+    0,
+    MAX_SYMBOLS
+  );
+  const comparePreview = buildComparePreviewLabel(previewSymbols);
+
   return (
     <ProIntelligenceGate
       locked={locked}
       cta={proGateCta}
+      variant={locked ? "preview" : "default"}
       title="Ticker compare"
-      description="Line up 2–3 symbols on the same performance scale — Pro Intelligence."
+      description={
+        comparePreview
+          ? `Line up ${comparePreview} on one normalized chart with desk and community call levels.`
+          : "Line up 2–3 symbols on the same performance scale — Pro Intelligence."
+      }
+      teaser={locked ? <ComparePreviewTeaser symbols={previewSymbols} /> : undefined}
     >
       {body}
     </ProIntelligenceGate>
+  );
+}
+
+function ComparePreviewTeaser({ symbols }: { symbols: string[] }) {
+  const compare = buildComparePreviewLabel(symbols);
+  const sample = formatSymbolSample(symbols, MAX_SYMBOLS);
+
+  if (!compare && !sample) {
+    return (
+      <p className="text-sm text-[var(--pf-gray-600)]">
+        Add symbols to your watchlist, then compare them side-by-side on Pro Intelligence.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <span className="inline-block rounded-full bg-[var(--pf-red-muted)] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--pf-red)]">
+        Pro preview
+      </span>
+      {compare ? (
+        <p className="text-sm font-semibold text-[var(--pf-black)]">{compare}</p>
+      ) : null}
+      {sample ? (
+        <div className="flex flex-wrap gap-2">
+          {symbols.slice(0, MAX_SYMBOLS).map((sym) => (
+            <span key={sym} className="pf-chip-action font-mono text-xs">
+              {sym}
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }

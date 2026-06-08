@@ -3,6 +3,7 @@ import { Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatTierPrice } from "@/lib/marketing/plans";
 import { buildResearchHubHref } from "@/lib/dashboard/research-hub";
+import { buildProMembershipHook } from "@/lib/pro/upgrade-prompt";
 
 const PRO_HIGHLIGHTS = [
   "Full ticker intel (news, earnings, SEC)",
@@ -10,7 +11,15 @@ const PRO_HIGHLIGHTS = [
   "6 calls per week + AI thesis tools",
 ] as const;
 
-export function ProMembershipStrip({ locked }: { locked: boolean }) {
+export function ProMembershipStrip({
+  locked,
+  watchlistSymbols = [],
+}: {
+  locked: boolean;
+  watchlistSymbols?: string[];
+}) {
+  const personalizedHook = buildProMembershipHook(watchlistSymbols);
+
   if (locked) {
     return (
       <div className="pf-pro-strip pf-pro-strip-locked">
@@ -23,8 +32,8 @@ export function ProMembershipStrip({ locked }: { locked: boolean }) {
               Pro Intelligence — built for serious callers
             </p>
             <p className="mt-1 text-xs leading-relaxed text-[var(--pf-gray-600)]">
-              Everything in membership, plus research depth, more weekly publishes, and AI on your
-              book — {formatTierPrice("pro")}.
+              {personalizedHook ??
+                `Everything in membership, plus research depth, more weekly publishes, and AI on your book — ${formatTierPrice("pro")}.`}
             </p>
             <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1">
               {PRO_HIGHLIGHTS.map((line) => (

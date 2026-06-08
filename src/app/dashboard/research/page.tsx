@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { EarningsBattleboardLegend } from "@/components/pro/EarningsBattleboardLegend";
-import { EarningsBattleboardTable } from "@/components/pro/EarningsBattleboardTable";
 import { EarningsSurfacesExplainer } from "@/components/pro/EarningsSurfacesExplainer";
 import { ProCommunityScreener } from "@/components/pro/ProCommunityScreener";
-import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
+import { ProEarningsBattleboardSection } from "@/components/pro/ProEarningsBattleboardSection";
 import { ResearchCommandHeader } from "@/components/pro/ResearchCommandHeader";
 import { TickerCompareWorkspace } from "@/components/pro/TickerCompareWorkspace";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
@@ -52,6 +50,13 @@ export default async function DashboardResearchPage({
 
   if (tab === "screener") {
     const data = await fetchCommunityScreener();
+    let watchlistSymbols: string[] = [];
+    try {
+      const wl = await fetchWatchlist(session.userId);
+      watchlistSymbols = wl.map((w) => w.symbol);
+    } catch {
+      /* optional */
+    }
     const compareSymbols = [data.mostCalled[0]?.symbol, data.topReturns[0]?.symbol].filter(
       (s): s is string => Boolean(s)
     );
@@ -73,6 +78,7 @@ export default async function DashboardResearchPage({
           locked={proLocked}
           proGateCta={proGateCta}
           showExport
+          watchlistSymbols={watchlistSymbols}
         />
       </div>
     );
@@ -80,23 +86,25 @@ export default async function DashboardResearchPage({
 
   if (tab === "earnings") {
     const rows = await fetchEarningsBattleboard();
+    let watchlistSymbols: string[] = [];
+    try {
+      const wl = await fetchWatchlist(session.userId);
+      watchlistSymbols = wl.map((w) => w.symbol);
+    } catch {
+      /* optional */
+    }
 
     return (
       <div className="space-y-6">
         <ResearchCommandHeader tab="earnings" />
         <WorkspaceQuickActions proUnlocked={!proLocked} />
         <EarningsSurfacesExplainer />
-        <ProIntelligenceGate
+        <ProEarningsBattleboardSection
+          rows={rows}
           locked={proLocked}
-          cta={proGateCta}
-          title="Earnings"
-          description="Market-wide reporting week plus how PortFuel members and the Fueled desk are positioned before each report."
-        >
-          <div className="space-y-4">
-            <EarningsBattleboardLegend />
-            <EarningsBattleboardTable rows={rows} />
-          </div>
-        </ProIntelligenceGate>
+          proGateCta={proGateCta}
+          watchlistSymbols={watchlistSymbols}
+        />
       </div>
     );
   }

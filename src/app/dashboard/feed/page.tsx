@@ -29,6 +29,7 @@ import {
 import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
+import { fetchWatchlist } from "@/lib/watchlist/service";
 import {
   getProGateCta,
   isProIntelligenceLocked,
@@ -118,6 +119,14 @@ export default async function DashboardFeedPage({
 
   const showLeadersPanel = mapped.length >= 3 && mode !== "progress";
 
+  let watchlistSymbols: string[] = [];
+  try {
+    const wl = await fetchWatchlist(session.userId);
+    watchlistSymbols = wl.map((w) => w.symbol);
+  } catch {
+    /* optional */
+  }
+
   return (
     <div className="space-y-6">
       <FeedCommandHeader
@@ -131,7 +140,7 @@ export default async function DashboardFeedPage({
 
       <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} />
 
-      {proLocked ? <ProIntelDiscoverStrip /> : null}
+      {proLocked ? <ProIntelDiscoverStrip watchlistSymbols={watchlistSymbols} /> : null}
 
       <FeedToolbar
         mode={mode}

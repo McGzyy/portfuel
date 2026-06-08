@@ -7,6 +7,11 @@ import { buildResearchHubHref } from "@/lib/dashboard/research-hub";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import type { CommunityScreenerData } from "@/lib/screener/community";
 import { formatPct } from "@/lib/utils";
+import {
+  buildProOverviewGateDescription,
+  formatSymbolSample,
+  watchlistReportingSymbols,
+} from "@/lib/pro/upgrade-prompt";
 
 function fmtShortDate(iso: string): string {
   return new Date(`${iso}T12:00:00`).toLocaleDateString(undefined, {
@@ -21,11 +26,16 @@ export function ProOverviewIntelStrip({
   screener,
   locked = false,
   proGateCta = "upgrade",
+  watchlistSymbols = [],
+  reportingSymbols = [],
 }: {
   battleboard: EarningsBattleboardSummary;
   screener: CommunityScreenerData;
   locked?: boolean;
   proGateCta?: ProGateCta;
+  watchlistSymbols?: string[];
+  /** Symbols reporting in the earnings battleboard window (for watchlist overlap). */
+  reportingSymbols?: string[];
 }) {
   const strip = (
     <ResearchPulseCards battleboard={battleboard} screener={screener} interactive={!locked} />
@@ -39,8 +49,15 @@ export function ProOverviewIntelStrip({
       cta={proGateCta}
       variant="preview"
       title="Unlock research pulse"
-      description="Live earnings positioning, screener movers, and crypto leaders on your overview — included with Pro Intelligence."
-      teaser={<ResearchPulseTeaser battleboard={battleboard} screener={screener} />}
+      description={buildProOverviewGateDescription(watchlistSymbols)}
+      teaser={
+        <ResearchPulseTeaser
+          battleboard={battleboard}
+          screener={screener}
+          watchlistSymbols={watchlistSymbols}
+          reportingSymbols={reportingSymbols}
+        />
+      }
       className="rounded-[var(--pf-radius-lg)]"
     >
       {strip}
@@ -51,11 +68,23 @@ export function ProOverviewIntelStrip({
 function ResearchPulseTeaser({
   battleboard,
   screener,
+  watchlistSymbols,
+  reportingSymbols,
 }: {
   battleboard: EarningsBattleboardSummary;
   screener: CommunityScreenerData;
+  watchlistSymbols: string[];
+  reportingSymbols: string[];
 }) {
   const pills: string[] = [];
+  const watchlistSample = formatSymbolSample(watchlistSymbols, 4);
+  if (watchlistSample) {
+    pills.push(`Watchlist · ${watchlistSample}`);
+  }
+  const reportingOverlap = watchlistReportingSymbols(watchlistSymbols, reportingSymbols);
+  if (reportingOverlap.length > 0) {
+    pills.push(`${reportingOverlap.length} watchlist name${reportingOverlap.length === 1 ? "" : "s"} reporting soon`);
+  }
   if (battleboard.reportingCount > 0) {
     pills.push(`${battleboard.reportingCount} reporting this week`);
   }

@@ -258,6 +258,7 @@ export default async function DashboardOverviewPage({
   let proOverviewIntel: {
     battleboard: EarningsBattleboardSummary;
     screener: CommunityScreenerData;
+    reportingSymbols: string[];
   } | null = null;
 
   if (session.subscriptionStatus === "active") {
@@ -272,7 +273,11 @@ export default async function DashboardOverviewPage({
         : Promise.resolve([]),
     ]);
     const battleboard = summarizeBattleboard(battleboardRows);
-    proOverviewIntel = { battleboard, screener };
+    proOverviewIntel = {
+      battleboard,
+      screener,
+      reportingSymbols: battleboardRows.map((row) => row.symbol),
+    };
 
     proTodayBrief = buildProTodayBrief({
       deskNote: deskBrief.weeklyNote,
@@ -324,7 +329,7 @@ export default async function DashboardOverviewPage({
         emailVerified={session.emailVerified}
       />
 
-      <ProMembershipStrip locked={proLocked} />
+      <ProMembershipStrip locked={proLocked} watchlistSymbols={watchlistItems.map((w) => w.symbol)} />
 
       {proTodayBrief ? (
         <ProTodayBrief brief={proTodayBrief} locked={proLocked} proGateCta={proGateCta} />
@@ -336,6 +341,8 @@ export default async function DashboardOverviewPage({
           screener={proOverviewIntel.screener}
           locked={proLocked}
           proGateCta={proGateCta}
+          watchlistSymbols={watchlistItems.map((w) => w.symbol)}
+          reportingSymbols={proOverviewIntel.reportingSymbols}
         />
       ) : null}
 

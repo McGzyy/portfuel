@@ -23,6 +23,7 @@ import {
 import { SettingsBillingSync } from "@/app/settings/BillingSync";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { requireDashboardSession } from "@/lib/dashboard/data";
+import { fetchWatchlist } from "@/lib/watchlist/service";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import {
@@ -53,6 +54,14 @@ export default async function DashboardSettingsPage({
   const params = await searchParams;
   const section = parseSettingsSection(params.section);
   const proLocked = isProIntelligenceLocked(sessionToProContext(session));
+
+  let watchlistSymbols: string[] = [];
+  try {
+    const wl = await fetchWatchlist(session.userId);
+    watchlistSymbols = wl.map((w) => w.symbol);
+  } catch {
+    /* optional */
+  }
 
   return (
     <>
@@ -97,7 +106,9 @@ export default async function DashboardSettingsPage({
           </div>
 
           <div className="min-w-0 space-y-4 sm:space-y-6">
-            {proLocked && section === "billing" ? <ProMembershipStrip locked /> : null}
+            {proLocked && section === "billing" ? (
+              <ProMembershipStrip locked watchlistSymbols={watchlistSymbols} />
+            ) : null}
 
             {section === "billing" ? (
               <section aria-label="Plan and billing" className="space-y-4">

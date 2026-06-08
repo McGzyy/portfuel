@@ -2,17 +2,31 @@ import Link from "next/link";
 import { BarChart3, Calendar, GitCompare, ScanSearch, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatTierPrice } from "@/lib/marketing/plans";
+import { buildComparePreviewLabel, buildProMembershipHook } from "@/lib/pro/upgrade-prompt";
 
 import { buildResearchHubHref } from "@/lib/dashboard/research-hub";
+import { buildCompareHref } from "@/lib/dashboard/compare-symbols";
 
 /** Member feed: surface Pro research tools without another full-width banner. */
 export function ProIntelDiscoverStrip({
   symbol,
   assetClass = "equity",
+  watchlistSymbols = [],
 }: {
   symbol?: string;
   assetClass?: "equity" | "crypto";
+  watchlistSymbols?: string[];
 }) {
+  const compareSymbols = symbol
+    ? [symbol, ...watchlistSymbols.filter((s) => s.toUpperCase() !== symbol.toUpperCase())].slice(
+        0,
+        3
+      )
+    : watchlistSymbols.slice(0, 3);
+  const comparePreview = buildComparePreviewLabel(compareSymbols);
+  const personalizedHook = buildProMembershipHook(watchlistSymbols);
+  const compareHref =
+    compareSymbols.length >= 2 ? buildCompareHref(compareSymbols) : buildResearchHubHref("compare");
   const intelHref = symbol
     ? `/ticker/${symbol}`
     : assetClass === "crypto"
@@ -22,7 +36,7 @@ export function ProIntelDiscoverStrip({
   const links = [
     { href: buildResearchHubHref("screener"), label: "Screener", icon: ScanSearch },
     { href: buildResearchHubHref("earnings"), label: "Earnings", icon: Calendar },
-    { href: buildResearchHubHref("compare"), label: "Compare", icon: GitCompare },
+    { href: compareHref, label: "Compare", icon: GitCompare },
     { href: intelHref, label: intelLabel, icon: BarChart3 },
   ] as const;
 
@@ -36,10 +50,16 @@ export function ProIntelDiscoverStrip({
           <div>
             <p className="text-sm font-bold text-[var(--pf-black)]">Pro Intelligence research layer</p>
             <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
-              {assetClass === "crypto"
-                ? `Crypto headlines, price action & community conviction — ${formatTierPrice("pro")}/mo.`
-                : `News, filings, intraday charts, screener & compare — ${formatTierPrice("pro")}/mo.`}
+              {personalizedHook ??
+                (assetClass === "crypto"
+                  ? `Crypto headlines, price action & community conviction — ${formatTierPrice("pro")}/mo.`
+                  : `News, filings, intraday charts, screener & compare — ${formatTierPrice("pro")}/mo.`)}
             </p>
+            {comparePreview ? (
+              <p className="mt-1 text-[11px] font-semibold text-[var(--pf-red)]">
+                Ready to compare {comparePreview}
+              </p>
+            ) : null}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
