@@ -75,7 +75,7 @@ export default async function DashboardJournalPage({
         publishHref={publishHref}
       />
 
-      {nextUp ? <JournalContinueCard nextUp={nextUp} /> : null}
+      {nextUp && readyItems.length === 0 ? <JournalContinueCard nextUp={nextUp} /> : null}
 
       <WorkspaceQuickActions proUnlocked={proUnlocked} />
 

@@ -17,7 +17,7 @@ export function JournalReadyToPublishBanner({
 
   return (
     <section
-      className="rounded-[var(--pf-radius-lg)] border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white px-5 py-4 shadow-[var(--pf-shadow-sm)] sm:px-6"
+      className="pf-ready-publish-banner rounded-[var(--pf-radius-lg)] border px-5 py-4 shadow-[var(--pf-shadow-sm)] sm:px-6"
       aria-label="Ready to publish"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -26,11 +26,11 @@ export function JournalReadyToPublishBanner({
             <Megaphone className="h-3.5 w-3.5" strokeWidth={2.25} />
             Ready to publish
           </p>
-          <p className="mt-1 text-sm font-semibold text-emerald-950">
+          <p className="mt-1 text-sm font-semibold text-emerald-950 pf-ready-publish-title">
             {readyItems.length} idea{readyItems.length === 1 ? "" : "s"} finished research — publish
             when you want the community to see your thesis.
           </p>
-          <p className="mt-1 text-xs text-emerald-900/80">
+          <p className="mt-1 text-xs text-emerald-900/80 pf-ready-publish-detail">
             Your journal stays private until you publish. Review the preview on the publish form
             before it goes live.
           </p>

@@ -1497,6 +1497,34 @@ body {
   border-color: rgba(227, 27, 35, 0.35);
 }
 
+.pf-ready-publish-banner {
+  border-color: rgb(167 243 208);
+  background: linear-gradient(135deg, rgb(236 253 245) 0%, var(--pf-surface) 100%);
+}
+
+.pf-ready-publish-nudge {
+  border-color: rgb(167 243 208);
+  background: linear-gradient(135deg, rgb(236 253 245) 0%, var(--pf-surface) 100%);
+}
+
+.pf-ready-publish-nudge:hover {
+  border-color: rgb(52 211 153);
+}
+
+[data-theme="dark"] .pf-ready-publish-banner,
+[data-theme="dark"] .pf-ready-publish-nudge {
+  border-color: rgba(52, 211, 153, 0.35);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, var(--pf-surface) 100%);
+}
+
+[data-theme="dark"] .pf-ready-publish-title {
+  color: rgb(209 250 229);
+}
+
+[data-theme="dark"] .pf-ready-publish-detail {
+  color: rgba(209, 250, 229, 0.75);
+}
+
 [data-theme="dark"] .pf-continue-card {
   background: linear-gradient(
     135deg,

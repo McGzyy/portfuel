@@ -1,9 +1,10 @@
 import { journalSymbolPath } from "@/lib/journal/paths";
+import { buildPublishUrlFromHubEntry } from "@/lib/watchlist/journal-call-url";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 
 export type JournalNextUp = {
   symbol: string;
-  reason: "draft_thesis" | "continue_research" | "revisit_broken";
+  reason: "publish_call" | "draft_thesis" | "continue_research" | "revisit_broken";
   title: string;
   detail: string;
   href: string;
@@ -13,9 +14,25 @@ export type JournalNextUp = {
 const ACTIVE = new Set(["watching", "developing"]);
 const BROKEN = new Set(["invalidated", "closed_incorrect"]);
 
-/** Best symbol to nudge the user toward next — thesis first, then active ideas, then broken. */
+/** Best symbol to nudge the user toward next — publish when ready, then thesis, active, broken. */
 export function pickJournalNextUp(items: WatchlistEntry[]): JournalNextUp | null {
   if (items.length === 0) return null;
+
+  const ready = items.filter((i) => i.journal_progress?.ready_to_publish);
+  if (ready.length > 0) {
+    const row = [...ready].sort((a, b) => (b.conviction ?? 0) - (a.conviction ?? 0))[0]!;
+    return {
+      symbol: row.symbol,
+      reason: "publish_call",
+      title: `Publish $${row.symbol}`,
+      detail:
+        ready.length > 1
+          ? `${ready.length} ideas finished research — your journal prefills the publish form.`
+          : "Research checklist complete — review your thesis and levels before going live.",
+      href: buildPublishUrlFromHubEntry(row),
+      cta: "Publish call",
+    };
+  }
 
   const noThesis = items.filter((i) => !i.has_thesis);
   if (noThesis.length > 0) {

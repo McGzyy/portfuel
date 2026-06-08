@@ -4,6 +4,8 @@ export function TickerChartLegend({
   callCount,
   journalCount = 0,
   levelCount = 0,
+  hasYourLevels = false,
+  hasDeskLevels = false,
   showDepth = false,
   embedded,
   callModal = false,
@@ -11,6 +13,8 @@ export function TickerChartLegend({
   callCount: number;
   journalCount?: number;
   levelCount?: number;
+  hasYourLevels?: boolean;
+  hasDeskLevels?: boolean;
   showDepth?: boolean;
   embedded?: boolean;
   callModal?: boolean;
@@ -58,14 +62,42 @@ export function TickerChartLegend({
           <span className="font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
             Levels
           </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-0 w-8 border-t border-dashed border-slate-500" />
-            Target / stop
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-0 w-8 border-t border-slate-500" />
-            Entry
-          </span>
+          {hasYourLevels ? (
+            <>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-0 w-8 border-t border-slate-500" />
+                Your entry
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-0 w-8 border-t border-dashed border-emerald-600" />
+                Your target / stop
+              </span>
+            </>
+          ) : null}
+          {hasDeskLevels ? (
+            <>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-0 w-8 border-t border-[var(--pf-red)]" />
+                Desk entry
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-0 w-8 border-t border-dashed border-[var(--pf-red)]" />
+                Desk target / stop
+              </span>
+            </>
+          ) : null}
+          {!hasYourLevels && !hasDeskLevels ? (
+            <>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-0 w-8 border-t border-dashed border-slate-500" />
+                Target / stop
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-0 w-8 border-t border-slate-500" />
+                Entry
+              </span>
+            </>
+          ) : null}
         </>
       ) : null}
       {showDepth ? (

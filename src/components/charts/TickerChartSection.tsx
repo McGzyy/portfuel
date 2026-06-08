@@ -225,6 +225,9 @@ export function TickerChartSection({
       ? journalMarkerCount
       : filteredMarkers.filter((m) => m.kind === "journal").length;
 
+  const hasYourLevels = priceLines.some((l) => l.label.startsWith("Your"));
+  const hasDeskLevels = priceLines.some((l) => l.label.startsWith("Desk"));
+
   return (
     <ChartFrame
       className={className}
@@ -239,6 +242,8 @@ export function TickerChartSection({
             callCount={communityMarkerCount}
             journalCount={journalCount}
             levelCount={priceLines.length}
+            hasYourLevels={hasYourLevels}
+            hasDeskLevels={hasDeskLevels}
             showDepth
             embedded
             callModal={Boolean(callPreviewsById)}

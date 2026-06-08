@@ -49,6 +49,9 @@ import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import { fetchJournalHighlights } from "@/lib/watchlist/journal-highlights";
 import { WatchlistJournalPulse } from "@/components/watchlist/WatchlistJournalPulse";
+import { JournalReadyToPublishBanner } from "@/components/journal/JournalReadyToPublishBanner";
+import { JournalContinueCard } from "@/components/journal/JournalContinueCard";
+import { pickJournalNextUp } from "@/lib/journal/next-up";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
 import { ProTodayBrief } from "@/components/pro/ProTodayBrief";
 import { ProOverviewIntelStrip } from "@/components/pro/ProOverviewIntelStrip";
@@ -215,6 +218,9 @@ export default async function DashboardOverviewPage({
 
   const displayLabel = session.displayName ?? session.username;
 
+  const journalReadyItems = watchlistItems.filter((i) => i.journal_progress?.ready_to_publish);
+  const journalNextUp = pickJournalNextUp(watchlistItems);
+
   let journalIdeas: Awaited<ReturnType<typeof fetchJournalHighlights>> = [];
   try {
     journalIdeas = await fetchJournalHighlights(session.userId);
@@ -242,14 +248,13 @@ export default async function DashboardOverviewPage({
     const battleboard = summarizeBattleboard(battleboardRows);
     proOverviewIntel = { battleboard, screener };
 
-    const journalReady = watchlistItems.filter((i) => i.journal_progress?.ready_to_publish);
     proTodayBrief = buildProTodayBrief({
       deskNote: deskBrief.weeklyNote,
       watchlistEarnings,
       screener,
       battleboard,
       openCalls: openCallCards,
-      journalReady,
+      journalReady: journalReadyItems,
       memberProfileHref: `/member/${session.username}`,
     });
   }
@@ -276,6 +281,15 @@ export default async function DashboardOverviewPage({
       <FueledTrackRecordPanel record={fueledTrackRecord} />
 
       <WorkspaceQuickActions proUnlocked={isPro} />
+
+      {journalReadyItems.length > 0 ? (
+        <JournalReadyToPublishBanner
+          readyItems={journalReadyItems}
+          viewAllHref="/dashboard/journal?filter=ready#journal-ideas"
+        />
+      ) : journalNextUp ? (
+        <JournalContinueCard nextUp={journalNextUp} />
+      ) : null}
 
       <ProMembershipStrip locked={proLocked} />
 
