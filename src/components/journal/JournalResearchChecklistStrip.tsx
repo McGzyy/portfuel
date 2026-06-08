@@ -55,7 +55,7 @@ export function JournalResearchChecklistStrip({
           const inner = (
             <>
               {item.done ? (
-                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" strokeWidth={2.5} />
+                <Check className="pf-return-up mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
               ) : (
                 <Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--pf-gray-300)]" strokeWidth={2.25} />
               )}

@@ -47,7 +47,7 @@ export function TickerLookupBar({ embedded = false }: { embedded?: boolean }) {
       className={
         embedded
           ? ""
-          : "rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-4 shadow-[var(--pf-shadow-sm)]"
+          : "pf-workspace-panel p-4"
       }
       aria-label="Look up any ticker"
     >

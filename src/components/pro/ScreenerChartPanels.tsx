@@ -83,8 +83,8 @@ export function ScreenerChartPanels({ data }: { data: CommunityScreenerData }) {
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-semibold capitalize transition-colors",
               assetFilter === key
-                ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white"
-                : "border-[var(--pf-border)] bg-white text-[var(--pf-gray-600)] hover:border-[var(--pf-gray-300)]"
+                ? "pf-pill-active border"
+                : "pf-pill-inactive border hover:border-[var(--pf-gray-300)]"
             )}
           >
             {key === "all" ? "All assets" : key}

@@ -23,10 +23,7 @@ export function TickerPageNav({
         <Link
           key={item.href}
           href={item.href}
-          className={cn(
-            "shrink-0 rounded-full border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3.5 py-1.5 text-xs font-semibold text-[var(--pf-gray-700)]",
-            "hover:border-[var(--pf-gray-300)] hover:bg-white"
-          )}
+          className="pf-pill-inactive shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold"
         >
           {item.label}
         </Link>

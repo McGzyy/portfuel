@@ -150,7 +150,7 @@ function ProTodayBriefTeaser({ brief }: { brief: ProTodayBrief }) {
         {pills.map((p) => (
           <span
             key={p}
-            className="rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-0.5 text-xs font-medium text-[var(--pf-gray-700)]"
+            className="pf-chip-action px-2.5 py-0.5 text-xs font-medium"
           >
             {p}
           </span>

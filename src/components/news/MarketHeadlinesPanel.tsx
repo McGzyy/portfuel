@@ -99,9 +99,7 @@ export function MarketHeadlinesPanel({
               onClick={() => selectLane(tab.id)}
               className={cn(
                 "shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40",
-                lane === tab.id
-                  ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white"
-                  : "border-[var(--pf-border)] bg-white text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
+                lane === tab.id ? "pf-pill-active" : "pf-pill-inactive"
               )}
             >
               {tab.label}

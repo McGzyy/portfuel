@@ -80,7 +80,7 @@ export function SettingsAccountSummary({
             {tierLabel}
           </span>
           {billingInterval === "annual" ? (
-            <span className="rounded-full border border-[var(--pf-border)] bg-white px-2.5 py-1 text-center text-xs font-semibold text-[var(--pf-gray-700)] sm:text-left">
+            <span className="pf-chip-action px-2.5 py-1 text-center text-xs sm:text-left">
               Annual
             </span>
           ) : null}

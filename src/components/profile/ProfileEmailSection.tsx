@@ -98,7 +98,7 @@ export function ProfileEmailSection() {
             <span className="text-[var(--pf-gray-500)]">Account email: </span>
             <span className="break-all font-medium">{verify.email ?? "Not set"}</span>
             {verify.emailVerified ? (
-              <span className="ml-2 text-emerald-600">Verified</span>
+              <span className="pf-return-up ml-2">Verified</span>
             ) : (
               <span className="ml-2 text-amber-600">Not verified</span>
             )}

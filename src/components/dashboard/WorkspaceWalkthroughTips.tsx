@@ -63,7 +63,7 @@ export function WorkspaceWalkthroughTips({
 
   return (
     <section
-      className="rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-4 shadow-[var(--pf-shadow-sm)]"
+      className="pf-workspace-panel p-4"
       aria-label="Workspace tips"
     >
       <div className="flex items-start justify-between gap-3">

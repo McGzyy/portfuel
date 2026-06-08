@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 const LINKS = [
   { href: "#billing", label: "Billing" },
@@ -19,10 +18,7 @@ export function SettingsPageNav() {
         <Link
           key={item.href}
           href={item.href}
-          className={cn(
-            "shrink-0 rounded-full border border-[var(--pf-border)] bg-white px-3.5 py-1.5 text-xs font-semibold text-[var(--pf-gray-700)]",
-            "hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
-          )}
+          className="pf-pill-inactive shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold"
         >
           {item.label}
         </Link>
