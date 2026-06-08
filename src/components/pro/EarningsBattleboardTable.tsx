@@ -109,7 +109,7 @@ export function EarningsBattleboardTable({ rows }: { rows: EarningsBattleboardRo
                         <span
                           className={cn(
                             "font-semibold capitalize",
-                            row.deskDirection === "long" ? "text-emerald-700" : "text-rose-700"
+                            row.deskDirection === "long" ? "pf-return-up" : "pf-return-down"
                           )}
                         >
                           {row.deskDirection}

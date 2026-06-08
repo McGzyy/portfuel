@@ -374,7 +374,7 @@ export function AdminSocialMilestonePanel() {
                 className={
                   demoMilestone === m
                     ? "rounded-full border border-[var(--pf-red)] bg-[var(--pf-red-muted)] px-3 py-1 text-xs font-bold text-[var(--pf-red)]"
-                    : "rounded-full border border-[var(--pf-border)] bg-white px-3 py-1 text-xs font-semibold text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)]"
+                    : "pf-pill-inactive rounded-full border px-3 py-1 text-xs hover:border-[var(--pf-gray-300)]"
                 }
               >
                 {MILESTONE_LABELS[m]}

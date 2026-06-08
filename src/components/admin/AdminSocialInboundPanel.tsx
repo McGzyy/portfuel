@@ -164,7 +164,7 @@ function TickerCard({
   );
 
   return (
-    <li className="rounded-lg border border-[var(--pf-border)] bg-white p-4">
+    <li className="pf-workspace-panel p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -190,7 +190,7 @@ function TickerCard({
             {state.loading ? "Analyzing…" : state.analysis ? "Re-analyze" : "Analyze"}
           </Button>
           {ticker.valid ? (
-            <label className="inline-flex items-center gap-2 rounded-md border border-[var(--pf-border)] bg-white px-2.5 py-1.5 text-xs text-[var(--pf-gray-700)]">
+            <label className="pf-chip-action gap-2 px-2.5 py-1.5 text-xs">
               <input
                 type="checkbox"
                 checked={autoPublish}

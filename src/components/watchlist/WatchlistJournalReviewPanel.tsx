@@ -160,7 +160,7 @@ export function WatchlistJournalReviewPanel({
                     {row.change_since_add_pct != null ? (
                       <span
                         className={
-                          row.change_since_add_pct >= 0 ? " text-emerald-700" : " text-rose-700"
+                          row.change_since_add_pct >= 0 ? " pf-return-up" : " pf-return-down"
                         }
                       >
                         {" "}

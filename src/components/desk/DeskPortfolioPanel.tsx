@@ -6,7 +6,7 @@ import { cn, formatPct, formatPrice, timeAgo } from "@/lib/utils";
 
 function accentForReturn(ret: number | null) {
   if (ret == null) return "text-[var(--pf-gray-500)]";
-  return ret >= 0 ? "text-emerald-700" : "text-rose-700";
+  return ret >= 0 ? "pf-return-up" : "pf-return-down";
 }
 
 function convictionLabel(n: number) {

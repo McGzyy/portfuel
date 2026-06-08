@@ -38,7 +38,7 @@ export function DeskPortfolioChart({
   }
 
   const last = filtered[filtered.length - 1]?.value ?? points[points.length - 1]?.value;
-  const lastAccent = last == null ? "" : last >= 0 ? "text-emerald-600" : "text-rose-600";
+  const lastAccent = last == null ? "" : last >= 0 ? "pf-return-up" : "pf-return-down";
 
   return (
     <ChartFrame
@@ -61,7 +61,7 @@ export function DeskPortfolioChart({
             {drawdown ? (
               <p className="text-xs">
                 Max drawdown{" "}
-                <span className="font-semibold tabular-nums text-rose-600">
+                <span className="font-semibold tabular-nums pf-return-down">
                   −{drawdown.pct.toFixed(1)}%
                 </span>
               </p>

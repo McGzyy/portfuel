@@ -57,7 +57,7 @@ export function WatchlistMoveAlerts({
               <span className="font-mono">{i.symbol}</span>
               <span
                 className={
-                  (i.change_since_add_pct ?? 0) >= 0 ? "text-emerald-700" : "text-rose-700"
+                  (i.change_since_add_pct ?? 0) >= 0 ? "pf-return-up" : "pf-return-down"
                 }
               >
                 {(i.change_since_add_pct ?? 0) >= 0 ? "+" : ""}
