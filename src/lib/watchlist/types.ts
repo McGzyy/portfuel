@@ -27,6 +27,7 @@ export type WatchlistEntry = {
     id: string;
     called_at: string;
     return_pct: number | null;
+    target_progress?: number | null;
   } | null;
   catalyst_count?: number;
   /** Preset catalyst tags from journal */

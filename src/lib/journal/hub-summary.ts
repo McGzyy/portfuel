@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { isSchemaDriftError } from "@/lib/watchlist/db-select";
+import { isUserCallOpen } from "@/lib/calls/user-symbol-call";
 import { summarizeJournalHubProgress } from "@/lib/journal/checklist";
 import { getDemoJournalEntryStats } from "@/lib/watchlist/journal-demo";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
@@ -82,10 +83,21 @@ export function attachJournalHubProgress(
       },
       stats
     );
+    const hasOpenCall = isUserCallOpen(
+      item.user_call
+        ? {
+            called_at: item.user_call.called_at,
+            target_progress: item.user_call.target_progress ?? null,
+          }
+        : null
+    );
     return {
       ...item,
       has_thesis: Boolean(row.thesis?.trim()),
-      journal_progress: progress,
+      journal_progress: {
+        ...progress,
+        ready_to_publish: progress.ready_to_publish && !hasOpenCall,
+      },
     };
   });
 }

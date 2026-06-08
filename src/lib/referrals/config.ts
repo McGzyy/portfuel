@@ -7,11 +7,11 @@ export function isReferralProgramEnabled(): boolean {
 
 /** Credit applied to referrer Stripe balance when a referral converts (USD cents). */
 export function referrerRewardCents(): number {
-  const n = Number(process.env.REFERRAL_REFERRER_REWARD_CENTS ?? 2500);
-  return Number.isFinite(n) && n > 0 ? Math.round(n) : 2500;
+  const n = Number(process.env.REFERRAL_REFERRER_REWARD_CENTS ?? 2000);
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : 2000;
 }
 
-/** Max referrer rewards per calendar month (10 × $25 = $250 cap). */
+/** Max referrer rewards per calendar month (10 × $20 = $200 cap). */
 export function referralRewardsCapPerMonth(): number {
   const n = Number(process.env.REFERRAL_MAX_REWARDS_PER_MONTH ?? 10);
   return Number.isFinite(n) && n > 0 ? Math.round(n) : 10;

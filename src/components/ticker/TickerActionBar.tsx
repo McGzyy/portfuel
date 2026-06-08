@@ -11,10 +11,12 @@ export function TickerActionBar({
   symbol,
   assetClass,
   proLocked,
+  hasOwnOpenCall = false,
 }: {
   symbol: string;
   assetClass: AssetClass;
   proLocked: boolean;
+  hasOwnOpenCall?: boolean;
 }) {
   const newCallHref = `/calls/new?asset=${assetClass}&symbol=${encodeURIComponent(symbol)}`;
   const feedHref = buildFeedHref({ q: symbol });
@@ -22,12 +24,20 @@ export function TickerActionBar({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--pf-border)] pt-4">
       <div className="flex flex-wrap gap-2">
-        <Link href={newCallHref}>
-          <Button size="sm" className="gap-1.5">
-            <Plus className="h-4 w-4" strokeWidth={2.25} />
-            {COPY.publishCallCta}
-          </Button>
-        </Link>
+        {hasOwnOpenCall ? (
+          <Link href="#calls">
+            <Button size="sm" variant="secondary" className="gap-1.5">
+              Your open call
+            </Button>
+          </Link>
+        ) : (
+          <Link href={newCallHref}>
+            <Button size="sm" className="gap-1.5">
+              <Plus className="h-4 w-4" strokeWidth={2.25} />
+              {COPY.publishCallCta}
+            </Button>
+          </Link>
+        )}
         <Link
           href={feedHref}
           className="pf-chip-action h-9 gap-1.5 rounded-[var(--pf-radius)] px-3.5 text-xs"

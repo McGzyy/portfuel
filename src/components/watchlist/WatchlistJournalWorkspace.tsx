@@ -34,6 +34,7 @@ export function WatchlistJournalWorkspace({
   proUnlocked,
   setupMode,
   prefillEntry,
+  hasOpenCall = false,
 }: {
   journal: WatchlistJournal;
   entries: WatchlistJournalEntry[];
@@ -43,6 +44,7 @@ export function WatchlistJournalWorkspace({
   proUnlocked: boolean;
   setupMode?: boolean;
   prefillEntry?: JournalPrefillEntry;
+  hasOpenCall?: boolean;
 }) {
   const [journal, setJournal] = useState(initialJournal);
   const [entries, setEntries] = useState(initialEntries);
@@ -75,8 +77,8 @@ export function WatchlistJournalWorkspace({
   );
 
   const checklist = useMemo(
-    () => buildJournalResearchChecklist(journal, entries),
-    [journal, entries]
+    () => buildJournalResearchChecklist(journal, entries, { hasOpenCall }),
+    [journal, entries, hasOpenCall]
   );
 
   function handleEntryAdded(entry: WatchlistJournalEntry) {
@@ -119,7 +121,9 @@ export function WatchlistJournalWorkspace({
   return (
     <div className="space-y-8 lg:space-y-10">
       <ResearchPipeline
-        current={checklist.readyToPublish ? "publish" : setupMode ? "research" : "log"}
+        current={
+          hasOpenCall ? "log" : checklist.readyToPublish ? "publish" : setupMode ? "research" : "log"
+        }
         logHref={journalSymbolPath(journal.symbol, { section: "entries" })}
         publishHref={checklist.readyToPublish ? publishUrl : undefined}
       />
@@ -146,6 +150,14 @@ export function WatchlistJournalWorkspace({
                 <NotebookPen className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
                 Save plan first
               </span>
+            ) : hasOpenCall ? (
+              <Link
+                href={`/ticker/${encodeURIComponent(journal.symbol)}#calls`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900 transition-colors hover:bg-emerald-100 sm:text-sm sm:px-3.5 sm:py-2.5"
+              >
+                <Megaphone className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" strokeWidth={2.25} />
+                Call live · View
+              </Link>
             ) : checklist.readyToPublish ? (
               <Link
                 href={publishUrl}
@@ -217,6 +229,7 @@ export function WatchlistJournalWorkspace({
           checklist={checklist}
           publishUrl={publishUrl}
           setupMode={setupMode}
+          hasOpenCall={hasOpenCall}
         />
       </div>
 

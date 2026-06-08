@@ -28,8 +28,7 @@ import {
   isProIntelligenceLocked,
   sessionToProContext,
 } from "@/lib/features/pro-intelligence";
-import { fetchReferralStats } from "@/lib/referrals/service";
-import { toReferralInvitePrompt, canShowReferralInvite } from "@/lib/referrals/prompt";
+import { fetchUserOpenCallOnSymbol } from "@/lib/calls/user-symbol-call";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 
 export const dynamic = "force-dynamic";
@@ -100,15 +99,12 @@ export default async function TickerPage({
     viewerUserId: session?.userId,
   });
 
-  let publishReferralPrompt = null;
   let tickerWatchlistSymbols: string[] = [];
+  let ownOpenCallOnSymbol = false;
   if (session?.subscriptionStatus === "active") {
     try {
-      const referralStats = await fetchReferralStats(session.userId, session.username);
-      const prompt = toReferralInvitePrompt(referralStats);
-      if (canShowReferralInvite(prompt)) {
-        publishReferralPrompt = prompt;
-      }
+      const openCall = await fetchUserOpenCallOnSymbol(session.userId, symbol);
+      ownOpenCallOnSymbol = Boolean(openCall);
     } catch {
       /* optional */
     }
@@ -126,11 +122,7 @@ export default async function TickerPage({
     <div className="mx-auto max-w-5xl space-y-8">
       {session ? (
         <Suspense fallback={null}>
-          <PublishSuccessBanner
-            symbol={symbol}
-            username={session.username}
-            referralPrompt={publishReferralPrompt}
-          />
+          <PublishSuccessBanner symbol={symbol} username={session.username} />
         </Suspense>
       ) : null}
       {session && isPro ? <ProQuoteRefreshMount enabled symbols={[symbol]} /> : null}
@@ -151,6 +143,7 @@ export default async function TickerPage({
               symbol={symbol}
               assetClass={intelData.assetClass}
               proLocked={proLocked}
+              hasOwnOpenCall={ownOpenCallOnSymbol}
             />
           </>
         ) : null}

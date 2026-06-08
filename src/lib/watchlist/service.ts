@@ -366,14 +366,14 @@ async function enrichUserCalls(
   const db = createServiceClient();
   const { data: calls } = await db
     .from("calls")
-    .select("id, symbol, called_at, return_pct")
+    .select("id, symbol, called_at, return_pct, target_progress")
     .eq("user_id", userId)
     .in("symbol", symbols)
     .order("called_at", { ascending: false });
 
   const callMap = new Map<
     string,
-    { id: string; called_at: string; return_pct: number | null }
+    { id: string; called_at: string; return_pct: number | null; target_progress: number | null }
   >();
   for (const c of calls ?? []) {
     const sym = (c as { symbol: string }).symbol;
@@ -382,6 +382,7 @@ async function enrichUserCalls(
         id: (c as { id: string }).id,
         called_at: (c as { called_at: string }).called_at,
         return_pct: (c as { return_pct: number | null }).return_pct,
+        target_progress: (c as { target_progress: number | null }).target_progress ?? null,
       });
     }
   }

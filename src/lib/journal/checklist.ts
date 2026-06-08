@@ -44,7 +44,8 @@ const MANUAL_TYPES = new Set([
 
 export function buildJournalResearchChecklist(
   journal: WatchlistJournal,
-  entries: WatchlistJournalEntry[]
+  entries: WatchlistJournalEntry[],
+  opts?: { hasOpenCall?: boolean }
 ): JournalResearchChecklist {
   const hasThesis = Boolean(journal.thesis?.trim());
   const hasCatalystsOrRisks =
@@ -99,6 +100,8 @@ export function buildJournalResearchChecklist(
 
   const required = items.filter((i) => !i.optional);
   const requiredCompleted = required.filter((i) => i.done).length;
+  const researchComplete = requiredCompleted === required.length;
+  const hasOpenCall = opts?.hasOpenCall === true;
 
   return {
     items,
@@ -106,7 +109,7 @@ export function buildJournalResearchChecklist(
     total: items.length,
     requiredCompleted,
     requiredTotal: required.length,
-    readyToPublish: requiredCompleted === required.length,
+    readyToPublish: researchComplete && !hasOpenCall,
   };
 }
 

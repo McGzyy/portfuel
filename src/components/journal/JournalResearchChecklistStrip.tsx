@@ -12,11 +12,13 @@ export function JournalResearchChecklistStrip({
   checklist,
   publishUrl,
   setupMode,
+  hasOpenCall = false,
 }: {
   symbol: string;
   checklist: JournalResearchChecklist;
   publishUrl: string;
   setupMode?: boolean;
+  hasOpenCall?: boolean;
 }) {
   return (
     <section className="pf-workspace-panel p-4 sm:p-5">
@@ -27,14 +29,23 @@ export function JournalResearchChecklistStrip({
           </p>
           <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
             {checklist.requiredCompleted}/{checklist.requiredTotal} required steps
-            {checklist.readyToPublish
-              ? " — ready to publish a call when you want the community to see it."
-              : setupMode
-                ? " — start with thesis and plan below."
-                : " — tap an incomplete step to jump there."}
+            {hasOpenCall
+              ? " — your call is live on the book. Keep logging updates in the timeline."
+              : checklist.readyToPublish
+                ? " — ready to publish a call when you want the community to see it."
+                : setupMode
+                  ? " — start with thesis and plan below."
+                  : " — tap an incomplete step to jump there."}
           </p>
         </div>
-        {checklist.readyToPublish ? (
+        {hasOpenCall ? (
+          <Link
+            href={`/ticker/${encodeURIComponent(symbol)}#calls`}
+            className="inline-flex h-9 items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 text-xs font-semibold text-emerald-900 hover:bg-emerald-100"
+          >
+            View open call
+          </Link>
+        ) : checklist.readyToPublish ? (
           <a
             href={publishUrl}
             className="inline-flex h-9 items-center rounded-lg bg-[var(--pf-red)] px-3.5 text-xs font-semibold text-white shadow-[var(--pf-shadow-sm)] hover:bg-[var(--pf-red-hover)]"

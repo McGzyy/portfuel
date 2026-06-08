@@ -10,6 +10,7 @@ import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
 import { buildPublishUrlFromJournal } from "@/lib/watchlist/journal-call-url";
+import { fetchUserOpenCallOnSymbol } from "@/lib/calls/user-symbol-call";
 import { fetchJournalEntries, fetchWatchlistJournal } from "@/lib/watchlist/journal";
 import { fetchJournalPlanRevisions } from "@/lib/watchlist/journal-revisions";
 import { normalizeJournalEntryType } from "@/lib/watchlist/journal-meta";
@@ -64,10 +65,11 @@ export default async function DashboardJournalSymbolPage({
   const journal = await fetchWatchlistJournal(session.userId, symbol);
   if (!journal) notFound();
 
-  const [entries, revisions, intel] = await Promise.all([
+  const [entries, revisions, intel, openCall] = await Promise.all([
     fetchJournalEntries(session.userId, symbol),
     fetchJournalPlanRevisions(session.userId, symbol),
     loadTickerIntel(symbol, { assetClass: journal.asset_class }).catch(() => null),
+    fetchUserOpenCallOnSymbol(session.userId, symbol),
   ]);
 
   const intelData =
@@ -102,6 +104,7 @@ export default async function DashboardJournalSymbolPage({
         proUnlocked={proUnlocked}
         setupMode={sp.setup === "1"}
         prefillEntry={prefillEntry}
+        hasOpenCall={Boolean(openCall)}
       />
     </div>
   );

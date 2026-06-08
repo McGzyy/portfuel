@@ -197,7 +197,7 @@ export async function fetchReferralStats(userId: string, username: string): Prom
       }),
       signedUp: 2,
       converted: 1,
-      creditBalanceCents: 2500,
+      creditBalanceCents: 2000,
       rewardsThisMonth: 1,
       ...meta,
     };
