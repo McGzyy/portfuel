@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { summarizeTickerCommunity } from "@/lib/calls/ticker-community-stats";
 import type { TickerIntel } from "@/lib/market/ticker-intel";
 import {
@@ -10,7 +12,7 @@ function StatRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3 rounded-lg bg-[var(--pf-gray-50)] px-3 py-2">
       <span className="text-[var(--pf-gray-500)]">{label}</span>
-      <span className="font-semibold tabular-nums text-[var(--pf-black)]">{value}</span>
+      <span className="font-semibold tabular-nums text-[var(--foreground)]">{value}</span>
     </div>
   );
 }
@@ -38,6 +40,7 @@ export function CryptoIntelPanel({ intel }: { intel: TickerIntel }) {
       ? relativeReturnWindows(returns, intel.btcBenchmark)
       : null;
   const community = summarizeTickerCommunity(intel.calls);
+  const publishHref = `/calls/new?asset=crypto&symbol=${encodeURIComponent(intel.symbol)}`;
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -45,7 +48,7 @@ export function CryptoIntelPanel({ intel }: { intel: TickerIntel }) {
         <dl className="space-y-3 text-sm">
           <div>
             <dt className="text-[var(--pf-gray-500)]">Asset</dt>
-            <dd className="font-semibold text-[var(--pf-black)]">
+            <dd className="font-semibold text-[var(--foreground)]">
               {intel.cryptoMeta?.displayName ?? intel.companyName}
             </dd>
           </div>
@@ -59,7 +62,7 @@ export function CryptoIntelPanel({ intel }: { intel: TickerIntel }) {
           </div>
           <div>
             <dt className="text-[var(--pf-gray-500)]">Finnhub pair</dt>
-            <dd className="font-mono text-xs text-[var(--pf-gray-700)]">
+            <dd className="font-mono text-xs text-[var(--pf-gray-600)]">
               {intel.finnhubSymbol ?? "—"}
             </dd>
           </div>
@@ -107,8 +110,8 @@ export function CryptoIntelPanel({ intel }: { intel: TickerIntel }) {
         </IntelCard>
       ) : null}
 
-      {community.callCount > 0 ? (
-        <IntelCard title="Community conviction" subtitle="Published calls on this symbol">
+      <IntelCard title="Community conviction" subtitle="Published calls on this symbol">
+        {community.callCount > 0 ? (
           <div className="space-y-2 text-sm">
             <StatRow label="Member calls" value={String(community.callCount)} />
             <StatRow
@@ -120,14 +123,20 @@ export function CryptoIntelPanel({ intel }: { intel: TickerIntel }) {
             <ReturnRow label="Best call" value={community.bestReturnPct} />
             <StatRow label="Trusted callers" value={String(community.trustedCallers)} />
           </div>
-        </IntelCard>
-      ) : null}
+        ) : (
+          <div className="space-y-3 text-sm text-[var(--pf-gray-500)]">
+            <p>No member calls on ${intel.symbol} yet — chart markers and community stats appear after the first publish.</p>
+            <Link
+              href={publishHref}
+              className="inline-flex font-semibold text-[var(--pf-red)] hover:underline"
+            >
+              Publish the first call →
+            </Link>
+          </div>
+        )}
+      </IntelCard>
 
-      <IntelCard
-        title="Headlines"
-        subtitle="Crypto news mentioning this symbol"
-        className={community.callCount > 0 ? undefined : "lg:col-span-1"}
-      >
+      <IntelCard title="Headlines" subtitle="Crypto news mentioning this symbol">
         {intel.news.length === 0 ? (
           <Empty>
             No symbol-tagged headlines in the latest crypto feed. Check back after major moves.
@@ -154,7 +163,7 @@ function NewsList({ items }: { items: TickerIntel["news"] }) {
             href={n.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-[var(--pf-black)] hover:text-[var(--pf-red)]"
+            className="font-medium text-[var(--foreground)] hover:text-[var(--pf-red)]"
           >
             {n.headline}
           </a>
@@ -179,13 +188,13 @@ function IntelCard({
   className?: string;
 }) {
   return (
-    <div
-      className={`rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white p-4 shadow-[var(--pf-shadow-sm)] ${className ?? ""}`}
-    >
-      <h3 className="text-base font-bold tracking-tight">{title}</h3>
-      <p className="mt-0.5 text-sm text-[var(--pf-gray-500)]">{subtitle}</p>
-      <div className="mt-4">{children}</div>
-    </div>
+    <Card className={`pf-card-elevated border-0 ${className ?? ""}`}>
+      <CardHeader>
+        <h3 className="text-base font-bold tracking-tight text-[var(--foreground)]">{title}</h3>
+        <p className="text-sm text-[var(--pf-gray-500)]">{subtitle}</p>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }
 

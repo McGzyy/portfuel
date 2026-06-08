@@ -70,6 +70,7 @@ export function NewCallForm({
   canComment: boolean;
 }) {
   const publishBlocked = role !== "admin" && !canPublishCalls;
+  const quotaBlocked = !isAdmin && weeklyQuota.remaining === 0;
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryDraft = readPublishQuery(searchParams);
@@ -566,6 +567,15 @@ export function NewCallForm({
               })}
             />
 
+            {quotaBlocked ? (
+              <p className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2 text-sm text-[var(--pf-gray-600)]">
+                Weekly call limit reached ({weeklyQuota.used}/{weeklyQuota.limit}).{" "}
+                {showUpgrade
+                  ? "Upgrade to Pro in Settings for 6 calls/week."
+                  : "Your quota resets on a rolling 7-day window."}
+              </p>
+            ) : null}
+
             {error ? (
               <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-sm text-[var(--pf-red)]">
                 {error}
@@ -576,7 +586,7 @@ export function NewCallForm({
               type="submit"
               className="w-full"
               size="lg"
-              disabled={loading || symbolValid === false || publishBlocked}
+              disabled={loading || symbolValid === false || publishBlocked || quotaBlocked}
             >
               {loading ? COPY.publishingCall : COPY.publishCall}
             </Button>

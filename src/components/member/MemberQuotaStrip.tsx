@@ -17,7 +17,7 @@ export function MemberQuotaStrip({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center justify-between gap-4 rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white px-4 py-3 shadow-[var(--pf-shadow-sm)]",
+        "pf-workspace-panel flex flex-wrap items-center justify-between gap-4 px-4 py-3",
         className
       )}
     >
