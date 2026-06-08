@@ -213,73 +213,91 @@ async function buildMaskableIcon(gaugeMaster, size, preset) {
   return sharp(bg).composite([{ input: gauge, left, top }]);
 }
 
-function dilateMask(mask, width, height, radius) {
-  const out = new Uint8Array(width * height);
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      let hit = 0;
-      for (let dy = -radius; dy <= radius && !hit; dy++) {
-        for (let dx = -radius; dx <= radius && !hit; dx++) {
-          const nx = x + dx;
-          const ny = y + dy;
-          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
-          if (mask[ny * width + nx]) hit = 1;
-        }
-      }
-      out[y * width + x] = hit;
-    }
-  }
-  return out;
+function isBrandRed(r, g, b) {
+  return r > 130 && r > g * 1.3 && r > b * 1.3;
 }
 
+function redScore(r, g, b) {
+  return Math.max(0, r - Math.max(g, b));
+}
+
+function luminance(r, g, b) {
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+
+function edgeAlpha(lum, coreMax, fadeMax) {
+  if (lum <= coreMax) return 255;
+  if (lum >= fadeMax) return 0;
+  return Math.round(((fadeMax - lum) / (fadeMax - coreMax)) * 255);
+}
+
+function erodeAlphaOnce(out, width, height) {
+  const count = width * height;
+  const alpha = new Uint8Array(count);
+  for (let i = 0; i < count; i++) alpha[i] = out[i * 4 + 3];
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = y * width + x;
+      if (!alpha[i]) continue;
+      let border = false;
+      for (let dy = -1; dy <= 1 && !border; dy++) {
+        for (let dx = -1; dx <= 1 && !border; dx++) {
+          if (!dx && !dy) continue;
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height || !alpha[ny * width + nx]) {
+            border = true;
+          }
+        }
+      }
+      if (border) out[i * 4 + 3] = Math.min(out[i * 4 + 3], 210);
+    }
+  }
+}
+
+/** Dark-mode wordmark: flatten on black first to kill white-matte fringe, then recolor. */
 async function buildLogoLight() {
+  const BRAND_RED = { r: 227, g: 27, b: 35 };
   const { data, info } = await sharp(logoPath)
     .ensureAlpha()
+    .flatten({ background: { r: 0, g: 0, b: 0 } })
     .raw()
     .toBuffer({ resolveWithObject: true });
   const { width, height } = info;
-  const px = data;
-  const sourceMask = new Uint8Array(width * height);
-  for (let i = 0; i < width * height; i++) {
-    sourceMask[i] = px[i * 4 + 3] >= 20 ? 1 : 0;
-  }
-  const dilated = dilateMask(sourceMask, width, height, 2);
+  const out = Buffer.alloc(width * height * 4);
 
-  const out = Buffer.alloc(px.length);
   for (let i = 0; i < width * height; i++) {
     const o = i * 4;
-    const isOutline = dilated[i] && !sourceMask[i];
-    if (isOutline) {
-      out[o] = 15;
-      out[o + 1] = 20;
-      out[o + 2] = 25;
-      out[o + 3] = 255;
-      continue;
-    }
-    if (!sourceMask[i]) continue;
+    const r = data[o];
+    const g = data[o + 1];
+    const b = data[o + 2];
+    const lum = luminance(r, g, b);
 
-    const r = px[o];
-    const g = px[o + 1];
-    const b = px[o + 2];
-    const isRed = r > 130 && r > g * 1.3 && r > b * 1.3;
+    if (lum < 16) continue;
+
+    const rs = redScore(r, g, b);
+    const isRed = isBrandRed(r, g, b) || (rs > 32 && r > 95);
+
     if (isRed) {
-      out[o] = r;
-      out[o + 1] = g;
-      out[o + 2] = b;
-      out[o + 3] = 255;
+      const alpha = edgeAlpha(lum, 54, 98);
+      if (!alpha) continue;
+      out[o] = BRAND_RED.r;
+      out[o + 1] = BRAND_RED.g;
+      out[o + 2] = BRAND_RED.b;
+      out[o + 3] = alpha;
       continue;
     }
-    if (r < 90 && g < 90 && b < 90) {
-      out[o] = 255;
-      out[o + 1] = 255;
-      out[o + 2] = 255;
-    } else {
-      out[o] = 245;
-      out[o + 1] = 245;
-      out[o + 2] = 245;
-    }
-    out[o + 3] = 255;
+
+    const alpha = edgeAlpha(lum, 58, 102);
+    if (!alpha) continue;
+    out[o] = 255;
+    out[o + 1] = 255;
+    out[o + 2] = 255;
+    out[o + 3] = alpha;
   }
+
+  erodeAlphaOnce(out, width, height);
 
   await sharp(out, { raw: { width, height, channels: 4 } })
     .png({ compressionLevel: 9 })

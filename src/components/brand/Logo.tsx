@@ -33,6 +33,7 @@ export function Logo({
 }) {
   const { width, height, className: sizeClass } = sizes[size];
   const src = variant === "light" ? "/logo-light.png" : "/logo.png";
+  const serveNative = unoptimized || variant === "light";
 
   return (
     <Link href={href} className={cn("inline-flex shrink-0 items-center", className)}>
@@ -43,8 +44,8 @@ export function Logo({
         height={LOGO_SRC_HEIGHT}
         sizes={`(max-width: 640px) ${size === "xs" ? sizes.xs.width : size === "auth" ? sizes.auth.width : sizes.sm.width}px, ${width}px`}
         quality={100}
-        unoptimized={unoptimized}
-        className={sizeClass}
+        unoptimized={serveNative}
+        className={cn(sizeClass, variant === "light" && "pf-logo-light")}
         priority
       />
     </Link>
