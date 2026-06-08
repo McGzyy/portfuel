@@ -1860,6 +1860,43 @@ body {
   background: linear-gradient(135deg, rgba(217, 119, 6, 0.12) 0%, var(--pf-surface) 55%);
 }
 
+.pf-journal-step-hint {
+  border: 1px solid rgba(217, 119, 6, 0.35);
+  border-radius: var(--pf-radius);
+  background: linear-gradient(135deg, rgb(255 251 235) 0%, var(--pf-surface) 100%);
+  color: rgb(69 26 3);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  padding: 0.625rem 0.75rem;
+}
+
+[data-theme="dark"] .pf-journal-step-hint {
+  border-color: rgba(251, 191, 36, 0.32);
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.16) 0%, var(--pf-surface) 100%);
+  color: #fcd34d;
+}
+
+[data-theme="dark"] .pf-journal-step-hint .font-semibold {
+  color: #fde68a;
+}
+
+.pf-journal-error-hint {
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  border-radius: var(--pf-radius);
+  background: linear-gradient(135deg, rgb(255 241 242) 0%, var(--pf-surface) 100%);
+  color: rgb(190 18 60);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  padding: 0.625rem 0.75rem;
+}
+
+[data-theme="dark"] .pf-journal-error-hint {
+  border-color: rgba(251, 113, 133, 0.35);
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.14) 0%, var(--pf-surface) 100%);
+  color: #fda4af;
+}
+
 .pf-hot-ticker-chip {
   display: inline-flex;
   align-items: center;
