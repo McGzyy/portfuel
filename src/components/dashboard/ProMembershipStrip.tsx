@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ProUpgradeProrationHint } from "@/components/billing/ProUpgradeProrationHint";
 import { formatTierPrice } from "@/lib/marketing/plans";
 import { buildResearchHubHref } from "@/lib/dashboard/research-hub";
 import { buildProMembershipHook } from "@/lib/pro/upgrade-prompt";
@@ -48,9 +49,12 @@ export function ProMembershipStrip({
             </ul>
           </div>
         </div>
-        <Link href="/dashboard/settings?section=billing" className="shrink-0 self-center">
-          <Button size="sm">Upgrade</Button>
-        </Link>
+        <div className="flex shrink-0 flex-col items-end gap-1.5 self-center">
+          <Link href="/dashboard/settings?section=billing">
+            <Button size="sm">Upgrade</Button>
+          </Link>
+          <ProUpgradeProrationHint className="max-w-[11rem] text-right" />
+        </div>
       </div>
     );
   }

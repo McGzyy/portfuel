@@ -151,6 +151,22 @@ export function AdminAnalyticsPanel() {
         ]}
       />
       <MetricsStrip
+        eyebrow="Member referrals"
+        items={[
+          { label: "Signed up", value: String(data.referrals.signedUp) },
+          { label: "Converted", value: String(data.referrals.converted) },
+          { label: "Invites pending", value: String(data.referrals.invitesSent) },
+          {
+            label: "Conversion",
+            value: fmtRate(data.referrals.conversionRate),
+            accent:
+              data.referrals.conversionRate != null && data.referrals.conversionRate >= 0.25
+                ? "positive"
+                : undefined,
+          },
+        ]}
+      />
+      <MetricsStrip
         eyebrow="Platform · engagement"
         items={[
           { label: "Comments", value: String(data.engagement.totalComments) },

@@ -36,6 +36,12 @@ export type AdminAnalytics = {
     votesPerCall: number | null;
   };
   topSymbols: { symbol: string; count: number }[];
+  referrals: {
+    signedUp: number;
+    converted: number;
+    invitesSent: number;
+    conversionRate: number | null;
+  };
   timeseries: {
     signups: DailyCount[];
     calls: DailyCount[];
@@ -62,6 +68,8 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
     commentsRes,
     votesRes,
     symbolsRes,
+    referralsRes,
+    invitesRes,
   ] = await Promise.all([
     db.from("users").select("id, subscription_status, membership_tier, trusted_at, role"),
     db
@@ -98,6 +106,8 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
     db.from("comments").select("id", { count: "exact", head: true }),
     db.from("call_votes").select("id", { count: "exact", head: true }),
     db.from("calls").select("symbol"),
+    db.from("user_referrals").select("status"),
+    db.from("referral_invites").select("status"),
   ]);
 
   const users = usersRes.data ?? [];
@@ -153,6 +163,13 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
   const commentsTotal = commentsRes.count ?? 0;
   const votesTotal = votesRes.count ?? 0;
 
+  const referralRows = referralsRes.data ?? [];
+  const referralSignedUp = referralRows.length;
+  const referralConverted = referralRows.filter((r) => r.status === "converted").length;
+  const invitesSent = (invitesRes.data ?? []).filter((r) => r.status === "sent").length;
+  const referralConversionRate =
+    referralSignedUp > 0 ? referralConverted / referralSignedUp : null;
+
   return {
     members: {
       total: members.length,
@@ -185,6 +202,12 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
       votesPerCall: callsTotal > 0 ? votesTotal / callsTotal : null,
     },
     topSymbols,
+    referrals: {
+      signedUp: referralSignedUp,
+      converted: referralConverted,
+      invitesSent,
+      conversionRate: referralConversionRate,
+    },
     timeseries: {
       signups: signupSeries,
       calls: callsSeries,
@@ -246,5 +269,11 @@ function getDemoAdminAnalytics(): AdminAnalytics {
       { symbol: "META", count: 1 },
       { symbol: "QQQ", count: 1 },
     ],
+    referrals: {
+      signedUp: 4,
+      converted: 2,
+      invitesSent: 6,
+      conversionRate: 0.5,
+    },
   };
 }

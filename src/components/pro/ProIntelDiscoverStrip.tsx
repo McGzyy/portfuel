@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BarChart3, Calendar, GitCompare, ScanSearch, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ProUpgradeProrationHint } from "@/components/billing/ProUpgradeProrationHint";
 import { formatTierPrice } from "@/lib/marketing/plans";
 import { buildComparePreviewLabel, buildProMembershipHook } from "@/lib/pro/upgrade-prompt";
 
@@ -73,9 +74,12 @@ export function ProIntelDiscoverStrip({
               {label}
             </Link>
           ))}
-          <Link href="/dashboard/settings?section=billing">
-            <Button size="sm">Upgrade</Button>
-          </Link>
+          <div className="flex flex-col items-start gap-1">
+            <Link href="/dashboard/settings?section=billing">
+              <Button size="sm">Upgrade</Button>
+            </Link>
+            <ProUpgradeProrationHint className="max-w-[12rem]" />
+          </div>
         </div>
       </div>
     </section>
