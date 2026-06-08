@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { JournalAiResearchEntryBody } from "@/components/journal/JournalResearchPanel";
+import {
+  aiResearchTimelineSummary,
+  timelineEntryPreview,
+} from "@/lib/journal/research-entry";
 import { COPY } from "@/lib/copy";
 import {
   JOURNAL_ENTRY_PLACEHOLDERS,
@@ -62,6 +67,7 @@ export function WatchlistJournalTimeline({
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<FilterMode>("all");
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
 
   const byId = new Map(entries.map((e) => [e.id, e]));
 
@@ -69,6 +75,34 @@ export function WatchlistJournalTimeline({
     if (filter === "all") return [...entries].reverse();
     return [...entries].filter((e) => e.entry_type === filter).reverse();
   }, [entries, filter]);
+
+  const latestVisibleId = visible[0]?.id;
+
+  const toggleExpanded = useCallback((id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const initializedExpand = useRef(false);
+  const prevLatestRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!latestVisibleId) return;
+    if (!initializedExpand.current) {
+      setExpandedIds(new Set([latestVisibleId]));
+      initializedExpand.current = true;
+      prevLatestRef.current = latestVisibleId;
+      return;
+    }
+    if (prevLatestRef.current !== latestVisibleId) {
+      setExpandedIds((prev) => new Set([latestVisibleId, ...prev]));
+      prevLatestRef.current = latestVisibleId;
+    }
+  }, [latestVisibleId]);
 
   const usedTypes = useMemo(
     () => [...new Set(entries.map((e) => e.entry_type))],
@@ -86,6 +120,8 @@ export function WatchlistJournalTimeline({
     if (filter !== "all" && filter !== entry.entry_type) {
       setFilter("all");
     }
+
+    setExpandedIds((prev) => new Set([...prev, entryId]));
 
     const id = window.requestAnimationFrame(() => {
       const node = document.getElementById(`journal-entry-${entryId}`);
@@ -173,87 +209,16 @@ export function WatchlistJournalTimeline({
         <p className="mt-4 text-sm text-[var(--pf-gray-500)]">No entries match this filter.</p>
       ) : (
         <ul className="mt-5 space-y-4">
-          {visible.map((entry) => {
-            const parent = entry.reply_to_id ? byId.get(entry.reply_to_id) : null;
-            const isSystem = entry.entry_type === "system";
-            return (
-              <li
-                key={entry.id}
-                id={`journal-entry-${entry.id}`}
-                className={
-                  entry.reply_to_id
-                    ? "ml-4 border-l-2 border-[var(--pf-border)] pl-4"
-                    : undefined
-                }
-              >
-                <div
-                  className={cn(
-                    "rounded-lg border px-4 py-4 sm:px-5 sm:py-4",
-                    isSystem
-                      ? "border-transparent bg-transparent px-1 py-1"
-                      : "border-[var(--pf-border)] bg-[var(--pf-gray-50)]"
-                  )}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <time className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                      {fmtWhen(entry.created_at)}
-                    </time>
-                    <span className="flex items-center gap-2">
-                      {!isSystem ? (
-                        <span
-                          className={cn(
-                            "rounded-full px-2 py-0.5 text-[10px] font-bold ring-1",
-                            TYPE_CHIP_STYLE[entry.entry_type] ?? "pf-outcome-badge ring-1"
-                          )}
-                        >
-                          {journalEntryTypeLabel(entry.entry_type)}
-                        </span>
-                      ) : null}
-                      {entry.marker_price != null ? (
-                        <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
-                          ${formatPrice(entry.marker_price)} on chart
-                        </span>
-                      ) : null}
-                      {entry.conviction_after != null ? (
-                        <span className="pf-conviction-badge">
-                          Conviction {entry.conviction_after}/10
-                        </span>
-                      ) : null}
-                    </span>
-                  </div>
-                  {parent ? (
-                    <p className="mt-2 text-[10px] text-[var(--pf-gray-500)]">
-                      Reply · {parent.body.slice(0, 80)}
-                      {parent.body.length > 80 ? "…" : ""}
-                    </p>
-                  ) : null}
-                  {entry.entry_type === "ai_research" ? (
-                    <JournalAiResearchEntryBody metadata={entry.metadata} body={entry.body} />
-                  ) : (
-                    <p
-                      className={cn(
-                        "whitespace-pre-wrap leading-relaxed",
-                        isSystem
-                          ? "mt-1 text-[11px] italic text-[var(--pf-gray-500)]"
-                          : "mt-2 text-sm text-[var(--pf-gray-800)]"
-                      )}
-                    >
-                      {entry.body}
-                    </p>
-                  )}
-                  {!isSystem && entry.entry_type !== "ai_research" ? (
-                    <button
-                      type="button"
-                      onClick={() => setReplyTo(entry.id)}
-                      className="mt-2 text-[10px] font-semibold text-[var(--pf-red)] hover:underline"
-                    >
-                      Reply
-                    </button>
-                  ) : null}
-                </div>
-              </li>
-            );
-          })}
+          {visible.map((entry) => (
+            <TimelineEntryCard
+              key={entry.id}
+              entry={entry}
+              parent={entry.reply_to_id ? byId.get(entry.reply_to_id) ?? undefined : undefined}
+              expanded={expandedIds.has(entry.id)}
+              onToggle={() => toggleExpanded(entry.id)}
+              onReply={() => setReplyTo(entry.id)}
+            />
+          ))}
         </ul>
       )}
 
@@ -325,5 +290,139 @@ function FilterChip({
     >
       {label}
     </button>
+  );
+}
+
+function TimelineEntryCard({
+  entry,
+  parent,
+  expanded,
+  onToggle,
+  onReply,
+}: {
+  entry: WatchlistJournalEntry;
+  parent?: WatchlistJournalEntry;
+  expanded: boolean;
+  onToggle: () => void;
+  onReply: () => void;
+}) {
+  const isSystem = entry.entry_type === "system";
+  const collapsible = !isSystem;
+  const preview = timelineEntryPreview({
+    entry_type: entry.entry_type,
+    body: entry.body,
+    metadata: entry.metadata,
+  });
+  const aiSummary =
+    entry.entry_type === "ai_research" && entry.metadata
+      ? aiResearchTimelineSummary(entry.metadata)
+      : null;
+
+  return (
+    <li
+      id={`journal-entry-${entry.id}`}
+      className={
+        entry.reply_to_id ? "ml-4 border-l-2 border-[var(--pf-border)] pl-4" : undefined
+      }
+    >
+      <div
+        className={cn(
+          "rounded-lg border",
+          isSystem
+            ? "border-transparent bg-transparent px-1 py-1"
+            : "border-[var(--pf-border)] bg-[var(--pf-gray-50)]",
+          collapsible && !expanded ? "px-4 py-3 sm:px-5" : "px-4 py-4 sm:px-5 sm:py-4"
+        )}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <time className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                {fmtWhen(entry.created_at)}
+              </time>
+              {!isSystem ? (
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-[10px] font-bold ring-1",
+                    TYPE_CHIP_STYLE[entry.entry_type] ?? "pf-outcome-badge ring-1"
+                  )}
+                >
+                  {journalEntryTypeLabel(entry.entry_type)}
+                </span>
+              ) : null}
+              {entry.marker_price != null ? (
+                <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
+                  ${formatPrice(entry.marker_price)} on chart
+                </span>
+              ) : null}
+              {entry.conviction_after != null ? (
+                <span className="pf-conviction-badge">
+                  Conviction {entry.conviction_after}/10
+                </span>
+              ) : null}
+            </div>
+            {parent ? (
+              <p className="mt-1.5 text-[10px] text-[var(--pf-gray-500)]">
+                Reply · {parent.body.slice(0, 80)}
+                {parent.body.length > 80 ? "…" : ""}
+              </p>
+            ) : null}
+            {collapsible && !expanded ? (
+              <div className="mt-2 space-y-1">
+                <p className="text-sm leading-relaxed text-[var(--pf-gray-600)]">{preview}</p>
+                {aiSummary ? (
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                    {aiSummary}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+          {collapsible ? (
+            <button
+              type="button"
+              onClick={onToggle}
+              className="shrink-0 rounded-lg border border-[var(--pf-border)] p-1.5 text-[var(--pf-gray-500)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-100)] hover:text-[var(--pf-black)]"
+              aria-expanded={expanded}
+              aria-label={expanded ? "Collapse entry" : "Expand entry"}
+            >
+              {expanded ? (
+                <ChevronUp className="h-4 w-4" strokeWidth={2.25} />
+              ) : (
+                <ChevronDown className="h-4 w-4" strokeWidth={2.25} />
+              )}
+            </button>
+          ) : null}
+        </div>
+
+        {(!collapsible || expanded) && (
+          <>
+            {entry.entry_type === "ai_research" ? (
+              <JournalAiResearchEntryBody metadata={entry.metadata} body={entry.body} />
+            ) : (
+              <p
+                className={cn(
+                  "whitespace-pre-wrap leading-relaxed",
+                  isSystem
+                    ? "mt-1 text-[11px] italic text-[var(--pf-gray-500)]"
+                    : "mt-2 text-sm text-[var(--pf-gray-800)]"
+                )}
+              >
+                {entry.body}
+              </p>
+            )}
+            {!isSystem && entry.entry_type !== "ai_research" ? (
+              <button
+                type="button"
+                onClick={onReply}
+                className="mt-2 text-[10px] font-semibold text-[var(--pf-red)] hover:underline"
+              >
+                Reply
+              </button>
+            ) : null}
+          </>
+        )}
+      </div>
+    </li>
   );
 }

@@ -132,6 +132,19 @@ export function WatchlistJournalPlanForm({
       if (typeof data.risk_factors === "string") setRiskFactors(data.risk_factors);
       if (data.conviction != null) setConviction(String(data.conviction));
       if (typeof data.entry_note === "string") setEntryNote(data.entry_note);
+      if (Array.isArray(data.personal_tags) && data.personal_tags.length > 0) {
+        setTagsInput((data.personal_tags as string[]).join(", "));
+      }
+      const applyPrice = (key: keyof typeof data, setter: (v: string) => void) => {
+        const v = data[key];
+        if (typeof v === "number" && v > 0) setter(String(v));
+      };
+      applyPrice("entry_price", setEntryPrice);
+      applyPrice("stop_price", setStopPrice);
+      applyPrice("target_price", setTargetPrice);
+      applyPrice("bull_case_price", setBullPrice);
+      applyPrice("base_case_price", setBasePrice);
+      applyPrice("bear_case_price", setBearPrice);
       const usagePayload = data.usage as { used?: number; remaining?: number } | undefined;
       if (usagePayload?.used != null && usagePayload?.remaining != null) {
         setUsage((u) =>
@@ -252,7 +265,8 @@ export function WatchlistJournalPlanForm({
         ) : null}
         {draftApplied ? (
           <p className="mt-1 text-xs font-semibold text-emerald-700">
-            Draft applied — edit anything you want, then save journal.
+            Draft applied — thesis, catalysts, risks, tags, and plan levels filled where available.
+            Edit anything, then save journal.
           </p>
         ) : null}
         {error ? (

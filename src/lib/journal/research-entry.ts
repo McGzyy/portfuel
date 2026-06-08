@@ -58,3 +58,25 @@ export function parseResearchMetadata(raw: unknown): JournalResearchSnapshot | n
     risk_prompts: arr(o.risk_prompts),
   };
 }
+
+/** One-line summary for collapsed timeline cards. */
+export function aiResearchTimelineSummary(metadata: JournalResearchSnapshot): string {
+  const parts: string[] = [];
+  if (metadata.strengths.length) parts.push(`${metadata.strengths.length} strengths`);
+  if (metadata.research_gaps.length) parts.push(`${metadata.research_gaps.length} gaps`);
+  if (metadata.questions_to_answer.length) parts.push(`${metadata.questions_to_answer.length} questions`);
+  if (metadata.risk_prompts.length) parts.push(`${metadata.risk_prompts.length} risks`);
+  return parts.join(" · ");
+}
+
+export function timelineEntryPreview(
+  entry: { entry_type: string; body: string; metadata?: JournalResearchSnapshot | null },
+  maxLen = 160
+): string {
+  if (entry.entry_type === "ai_research" && entry.metadata?.read) {
+    const read = entry.metadata.read.replace(/\s+/g, " ").trim();
+    return read.length > maxLen ? `${read.slice(0, maxLen)}…` : read;
+  }
+  const text = entry.body.replace(/\s+/g, " ").trim();
+  return text.length > maxLen ? `${text.slice(0, maxLen)}…` : text;
+}
