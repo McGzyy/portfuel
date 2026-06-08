@@ -14,9 +14,9 @@ import {
 import type { MembershipTier } from "@/lib/stripe/config";
 
 const journalThesisDraftRawSchema = z.object({
-  thesis: z.string().min(40).max(2000),
+  thesis: z.string().min(80).max(2000),
   catalysts: z.array(z.string()).max(4),
-  risk_factors: z.string().min(12).max(800),
+  risk_factors: z.string().min(20).max(800),
   conviction: z.number().min(1).max(10),
   /** Required in OpenAI JSON schema — use empty string when not applicable. */
   entry_note: z.string().max(300),
@@ -31,16 +31,40 @@ export type JournalThesisDraftResponse = {
   usage: { used: number; limit: number; remaining: number; periodMonth: string };
 };
 
-const SYSTEM = `You are PortFuel Journal Draft — an educational assistant helping a trader start a PRIVATE research notebook entry.
+const SYSTEM = `You are PortFuel Journal Draft — an educational assistant for a trader's PRIVATE research notebook (not a published call).
 
 Rules (strict):
 - Do NOT recommend buying, selling, holding, or position sizing.
 - Do NOT predict prices or guarantee outcomes.
-- Write a starter thesis the author can edit — process-oriented, evidence-seeking, specific to the symbol (at least 3 sentences).
-- Pick catalyst tags only from the allowed list provided — use exact spelling.
-- Risk factors: what could falsify the idea (not trade advice).
-- Conviction: honest 1–10 for how developed the idea is (usually 4–7 for a first draft).
-- entry_note: optional zone/context text only — no numeric price targets.`;
+- Write like a sharp analyst's notebook — specific, falsifiable, no marketing fluff.
+- NEVER use vague filler: "gaining traction", "asset to watch", "significantly enhance", "well-positioned", "burgeoning", "positioned for growth", "competitive landscape", "in general".
+- thesis must be prose only — never append conviction scores or numbers at the end.
+- Pick catalyst tags only from the allowed list — exact spelling, 1–3 tags.
+- risk_factors: 2–4 concrete falsifiers (what evidence would weaken the idea).
+- conviction: integer 1–10 for how developed the research is (first drafts usually 4–6).
+- entry_note: optional context zone in words only — no price targets (empty string if none).`;
+
+function assetClassGuidance(assetClass: "equity" | "crypto", symbol: string): string {
+  if (assetClass === "crypto") {
+    return `Crypto notebook rules for ${symbol}:
+- Name the chain's actual edge (throughput, fees, ecosystem, liquidity venue) in one concrete line.
+- Include 2 specific things to verify (e.g. on-chain volume trend, DEX share, dev activity, stablecoin float on chain, relative performance vs BTC, upcoming upgrade/mainnet milestone).
+- Regulatory/tag risk belongs in risk_factors, not as the whole thesis.
+- Prefer "Crypto exposure" catalyst when macro/sector beta matters; add "Regulatory change" only when policy is a real swing factor for this name.`;
+  }
+  return `Equity notebook rules for ${symbol}:
+- Anchor on business/driver (product cycle, margin, customer, sector share) — not generic "growth story".
+- Include 2 specific checkpoints (earnings line item, guide, competitor datapoint, FDA/catalyst date if relevant).
+- Use earnings/product catalyst tags when they fit.`;
+}
+
+function sanitizeThesis(raw: string): string {
+  return raw
+    .trim()
+    .replace(/\n+\s*(conviction|score)?\s*:?\s*\d{1,2}\s*$/i, "")
+    .replace(/\n+\s*\d{1,2}\s*$/, "")
+    .trim();
+}
 
 function normalizeCatalysts(raw: string[]): JournalCatalyst[] {
   const allowed = JOURNAL_CATALYST_OPTIONS;
@@ -63,6 +87,16 @@ function normalizeCatalysts(raw: string[]): JournalCatalyst[] {
   return out.slice(0, 4);
 }
 
+function defaultCatalysts(
+  assetClass: "equity" | "crypto",
+  symbol: string
+): JournalCatalyst[] {
+  if (assetClass === "crypto") {
+    return symbol === "BTC" ? ["Crypto exposure"] : ["Crypto exposure", "Regulatory change"];
+  }
+  return ["Earnings"];
+}
+
 export async function runJournalThesisDraft(opts: {
   userId: string;
   membershipTier: MembershipTier | null;
@@ -80,8 +114,8 @@ export async function runJournalThesisDraft(opts: {
 
   const priceLine =
     opts.lastPrice != null
-      ? `Last price ~$${opts.lastPrice}${opts.changePct != null ? ` (${opts.changePct >= 0 ? "+" : ""}${opts.changePct.toFixed(1)}% recent)` : ""}`
-      : "Price unavailable";
+      ? `Last price ~$${opts.lastPrice}${opts.changePct != null ? ` (${opts.changePct >= 0 ? "+" : ""}${opts.changePct.toFixed(1)}% recent session)` : ""}`
+      : "Price unavailable — focus on research structure, not tape calls.";
 
   const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
@@ -94,9 +128,20 @@ export async function runJournalThesisDraft(opts: {
 
 ${priceLine}
 
-Allowed catalyst tags (pick 1–3 — copy exact strings into the catalysts array): ${JOURNAL_CATALYST_OPTIONS.join(", ")}
+${assetClassGuidance(opts.assetClass, opts.symbol)}
 
-Return thesis (why watch this name now), catalysts, risk_factors, conviction (integer 1-10), and entry_note (empty string if none).`,
+Thesis shape (4–6 sentences in one string, no bullets):
+1) Setup — why this symbol is on the notebook now.
+2) Edge — what's differentiated about the name.
+3) Verify next — two concrete datapoints or events to look up.
+4) Invalidation — what would make you deprioritize the idea.
+
+Allowed catalyst tags (copy exact strings into catalysts array): ${JOURNAL_CATALYST_OPTIONS.join(", ")}
+
+Return thesis, catalysts, risk_factors, conviction (integer only in that field), entry_note (empty string if none).
+
+Tone example for crypto (adapt to ${opts.symbol}, do not copy verbatim):
+"Watching ${opts.symbol} because on-chain activity and liquidity depth matter more than headline narrative — need to confirm whether recent tape is macro beta or real usage. Edge is [specific chain advantage]. I'll verify [metric A] and [metric B]; I'd deprioritize if [concrete failure mode]."`,
       output: Output.object({ schema: journalThesisDraftRawSchema }),
     });
     output = result.output;
@@ -105,21 +150,22 @@ Return thesis (why watch this name now), catalysts, risk_factors, conviction (in
     throw new Error("ai_generation_failed");
   }
 
-  if (!output?.thesis?.trim()) throw new Error("ai_empty_response");
+  const thesis = sanitizeThesis(output?.thesis ?? "");
+  if (!thesis) throw new Error("ai_empty_response");
 
   const used = await consumeJournalResearch(opts.userId);
-  const conviction = Math.round(Math.min(10, Math.max(1, output.conviction)));
-  let catalysts = normalizeCatalysts(output.catalysts);
-  if (catalysts.length === 0 && opts.assetClass === "crypto") {
-    catalysts = ["Crypto exposure"];
+  const conviction = Math.round(Math.min(10, Math.max(1, output!.conviction)));
+  let catalysts = normalizeCatalysts(output!.catalysts);
+  if (catalysts.length === 0) {
+    catalysts = defaultCatalysts(opts.assetClass, opts.symbol);
   }
 
   return {
-    thesis: output.thesis.trim(),
+    thesis,
     catalysts,
-    risk_factors: output.risk_factors.trim(),
+    risk_factors: output!.risk_factors.trim(),
     conviction,
-    entry_note: output.entry_note?.trim() || undefined,
+    entry_note: output!.entry_note?.trim() || undefined,
     usage: {
       used,
       limit: opts.usageBefore.limit,
