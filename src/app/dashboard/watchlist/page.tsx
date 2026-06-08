@@ -15,6 +15,7 @@ import { requireDashboardSession } from "@/lib/dashboard/data";
 import { isDemoMode } from "@/lib/demo/config";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
 import { enrichWatchlistIntelSnippets } from "@/lib/watchlist/intel-snippets";
+import { summarizeBookPosture } from "@/lib/watchlist/book-posture";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import {
   DEFAULT_WATCHLIST_ALERT_PREFS,
@@ -56,6 +57,7 @@ export default async function DashboardWatchlistPage() {
   const unreadAlerts = items.filter((i) => i.has_unread_call_alert).length;
   const callsLast7d = items.reduce((sum, i) => sum + (i.community_calls_7d ?? 0), 0);
   const nextUp = pickJournalNextUp(items);
+  const bookPosture = summarizeBookPosture(items);
 
   return (
     <WatchlistItemsProvider initialItems={items}>
@@ -65,6 +67,7 @@ export default async function DashboardWatchlistPage() {
           unreadAlerts={unreadAlerts}
           callsLast7d={callsLast7d}
           nextUp={nextUp}
+          bookPosture={bookPosture}
         />
 
         <ResearchPipeline current="track" logHref={nextUp?.href} />

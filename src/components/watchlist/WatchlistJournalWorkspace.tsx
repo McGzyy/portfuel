@@ -22,6 +22,7 @@ import type { TickerIntel } from "@/lib/market/ticker-intel";
 import { buildJournalEntryMarkers } from "@/lib/watchlist/journal-markers";
 import type { WatchlistJournal, WatchlistJournalEntry } from "@/lib/watchlist/journal-types";
 import { WatchlistJournalEditLog } from "@/components/watchlist/WatchlistJournalEditLog";
+import { PositionIntentBadge } from "@/components/watchlist/PositionIntentBadge";
 import type { JournalPlanRevision } from "@/lib/watchlist/journal-revisions";
 import type { JournalPrefillEntry } from "@/lib/journal/paths";
 
@@ -134,9 +135,14 @@ export function WatchlistJournalWorkspace({
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
               Research · Journal
             </p>
-            <h1 className="mt-1.5 font-mono text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
-              ${journal.symbol}
-            </h1>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              <h1 className="font-mono text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
+                ${journal.symbol}
+              </h1>
+              {journal.position_intent && journal.position_intent !== "researching" ? (
+                <PositionIntentBadge intent={journal.position_intent} />
+              ) : null}
+            </div>
             <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
               {intel.companyName !== journal.symbol ? intel.companyName : "Your research notebook"}{" "}
               — thesis, catalysts, plan levels, and AI research stay private until you publish a

@@ -53,6 +53,7 @@ import { fetchJournalHighlights } from "@/lib/watchlist/journal-highlights";
 import { WatchlistJournalPulse } from "@/components/watchlist/WatchlistJournalPulse";
 import { JournalReadyToPublishBanner } from "@/components/journal/JournalReadyToPublishBanner";
 import { JournalContinueCard } from "@/components/journal/JournalContinueCard";
+import { BookPostureStrip } from "@/components/watchlist/BookPostureStrip";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
 import { ProTodayBrief } from "@/components/pro/ProTodayBrief";
@@ -321,6 +322,8 @@ export default async function DashboardOverviewPage({
       ) : journalNextUp ? (
         <JournalContinueCard nextUp={journalNextUp} />
       ) : null}
+
+      {watchlistCount > 0 ? <BookPostureStrip items={watchlistItems} /> : null}
 
       <AlertsEmailSetupStrip
         watchlistCount={watchlistCount}

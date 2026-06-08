@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { JournalHeaderAction } from "@/components/journal/JournalHeaderAction";
 import type { JournalNextUp } from "@/lib/journal/next-up";
+import type { BookPostureSummary } from "@/lib/watchlist/book-posture";
 
 const MAX_WATCHLIST = 24;
 
@@ -9,12 +10,24 @@ export function WatchlistCommandHeader({
   unreadAlerts,
   callsLast7d,
   nextUp,
+  bookPosture,
 }: {
   symbolCount: number;
   unreadAlerts: number;
   callsLast7d: number;
   nextUp?: JournalNextUp | null;
+  bookPosture?: BookPostureSummary | null;
 }) {
+  const postureLine =
+    bookPosture && bookPosture.inBook > 0
+      ? [
+          bookPosture.active > 0 ? `${bookPosture.active} active` : null,
+          bookPosture.trimming > 0 ? `${bookPosture.trimming} trimming` : null,
+          bookPosture.building > 0 ? `${bookPosture.building} building` : null,
+        ]
+          .filter(Boolean)
+          .join(", ")
+      : null;
   return (
     <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -38,6 +51,12 @@ export function WatchlistCommandHeader({
               <span className="text-[var(--pf-gray-400)]">
                 {" "}
                 · {callsLast7d} member call{callsLast7d === 1 ? "" : "s"} on your list (7d)
+              </span>
+            ) : null}
+            {postureLine ? (
+              <span className="font-medium text-[var(--pf-gray-600)]">
+                {" "}
+                · Book: {postureLine}
               </span>
             ) : null}
           </p>

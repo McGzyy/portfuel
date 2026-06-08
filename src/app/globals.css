@@ -1850,6 +1850,16 @@ body {
   color: #fcd34d;
 }
 
+.pf-posture-nudge {
+  border-color: rgba(217, 119, 6, 0.35);
+  background: linear-gradient(135deg, #fffbeb 0%, #fff 55%);
+}
+
+[data-theme="dark"] .pf-posture-nudge {
+  border-color: rgba(251, 191, 36, 0.28);
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.12) 0%, var(--pf-surface) 55%);
+}
+
 .pf-hot-ticker-chip {
   display: inline-flex;
   align-items: center;

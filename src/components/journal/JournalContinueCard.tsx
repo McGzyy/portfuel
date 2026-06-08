@@ -5,13 +5,14 @@ import { cn } from "@/lib/utils";
 
 export function JournalContinueCard({ nextUp }: { nextUp: JournalNextUp }) {
   const isPublish = nextUp.reason === "publish_call";
+  const isPosture = nextUp.reason === "manage_posture";
 
   return (
     <Link
       href={nextUp.href}
       className={cn(
         "group block rounded-[var(--pf-radius-lg)] border px-5 py-4 shadow-[var(--pf-shadow-sm)] transition-colors",
-        isPublish ? "pf-ready-publish-nudge" : "pf-continue-card"
+        isPublish ? "pf-ready-publish-nudge" : isPosture ? "pf-posture-nudge" : "pf-continue-card"
       )}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -19,7 +20,7 @@ export function JournalContinueCard({ nextUp }: { nextUp: JournalNextUp }) {
           <p
             className={cn(
               "flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em]",
-              isPublish ? "text-emerald-800" : "text-[var(--pf-red)]"
+              isPublish ? "text-emerald-800" : isPosture ? "text-amber-800" : "text-[var(--pf-red)]"
             )}
           >
             {isPublish ? (
@@ -27,7 +28,11 @@ export function JournalContinueCard({ nextUp }: { nextUp: JournalNextUp }) {
             ) : (
               <Sparkles className="h-3.5 w-3.5" strokeWidth={2.25} />
             )}
-            {isPublish ? "Ready to publish" : "Up next in your journal"}
+            {isPublish
+              ? "Ready to publish"
+              : isPosture
+                ? "Book posture"
+                : "Up next in your journal"}
           </p>
           <p className="mt-1 font-mono text-lg font-bold text-[var(--foreground)]">{nextUp.title}</p>
           <p className="mt-1 text-sm leading-relaxed text-[var(--pf-gray-600)]">{nextUp.detail}</p>
