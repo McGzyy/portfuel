@@ -38,7 +38,7 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
   let error = primary.error;
 
   if (error && isSchemaDriftError(error)) {
-    console.warn("[watchlist/fetch] journal columns missing — trying journal select");
+    console.warn("[watchlist/fetch] full select failed — trying journal select", error.message);
     const journalFallback = await db
       .from("user_watchlist")
       .select(WATCHLIST_JOURNAL_SELECT)
@@ -49,7 +49,7 @@ export async function fetchWatchlist(userId: string): Promise<WatchlistEntry[]> 
   }
 
   if (error && isSchemaDriftError(error)) {
-    console.warn("[watchlist/fetch] falling back to basic select");
+    console.warn("[watchlist/fetch] falling back to basic select (thesis may be missing)", error.message);
     const fallback = await db
       .from("user_watchlist")
       .select(WATCHLIST_BASIC_SELECT)

@@ -7,6 +7,8 @@ import {
   removeFromWatchlist,
 } from "@/lib/watchlist/service";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const session = await requireActiveMember();

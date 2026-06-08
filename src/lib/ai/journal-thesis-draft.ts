@@ -37,20 +37,32 @@ Rules (strict):
 - Do NOT recommend buying, selling, holding, or position sizing.
 - Do NOT predict prices or guarantee outcomes.
 - Write like a sharp analyst's notebook — specific, falsifiable, no marketing fluff.
-- NEVER use vague filler: "gaining traction", "asset to watch", "significantly enhance", "well-positioned", "burgeoning", "positioned for growth", "competitive landscape", "in general".
+- NEVER use vague filler: "gaining traction", "asset to watch", "significantly enhance", "well-positioned", "burgeoning", "positioned for growth", "competitive landscape", "in general", "high scalability", "growing ecosystem", "DeFi and NFT projects", "differentiated edge lies in".
 - thesis must be prose only — never append conviction scores or numbers at the end.
 - Pick catalyst tags only from the allowed list — exact spelling, 1–3 tags.
 - risk_factors: 2–4 concrete falsifiers (what evidence would weaken the idea).
 - conviction: integer 1–10 for how developed the research is (first drafts usually 4–6).
 - entry_note: optional context zone in words only — no price targets (empty string if none).`;
 
+function cryptoSymbolHints(symbol: string): string {
+  const hints: Record<string, string> = {
+    SOL: `Solana — name Jupiter/Raydium DEX flow, active addresses, or SOL/BTC ratio (not generic "DeFi/NFT ecosystem").
+Verify: on-chain DEX volume trend, failed-tx rate, stablecoin float on Solana, vs ETH L2 fee competition.`,
+    BTC: `Bitcoin — focus on ETF flows, hash rate, or BTC dominance vs alts — not "digital gold" clichés.`,
+    ETH: `Ethereum — L2 activity, gas/fee regime, staking yield vs competitors — be specific.`,
+  };
+  return hints[symbol] ?? "";
+}
+
 function assetClassGuidance(assetClass: "equity" | "crypto", symbol: string): string {
   if (assetClass === "crypto") {
+    const specific = cryptoSymbolHints(symbol);
     return `Crypto notebook rules for ${symbol}:
-- Name the chain's actual edge (throughput, fees, ecosystem, liquidity venue) in one concrete line.
-- Include 2 specific things to verify (e.g. on-chain volume trend, DEX share, dev activity, stablecoin float on chain, relative performance vs BTC, upcoming upgrade/mainnet milestone).
+- Name the chain's actual edge (throughput, fees, liquidity venue) in one concrete line — no buzzwords.
+- Include 2 specific metrics to verify (on-chain volume, DEX share, active addresses, relative vs BTC/ETH).
 - Regulatory/tag risk belongs in risk_factors, not as the whole thesis.
-- Prefer "Crypto exposure" catalyst when macro/sector beta matters; add "Regulatory change" only when policy is a real swing factor for this name.`;
+- Prefer "Crypto exposure" catalyst when macro/sector beta matters.
+${specific ? `\nSymbol-specific:\n${specific}` : ""}`;
   }
   return `Equity notebook rules for ${symbol}:
 - Anchor on business/driver (product cycle, margin, customer, sector share) — not generic "growth story".
@@ -106,6 +118,8 @@ export async function runJournalThesisDraft(opts: {
   companyName: string;
   lastPrice: number | null;
   changePct: number | null;
+  industry?: string | null;
+  marketCapBn?: number | null;
   usageBefore: { used: number; limit: number; periodMonth: string };
 }): Promise<JournalThesisDraftResponse> {
   if (!isAiCoachConfigured()) {
@@ -117,6 +131,16 @@ export async function runJournalThesisDraft(opts: {
       ? `Last price ~$${opts.lastPrice}${opts.changePct != null ? ` (${opts.changePct >= 0 ? "+" : ""}${opts.changePct.toFixed(1)}% recent session)` : ""}`
       : "Price unavailable — focus on research structure, not tape calls.";
 
+  const equityContext =
+    opts.assetClass === "equity"
+      ? [
+          opts.industry ? `Industry: ${opts.industry}.` : null,
+          opts.marketCapBn != null ? `Market cap ~$${opts.marketCapBn}B.` : null,
+        ]
+          .filter(Boolean)
+          .join(" ")
+      : "";
+
   const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
   let output: z.infer<typeof journalThesisDraftRawSchema> | null = null;
@@ -126,14 +150,14 @@ export async function runJournalThesisDraft(opts: {
       system: `${SYSTEM}\n\n${AI_JOURNAL_RESEARCH_DISCLAIMER}`,
       prompt: `Draft a private journal starter pack for ${opts.symbol} (${opts.companyName}, ${opts.assetClass}).
 
-${priceLine}
+${priceLine}${equityContext ? `\n${equityContext}` : ""}
 
 ${assetClassGuidance(opts.assetClass, opts.symbol)}
 
 Thesis shape (4–6 sentences in one string, no bullets):
-1) Setup — why this symbol is on the notebook now.
-2) Edge — what's differentiated about the name.
-3) Verify next — two concrete datapoints or events to look up.
+1) Setup — why this symbol is on the notebook now (reference the business or on-chain driver, not hype).
+2) Edge — what's differentiated; use proper nouns (product, protocol, metric) where possible.
+3) Verify next — two concrete datapoints or events to look up before sizing conviction.
 4) Invalidation — what would make you deprioritize the idea.
 
 Allowed catalyst tags (copy exact strings into catalysts array): ${JOURNAL_CATALYST_OPTIONS.join(", ")}

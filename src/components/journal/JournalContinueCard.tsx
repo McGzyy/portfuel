@@ -3,25 +3,90 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Megaphone, Sparkles } from "lucide-react";
+import { summarizeJournalHubProgress } from "@/lib/journal/checklist";
 import { pickJournalNextUp, type JournalNextUp } from "@/lib/journal/next-up";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
+import type { WatchlistJournal } from "@/lib/watchlist/journal-types";
 import { cn } from "@/lib/utils";
+
+function mergeJournalPlan(item: WatchlistEntry, journal: WatchlistJournal): WatchlistEntry {
+  const merged: WatchlistEntry = {
+    ...item,
+    thesis: journal.thesis,
+    has_thesis: Boolean(journal.thesis?.trim()),
+    catalysts: journal.catalysts ?? item.catalysts,
+    risk_factors: journal.risk_factors ?? item.risk_factors,
+    entry_price: journal.entry_price ?? item.entry_price,
+    target_price: journal.target_price ?? item.target_price,
+    conviction: journal.conviction ?? item.conviction,
+    outcome: journal.outcome ?? item.outcome,
+    journal_updated_at: journal.journal_updated_at ?? item.journal_updated_at,
+  };
+  const stats = {
+    manualCount: item.journal_progress?.manual_entry_count ?? 0,
+    hasAiResearch: item.journal_progress?.has_ai_research ?? false,
+  };
+  return {
+    ...merged,
+    journal_progress: summarizeJournalHubProgress(
+      {
+        thesis: merged.thesis,
+        catalysts: merged.catalysts,
+        risk_factors: merged.risk_factors,
+        entry_price: merged.entry_price,
+        target_price: merged.target_price,
+      },
+      stats
+    ),
+  };
+}
+
+async function hydrateSymbolFromJournal(
+  items: WatchlistEntry[],
+  symbol: string
+): Promise<WatchlistEntry[]> {
+  try {
+    const res = await fetch(`/api/watchlist/${encodeURIComponent(symbol)}/journal`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return items;
+    const data = (await res.json()) as { journal?: WatchlistJournal };
+    if (!data.journal?.thesis?.trim()) return items;
+    return items.map((i) =>
+      i.symbol === symbol ? mergeJournalPlan(i, data.journal!) : i
+    );
+  } catch {
+    return items;
+  }
+}
 
 export function JournalContinueCard({ nextUp: initialNextUp }: { nextUp: JournalNextUp }) {
   const [nextUp, setNextUp] = useState(initialNextUp);
 
   useEffect(() => {
     let cancelled = false;
-    void fetch("/api/watchlist")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: { items?: WatchlistEntry[] } | null) => {
-        if (cancelled || !data?.items?.length) return;
-        const fresh = pickJournalNextUp(data.items);
-        if (fresh) setNextUp(fresh);
-      })
-      .catch(() => {
+
+    async function refresh() {
+      try {
+        const res = await fetch("/api/watchlist", { cache: "no-store" });
+        if (!res.ok || cancelled) return;
+        const data = (await res.json()) as { items?: WatchlistEntry[] };
+        if (!data.items?.length || cancelled) return;
+
+        let items = data.items;
+        const firstPass = pickJournalNextUp(items);
+        if (firstPass?.reason === "draft_thesis") {
+          items = await hydrateSymbolFromJournal(items, firstPass.symbol);
+        }
+
+        const fresh = pickJournalNextUp(items);
+        if (!cancelled && fresh) setNextUp(fresh);
+      } catch {
         /* keep SSR snapshot */
-      });
+      }
+    }
+
+    void refresh();
     return () => {
       cancelled = true;
     };

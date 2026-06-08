@@ -57,6 +57,8 @@ export async function POST(_request: Request, context: RouteContext) {
       companyName: market.companyName,
       lastPrice: market.lastPrice,
       changePct: market.changePct,
+      industry: market.industry,
+      marketCapBn: market.marketCapBn,
       usageBefore: {
         used: usage.used,
         limit: usage.limit,

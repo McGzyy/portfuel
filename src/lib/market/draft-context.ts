@@ -1,5 +1,5 @@
 import { resolveCryptoAsset } from "@/lib/market/crypto-allowlist";
-import { getCryptoLastPrice, getQuote } from "@/lib/market/finnhub";
+import { getCompanyProfile, getCryptoLastPrice, getQuote } from "@/lib/market/finnhub";
 
 /** Lightweight quote context for journal AI draft — avoids full ticker intel load. */
 export async function fetchJournalDraftMarketContext(
@@ -10,6 +10,8 @@ export async function fetchJournalDraftMarketContext(
   companyName: string;
   lastPrice: number | null;
   changePct: number | null;
+  industry?: string | null;
+  marketCapBn?: number | null;
 }> {
   const sym = symbol.toUpperCase();
 
@@ -31,11 +33,17 @@ export async function fetchJournalDraftMarketContext(
   }
 
   try {
-    const quote = await getQuote(sym);
+    const [quote, profile] = await Promise.all([getQuote(sym), getCompanyProfile(sym)]);
+    const marketCapBn =
+      profile?.marketCapitalization != null && profile.marketCapitalization > 0
+        ? Math.round(profile.marketCapitalization * 10) / 10
+        : null;
     return {
-      companyName: sym,
+      companyName: profile?.name?.trim() || sym,
       lastPrice: quote?.c ?? journalPrice ?? null,
       changePct: quote?.dp ?? null,
+      industry: profile?.finnhubIndustry ?? null,
+      marketCapBn,
     };
   } catch (e) {
     console.error("[draft-context equity quote]", sym, e);
