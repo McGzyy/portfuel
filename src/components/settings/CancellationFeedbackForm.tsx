@@ -100,7 +100,7 @@ export function CancellationFeedbackForm({
           rows={3}
           maxLength={2000}
           placeholder="What would have kept you subscribed?"
-          className="mt-1.5 w-full resize-y rounded-lg border border-[var(--pf-border)] bg-white px-3 py-2 text-sm font-normal text-[var(--pf-black)]"
+          className="mt-1.5 w-full resize-y rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-2 text-sm font-normal text-[var(--pf-black)]"
         />
       </label>
 

@@ -72,7 +72,7 @@ export function SettingsSelectRow({
         value={String(value)}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-[var(--pf-border)] bg-white px-2.5 py-2 text-sm font-medium text-[var(--pf-black)] sm:w-auto sm:py-1.5"
+        className="w-full rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-2.5 py-2 text-sm font-medium text-[var(--pf-black)] sm:w-auto sm:py-1.5"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>

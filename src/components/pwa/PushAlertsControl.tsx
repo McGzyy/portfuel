@@ -134,7 +134,7 @@ export function PushAlertsControl({
             type="button"
             disabled={busy}
             onClick={() => void disable()}
-            className="rounded-lg border border-[var(--pf-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--pf-gray-700)] hover:bg-[var(--pf-gray-50)] disabled:opacity-60"
+            className="pf-chip-action px-4 py-2 text-sm disabled:opacity-60"
           >
             {busy ? "Updating…" : "Disable browser push"}
           </button>

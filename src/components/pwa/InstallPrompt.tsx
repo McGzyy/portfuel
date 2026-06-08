@@ -73,7 +73,7 @@ export function InstallPrompt() {
     return (
       <div className="pf-top-banner flex flex-wrap items-center justify-center gap-x-1 gap-y-1 border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-2.5 text-center text-xs text-[var(--pf-gray-600)]">
         <span>Install: tap</span>
-        <span className="inline-flex items-center gap-0.5 rounded border border-[var(--pf-gray-300)] bg-white px-1.5 py-0.5 font-semibold text-[var(--pf-black)] shadow-sm">
+        <span className="inline-flex items-center gap-0.5 rounded border border-[var(--pf-gray-300)] bg-[var(--pf-surface)] px-1.5 py-0.5 font-semibold text-[var(--pf-black)] shadow-sm">
           <IosShareGlyph className="h-3.5 w-3.5 shrink-0" />
           Share
         </span>

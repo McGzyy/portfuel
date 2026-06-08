@@ -31,7 +31,7 @@ export function BillingIntervalPicker({
         className={cn(
           "rounded-md px-4 py-2 text-sm font-semibold transition-colors",
           value === "monthly"
-            ? "bg-white text-[var(--pf-black)] shadow-sm"
+            ? "pf-pill-active shadow-sm"
             : "text-[var(--pf-gray-500)] hover:text-[var(--pf-gray-700)]"
         )}
       >
@@ -43,7 +43,7 @@ export function BillingIntervalPicker({
         className={cn(
           "rounded-md px-4 py-2 text-sm font-semibold transition-colors",
           value === "annual"
-            ? "bg-white text-[var(--pf-black)] shadow-sm"
+            ? "pf-pill-active shadow-sm"
             : "text-[var(--pf-gray-500)] hover:text-[var(--pf-gray-700)]"
         )}
       >

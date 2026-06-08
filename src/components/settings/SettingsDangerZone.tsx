@@ -43,7 +43,7 @@ export function SettingsDangerZone({
             className={cn(
               "w-full rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors sm:w-auto sm:py-2",
               showCancelForm
-                ? "border-rose-300 bg-white text-rose-900"
+                ? "border-rose-300 bg-[var(--pf-surface)] text-rose-900"
                 : "border-rose-200 bg-transparent text-rose-800 hover:bg-rose-100/50"
             )}
           >
@@ -53,7 +53,7 @@ export function SettingsDangerZone({
       </div>
 
       {isActive && showCancelForm ? (
-        <div className="mt-5 rounded-lg border border-rose-200/80 bg-white/70 p-4 sm:p-5">
+        <div className="mt-5 rounded-lg border border-rose-200/80 bg-[color-mix(in_srgb,var(--pf-surface)_70%,transparent)] p-4 sm:p-5">
           {!feedbackDone ? (
             <CancellationFeedbackForm
               source="pre_portal"

@@ -100,7 +100,7 @@ export function EarningsCalendarPanel({
         <p className="mt-4 text-sm text-rose-600">{error}</p>
       ) : events.length === 0 ? (
         <div className="mt-5 flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-[var(--pf-border)] bg-[var(--pf-gray-50)]/60 px-4 py-10 text-center">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--pf-surface)] shadow-sm">
             <Calendar className="h-5 w-5 text-[var(--pf-gray-300)]" strokeWidth={2} />
           </div>
           <p className="mt-3 text-sm font-semibold text-[var(--pf-gray-700)]">
@@ -114,7 +114,7 @@ export function EarningsCalendarPanel({
       ) : (
         <ul className="mt-4 flex-1 divide-y divide-[var(--pf-border)] overflow-hidden rounded-xl border border-[var(--pf-border)] bg-[var(--pf-gray-50)]/40">
           {events.map((ev) => (
-            <li key={`${ev.symbol}-${ev.date}`} className="flex items-center justify-between bg-white px-4 py-3 first:rounded-t-xl last:rounded-b-xl">
+            <li key={`${ev.symbol}-${ev.date}`} className="flex items-center justify-between bg-[var(--pf-surface)] px-4 py-3 first:rounded-t-xl last:rounded-b-xl">
               <div>
                 <Link
                   href={`/ticker/${ev.symbol}`}

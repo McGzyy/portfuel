@@ -238,7 +238,7 @@ export function ProfileAlertsSection() {
                 value={smsPhone}
                 onChange={(e) => setSmsPhone(e.target.value)}
                 placeholder="+15551234567"
-                className="mt-1.5 w-full max-w-md rounded-lg border border-[var(--pf-border)] bg-white px-3 py-2 font-mono text-sm font-normal"
+                className="mt-1.5 w-full max-w-md rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-2 font-mono text-sm font-normal"
               />
             </label>
             <p className="mt-1.5 text-xs text-[var(--pf-gray-500)]">

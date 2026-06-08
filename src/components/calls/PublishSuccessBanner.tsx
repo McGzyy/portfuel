@@ -57,7 +57,7 @@ export function PublishSuccessBanner({
       <button
         type="button"
         onClick={() => setVisible(false)}
-        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-emerald-800/70 hover:bg-white/60"
+        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-emerald-800/70 hover:bg-[var(--pf-surface)]/60"
         aria-label="Dismiss"
       >
         <X className="h-4 w-4" strokeWidth={2.25} />

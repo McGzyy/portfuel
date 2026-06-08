@@ -77,7 +77,7 @@ export function EarningsSurfacesExplainer() {
             key={surface.title}
             className={
               "current" in surface && surface.current
-                ? "rounded-lg border-2 border-[var(--pf-red)]/30 bg-white px-3.5 py-3 shadow-[var(--pf-shadow-sm)]"
+                ? "rounded-lg border-2 border-[var(--pf-red)]/30 bg-[var(--pf-surface)] px-3.5 py-3 shadow-[var(--pf-shadow-sm)]"
                 : "rounded-lg border border-[var(--pf-border)] px-3.5 py-3"
             }
           >

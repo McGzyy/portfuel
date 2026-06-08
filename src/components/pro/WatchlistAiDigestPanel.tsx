@@ -130,7 +130,7 @@ export function WatchlistAiDigestPanel({
               {digest.highlights.map((h) => (
                 <li
                   key={h.symbol}
-                  className="rounded-lg border border-white/80 bg-white/90 px-3 py-2.5"
+                  className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-2.5"
                 >
                   <Link
                     href={journalSymbolPath(h.symbol)}

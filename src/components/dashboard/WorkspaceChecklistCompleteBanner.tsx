@@ -74,7 +74,7 @@ export function WorkspaceChecklistCompleteBanner({
       <button
         type="button"
         onClick={dismiss}
-        className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-lg text-emerald-800/70 hover:bg-white/60 hover:text-emerald-950"
+        className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-lg text-emerald-800/70 hover:bg-[var(--pf-surface)]/60 hover:text-emerald-950"
         aria-label="Dismiss"
       >
         <X className="h-4 w-4" strokeWidth={2.25} />

@@ -33,7 +33,7 @@ export function LeaderboardTable({
       className={
         embedded
           ? "overflow-hidden"
-          : "overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]"
+          : "overflow-hidden pf-card-elevated"
       }
     >
       <table className="w-full text-left text-sm">

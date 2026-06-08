@@ -203,7 +203,7 @@ export function ThesisCoachPanel({
       {error ? <p className="mt-3 text-sm text-rose-600">{error}</p> : null}
 
       {result ? (
-        <div className="mt-5 space-y-4 rounded-lg border border-[var(--pf-border)] bg-white p-4">
+        <div className="pf-workspace-panel mt-5 space-y-4 p-4">
           <p className="text-sm leading-relaxed text-[var(--pf-gray-700)]">{result.review.summary}</p>
 
           <div className="flex flex-wrap gap-2">

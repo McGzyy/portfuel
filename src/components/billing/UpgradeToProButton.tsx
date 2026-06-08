@@ -111,7 +111,7 @@ export function UpgradeToProButton({ className }: { className?: string }) {
 
   return (
     <div className={className}>
-      <div className="rounded-lg border border-[var(--pf-border)] bg-white p-4">
+      <div className="pf-workspace-panel p-4">
         <p className="text-sm font-semibold text-[var(--pf-black)]">
           Upgrade to Pro Intelligence — {proMonthly}/mo
         </p>

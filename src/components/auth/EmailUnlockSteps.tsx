@@ -43,7 +43,7 @@ export function EmailUnlockSteps({
                 "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-semibold uppercase tracking-wide",
                 done && "border-emerald-200 bg-emerald-50 text-emerald-800",
                 active && "border-[var(--pf-red)]/40 bg-[var(--pf-red-muted)] text-[var(--pf-red)]",
-                !done && !active && "border-[var(--pf-border)] bg-white text-[var(--pf-gray-400)]"
+                !done && !active && "border-[var(--pf-border)] bg-[var(--pf-surface)] text-[var(--pf-gray-400)]"
               )}
             >
               {done ? (

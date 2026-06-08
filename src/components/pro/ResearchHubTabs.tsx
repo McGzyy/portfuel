@@ -30,8 +30,8 @@ export function ResearchHubTabs({ active }: { active: ResearchHubTab }) {
             className={cn(
               "shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors",
               isActive
-                ? "border-[var(--pf-black)] bg-[var(--pf-black)] text-white"
-                : "border-[var(--pf-border)] bg-white text-[var(--pf-gray-700)] hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-gray-50)]"
+                ? "pf-pill-active border"
+                : "pf-pill-inactive border hover:border-[var(--pf-gray-300)]"
             )}
           >
             {tab.label}

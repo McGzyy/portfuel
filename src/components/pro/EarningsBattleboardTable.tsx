@@ -44,7 +44,7 @@ export function EarningsBattleboardTable({ rows }: { rows: EarningsBattleboardRo
         ]}
       />
 
-      <div className="overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]">
+      <div className="overflow-hidden pf-card-elevated">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead>
