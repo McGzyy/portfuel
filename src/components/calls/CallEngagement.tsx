@@ -14,12 +14,15 @@ export function CallEngagement({
   initialCommentCount = 0,
   interactive = false,
   compact = false,
+  embedded = false,
 }: {
   callId: string;
   initialVoteScore?: number;
   initialCommentCount?: number;
   interactive?: boolean;
   compact?: boolean;
+  /** Inside a parent footer — skip outer top border/spacing. */
+  embedded?: boolean;
 }) {
   const router = useRouter();
   const [voteScore, setVoteScore] = useState(initialVoteScore);
@@ -120,7 +123,12 @@ export function CallEngagement({
     voteScore > 0 ? `+${voteScore}` : voteScore < 0 ? String(voteScore) : "0";
 
   return (
-    <div className={cn("border-t border-[var(--pf-border)]", compact ? "mt-3 pt-3" : "mt-4 pt-3")}>
+    <div
+      className={cn(
+        !embedded && "border-t border-[var(--pf-border)]",
+        !embedded && (compact ? "mt-3 pt-3" : "mt-4 pt-3")
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1">
           {interactive ? (

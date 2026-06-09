@@ -103,6 +103,7 @@ export function ChartCallDetailModal({
             showUpgrade={showUpgrade}
             canGenerateSummary={canGenerateSummary}
             isAdmin={isAdmin}
+            showSymbol
           />
         </div>
         <div className="pf-chart-modal-bar shrink-0 border-t border-[var(--pf-border)] px-4 py-3">

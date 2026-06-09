@@ -33,7 +33,7 @@ export function WorkspaceOverviewStats({
         : `${watchlistCount} of ${MAX_WATCHLIST} slots`;
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
       <WorkspaceStatCard
         label="Win rate"
         value={winRate != null ? `${winRate}%` : "—"}

@@ -53,12 +53,18 @@ export function HotTickersStrip({
           Hot in feed
         </p>
       ) : null}
-      <div className={embedded ? "flex flex-wrap gap-2" : "mt-2 flex flex-wrap gap-2"}>
+      <div
+        className={
+          embedded
+            ? "flex flex-col gap-2 sm:flex-row sm:flex-wrap"
+            : "mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap"
+        }
+      >
         {tickers.map((t) => (
           <Link
             key={t.symbol}
             href={`/ticker/${t.symbol}`}
-            className="pf-hot-ticker-chip"
+            className="pf-hot-ticker-chip w-full sm:w-auto"
           >
             <MiniSparkline points={series[t.symbol] ?? []} />
             <span className="font-mono text-[var(--pf-black)]">{t.symbol}</span>

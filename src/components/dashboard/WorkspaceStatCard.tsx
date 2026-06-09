@@ -18,19 +18,23 @@ export function WorkspaceStatCard({
 }) {
   const body = (
     <>
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-        {label}
-      </p>
-      <p
-        className={cn(
-          "mt-1.5 text-2xl font-bold tabular-nums tracking-tight text-[var(--foreground)]",
-          accent === "positive" && "text-[var(--pf-positive)]",
-          accent === "negative" && "text-[var(--pf-negative)]"
-        )}
-      >
-        {value}
-      </p>
-      {hint ? <p className="mt-1 text-xs text-[var(--pf-gray-500)]">{hint}</p> : null}
+      <div className="flex items-baseline justify-between gap-2 sm:block">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+          {label}
+        </p>
+        <p
+          className={cn(
+            "pf-stat-card-value shrink-0 text-xl font-bold tabular-nums tracking-tight text-[var(--foreground)] sm:mt-1.5 sm:text-2xl",
+            accent === "positive" && "text-[var(--pf-positive)]",
+            accent === "negative" && "text-[var(--pf-negative)]"
+          )}
+        >
+          {value}
+        </p>
+      </div>
+      {hint ? (
+        <p className="mt-1 truncate text-[11px] text-[var(--pf-gray-500)] sm:text-xs">{hint}</p>
+      ) : null}
     </>
   );
 

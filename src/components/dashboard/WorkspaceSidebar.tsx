@@ -21,6 +21,7 @@ import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav
 import { WorkspaceGuideTrigger } from "@/components/dashboard/WorkspaceGuideTrigger";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
+import { MemberAvatar } from "@/components/member/MemberAvatar";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
@@ -55,10 +56,15 @@ export function WorkspaceSidebar({
   return (
     <aside className="pf-workspace-sidebar flex h-full min-h-0 w-full flex-col">
       <div className="shrink-0 border-b border-[var(--pf-border)] px-4 py-4">
-        <p className="truncate text-sm font-bold text-[var(--foreground)]">{displayName}</p>
-        <p className="mt-0.5 truncate font-mono text-[11px] text-[var(--pf-gray-500)]">
-          @{username}
-        </p>
+        <Link href={`/member/${username}`} className="flex items-center gap-3">
+          <MemberAvatar displayName={displayName} username={username} size="lg" />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold text-[var(--foreground)]">{displayName}</p>
+            <p className="mt-0.5 truncate font-mono text-[11px] text-[var(--pf-gray-500)]">
+              @{username}
+            </p>
+          </div>
+        </Link>
       </div>
 
       <nav

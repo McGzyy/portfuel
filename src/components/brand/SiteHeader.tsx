@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
 import type { HeaderUser } from "@/lib/auth/session-user";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { MemberAvatar } from "@/components/member/MemberAvatar";
 import { cn } from "@/lib/utils";
 
 export function SiteHeader({
@@ -35,7 +36,17 @@ export function SiteHeader({
           inWorkspace ? "max-w-none lg:px-6" : "max-w-6xl"
         )}
       >
-        <LogoThemed size="xs" href={logoHref} className="min-w-0 shrink-0 sm:hidden" unoptimized />
+        {inWorkspace && user ? (
+          <MemberAvatar
+            displayName={user.displayName}
+            username={user.username}
+            href={`/member/${user.username}`}
+            size="md"
+            className="sm:hidden"
+          />
+        ) : (
+          <LogoThemed size="xs" href={logoHref} className="min-w-0 shrink-0 sm:hidden" unoptimized />
+        )}
         <LogoThemed size="md" href={logoHref} className="hidden min-w-0 shrink-0 sm:inline-flex" unoptimized />
         {inWorkspace && centerSlot ? (
           <div className="flex min-w-0 flex-1 items-center justify-center px-0.5 sm:px-4">

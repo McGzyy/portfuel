@@ -28,6 +28,7 @@ import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav
 import { WorkspaceGuideTrigger } from "@/components/dashboard/WorkspaceGuideTrigger";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
+import { MemberAvatar } from "@/components/member/MemberAvatar";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
@@ -115,10 +116,17 @@ export function MemberNav({
         inert={drawerOpen ? undefined : true}
       >
         <div className="flex items-center justify-between border-b border-[var(--pf-border)] px-4 py-3">
-          <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-[var(--pf-black)]">{displayName}</p>
-            <p className="truncate font-mono text-[11px] text-[var(--pf-gray-500)]">@{username}</p>
-          </div>
+          <Link
+            href={`/member/${username}`}
+            onClick={() => setDrawerOpen(false)}
+            className="flex min-w-0 items-center gap-3"
+          >
+            <MemberAvatar displayName={displayName} username={username} size="lg" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-[var(--pf-black)]">{displayName}</p>
+              <p className="truncate font-mono text-[11px] text-[var(--pf-gray-500)]">@{username}</p>
+            </div>
+          </Link>
           <button
             type="button"
             onClick={() => setDrawerOpen(false)}

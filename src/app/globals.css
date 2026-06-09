@@ -511,6 +511,78 @@ body {
   box-shadow: var(--pf-shadow-sm);
 }
 
+/* Ticker page — community call theses */
+.pf-ticker-thesis {
+  position: relative;
+}
+
+.pf-ticker-thesis::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: var(--pf-radius-lg) 0 0 var(--pf-radius-lg);
+}
+
+.pf-ticker-thesis-long::before {
+  background: linear-gradient(180deg, #059669 0%, rgba(5, 150, 105, 0.35) 100%);
+}
+
+.pf-ticker-thesis-short::before {
+  background: linear-gradient(180deg, var(--pf-red) 0%, rgba(227, 27, 35, 0.35) 100%);
+}
+
+.pf-ticker-calls-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--pf-border);
+  background: var(--pf-gray-50);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--pf-gray-600);
+}
+
+.pf-ticker-calls-chip-long {
+  border-color: rgba(5, 150, 105, 0.25);
+  background: rgba(5, 150, 105, 0.08);
+  color: #047857;
+}
+
+.pf-ticker-calls-chip-short {
+  border-color: rgba(227, 27, 35, 0.25);
+  background: rgba(227, 27, 35, 0.08);
+  color: var(--pf-red);
+}
+
+.pf-ticker-calls-chip-fueled {
+  border-color: rgba(227, 27, 35, 0.35);
+  background: rgba(227, 27, 35, 0.1);
+  color: var(--pf-red);
+}
+
+.pf-ticker-metric-tile dt {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pf-gray-500);
+}
+
+.pf-ticker-metric-tile dd {
+  margin-top: 0.25rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--pf-black);
+}
+
 /* Settings — mobile section picker + tighter rhythm */
 @media (max-width: 1023px) {
   .pf-settings-mobile-nav {
@@ -539,6 +611,17 @@ body {
   background: #fff;
   padding: 1rem 1.25rem;
   box-shadow: var(--pf-shadow-sm);
+}
+
+@media (max-width: 639px) {
+  .pf-stat-card {
+    padding: 0.625rem 0.75rem;
+  }
+}
+
+.pf-track-record-stats .pf-hero-stat {
+  min-width: 4.75rem;
+  flex-shrink: 0;
 }
 
 /* Workspace cross-page nav rail (below command headers) */
@@ -1209,6 +1292,7 @@ body {
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.45);
 }
 
+[data-theme="dark"] .pf-ticker-thesis,
 [data-theme="dark"] .pf-workspace-panel,
 [data-theme="dark"] .pf-stat-card,
 [data-theme="dark"] .pf-chart-frame,
@@ -1268,6 +1352,22 @@ body {
     rgba(0, 0, 0, 0.72) 0%,
     rgba(17, 17, 17, 0.92) 40%
   );
+}
+
+[data-theme="dark"] .pf-ticker-calls-chip {
+  background: var(--pf-gray-100);
+  color: var(--pf-gray-500);
+}
+
+[data-theme="dark"] .pf-ticker-calls-chip-long {
+  background: rgba(5, 150, 105, 0.12);
+  color: #34d399;
+}
+
+[data-theme="dark"] .pf-ticker-calls-chip-short,
+[data-theme="dark"] .pf-ticker-calls-chip-fueled {
+  background: rgba(227, 27, 35, 0.12);
+  color: #f87171;
 }
 
 [data-theme="dark"] .pf-pro-gate-overlay-preview {
@@ -1390,17 +1490,18 @@ body {
 }
 
 [data-theme="dark"] .pf-pill-active {
-  border-color: rgba(227, 27, 35, 0.45);
-  background-color: rgba(227, 27, 35, 0.14) !important;
+  border-color: var(--pf-gray-200);
+  background-color: var(--pf-gray-100) !important;
   color: var(--foreground) !important;
-  box-shadow: inset 0 0 0 1px rgba(227, 27, 35, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 /* Light mode: nav uses brand black pill; dark mode overrides below */
 [data-theme="dark"] .pf-nav-link-active {
-  border: 1px solid rgba(227, 27, 35, 0.35);
-  background-color: rgba(227, 27, 35, 0.12) !important;
+  border: 1px solid var(--pf-gray-200);
+  background-color: var(--pf-gray-50) !important;
   color: var(--foreground) !important;
+  box-shadow: inset 3px 0 0 var(--pf-red);
 }
 
 [data-theme="dark"] .pf-tab-shell {
@@ -1793,6 +1894,18 @@ body {
   background-color: var(--pf-gray-50);
 }
 
+[data-theme="dark"] .pf-chip-action {
+  border-color: var(--pf-gray-200);
+  background-color: var(--pf-gray-50);
+  color: var(--pf-gray-500);
+}
+
+[data-theme="dark"] .pf-chip-action:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background-color: var(--pf-gray-100);
+  color: var(--foreground);
+}
+
 .pf-chip-action-muted {
   color: var(--pf-gray-500);
 }
@@ -1991,22 +2104,70 @@ body {
 .pf-hot-ticker-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.625rem;
-  border-radius: 9999px;
+  gap: 0.75rem;
+  border-radius: var(--pf-radius-lg);
   border: 1px solid var(--pf-border);
-  background-color: var(--pf-surface);
-  padding: 0.375rem 0.875rem 0.375rem 0.75rem;
-  font-size: 0.75rem;
+  background: linear-gradient(180deg, var(--pf-surface) 0%, var(--pf-gray-50) 100%);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   box-shadow: var(--pf-shadow-sm);
   transition:
     border-color 0.15s ease,
-    background-color 0.15s ease;
+    background-color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .pf-hot-ticker-chip:hover {
   border-color: var(--pf-gray-200);
   background-color: var(--pf-gray-50);
+}
+
+[data-theme="dark"] .pf-hot-ticker-chip {
+  border-color: var(--pf-gray-200);
+  background: linear-gradient(180deg, var(--pf-gray-50) 0%, var(--pf-surface) 100%);
+}
+
+[data-theme="dark"] .pf-hot-ticker-chip:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--pf-gray-50);
+}
+
+.pf-referral-strip-btn-primary {
+  border: 1px solid transparent;
+  background: var(--pf-red);
+  color: #fff;
+  transition: background-color 0.15s ease;
+}
+
+.pf-referral-strip-btn-primary:hover {
+  background: var(--pf-red-hover);
+}
+
+.pf-referral-strip-btn-secondary {
+  border: 1px solid var(--pf-border);
+  background: var(--pf-surface);
+  color: var(--pf-gray-700);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.pf-referral-strip-btn-secondary:hover {
+  border-color: var(--pf-gray-300);
+  background: var(--pf-gray-50);
+  color: var(--pf-black);
+}
+
+[data-theme="dark"] .pf-referral-strip-btn-secondary {
+  background: var(--pf-gray-50);
+  color: var(--pf-gray-500);
+}
+
+[data-theme="dark"] .pf-referral-strip-btn-secondary:hover {
+  background: var(--pf-gray-100);
+  color: var(--foreground);
 }
 
 .pf-workspace-chip {

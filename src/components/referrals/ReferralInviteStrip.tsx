@@ -51,18 +51,18 @@ export function ReferralOverviewStrip({ prompt }: { prompt: ReferralInvitePrompt
   }
 
   return (
-    <section className="pf-workspace-panel relative p-4 sm:p-5">
+    <section className="pf-referral-strip relative overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-surface)] p-4 shadow-[var(--pf-shadow-sm)] sm:p-5">
       <button
         type="button"
         onClick={dismiss}
-        className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--pf-gray-500)] hover:bg-[var(--pf-gray-50)] hover:text-[var(--pf-black)]"
+        className="absolute right-2.5 top-2.5 inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--pf-gray-500)] hover:bg-[var(--pf-gray-50)] hover:text-[var(--pf-black)]"
         aria-label="Dismiss referral invite"
       >
         <X className="h-4 w-4" strokeWidth={2.25} />
       </button>
-      <div className="flex flex-col gap-4 pr-8 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 pr-6 sm:flex-row sm:items-center sm:justify-between sm:pr-8">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
             <Gift className="h-5 w-5" strokeWidth={2.25} aria-hidden />
           </span>
           <div className="min-w-0">
@@ -76,17 +76,17 @@ export function ReferralOverviewStrip({ prompt }: { prompt: ReferralInvitePrompt
             </p>
           </div>
         </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
+        <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:min-w-[13rem] sm:flex-row">
           <button
             type="button"
             onClick={() => void copy()}
-            className="rounded-lg bg-[var(--pf-black)] px-4 py-2 text-xs font-semibold text-white hover:bg-[var(--pf-gray-800)]"
+            className="pf-referral-strip-btn-primary w-full rounded-lg px-4 py-2.5 text-xs font-semibold sm:flex-1"
           >
             {copied ? "Link copied" : "Copy invite link"}
           </button>
           <Link
             href="/dashboard/settings#referrals"
-            className="pf-chip-action px-3 py-2 text-xs font-semibold"
+            className="pf-referral-strip-btn-secondary inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-xs font-semibold sm:flex-1"
           >
             Referrals →
           </Link>

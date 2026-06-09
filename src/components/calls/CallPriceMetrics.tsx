@@ -8,8 +8,9 @@ type CallPriceMetricsProps = {
   target_progress?: number | null;
   timeframe_tag?: string | null;
   compact?: boolean;
-  /** Last price was recomputed from market data on this page load. */
   live?: boolean;
+  /** Strip layout for ticker thesis cards. */
+  variant?: "default" | "strip";
 };
 
 export function CallPriceMetrics({
@@ -21,12 +22,62 @@ export function CallPriceMetrics({
   timeframe_tag,
   compact,
   live,
+  variant = "default",
 }: CallPriceMetricsProps) {
   const hasPrices = entry_price != null || target_price != null || stop_price != null;
   const progress =
     target_progress != null ? Math.min(100, Math.max(0, target_progress)) : null;
 
   if (!hasPrices && progress == null && !timeframe_tag) return null;
+
+  if (variant === "strip") {
+    return (
+      <div className="border-t border-[var(--pf-border)] bg-[var(--pf-gray-50)]/40 px-5 py-4 sm:px-6">
+        {hasPrices ? (
+          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {entry_price != null ? (
+              <div className="pf-ticker-metric-tile">
+                <dt>Entry</dt>
+                <dd>${formatPrice(Number(entry_price))}</dd>
+              </div>
+            ) : null}
+            {target_price != null ? (
+              <div className="pf-ticker-metric-tile">
+                <dt>Target</dt>
+                <dd>${formatPrice(Number(target_price))}</dd>
+              </div>
+            ) : null}
+            {stop_price != null ? (
+              <div className="pf-ticker-metric-tile">
+                <dt>Stop</dt>
+                <dd>${formatPrice(Number(stop_price))}</dd>
+              </div>
+            ) : null}
+            {last_price != null ? (
+              <div className="pf-ticker-metric-tile">
+                <dt>{live ? "Last (live)" : "Last"}</dt>
+                <dd>${formatPrice(Number(last_price))}</dd>
+              </div>
+            ) : null}
+          </dl>
+        ) : null}
+        {progress != null ? (
+          <div className={cn(hasPrices && "mt-4")}>
+            <div className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
+              <span>Progress to target</span>
+              <span className="tabular-nums">{progress.toFixed(0)}%</span>
+            </div>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--pf-gray-200)]">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[var(--pf-red)] to-[var(--pf-red-hover)] transition-[width] duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div className={cn("border-t border-[var(--pf-border)]/80", compact ? "mt-3 pt-3" : "mt-4 pt-4")}>
