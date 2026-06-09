@@ -7,7 +7,7 @@ import { verifyPassword } from "@/lib/auth/password";
 import { checkRateLimit, recordAuthAttempt } from "@/lib/auth/rate-limit";
 import { buildSessionPayloadForUser } from "@/lib/auth/session-lifecycle";
 import { isEmailVerificationRequired } from "@/lib/member-lifecycle/config";
-import { createSession } from "@/lib/auth/session";
+import { establishSession } from "@/lib/auth/session";
 import { normalizeUsername } from "@/lib/auth/username";
 import { verifyTotpToken } from "@/lib/auth/totp";
 import { needsOnboarding } from "@/lib/onboarding/service";
@@ -93,10 +93,14 @@ export async function POST(request: Request) {
 
     await recordAuthAttempt(username, ip, true);
 
-    await createSession(
+    await establishSession(
       await buildSessionPayloadForUser(user, {
         onboardingCompleted: !needsOnboarding(user),
-      })
+      }),
+      {
+        userAgent: request.headers.get("user-agent") ?? undefined,
+        ip,
+      }
     );
 
     const needsOnboardingWizard =

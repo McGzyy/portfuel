@@ -126,10 +126,14 @@ export async function middleware(request: NextRequest) {
   if (isProtected || isLifecycle) {
     const { session, freshToken } = await resolveSession();
     if (!session) {
-      if (isLifecycle && pathname.startsWith(emailVerifyPath)) {
-        return NextResponse.redirect(new URL("/login", request.url));
+      const loginRedirect = NextResponse.redirect(new URL("/login", request.url));
+      if (token) {
+        loginRedirect.cookies.delete(COOKIE_NAME);
       }
-      return NextResponse.redirect(new URL("/login", request.url));
+      if (isLifecycle && pathname.startsWith(emailVerifyPath)) {
+        return loginRedirect;
+      }
+      return loginRedirect;
     }
 
     if (session.banned) {

@@ -285,16 +285,6 @@ body {
   box-shadow: 0 1px 0 var(--pf-border);
 }
 
-.pf-help-mobile-nav {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  margin: 0 -0.125rem;
-  padding-bottom: 0.25rem;
-  background: color-mix(in srgb, var(--pf-workspace-bg, var(--pf-gray-50)) 92%, transparent);
-  backdrop-filter: blur(8px);
-}
-
 .pf-ticker-shell {
   border-radius: var(--pf-radius-lg);
   border: 1px solid var(--pf-border);
@@ -1332,10 +1322,6 @@ body {
     color-mix(in srgb, var(--pf-surface) 70%, #000) 0%,
     var(--pf-surface) 100%
   );
-}
-
-[data-theme="dark"] .pf-help-mobile-nav {
-  background: color-mix(in srgb, var(--pf-workspace-bg, #0a0a0a) 92%, transparent);
 }
 
 [data-theme="dark"] .pf-ticker-thesis,

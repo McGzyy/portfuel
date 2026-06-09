@@ -3,7 +3,8 @@
 import { Suspense } from "react";
 import { HelpDocsPanel } from "@/components/help/HelpDocsPanel";
 import { HelpAssistantPanel } from "@/components/help/HelpAssistantPanel";
-import { HelpNav, HelpNavMobile } from "@/components/help/HelpNav";
+import { HelpNav } from "@/components/help/HelpNav";
+import { HelpSectionPicker } from "@/components/help/HelpSectionPicker";
 import { HelpSearchBar } from "@/components/help/HelpSearchBar";
 import { SupportTicketsPanel } from "@/components/help/SupportTicketsPanel";
 import { getHelpSection, type HelpSectionId } from "@/lib/help/content";
@@ -31,9 +32,9 @@ function HelpWorkspaceInner({
         </p>
       </header>
 
-      <HelpNavMobile active={sectionId} ticketsView={ticketsView} />
-
       <HelpSearchBar />
+
+      <HelpSectionPicker active={sectionId} ticketsView={ticketsView} />
 
       <div className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-8">
         <div className="hidden lg:block">

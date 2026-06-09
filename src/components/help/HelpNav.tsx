@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LifeBuoy, Ticket } from "lucide-react";
+import { Ticket } from "lucide-react";
 import {
   HELP_SECTIONS,
   helpSectionHref,
@@ -67,65 +67,5 @@ export function HelpNav({
         </span>
       </Link>
     </nav>
-  );
-}
-
-export function HelpNavMobile({
-  active,
-  ticketsView,
-}: {
-  active: HelpSectionId;
-  ticketsView: boolean;
-}) {
-  const activeMeta = ticketsView
-    ? { label: "Support tickets", description: "Open a case or track replies" }
-    : HELP_SECTIONS.find((s) => s.id === active);
-
-  return (
-    <div className="pf-help-mobile-nav lg:hidden">
-      <nav
-        className="pf-workspace-panel flex gap-2 overflow-x-auto p-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        aria-label="Help topics"
-      >
-        {HELP_SECTIONS.map((item) => {
-          const isActive = !ticketsView && item.id === active;
-          return (
-            <Link
-              key={item.id}
-              href={helpSectionHref(item.id)}
-              className={cn(
-                "flex min-w-[7.5rem] shrink-0 flex-col justify-center rounded-lg border px-3 py-2.5 transition-colors",
-                isActive
-                  ? "pf-pill-active shadow-[var(--pf-shadow-sm)]"
-                  : "border-transparent bg-[var(--pf-gray-50)] text-[var(--pf-gray-700)] active:bg-[var(--pf-gray-100)]"
-              )}
-            >
-              <span className="text-sm font-semibold leading-tight">{item.mobileLabel}</span>
-            </Link>
-          );
-        })}
-        <Link
-          href={helpSectionHref(active, "tickets")}
-          className={cn(
-            "flex min-w-[7.5rem] shrink-0 items-center gap-2 rounded-lg border px-3 py-2.5 transition-colors",
-            ticketsView
-              ? "pf-pill-active shadow-[var(--pf-shadow-sm)]"
-              : "border-transparent bg-[var(--pf-gray-50)] text-[var(--pf-gray-700)]"
-          )}
-        >
-          <Ticket className="h-4 w-4 shrink-0" />
-          <span className="text-sm font-semibold">Tickets</span>
-        </Link>
-      </nav>
-      {activeMeta ? (
-        <div className="mt-3 flex items-start gap-2 px-0.5">
-          <LifeBuoy className="mt-0.5 h-4 w-4 shrink-0 text-[var(--pf-red)]" />
-          <div>
-            <h2 className="text-base font-bold text-[var(--foreground)]">{activeMeta.label}</h2>
-            <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">{activeMeta.description}</p>
-          </div>
-        </div>
-      ) : null}
-    </div>
   );
 }

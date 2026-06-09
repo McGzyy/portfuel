@@ -12,6 +12,7 @@ import { ProfileVouchersSection } from "@/components/profile/ProfileVouchersSect
 import { ProfileDiscordSection } from "@/components/profile/ProfileDiscordSection";
 import { SettingsAccountSummary } from "@/components/settings/SettingsAccountSummary";
 import { SettingsMembershipOverview } from "@/components/settings/SettingsMembershipOverview";
+import { SettingsSecuritySection } from "@/components/settings/SettingsSecuritySection";
 import { SettingsDangerZone } from "@/components/settings/SettingsDangerZone";
 import { SettingsAppearanceSection } from "@/components/settings/SettingsAppearanceSection";
 import { BillingReturnFeedbackPrompt } from "@/components/settings/BillingReturnFeedbackPrompt";
@@ -136,6 +137,12 @@ export default async function DashboardSettingsPage({
                   subscriptionStatus={profile.subscriptionStatus}
                   stripeCustomerId={profile.stripeCustomerId}
                 />
+              </section>
+            ) : null}
+
+            {section === "security" ? (
+              <section aria-label="Security">
+                <SettingsSecuritySection />
               </section>
             ) : null}
 

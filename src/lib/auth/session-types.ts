@@ -18,4 +18,8 @@ export type SessionPayload = {
   onboardingCompleted: boolean;
   themeMode: "light" | "dark";
   iconTheme: "auto" | "dark" | "red" | "light";
+  /** Per-login session row for security settings. */
+  sessionId?: string;
+  /** Matches users.session_version — bump invalidates all JWTs. */
+  sessionVersion?: number;
 };

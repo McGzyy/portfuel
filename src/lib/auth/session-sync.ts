@@ -7,6 +7,10 @@ import { expireCompAccessIfNeeded } from "@/lib/billing/comp-access";
 import { parseIconTheme, parseThemeMode } from "@/lib/appearance/types";
 import type { MembershipTier } from "@/lib/stripe/config";
 import type { SessionPayload } from "@/lib/auth/session-types";
+import {
+  isAuthSessionValid,
+  touchAuthSession,
+} from "@/lib/auth/auth-sessions";
 
 function getSecret() {
   const secret = process.env.SESSION_SECRET;
@@ -121,6 +125,11 @@ export function jwtPayloadToSession(payload: Record<string, unknown>): SessionPa
     onboardingCompleted: Boolean(payload.onboardingCompleted),
     themeMode: parseThemeMode(payload.themeMode),
     iconTheme: parseIconTheme(payload.iconTheme),
+    sessionId: payload.sessionId ? String(payload.sessionId) : undefined,
+    sessionVersion:
+      payload.sessionVersion !== undefined && payload.sessionVersion !== null
+        ? Number(payload.sessionVersion)
+        : undefined,
   };
 }
 
@@ -135,14 +144,26 @@ export type RefreshSessionOptions = {
 export async function refreshSessionFromDatabase(
   session: SessionPayload,
   options?: RefreshSessionOptions
-): Promise<{ session: SessionPayload; token?: string }> {
+): Promise<{ session: SessionPayload | null; token?: string }> {
   try {
+    const valid = await isAuthSessionValid({
+      userId: session.userId,
+      sessionId: session.sessionId,
+      sessionVersion: session.sessionVersion,
+    });
+    if (!valid) {
+      return { session: null };
+    }
+
     const issuedAt = options?.jwtIssuedAt;
     if (
       !options?.force &&
       typeof issuedAt === "number" &&
       Math.floor(Date.now() / 1000) - issuedAt < SESSION_DB_REFRESH_INTERVAL_SEC
     ) {
+      if (session.sessionId) {
+        void touchAuthSession(session.sessionId);
+      }
       return { session };
     }
 
@@ -152,6 +173,9 @@ export async function refreshSessionFromDatabase(
     if (!row) return { session };
 
     void touchLastActive(session.userId);
+    if (session.sessionId) {
+      void touchAuthSession(session.sessionId);
+    }
 
     const effectiveTier = effectiveMembershipTier(
       row.membership_tier,

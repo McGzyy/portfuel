@@ -7,6 +7,7 @@ import {
   sessionCookieOptions,
   signSessionToken,
 } from "@/lib/auth/session-sync";
+import { createAuthSession, revokeAuthSession } from "@/lib/auth/auth-sessions";
 import type { SessionPayload } from "@/lib/auth/session-types";
 import type { MembershipTier } from "@/lib/stripe/config";
 import { parseIconTheme, parseThemeMode } from "@/lib/appearance/types";
@@ -26,11 +27,28 @@ function getSecret() {
   return new TextEncoder().encode(secret);
 }
 
-export async function createSession(payload: SessionPayload): Promise<void> {
-  const token = await signSessionToken(payload);
+export async function establishSession(
+  payload: SessionPayload,
+  meta?: { userAgent?: string; ip?: string }
+): Promise<void> {
+  const { sessionId, sessionVersion } = await createAuthSession({
+    userId: payload.userId,
+    userAgent: meta?.userAgent,
+    ip: meta?.ip,
+  });
+
+  const token = await signSessionToken({
+    ...payload,
+    sessionId,
+    sessionVersion,
+  });
 
   const jar = await cookies();
   jar.set(COOKIE_NAME, token, sessionCookieOptions());
+}
+
+export async function createSession(payload: SessionPayload): Promise<void> {
+  await establishSession(payload);
 }
 
 export async function destroySession(): Promise<void> {
@@ -103,6 +121,11 @@ export const getSession = cache(async function getSession(): Promise<SessionPayl
       onboardingCompleted: Boolean(payload.onboardingCompleted),
       themeMode: parseThemeMode(payload.themeMode),
       iconTheme: parseIconTheme(payload.iconTheme),
+      sessionId: payload.sessionId ? String(payload.sessionId) : undefined,
+      sessionVersion:
+        payload.sessionVersion !== undefined && payload.sessionVersion !== null
+          ? Number(payload.sessionVersion)
+          : undefined,
     };
 
     const jwtIssuedAt =
@@ -110,6 +133,10 @@ export const getSession = cache(async function getSession(): Promise<SessionPayl
     const { session: synced, token: freshToken } = await refreshSessionFromDatabase(base, {
       jwtIssuedAt,
     });
+    if (!synced) {
+      await destroySession();
+      return null;
+    }
     if (freshToken) {
       const jar = await cookies();
       jar.set(COOKIE_NAME, freshToken, sessionCookieOptions());

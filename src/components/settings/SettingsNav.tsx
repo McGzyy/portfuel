@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 
 export type SettingsSection =
   | "billing"
+  | "security"
   | "notifications"
   | "sharing"
   | "integrations"
@@ -19,6 +20,12 @@ export const SETTINGS_SECTIONS: {
     label: "Plan & billing",
     mobileLabel: "Billing",
     description: "Membership, Stripe, vouchers",
+  },
+  {
+    id: "security",
+    label: "Security",
+    mobileLabel: "Security",
+    description: "Sessions, 2FA, sign out",
   },
   {
     id: "notifications",
@@ -48,6 +55,7 @@ export const SETTINGS_SECTIONS: {
 
 export function parseSettingsSection(raw: string | undefined): SettingsSection {
   if (
+    raw === "security" ||
     raw === "notifications" ||
     raw === "sharing" ||
     raw === "integrations" ||
