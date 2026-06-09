@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/session";
-import { fetchAdminAnalytics } from "@/lib/admin/analytics";
+import {
+  fetchAdminAnalytics,
+  parseAdminAnalyticsPeriod,
+} from "@/lib/admin/analytics";
 
-export async function GET() {
+export const dynamic = "force-dynamic";
+
+export async function GET(request: Request) {
   try {
     await requireAdmin();
-    const analytics = await fetchAdminAnalytics();
+    const days = parseAdminAnalyticsPeriod(
+      new URL(request.url).searchParams.get("days")
+    );
+    const analytics = await fetchAdminAnalytics(days);
     return NextResponse.json(analytics);
   } catch (e) {
     if (e instanceof Error && e.message === "unauthorized") {

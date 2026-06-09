@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import { cn, timeAgo } from "@/lib/utils";
 
@@ -129,47 +130,43 @@ export function AdminMembersPanel() {
 
   if (loading) {
     return (
-      <div className="mt-8 flex justify-center py-16">
+      <div className="flex justify-center py-16">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--pf-border)] border-t-[var(--pf-red)]" />
       </div>
     );
   }
 
   return (
-    <div className="mt-8 space-y-5">
+    <div className="space-y-5">
       {error ? (
         <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-sm text-[var(--pf-red)]">
           {error}
         </p>
       ) : null}
 
-      <section className="pf-workspace-panel p-6">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-          Members · Directory
-        </p>
-        <h2 className="mt-1 text-lg font-bold tracking-tight text-[var(--pf-black)]">
-          Member directory
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
-          Search, filter, and open Member 360 for access, Pro grants, and moderation.
-        </p>
-        <MetricsStrip
-          variant="embedded"
-          className="mt-4 border-t border-[var(--pf-border)] pt-4 !px-0"
-          eyebrow="Roster"
-          items={[
-            { label: "Total", value: String(stats.total) },
-            { label: "Active", value: String(stats.active), accent: "positive" },
-            { label: "Pending", value: String(stats.pending) },
-            { label: "Pro", value: String(stats.pro), accent: stats.pro > 0 ? "positive" : undefined },
-            {
-              label: "Banned",
-              value: String(stats.banned),
-              accent: stats.banned > 0 ? "negative" : undefined,
-            },
-          ]}
-        />
-      </section>
+      <AdminPanelHeader
+        group="Members & support"
+        title="Member directory"
+        description="Search, filter, and open Member 360 for access, Pro grants, and moderation."
+        footer={
+          <MetricsStrip
+            variant="embedded"
+            className="border-t border-[var(--pf-border)] pt-4 !px-0"
+            eyebrow="Roster"
+            items={[
+              { label: "Total", value: String(stats.total) },
+              { label: "Active", value: String(stats.active), accent: "positive" },
+              { label: "Pending", value: String(stats.pending) },
+              { label: "Pro", value: String(stats.pro), accent: stats.pro > 0 ? "positive" : undefined },
+              {
+                label: "Banned",
+                value: String(stats.banned),
+                accent: stats.banned > 0 ? "negative" : undefined,
+              },
+            ]}
+          />
+        }
+      />
 
       {/* Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

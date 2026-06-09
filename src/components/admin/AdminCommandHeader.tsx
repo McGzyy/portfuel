@@ -11,8 +11,8 @@ export function AdminCommandHeader() {
           Administration
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
-          Members, vouchers, social publishing, desk ops, and analytics — one place for
-          day-to-day platform work.
+          Platform command center — analytics, members, billing, desk, and growth ops in one
+          workspace.
         </p>
         <Link
           href="/dashboard"

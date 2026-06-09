@@ -20,6 +20,7 @@ import {
   type SupportTicketWithUser,
 } from "@/lib/support/types";
 import { statusTone } from "@/lib/support/tickets";
+import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { cn, timeAgo } from "@/lib/utils";
 
 function StatusBadge({ status }: { status: SupportTicketStatus }) {
@@ -277,7 +278,7 @@ export function AdminSupportPanel() {
 
   if (ticketId && activeTicket) {
     return (
-      <div className="mt-8 space-y-4">
+      <div className="space-y-4">
         <button
           type="button"
           onClick={() => router.push("/admin?tab=support")}
@@ -299,16 +300,21 @@ export function AdminSupportPanel() {
   }
 
   return (
-    <div className="mt-8 space-y-6">
-      <section className="pf-workspace-panel p-6">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-          Support
-        </p>
-        <h2 className="mt-1 text-lg font-bold text-[var(--foreground)]">Ticket queue</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
-          Member support requests from the help center. Replies notify the member in-app and by email.
-        </p>
-      </section>
+    <div className="space-y-6">
+      <AdminPanelHeader
+        group="Members & support"
+        title="Ticket queue"
+        description="Member support requests from the help center. Replies notify the member in-app and by email."
+        footer={
+          openCount > 0 ? (
+            <p className="text-xs font-semibold text-amber-700">
+              {openCount} open ticket{openCount === 1 ? "" : "s"} in queue
+            </p>
+          ) : (
+            <p className="text-xs text-[var(--pf-gray-500)]">No open tickets</p>
+          )
+        }
+      />
 
       {error ? (
         <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">

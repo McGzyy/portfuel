@@ -1,9 +1,20 @@
+import { buildSignupCohorts, type SignupCohortWeek } from "@/lib/admin/cohorts";
+import { estimatePlatformMrr } from "@/lib/admin/revenue";
 import { buildDailySeries } from "@/lib/admin/time-series";
+import { cancellationReasonLabel } from "@/lib/billing/cancellation-feedback-types";
+import type { CancellationFeedbackReason } from "@/lib/billing/cancellation-feedback-types";
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import type { DailyCount } from "@/lib/admin/time-series";
+import type { BillingInterval, MembershipTier } from "@/lib/stripe/config";
+
+export type AdminAnalyticsPeriod = 7 | 30 | 90;
 
 export type AdminAnalytics = {
+  meta: {
+    periodDays: AdminAnalyticsPeriod;
+    generatedAt: string;
+  };
   members: {
     total: number;
     active: number;
@@ -12,22 +23,29 @@ export type AdminAnalytics = {
     memberTier: number;
     proTier: number;
     trusted: number;
-    signups7d: number;
-    signups30d: number;
-    activationRate30d: number | null;
-    churned30d: number;
+    signupsPeriod: number;
+    signupsPrior: number;
+    activationRatePeriod: number | null;
+    churnedPeriod: number;
+    churnedPrior: number;
   };
   revenue: {
-    /** Estimated MRR based on active tiers (excludes admin + pending). */
+    /** Estimated MRR from active tiers + billing interval (monthly/annual). */
     mrrUsd: number;
     arrUsd: number;
+    memberTierPct: number | null;
+    proTierPct: number | null;
+    monthlyBilling: number;
+    annualBilling: number;
   };
+  cohorts: SignupCohortWeek[];
   calls: {
     total: number;
-    last7d: number;
+    period: number;
+    prior: number;
     fueled: number;
     avgReturnPct: number | null;
-    callsPerActiveMember7d: number | null;
+    callsPerActiveMemberPeriod: number | null;
   };
   engagement: {
     totalComments: number;
@@ -42,63 +60,101 @@ export type AdminAnalytics = {
     invitesSent: number;
     conversionRate: number | null;
   };
+  churn: {
+    feedbackCount: number;
+    reasons: { reason: CancellationFeedbackReason; label: string; count: number }[];
+  };
   timeseries: {
     signups: DailyCount[];
     calls: DailyCount[];
   };
 };
 
-export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
-  if (isDemoMode()) return getDemoAdminAnalytics();
+function pctDelta(current: number, prior: number): number | null {
+  if (prior === 0) return current > 0 ? 100 : null;
+  return ((current - prior) / prior) * 100;
+}
+
+export function parseAdminAnalyticsPeriod(raw: string | null): AdminAnalyticsPeriod {
+  if (raw === "7") return 7;
+  if (raw === "90") return 90;
+  return 30;
+}
+
+export async function fetchAdminAnalytics(
+  periodDays: AdminAnalyticsPeriod = 30
+): Promise<AdminAnalytics> {
+  if (isDemoMode()) return getDemoAdminAnalytics(periodDays);
 
   const db = createServiceClient();
-  const since7d = new Date(Date.now() - 7 * 86400000).toISOString();
-  const since30d = new Date(Date.now() - 30 * 86400000).toISOString();
+  const now = Date.now();
+  const since = new Date(now - periodDays * 86400000).toISOString();
+  const priorSince = new Date(now - periodDays * 2 * 86400000).toISOString();
+  const cohortSince = new Date(now - 56 * 86400000).toISOString();
 
   const [
     usersRes,
-    users7Res,
-    users30Res,
-    users30StatusRes,
-    churn30Res,
+    usersPeriodRes,
+    usersPriorRes,
+    usersPeriodStatusRes,
+    churnPeriodRes,
+    churnPriorRes,
     callsRes,
-    calls7dRes,
-    calls30Res,
+    callsPeriodRes,
+    callsPriorRes,
+    callsPeriodSeriesRes,
     fueledRes,
     commentsRes,
     votesRes,
     symbolsRes,
     referralsRes,
     invitesRes,
+    churnFeedbackRes,
+    cohortUsersRes,
   ] = await Promise.all([
-    db.from("users").select("id, subscription_status, membership_tier, trusted_at, role"),
+    db
+      .from("users")
+      .select("id, subscription_status, membership_tier, trusted_at, role, billing_interval"),
     db
       .from("users")
       .select("created_at")
-      .gte("created_at", since7d)
+      .gte("created_at", since)
       .neq("role", "admin"),
     db
       .from("users")
       .select("created_at")
-      .gte("created_at", since30d)
+      .gte("created_at", priorSince)
+      .lt("created_at", since)
       .neq("role", "admin"),
     db
       .from("users")
       .select("created_at, subscription_status")
-      .gte("created_at", since30d)
+      .gte("created_at", since)
       .neq("role", "admin"),
     db
       .from("users")
       .select("id", { count: "exact", head: true })
       .eq("subscription_status", "cancelled")
-      .gte("updated_at", since30d)
+      .gte("updated_at", since)
+      .neq("role", "admin"),
+    db
+      .from("users")
+      .select("id", { count: "exact", head: true })
+      .eq("subscription_status", "cancelled")
+      .gte("updated_at", priorSince)
+      .lt("updated_at", since)
       .neq("role", "admin"),
     db.from("calls").select("id, return_pct", { count: "exact", head: true }),
     db
       .from("calls")
       .select("id", { count: "exact", head: true })
-      .gte("called_at", since7d),
-    db.from("calls").select("called_at").gte("called_at", since30d),
+      .gte("called_at", since),
+    db
+      .from("calls")
+      .select("id", { count: "exact", head: true })
+      .gte("called_at", priorSince)
+      .lt("called_at", since),
+    db.from("calls").select("called_at").gte("called_at", since),
     db
       .from("calls")
       .select("id", { count: "exact", head: true })
@@ -108,6 +164,15 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
     db.from("calls").select("symbol"),
     db.from("user_referrals").select("status"),
     db.from("referral_invites").select("status"),
+    db
+      .from("subscription_cancellation_feedback")
+      .select("reason")
+      .gte("created_at", since),
+    db
+      .from("users")
+      .select("created_at, subscription_status")
+      .gte("created_at", cohortSince)
+      .neq("role", "admin"),
   ]);
 
   const users = usersRes.data ?? [];
@@ -132,32 +197,47 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
   const avgReturnPct =
     returns.length > 0 ? returns.reduce((a, b) => a + b, 0) / returns.length : null;
 
-  const signups7d = (users7Res.data ?? []).length;
-  const signups30d = (users30Res.data ?? []).length;
-  const signups30WithStatus = users30StatusRes.data ?? [];
-  const act30 =
-    signups30WithStatus.length > 0
-      ? signups30WithStatus.filter((u) => (u as { subscription_status: string }).subscription_status === "active")
-          .length / signups30WithStatus.length
+  const signupsPeriod = (usersPeriodRes.data ?? []).length;
+  const signupsPrior = (usersPriorRes.data ?? []).length;
+  const signupsPeriodWithStatus = usersPeriodStatusRes.data ?? [];
+  const activationRatePeriod =
+    signupsPeriodWithStatus.length > 0
+      ? signupsPeriodWithStatus.filter(
+          (u) => (u as { subscription_status: string }).subscription_status === "active"
+        ).length / signupsPeriodWithStatus.length
       : null;
 
-  const memberPrice = 79;
-  const proPrice = 129;
   const activeMemberTier = activeMembers.filter((u) => u.membership_tier === "member").length;
   const activeProTier = activeMembers.filter((u) => u.membership_tier === "pro").length;
-  const mrrUsd = activeMemberTier * memberPrice + activeProTier * proPrice;
+  const activePaid = activeMemberTier + activeProTier;
+  const monthlyBilling = activeMembers.filter(
+    (u) => (u as { billing_interval?: BillingInterval }).billing_interval !== "annual"
+  ).length;
+  const annualBilling = activeMembers.filter(
+    (u) => (u as { billing_interval?: BillingInterval }).billing_interval === "annual"
+  ).length;
+  const mrrUsd = estimatePlatformMrr(
+    activeMembers.map((u) => ({
+      membership_tier: (u.membership_tier ?? "member") as MembershipTier,
+      billing_interval: (u as { billing_interval?: BillingInterval }).billing_interval,
+    }))
+  );
   const arrUsd = mrrUsd * 12;
+  const cohorts = buildSignupCohorts(cohortUsersRes.data ?? [], 8);
 
   const signupSeries = buildDailySeries(
-    (users30Res.data ?? []).map((u) => (u as { created_at: string }).created_at)
+    (usersPeriodRes.data ?? []).map((u) => (u as { created_at: string }).created_at),
+    periodDays
   );
   const callsSeries = buildDailySeries(
-    (calls30Res.data ?? []).map((c) => (c as { called_at: string }).called_at)
+    (callsPeriodSeriesRes.data ?? []).map((c) => (c as { called_at: string }).called_at),
+    periodDays
   );
 
-  const calls7d = calls7dRes.count ?? 0;
-  const callsPerActiveMember7d =
-    activeMembers.length > 0 ? calls7d / activeMembers.length : null;
+  const callsPeriod = callsPeriodRes.count ?? 0;
+  const callsPrior = callsPriorRes.count ?? 0;
+  const callsPerActiveMemberPeriod =
+    activeMembers.length > 0 ? callsPeriod / activeMembers.length : null;
 
   const callsTotal = callsRes.count ?? 0;
   const commentsTotal = commentsRes.count ?? 0;
@@ -170,7 +250,24 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
   const referralConversionRate =
     referralSignedUp > 0 ? referralConverted / referralSignedUp : null;
 
+  const churnReasonCounts = new Map<CancellationFeedbackReason, number>();
+  for (const row of churnFeedbackRes.data ?? []) {
+    const reason = (row as { reason: CancellationFeedbackReason }).reason;
+    churnReasonCounts.set(reason, (churnReasonCounts.get(reason) ?? 0) + 1);
+  }
+  const churnReasons = [...churnReasonCounts.entries()]
+    .map(([reason, count]) => ({
+      reason,
+      label: cancellationReasonLabel(reason),
+      count,
+    }))
+    .sort((a, b) => b.count - a.count);
+
   return {
+    meta: {
+      periodDays,
+      generatedAt: new Date().toISOString(),
+    },
     members: {
       total: members.length,
       active: activeMembers.length,
@@ -179,21 +276,28 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
       memberTier: activeMemberTier,
       proTier: activeProTier,
       trusted: members.filter((u) => u.trusted_at).length,
-      signups7d,
-      signups30d,
-      activationRate30d: act30,
-      churned30d: churn30Res.count ?? 0,
+      signupsPeriod,
+      signupsPrior,
+      activationRatePeriod,
+      churnedPeriod: churnPeriodRes.count ?? 0,
+      churnedPrior: churnPriorRes.count ?? 0,
     },
     revenue: {
       mrrUsd,
       arrUsd,
+      memberTierPct: activePaid > 0 ? activeMemberTier / activePaid : null,
+      proTierPct: activePaid > 0 ? activeProTier / activePaid : null,
+      monthlyBilling,
+      annualBilling,
     },
+    cohorts,
     calls: {
       total: callsTotal,
-      last7d: calls7d,
+      period: callsPeriod,
+      prior: callsPrior,
       fueled: fueledRes.count ?? 0,
       avgReturnPct,
-      callsPerActiveMember7d,
+      callsPerActiveMemberPeriod,
     },
     engagement: {
       totalComments: commentsTotal,
@@ -208,6 +312,10 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
       invitesSent,
       conversionRate: referralConversionRate,
     },
+    churn: {
+      feedbackCount: churnFeedbackRes.data?.length ?? 0,
+      reasons: churnReasons,
+    },
     timeseries: {
       signups: signupSeries,
       calls: callsSeries,
@@ -215,8 +323,22 @@ export async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
   };
 }
 
-function getDemoAdminAnalytics(): AdminAnalytics {
+/** Period-over-period % change for analytics KPIs. */
+export function adminAnalyticsDelta(current: number, prior: number): number | null {
+  return pctDelta(current, prior);
+}
+
+function getDemoAdminAnalytics(periodDays: AdminAnalyticsPeriod): AdminAnalytics {
+  const signupsPeriod = periodDays === 7 ? 3 : periodDays === 90 ? 18 : 6;
+  const signupsPrior = periodDays === 7 ? 2 : periodDays === 90 ? 14 : 4;
+  const callsPeriod = periodDays === 7 ? 11 : periodDays === 90 ? 42 : 28;
+  const callsPrior = periodDays === 7 ? 8 : periodDays === 90 ? 35 : 22;
+
   return {
+    meta: {
+      periodDays,
+      generatedAt: new Date().toISOString(),
+    },
     members: {
       total: 6,
       active: 5,
@@ -225,21 +347,36 @@ function getDemoAdminAnalytics(): AdminAnalytics {
       memberTier: 3,
       proTier: 2,
       trusted: 3,
-      signups7d: 3,
-      signups30d: 6,
-      activationRate30d: 0.83,
-      churned30d: 1,
+      signupsPeriod,
+      signupsPrior,
+      activationRatePeriod: 0.83,
+      churnedPeriod: 1,
+      churnedPrior: 0,
     },
     revenue: {
       mrrUsd: 3 * 79 + 2 * 129,
       arrUsd: (3 * 79 + 2 * 129) * 12,
+      memberTierPct: 3 / 5,
+      proTierPct: 2 / 5,
+      monthlyBilling: 4,
+      annualBilling: 1,
     },
+    cohorts: buildSignupCohorts(
+      [
+        { created_at: new Date(Date.now() - 6 * 86400000).toISOString(), subscription_status: "active" },
+        { created_at: new Date(Date.now() - 13 * 86400000).toISOString(), subscription_status: "active" },
+        { created_at: new Date(Date.now() - 20 * 86400000).toISOString(), subscription_status: "cancelled" },
+        { created_at: new Date(Date.now() - 27 * 86400000).toISOString(), subscription_status: "active" },
+      ],
+      8
+    ),
     calls: {
       total: 15,
-      last7d: 11,
+      period: callsPeriod,
+      prior: callsPrior,
       fueled: 3,
       avgReturnPct: 6.42,
-      callsPerActiveMember7d: 11 / 5,
+      callsPerActiveMemberPeriod: callsPeriod / 5,
     },
     engagement: {
       totalComments: 12,
@@ -249,14 +386,16 @@ function getDemoAdminAnalytics(): AdminAnalytics {
     },
     timeseries: {
       signups: buildDailySeries(
-        Array.from({ length: 8 }, (_, i) =>
+        Array.from({ length: Math.min(8, periodDays) }, (_, i) =>
           new Date(Date.now() - (7 - i) * 86400000).toISOString()
-        )
+        ),
+        periodDays
       ),
       calls: buildDailySeries(
-        Array.from({ length: 12 }, (_, i) =>
+        Array.from({ length: Math.min(12, periodDays) }, (_, i) =>
           new Date(Date.now() - (11 - i) * 86400000 * 0.8).toISOString()
-        )
+        ),
+        periodDays
       ),
     },
     topSymbols: [
@@ -274,6 +413,13 @@ function getDemoAdminAnalytics(): AdminAnalytics {
       converted: 2,
       invitesSent: 6,
       conversionRate: 0.5,
+    },
+    churn: {
+      feedbackCount: 2,
+      reasons: [
+        { reason: "too_expensive", label: "Too expensive", count: 1 },
+        { reason: "not_using_enough", label: "Not using it enough", count: 1 },
+      ],
     },
   };
 }

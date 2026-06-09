@@ -6,6 +6,7 @@ import {
   cancellationReasonLabel,
   type CancellationFeedbackWithUser,
 } from "@/lib/billing/cancellation-feedback-types";
+import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { cn, timeAgo } from "@/lib/utils";
 
 function formatWhen(iso: string) {
@@ -49,17 +50,12 @@ export function AdminCancellationFeedbackPanel() {
   }, [load]);
 
   return (
-    <div className="mt-8 space-y-6">
-      <section className="pf-workspace-panel p-6">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-          Churn
-        </p>
-        <h2 className="mt-1 text-lg font-bold text-[var(--pf-black)]">Cancellation feedback</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
-          Optional reasons members share when cancelling. Admins also receive email and in-app
-          alerts when feedback is submitted.
-        </p>
-      </section>
+    <div className="space-y-6">
+      <AdminPanelHeader
+        group="Members & support"
+        title="Cancellation feedback"
+        description="Optional reasons members share when cancelling. Admins also receive email and in-app alerts when feedback is submitted."
+      />
 
       {error ? (
         <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
