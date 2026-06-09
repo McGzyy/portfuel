@@ -212,6 +212,8 @@ export function AdminSocialActivityPanel() {
           <QueueBlock
             title="Member spotlight"
             empty="No opted-in calls in the publish pipeline."
+            actionHref="#member-wins"
+            actionLabel="Open member wins →"
             items={data.queue.memberWins.map((c) => ({
               key: c.callId,
               primary: `$${c.symbol} ${c.direction}`,
@@ -223,6 +225,8 @@ export function AdminSocialActivityPanel() {
           <QueueBlock
             title="Desk milestones"
             empty="No unposted Fueled milestones."
+            actionHref="#milestone-charts"
+            actionLabel="Open milestone charts →"
             items={data.queue.deskMilestones.map((c) => ({
               key: `${c.callId}-${c.milestone}`,
               primary: `$${c.symbol} · ${c.milestone.replace(/_/g, " ")}`,
@@ -313,6 +317,8 @@ function QueueBlock({
   empty,
   items,
   summary,
+  actionHref,
+  actionLabel,
 }: {
   title: string;
   empty: string;
@@ -323,12 +329,21 @@ function QueueBlock({
     badge: "ready" | "waiting";
   }>;
   summary?: string;
+  actionHref?: string;
+  actionLabel?: string;
 }) {
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-sm font-semibold text-[var(--pf-black)]">{title}</p>
-        {summary ? <p className="text-xs text-[var(--pf-gray-500)]">{summary}</p> : null}
+        <div className="flex flex-wrap items-center gap-3">
+          {summary ? <p className="text-xs text-[var(--pf-gray-500)]">{summary}</p> : null}
+          {actionHref && actionLabel && items.length > 0 ? (
+            <a href={actionHref} className="text-xs font-semibold text-[var(--pf-red)] hover:underline">
+              {actionLabel}
+            </a>
+          ) : null}
+        </div>
       </div>
       {items.length === 0 ? (
         <p className="mt-2 text-sm text-[var(--pf-gray-500)]">{empty}</p>

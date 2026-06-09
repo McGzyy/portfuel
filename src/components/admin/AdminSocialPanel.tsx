@@ -161,6 +161,13 @@ export function AdminSocialPanel() {
           >
             Jump to milestone charts →
           </a>
+          {" · "}
+          <a
+            href="#member-wins"
+            className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
+          >
+            Member wins →
+          </a>
         </p>
       </section>
 

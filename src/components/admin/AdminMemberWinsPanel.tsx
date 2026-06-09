@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import {
   AdminXPostPreview,
   type AdminXPostPreviewData,
@@ -19,13 +20,44 @@ type Candidate = {
   status: "ready" | "waiting_sustain";
 };
 
+type XConfigSummary = {
+  livePostingReady: boolean;
+  dryRun: boolean;
+  bearerTokenSet: boolean;
+};
+
 export function AdminMemberWinsPanel() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [rulesSummary, setRulesSummary] = useState("");
+  const [xConfig, setXConfig] = useState<XConfigSummary | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [postPreview, setPostPreview] = useState<AdminXPostPreviewData | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [forceRepost, setForceRepost] = useState(false);
+
+  const previewCandidate = useCallback(async (callId: string) => {
+    setLoading(true);
+    setMessage("");
+    setSelectedId(callId);
+    setPostPreview(null);
+    try {
+      const res = await fetch("/api/admin/social/member-wins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callId, previewOnly: true }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setMessage(formatPostError(json.error as string));
+        return;
+      }
+      applyPreviewResponse(json);
+      setMessage(`Preview ready · ${json.charCount} characters`);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/social/member-wins");
@@ -33,13 +65,15 @@ export function AdminMemberWinsPanel() {
     const json = (await res.json()) as {
       candidates: Candidate[];
       rulesSummary: string;
+      x: XConfigSummary;
     };
     setCandidates(json.candidates);
     setRulesSummary(json.rulesSummary);
-    if (json.candidates[0] && !selectedId) {
-      setSelectedId(json.candidates[0].callId);
-    }
-  }, [selectedId]);
+    setXConfig(json.x);
+    const pick =
+      json.candidates.find((c) => c.status === "ready") ?? json.candidates[0];
+    if (pick) await previewCandidate(pick.callId);
+  }, [previewCandidate]);
 
   useEffect(() => {
     void load();
@@ -74,29 +108,6 @@ export function AdminMemberWinsPanel() {
     }
   }
 
-  async function preview(callId: string) {
-    setLoading(true);
-    setMessage("");
-    setSelectedId(callId);
-    setPostPreview(null);
-    try {
-      const res = await fetch("/api/admin/social/member-wins", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ callId, previewOnly: true }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setMessage(formatPostError(json.error as string));
-        return;
-      }
-      applyPreviewResponse(json);
-      setMessage(`Preview ready · ${json.charCount} characters`);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function post(callId: string, dryRun: boolean) {
     setLoading(true);
     setMessage("");
@@ -105,10 +116,18 @@ export function AdminMemberWinsPanel() {
       const res = await fetch("/api/admin/social/member-wins", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ callId, dryRun, force: false }),
+        body: JSON.stringify({
+          callId,
+          dryRun,
+          force: !dryRun && forceRepost,
+        }),
       });
       const json = await res.json();
       if (!res.ok) {
+        if (json.error === "already_posted") {
+          setMessage("Already published — enable Force repost to send again.");
+          return;
+        }
         setMessage(formatPostError(json.error as string));
         return;
       }
@@ -130,7 +149,7 @@ export function AdminMemberWinsPanel() {
     : null;
 
   return (
-    <section className="pf-workspace-panel p-6">
+    <section id="member-wins" className="pf-workspace-panel p-6">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
         Member spotlight
       </p>
@@ -146,6 +165,28 @@ export function AdminMemberWinsPanel() {
         </code>{" "}
         after dry-run approval.
       </p>
+
+      {xConfig ? (
+        <MetricsStrip
+          variant="embedded"
+          className="mt-4 border-t border-[var(--pf-border)] pt-4 !px-0"
+          eyebrow="X member posts"
+          items={[
+            {
+              label: "Bearer",
+              value: xConfig.bearerTokenSet ? "Set" : "Missing",
+              accent: xConfig.bearerTokenSet ? "positive" : "negative",
+            },
+            {
+              label: "Live post",
+              value: xConfig.livePostingReady ? "Ready" : "Blocked",
+              accent: xConfig.livePostingReady ? "positive" : undefined,
+            },
+            { label: "Dry run", value: xConfig.dryRun ? "On" : "Off" },
+          ]}
+        />
+      ) : null}
+
       {rulesSummary ? (
         <p className="mt-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-3 text-xs leading-relaxed text-[var(--pf-gray-600)]">
           {rulesSummary}
@@ -192,7 +233,7 @@ export function AdminMemberWinsPanel() {
                   size="sm"
                   variant="outline"
                   disabled={loading}
-                  onClick={() => void preview(c.callId)}
+                  onClick={() => void previewCandidate(c.callId)}
                 >
                   Preview
                 </Button>
@@ -208,7 +249,12 @@ export function AdminMemberWinsPanel() {
                 <Button
                   type="button"
                   size="sm"
-                  disabled={loading || c.status !== "ready"}
+                  disabled={loading || c.status !== "ready" || !xConfig?.livePostingReady}
+                  title={
+                    xConfig?.livePostingReady
+                      ? undefined
+                      : "Set X_API_ENABLED, bearer token, and X_API_DRY_RUN=false for live posts"
+                  }
                   onClick={() => void post(c.callId, false)}
                 >
                   Publish
@@ -218,6 +264,18 @@ export function AdminMemberWinsPanel() {
           ))}
         </ul>
       )}
+
+      {candidates.length > 0 ? (
+        <label className="mt-4 inline-flex cursor-pointer items-center gap-2 text-xs font-semibold text-[var(--pf-gray-600)]">
+          <input
+            type="checkbox"
+            className="accent-[var(--pf-red)]"
+            checked={forceRepost}
+            onChange={(e) => setForceRepost(e.target.checked)}
+          />
+          Force repost (ignore idempotency)
+        </label>
+      ) : null}
 
       {selected && chartUrl && !postPreview ? (
         <div className="mt-6 space-y-2">
