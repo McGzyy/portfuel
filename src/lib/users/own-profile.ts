@@ -42,7 +42,10 @@ export type OwnProfileResult = {
   proGrantedUntil: string | null;
 };
 
-export async function fetchOwnProfile(session: SessionPayload): Promise<
+export async function fetchOwnProfile(
+  session: SessionPayload,
+  options?: { refreshQuotes?: boolean }
+): Promise<
   | {
       member: null;
       calls: [];
@@ -118,13 +121,15 @@ export async function fetchOwnProfile(session: SessionPayload): Promise<
   }
 
   let calls = await fetchUserRecentCalls(session.userId, 20);
-  const symbols = [...new Set(calls.map((c) => c.symbol.toUpperCase()))];
-  if (symbols.length > 0) {
-    try {
-      await refreshQuotesForSymbols(symbols);
-      calls = await fetchUserRecentCalls(session.userId, 20);
-    } catch (e) {
-      console.error("[own-profile/refresh quotes]", e);
+  if (options?.refreshQuotes) {
+    const symbols = [...new Set(calls.map((c) => c.symbol.toUpperCase()))];
+    if (symbols.length > 0) {
+      try {
+        await refreshQuotesForSymbols(symbols);
+        calls = await fetchUserRecentCalls(session.userId, 20);
+      } catch (e) {
+        console.error("[own-profile/refresh quotes]", e);
+      }
     }
   }
   const extended = row as {

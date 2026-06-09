@@ -153,12 +153,26 @@ export default async function DashboardOverviewPage({
   const session = await requireDashboardSession();
   const proContext = sessionToProContext(session);
   const proLocked = isProIntelligenceLocked(proContext);
-  const memberStats = await loadMemberStats(session.userId);
 
-  const performingRaw = await loadFeedCalls("performing");
-  const latestRaw = await loadFeedCalls("latest");
-  const ownProfile = await fetchOwnProfile(session);
+  const [
+    memberStats,
+    performingRaw,
+    latestRaw,
+    ownProfile,
+    weeklyQuota,
+    followingMembers,
+    followingIdsList,
+  ] = await Promise.all([
+    loadMemberStats(session.userId),
+    loadFeedCalls("performing"),
+    loadFeedCalls("latest"),
+    fetchOwnProfile(session),
+    fetchWeeklyQuotaStatus(session.userId, session.membershipTier ?? null),
+    fetchFollowingMembers(session.userId),
+    fetchFollowingIds(session.userId),
+  ]);
   const ownCalls = ownProfile.calls;
+  const followingIds = new Set(followingIdsList);
 
   const hypeScores = await fetchHypeScoresBySymbols([
     ...performingRaw.map((c) => c.symbol),
@@ -172,15 +186,8 @@ export default async function DashboardOverviewPage({
     latestCalls.map((c) => ({ symbol: c.symbol, return_pct: c.return_pct })),
     8
   );
-  const weeklyQuota = await fetchWeeklyQuotaStatus(
-    session.userId,
-    session.membershipTier ?? null
-  );
 
   const performanceSeries = buildCumulativeReturnSeries(ownCalls);
-
-  const followingMembers = await fetchFollowingMembers(session.userId);
-  const followingIds = new Set(await fetchFollowingIds(session.userId));
   const followingPreviews = filterCallsByFollowing(latestRaw, followingIds)
     .slice(0, 4)
     .map((c) => toPreview(mapCallForCard(c, hypeScores)));
@@ -194,49 +201,41 @@ export default async function DashboardOverviewPage({
   const fueledPreviews = fueledCalls.slice(0, 3).map((c) => toPreview(c));
   const featuredDesk = fueledPreviews[0] ?? null;
 
-  let watchlistItems: Awaited<ReturnType<typeof fetchWatchlist>> = [];
-  let watchlistPreview: typeof watchlistItems = [];
-  let watchlistCount = 0;
-  let journalThesisCount = 0;
-  try {
-    watchlistItems = await fetchWatchlist(session.userId);
-    watchlistCount = watchlistItems.length;
-    journalThesisCount = watchlistItems.filter((i) => i.has_thesis).length;
-    watchlistPreview = watchlistItems.slice(0, 6);
-  } catch {
-    /* optional */
-  }
+  const isPro = !proLocked;
+  const proGateCta = getProGateCta(proContext);
 
-  let emailPrefs: Awaited<ReturnType<typeof fetchEmailPrefs>> = null;
-  try {
-    emailPrefs = await fetchEmailPrefs(session.userId);
-  } catch {
-    /* optional */
-  }
+  const [
+    watchlistItems,
+    emailPrefs,
+    deskBrief,
+    portfolio,
+    fueledTrackRecord,
+    journalIdeas,
+    workspacePulse,
+    referralStats,
+  ] = await Promise.all([
+    fetchWatchlist(session.userId).catch(() => [] as Awaited<ReturnType<typeof fetchWatchlist>>),
+    fetchEmailPrefs(session.userId).catch(() => null),
+    fetchDeskBrief(),
+    fetchDeskPortfolio(),
+    fetchFueledTrackRecord(),
+    fetchJournalHighlights(session.userId).catch(
+      () => [] as Awaited<ReturnType<typeof fetchJournalHighlights>>
+    ),
+    fetchWorkspacePulse(session.userId, isPro).catch(() => null),
+    fetchReferralStats(session.userId, session.username).catch(() => null),
+  ]);
+
+  const watchlistCount = watchlistItems.length;
+  const journalThesisCount = watchlistItems.filter((i) => i.has_thesis).length;
+  const watchlistPreview = watchlistItems.slice(0, 6);
 
   let referralPrompt = null;
-  try {
-    const referralStats = await fetchReferralStats(session.userId, session.username);
+  if (referralStats) {
     const prompt = toReferralInvitePrompt(referralStats);
     if (shouldShowReferralOverviewPrompt(prompt, { publishedCall: ownCalls.length > 0 })) {
       referralPrompt = prompt;
     }
-  } catch {
-    /* optional */
-  }
-
-  const deskBrief = await fetchDeskBrief();
-  const portfolio = await fetchDeskPortfolio();
-  const fueledTrackRecord = await fetchFueledTrackRecord();
-
-  const isPro = !proLocked;
-  const proGateCta = getProGateCta(proContext);
-
-  let workspacePulse = null;
-  try {
-    workspacePulse = await fetchWorkspacePulse(session.userId, isPro);
-  } catch {
-    /* optional */
   }
 
   const ownCallCards = ownCalls.map((c) =>
@@ -251,13 +250,6 @@ export default async function DashboardOverviewPage({
 
   const journalReadyItems = watchlistItems.filter((i) => i.journal_progress?.ready_to_publish);
   const journalNextUp = pickJournalNextUp(watchlistItems);
-
-  let journalIdeas: Awaited<ReturnType<typeof fetchJournalHighlights>> = [];
-  try {
-    journalIdeas = await fetchJournalHighlights(session.userId);
-  } catch {
-    /* optional */
-  }
 
   let proTodayBrief: ReturnType<typeof buildProTodayBrief> | null = null;
   let proOverviewIntel: {

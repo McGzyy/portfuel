@@ -30,11 +30,14 @@ export default async function DashboardDeskPage() {
   const session = await requireDashboardSession();
   const proLocked = isProIntelligenceLocked(sessionToProContext(session));
 
-  const deskBrief = await fetchDeskBrief();
-  const portfolio = await fetchDeskPortfolio();
+  const [deskBrief, portfolio, latest, performing, fueledTrackRecord] = await Promise.all([
+    fetchDeskBrief(),
+    fetchDeskPortfolio(),
+    loadFeedCalls("latest"),
+    loadFeedCalls("performing"),
+    fetchFueledTrackRecord(),
+  ]);
   const portfolioCurve = buildDeskPortfolioCurve(portfolio);
-  const latest = await loadFeedCalls("latest");
-  const performing = await loadFeedCalls("performing");
   const hypeScores = await fetchHypeScoresBySymbols([
     ...latest.map((c) => c.symbol),
     ...performing.map((c) => c.symbol),
@@ -43,7 +46,6 @@ export default async function DashboardDeskPage() {
   const fueledPerforming = performing
     .filter((c) => c.is_fueled)
     .map((c) => mapCallForCard(c, hypeScores));
-  const fueledTrackRecord = await fetchFueledTrackRecord();
 
   const openPositions = portfolio.filter((e) => e.status === "open").length;
 

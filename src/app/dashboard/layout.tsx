@@ -25,30 +25,16 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await requireDashboardSession();
-  let dmUnread = 0;
-  let notifUnread = 0;
-  try {
-    [dmUnread, notifUnread] = await Promise.all([
+
+  const [unreadPair, announcements, showWorkspaceGuide] = await Promise.all([
+    Promise.all([
       countUnreadDmThreads(session.userId),
       fetchUnreadCount(session.userId),
-    ]);
-  } catch {
-    /* optional */
-  }
-
-  let announcements: Awaited<ReturnType<typeof fetchActiveAnnouncementsForUser>> = [];
-  try {
-    announcements = await fetchActiveAnnouncementsForUser(session.userId, session);
-  } catch {
-    /* migration may be pending */
-  }
-
-  let showWorkspaceGuide = false;
-  try {
-    showWorkspaceGuide = await shouldAutoShowWorkspaceGuide(session.userId, session.role);
-  } catch {
-    /* migration may be pending */
-  }
+    ]).catch(() => [0, 0] as const),
+    fetchActiveAnnouncementsForUser(session.userId, session).catch(() => []),
+    shouldAutoShowWorkspaceGuide(session.userId, session.role).catch(() => false),
+  ]);
+  const [dmUnread, notifUnread] = unreadPair;
 
   return (
     <WorkspaceSearchShell>

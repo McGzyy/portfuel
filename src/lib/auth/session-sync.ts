@@ -124,10 +124,28 @@ export function jwtPayloadToSession(payload: Record<string, unknown>): SessionPa
   };
 }
 
+const SESSION_DB_REFRESH_INTERVAL_SEC = 90;
+
+export type RefreshSessionOptions = {
+  /** Skip Supabase billing/lifecycle sync when the JWT was issued recently. */
+  jwtIssuedAt?: number;
+  force?: boolean;
+};
+
 export async function refreshSessionFromDatabase(
-  session: SessionPayload
+  session: SessionPayload,
+  options?: RefreshSessionOptions
 ): Promise<{ session: SessionPayload; token?: string }> {
   try {
+    const issuedAt = options?.jwtIssuedAt;
+    if (
+      !options?.force &&
+      typeof issuedAt === "number" &&
+      Math.floor(Date.now() / 1000) - issuedAt < SESSION_DB_REFRESH_INTERVAL_SEC
+    ) {
+      return { session };
+    }
+
     await expireProGrantIfNeeded(session.userId);
     await expireCompAccessIfNeeded(session.userId);
     const row = await fetchBillingRow(session.userId);

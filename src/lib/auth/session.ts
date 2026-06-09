@@ -1,4 +1,5 @@
 import { jwtVerify } from "jose";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { createServiceClient } from "@/lib/db/supabase";
 import {
@@ -61,7 +62,7 @@ async function resolveUsernameFromDb(
   return { username: fallback, displayName: null };
 }
 
-export async function getSession(): Promise<SessionPayload | null> {
+export const getSession = cache(async function getSession(): Promise<SessionPayload | null> {
   const jar = await cookies();
   const cookieToken = jar.get(COOKIE_NAME)?.value;
   if (!cookieToken) return null;
@@ -104,7 +105,11 @@ export async function getSession(): Promise<SessionPayload | null> {
       iconTheme: parseIconTheme(payload.iconTheme),
     };
 
-    const { session: synced, token: freshToken } = await refreshSessionFromDatabase(base);
+    const jwtIssuedAt =
+      typeof payload.iat === "number" ? payload.iat : undefined;
+    const { session: synced, token: freshToken } = await refreshSessionFromDatabase(base, {
+      jwtIssuedAt,
+    });
     if (freshToken) {
       const jar = await cookies();
       jar.set(COOKIE_NAME, freshToken, sessionCookieOptions());
@@ -113,7 +118,7 @@ export async function getSession(): Promise<SessionPayload | null> {
   } catch {
     return null;
   }
-}
+});
 
 export async function requireSession(): Promise<SessionPayload> {
   const session = await getSession();

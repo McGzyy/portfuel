@@ -76,7 +76,10 @@ export async function middleware(request: NextRequest) {
     if (!payload) return { session: null };
     const base = jwtPayloadToSession(payload);
     if (!base) return { session: null };
-    const { session, token: freshToken } = await refreshSessionFromDatabase(base);
+    const jwtIssuedAt = typeof payload.iat === "number" ? payload.iat : undefined;
+    const { session, token: freshToken } = await refreshSessionFromDatabase(base, {
+      jwtIssuedAt,
+    });
     return { session, freshToken };
   }
 

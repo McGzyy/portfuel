@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { fetchCallsFeed, refreshQuotesForSymbols } from "@/lib/calls/service";
 import { isDemoMode } from "@/lib/demo/config";
 import { getDemoProfileStats } from "@/lib/demo/fixtures";
@@ -36,11 +37,11 @@ export function mapCallForCard(
   };
 }
 
-export async function requireDashboardSession() {
+export const requireDashboardSession = cache(async function requireDashboardSession() {
   const session = await getSession();
   if (!session) redirect("/login");
   return session;
-}
+});
 
 export async function loadMemberStats(userId: string) {
   if (isDemoMode()) return getDemoProfileStats();
@@ -52,20 +53,25 @@ export async function loadMemberStats(userId: string) {
   }
 }
 
-export async function loadFeedCalls(mode: "latest" | "performing" = "latest") {
+export async function loadFeedCalls(
+  mode: "latest" | "performing" = "latest",
+  options?: { refreshQuotes?: boolean }
+) {
   if (!isDemoMode() && !hasSupabaseConfig()) return [];
   try {
     const calls = await fetchCallsFeed(mode);
+    if (!options?.refreshQuotes) return calls;
+
     const symbols = [...new Set(calls.map((c) => c.symbol.toUpperCase()))];
-    if (symbols.length > 0) {
-      try {
-        await refreshQuotesForSymbols(symbols);
-        return await fetchCallsFeed(mode);
-      } catch (e) {
-        console.error("[dashboard/refresh feed quotes]", e);
-      }
+    if (symbols.length === 0) return calls;
+
+    try {
+      await refreshQuotesForSymbols(symbols);
+      return await fetchCallsFeed(mode);
+    } catch (e) {
+      console.error("[dashboard/refresh feed quotes]", e);
+      return calls;
     }
-    return calls;
   } catch (e) {
     console.error("[dashboard/data]", e);
     return [];
@@ -81,17 +87,7 @@ export async function loadYourRecentCalls(
   if (!isDemoMode() && !hasSupabaseConfig()) return [];
   try {
     const recent = await fetchUserRecentCalls(userId, limit);
-    const symbols = [...new Set(recent.map((c) => c.symbol.toUpperCase()))];
-    if (symbols.length > 0) {
-      try {
-        await refreshQuotesForSymbols(symbols);
-      } catch (e) {
-        console.error("[dashboard/refresh your calls]", e);
-      }
-    }
-    const fresh =
-      symbols.length > 0 ? await fetchUserRecentCalls(userId, limit) : recent;
-    return fresh.map((c) => ({
+    return recent.map((c) => ({
       id: c.id,
       symbol: c.symbol,
       asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
