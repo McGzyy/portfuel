@@ -1,13 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Megaphone, Settings, Shield, User } from "lucide-react";
+import { LifeBuoy, Megaphone, Settings, Shield, User } from "lucide-react";
 import { COPY } from "@/lib/copy";
 import { WorkspaceGuideTrigger } from "@/components/dashboard/WorkspaceGuideTrigger";
 import { cn } from "@/lib/utils";
-
-const footerLinkClass =
-  "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-semibold text-[var(--pf-gray-600)] transition-colors hover:bg-[var(--pf-gray-100)] hover:text-[var(--foreground)]";
 
 export function WorkspaceSidebarFooter({
   username,
@@ -21,40 +18,47 @@ export function WorkspaceSidebarFooter({
   className?: string;
 }) {
   return (
-    <div className={cn("shrink-0 border-t border-[var(--pf-border)] p-3", className)}>
+    <div className={cn("pf-sidebar-footer shrink-0", className)}>
       <Link
         href={COPY.newCallHref}
         onClick={onNavigate}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--pf-red)] px-3 py-2.5 text-sm font-semibold text-white shadow-[var(--pf-shadow-sm)] transition-colors hover:bg-[var(--pf-red-hover)]"
+        className="pf-sidebar-footer-cta"
       >
         <Megaphone className="h-4 w-4 shrink-0" strokeWidth={2.25} />
         {COPY.publishCallCta}
       </Link>
 
-      <p className="mb-1 mt-3 px-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-        Account
-      </p>
-      <div className="space-y-0.5">
-        <Link href={`/member/${username}`} onClick={onNavigate} className={footerLinkClass}>
-          <User className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" strokeWidth={2.25} />
+      <div className="pf-sidebar-footer-links">
+        <Link href="/dashboard/help" onClick={onNavigate} className="pf-sidebar-footer-link">
+          <LifeBuoy className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+          Help
+        </Link>
+        <WorkspaceGuideTrigger
+          onOpen={onNavigate}
+          className="pf-sidebar-footer-link"
+        />
+        <Link
+          href={`/member/${username}`}
+          onClick={onNavigate}
+          className="pf-sidebar-footer-link"
+        >
+          <User className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
           Profile
         </Link>
-        <Link href="/dashboard/settings" onClick={onNavigate} className={footerLinkClass}>
-          <Settings className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" strokeWidth={2.25} />
+        <Link href="/dashboard/settings" onClick={onNavigate} className="pf-sidebar-footer-link">
+          <Settings className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
           Settings
         </Link>
         {isAdmin ? (
-          <Link href="/admin" onClick={onNavigate} className={footerLinkClass}>
-            <Shield className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" strokeWidth={2.25} />
+          <Link
+            href="/admin"
+            onClick={onNavigate}
+            className="pf-sidebar-footer-link pf-sidebar-footer-link-wide"
+          >
+            <Shield className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
             Admin
           </Link>
         ) : null}
-        <WorkspaceGuideTrigger
-          onOpen={onNavigate}
-          className={cn(footerLinkClass, "w-full text-left")}
-          iconClassName="h-4 w-4 text-[var(--pf-gray-400)]"
-          label="Workspace map"
-        />
       </div>
     </div>
   );

@@ -73,7 +73,7 @@ export function WorkspaceSidebar({
       </div>
 
       <nav
-        className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-3"
+        className="pf-sidebar-nav-scroll min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-3"
         aria-label="Workspace"
       >
         {WORKSPACE_NAV_GROUPS.map((group) => (

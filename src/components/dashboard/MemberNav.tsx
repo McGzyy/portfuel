@@ -142,7 +142,10 @@ export function MemberNav({
           </button>
         </div>
 
-        <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3" aria-label="Workspace">
+        <nav
+          className="pf-sidebar-nav-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain p-3"
+          aria-label="Workspace"
+        >
           {WORKSPACE_NAV_GROUPS.map((group) => (
             <div key={group.title} className="mb-4 last:mb-0">
               <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
