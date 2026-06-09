@@ -23,7 +23,7 @@ export function WorkspaceGuideTrigger({
         className
       )}
     >
-      <Map className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+      <Map className="h-3 w-3 shrink-0" strokeWidth={2.25} />
       Map
     </button>
   );

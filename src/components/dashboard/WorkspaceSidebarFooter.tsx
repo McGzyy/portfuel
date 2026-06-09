@@ -30,7 +30,7 @@ export function WorkspaceSidebarFooter({
 
       <div className="pf-sidebar-footer-links">
         <Link href="/dashboard/help" onClick={onNavigate} className="pf-sidebar-footer-link">
-          <LifeBuoy className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+          <LifeBuoy className="h-3 w-3 shrink-0" strokeWidth={2.25} />
           Help
         </Link>
         <WorkspaceGuideTrigger
@@ -42,20 +42,16 @@ export function WorkspaceSidebarFooter({
           onClick={onNavigate}
           className="pf-sidebar-footer-link"
         >
-          <User className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+          <User className="h-3 w-3 shrink-0" strokeWidth={2.25} />
           Profile
         </Link>
         <Link href="/dashboard/settings" onClick={onNavigate} className="pf-sidebar-footer-link">
-          <Settings className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+          <Settings className="h-3 w-3 shrink-0" strokeWidth={2.25} />
           Settings
         </Link>
         {isAdmin ? (
-          <Link
-            href="/admin"
-            onClick={onNavigate}
-            className="pf-sidebar-footer-link pf-sidebar-footer-link-wide"
-          >
-            <Shield className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+          <Link href="/admin" onClick={onNavigate} className="pf-sidebar-footer-link">
+            <Shield className="h-3 w-3 shrink-0" strokeWidth={2.25} />
             Admin
           </Link>
         ) : null}
