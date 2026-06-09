@@ -131,6 +131,7 @@ export function WorkspaceSearchTrigger({ className }: { className?: string }) {
       >
         <Search className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" strokeWidth={2.25} />
         <span className="flex-1 truncate text-left">Search symbols, journal, news…</span>
+        <kbd className="pf-kbd hidden shrink-0 sm:inline-flex">⌘K</kbd>
       </button>
     </>
   );

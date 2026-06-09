@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Settings, Link2 } from "lucide-react";
+import { CallsExportButton } from "@/components/calls/CallsExportButton";
 import { getAppOrigin } from "@/lib/social/app-url";
 
 export function ProfileOwnerBar({ username }: { username: string }) {
@@ -25,7 +26,8 @@ export function ProfileOwnerBar({ username }: { username: string }) {
         <span className="font-semibold text-[var(--pf-black)]">This is your public profile.</span>{" "}
         Others see this page when they visit your track record.
       </p>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-start gap-2">
+        <CallsExportButton />
         <button
           type="button"
           onClick={() => void copyPublicUrl()}

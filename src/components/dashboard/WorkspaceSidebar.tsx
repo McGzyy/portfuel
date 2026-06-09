@@ -16,7 +16,9 @@ import {
   Notebook,
   Trophy,
   LifeBuoy,
+  Sparkles,
 } from "lucide-react";
+import { WhatsNewBadge } from "@/components/announcements/WhatsNewBadge";
 import { COPY } from "@/lib/copy";
 import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
 import { WorkspaceGuideTrigger } from "@/components/dashboard/WorkspaceGuideTrigger";
@@ -38,6 +40,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   trophy: Trophy,
   notebook: Notebook,
   help: LifeBuoy,
+  sparkles: Sparkles,
 };
 
 export function WorkspaceSidebar({
@@ -46,12 +49,14 @@ export function WorkspaceSidebar({
   isAdmin,
   dmUnread = 0,
   notifUnread = 0,
+  whatsNewUnread = 0,
 }: {
   username: string;
   displayName: string;
   isAdmin?: boolean;
   dmUnread?: number;
   notifUnread?: number;
+  whatsNewUnread?: number;
 }) {
   const pathname = usePathname();
 
@@ -111,6 +116,9 @@ export function WorkspaceSidebar({
                       ) : null}
                       {item.href === "/dashboard/notifications" ? (
                         <NotificationUnreadBadge initial={notifUnread} />
+                      ) : null}
+                      {item.href === "/dashboard/whats-new" ? (
+                        <WhatsNewBadge count={whatsNewUnread} />
                       ) : null}
                     </span>
                   </Link>

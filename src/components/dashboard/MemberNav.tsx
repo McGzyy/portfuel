@@ -18,8 +18,10 @@ import {
   GitCompare,
   Trophy,
   LifeBuoy,
+  Sparkles,
   X,
 } from "lucide-react";
+import { WhatsNewBadge } from "@/components/announcements/WhatsNewBadge";
 import { COPY } from "@/lib/copy";
 import {
   WORKSPACE_BOTTOM_NAV,
@@ -45,6 +47,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   trophy: Trophy,
   notebook: Notebook,
   help: LifeBuoy,
+  sparkles: Sparkles,
 };
 
 function isNavActive(pathname: string, href: string, exact?: boolean) {
@@ -63,12 +66,14 @@ function isMoreActive(pathname: string): boolean {
 export function MemberNav({
   dmUnread = 0,
   notifUnread = 0,
+  whatsNewUnread = 0,
   username,
   displayName,
   isAdmin = false,
 }: {
   dmUnread?: number;
   notifUnread?: number;
+  whatsNewUnread?: number;
   username: string;
   displayName: string;
   isAdmin?: boolean;
@@ -175,6 +180,9 @@ export function MemberNav({
                         ) : null}
                         {item.href === "/dashboard/notifications" ? (
                           <NotificationUnreadBadge initial={notifUnread} />
+                        ) : null}
+                        {item.href === "/dashboard/whats-new" ? (
+                          <WhatsNewBadge count={whatsNewUnread} />
                         ) : null}
                       </span>
                     </Link>

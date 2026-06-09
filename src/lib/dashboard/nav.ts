@@ -12,7 +12,8 @@ export type DashboardNavIcon =
   | "bell"
   | "trophy"
   | "notebook"
-  | "help";
+  | "help"
+  | "sparkles";
 
 export type DashboardNavItem = {
   href: string;
@@ -104,6 +105,12 @@ export const WORKSPACE_NAV_GROUPS: { title: string; items: DashboardNavItem[] }[
   {
     title: "Support",
     items: [
+      {
+        href: "/dashboard/whats-new",
+        label: "What's new",
+        description: "Release notes and updates",
+        icon: "sparkles",
+      },
       {
         href: "/dashboard/help",
         label: "Help & support",

@@ -3,6 +3,7 @@ import { MemberNav } from "@/components/dashboard/MemberNav";
 import { ModerationBanner } from "@/components/member/ModerationBanner";
 import { WorkspaceAnnouncementStack } from "@/components/announcements/WorkspaceAnnouncementStack";
 import { fetchActiveAnnouncementsForUser } from "@/lib/announcements/service";
+import { countUnreadWhatsNew, fetchChangelogForUser } from "@/lib/announcements/changelog";
 import { WorkspaceSidebar } from "@/components/dashboard/WorkspaceSidebar";
 import { WorkspaceContent } from "@/components/dashboard/WorkspaceContent";
 import { WorkspaceGuide } from "@/components/dashboard/WorkspaceGuide";
@@ -26,15 +27,17 @@ export default async function DashboardLayout({
 }) {
   const session = await requireDashboardSession();
 
-  const [unreadPair, announcements, showWorkspaceGuide] = await Promise.all([
+  const [unreadPair, announcements, changelog, showWorkspaceGuide] = await Promise.all([
     Promise.all([
       countUnreadDmThreads(session.userId),
       fetchUnreadCount(session.userId),
     ]).catch(() => [0, 0] as const),
     fetchActiveAnnouncementsForUser(session.userId, session).catch(() => []),
+    fetchChangelogForUser(session.userId, session).catch(() => []),
     shouldAutoShowWorkspaceGuide(session.userId, session.role).catch(() => false),
   ]);
   const [dmUnread, notifUnread] = unreadPair;
+  const whatsNewUnread = countUnreadWhatsNew(changelog);
 
   return (
     <WorkspaceSearchShell>
@@ -52,12 +55,14 @@ export default async function DashboardLayout({
               isAdmin={session.role === "admin"}
               dmUnread={dmUnread}
               notifUnread={notifUnread}
+              whatsNewUnread={whatsNewUnread}
             />
           </div>
           <div className="pf-workspace-main">
             <MemberNav
               dmUnread={dmUnread}
               notifUnread={notifUnread}
+              whatsNewUnread={whatsNewUnread}
               username={session.username}
               displayName={session.displayName ?? session.username}
               isAdmin={session.role === "admin"}

@@ -1,20 +1,10 @@
 import { createServiceClient } from "@/lib/db/supabase";
-import { canAccessProIntelligence, sessionToProContext } from "@/lib/features/pro-intelligence";
+import { audienceMatches } from "@/lib/announcements/changelog-audience";
 import type { SessionPayload } from "@/lib/auth/session";
-import type { AnnouncementAudience, SiteAnnouncement } from "@/lib/announcements/types";
+import type { SiteAnnouncement } from "@/lib/announcements/types";
 
 function rowToAnnouncement(row: Record<string, unknown>): SiteAnnouncement {
   return row as unknown as SiteAnnouncement;
-}
-
-function audienceMatches(
-  audience: AnnouncementAudience,
-  session: SessionPayload
-): boolean {
-  if (audience === "all") return true;
-  const pro = canAccessProIntelligence(sessionToProContext(session));
-  if (audience === "pro") return pro;
-  return !pro;
 }
 
 export async function listAnnouncementsAdmin(): Promise<SiteAnnouncement[]> {

@@ -68,7 +68,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         question: "Is there a keyboard shortcut for search?",
         answer:
-          "Press ⌘K (Mac) or Ctrl+K (Windows) anywhere in the workspace to open quick navigation.",
+          "Press ⌘K (Mac) or Ctrl+K (Windows) to open search. Press ? for the full shortcuts reference. Use G then a letter to jump — for example G H for Overview, G U for What's new.",
       },
     ],
   },

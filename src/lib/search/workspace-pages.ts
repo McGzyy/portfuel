@@ -15,6 +15,11 @@ export const WORKSPACE_SEARCH_PAGES: SearchPageResult[] = [
     href: "/dashboard/settings",
   },
   {
+    label: "What's new",
+    description: "Release notes and product updates.",
+    href: "/dashboard/whats-new",
+  },
+  {
     label: "Help & support",
     description: "Documentation, troubleshooting, and support tickets.",
     href: "/dashboard/help",
