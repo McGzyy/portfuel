@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import { cn } from "@/lib/utils";
 
@@ -184,42 +185,37 @@ export function AdminVouchersPanel() {
 
   if (loading) {
     return (
-      <div className="mt-8 flex justify-center py-16">
+      <div className="flex justify-center py-16">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--pf-border)] border-t-[var(--pf-red)]" />
       </div>
     );
   }
 
   return (
-    <div className="mt-8 space-y-8">
+    <div className="space-y-8">
       {error ? (
         <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-sm text-[var(--pf-red)]">{error}</p>
       ) : null}
 
-      <section className="pf-workspace-panel p-6">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-          Growth · Vouchers
-        </p>
-        <h2 className="mt-1 text-lg font-bold tracking-tight text-[var(--pf-black)]">
-          Promo codes & Pro trials
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
-          Checkout discounts sync to Stripe. Pro trials grant intelligence access without changing
-          the subscription tier.
-        </p>
-        <MetricsStrip
-          variant="embedded"
-          className="mt-4 border-t border-[var(--pf-border)] pt-4 !px-0"
-          eyebrow="Inventory"
-          items={[
-            { label: "Total", value: String(stats.total) },
-            { label: "Active", value: String(stats.active), accent: "positive" },
-            { label: "Redemptions", value: String(stats.redemptions) },
-            { label: "Checkout", value: String(stats.checkout) },
-            { label: "Pro trials", value: String(stats.trials) },
-          ]}
-        />
-      </section>
+      <AdminPanelHeader
+        group="Billing & launch"
+        title="Promo codes & Pro trials"
+        description="Checkout discounts sync to Stripe. Pro trials grant intelligence access without changing the subscription tier."
+        footer={
+          <MetricsStrip
+            variant="embedded"
+            className="border-t border-[var(--pf-border)] pt-4 !px-0"
+            eyebrow="Inventory"
+            items={[
+              { label: "Total", value: String(stats.total) },
+              { label: "Active", value: String(stats.active), accent: "positive" },
+              { label: "Redemptions", value: String(stats.redemptions) },
+              { label: "Checkout", value: String(stats.checkout) },
+              { label: "Pro trials", value: String(stats.trials) },
+            ]}
+          />
+        }
+      />
 
       <form
         onSubmit={handleCreate}

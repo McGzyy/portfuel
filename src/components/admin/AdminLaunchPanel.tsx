@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, Circle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { LaunchAccessCard } from "@/components/admin/LaunchAccessCard";
 import { COPY } from "@/lib/copy";
 import { isDemoMode } from "@/lib/demo/config";
@@ -42,21 +43,21 @@ export function AdminLaunchPanel() {
   const demoOn = isDemoMode();
 
   return (
-    <div className="mt-8 space-y-8">
-      <section className="pf-workspace-panel p-6">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-          Early community
-        </p>
-        <h2 className="mt-1 text-lg font-bold text-[var(--pf-black)]">
-          The feed fills when you publish — then when members join
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
-          An empty feed is normal before launch. Fueled desk content and a few real members make the
-          workspace feel professional. Full playbook:{" "}
-          <code className="rounded bg-[var(--pf-gray-100)] px-1 py-0.5 text-xs">docs/LAUNCH-PLAYBOOK.md</code>
-          .
-        </p>
-      </section>
+    <div className="space-y-8">
+      <AdminPanelHeader
+        group="Billing & launch"
+        title="The feed fills when you publish — then when members join"
+        description={
+          <>
+            An empty feed is normal before launch. Fueled desk content and a few real members make
+            the workspace feel professional. Full playbook:{" "}
+            <code className="rounded bg-[var(--pf-gray-100)] px-1 py-0.5 text-xs">
+              docs/LAUNCH-PLAYBOOK.md
+            </code>
+            .
+          </>
+        }
+      />
 
       <LaunchAccessCard />
 

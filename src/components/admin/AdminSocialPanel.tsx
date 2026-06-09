@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { AdminSocialMilestonePanel } from "@/components/admin/AdminSocialMilestonePanel";
 import { AdminMemberWinsPanel } from "@/components/admin/AdminMemberWinsPanel";
 import { AdminSocialCopyPanel } from "@/components/admin/AdminSocialCopyPanel";
@@ -102,81 +103,74 @@ export function AdminSocialPanel() {
   }
 
   return (
-    <div className="mt-8 space-y-8">
-      <section className="pf-workspace-panel p-6">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
-          Social
-        </p>
-        <h2 className="mt-1 text-lg font-bold text-[var(--pf-black)]">
-          X posts & publishing
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
-          Start with <strong>desk milestone charts</strong> below — dry-run validates the full PNG +
-          copy pipeline before you flip live posting. Text-only cron posts (Fueled desk, rankings) are
-          at the bottom. Inbound curation: Admin → X Ingest.
-        </p>
-
-        {config ? (
-          <MetricsStrip
-            variant="embedded"
-            className="mt-4 border-t border-[var(--pf-border)] pt-4 !px-0"
-            eyebrow="X status"
-            items={[
-              {
-                label: "Bearer",
-                value: config.bearerTokenSet ? "Set" : "Missing",
-                accent: config.bearerTokenSet ? "positive" : "negative",
-              },
-              {
-                label: "Live post",
-                value: config.livePostingReady ? "Ready" : "Blocked",
-                accent: config.livePostingReady ? "positive" : undefined,
-              },
-              { label: "API", value: config.enabled ? "On" : "Off" },
-              { label: "Dry run", value: config.dryRun ? "On" : "Off" },
-              {
-                label: "Auto milestones",
-                value: config.autopostMilestones ? "On" : "Off",
-                accent: config.autopostMilestones && config.livePostingReady ? undefined : undefined,
-              },
-              {
-                label: "Cron",
-                value: [
-                  config.fueledPosts && "Fueled",
-                  config.leaderboardPosts && "Rank",
-                  config.memberWinPosts && "Wins",
-                  config.weeklyDigestPosts && "Digest",
-                ]
-                  .filter(Boolean)
-                  .join(" · ") || "All off",
-              },
-            ]}
-          />
-        ) : null}
-
-        <p className="mt-4">
-          <a
-            href="#milestone-charts"
-            className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
-          >
-            Jump to milestone charts →
-          </a>
-          {" · "}
-          <a
-            href="#member-wins"
-            className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
-          >
-            Member wins →
-          </a>
-          {" · "}
-          <a
-            href="#weekly-digest"
-            className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
-          >
-            Weekly digest →
-          </a>
-        </p>
-      </section>
+    <div className="space-y-8">
+      <AdminPanelHeader
+        group="Social & growth"
+        title="X posts & publishing"
+        description="Start with desk milestone charts — dry-run validates the full PNG + copy pipeline before live posting. Text-only cron posts (Fueled desk, rankings) are at the bottom. Inbound curation: X Ingest."
+        footer={
+          <>
+            {config ? (
+              <MetricsStrip
+                variant="embedded"
+                className="border-t border-[var(--pf-border)] pt-4 !px-0"
+                eyebrow="X status"
+                items={[
+                  {
+                    label: "Bearer",
+                    value: config.bearerTokenSet ? "Set" : "Missing",
+                    accent: config.bearerTokenSet ? "positive" : "negative",
+                  },
+                  {
+                    label: "Live post",
+                    value: config.livePostingReady ? "Ready" : "Blocked",
+                    accent: config.livePostingReady ? "positive" : undefined,
+                  },
+                  { label: "API", value: config.enabled ? "On" : "Off" },
+                  { label: "Dry run", value: config.dryRun ? "On" : "Off" },
+                  {
+                    label: "Auto milestones",
+                    value: config.autopostMilestones ? "On" : "Off",
+                  },
+                  {
+                    label: "Cron",
+                    value: [
+                      config.fueledPosts && "Fueled",
+                      config.leaderboardPosts && "Rank",
+                      config.memberWinPosts && "Wins",
+                      config.weeklyDigestPosts && "Digest",
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") || "All off",
+                  },
+                ]}
+              />
+            ) : null}
+            <p className={config ? "mt-3" : undefined}>
+              <a
+                href="#milestone-charts"
+                className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
+              >
+                Milestone charts
+              </a>
+              {" · "}
+              <a
+                href="#member-wins"
+                className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
+              >
+                Member wins
+              </a>
+              {" · "}
+              <a
+                href="#weekly-digest"
+                className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
+              >
+                Weekly digest
+              </a>
+            </p>
+          </>
+        }
+      />
 
       <AdminSocialMilestonePanel />
 

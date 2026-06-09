@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Megaphone, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -107,33 +108,19 @@ export function AdminAnnouncementsPanel() {
 
   if (loading) {
     return (
-      <div className="mt-8 flex justify-center py-16">
+      <div className="flex justify-center py-16">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--pf-border)] border-t-[var(--pf-red)]" />
       </div>
     );
   }
 
   return (
-    <div className="mt-8 space-y-6">
-      <section className="pf-workspace-panel p-6">
-        <div className="flex items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
-            <Megaphone className="h-5 w-5" />
-          </span>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-              Workspace broadcast
-            </p>
-            <h2 className="mt-1 text-lg font-bold tracking-tight text-[var(--pf-black)]">
-              Member announcements
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
-              Publish a banner at the top of the member workspace — maintenance windows, new Pro
-              features, desk notes, or launch updates. Members can dismiss each message once.
-            </p>
-          </div>
-        </div>
-      </section>
+    <div className="space-y-6">
+      <AdminPanelHeader
+        group="Content & desk"
+        title="Member announcements"
+        description="Publish a banner at the top of the member workspace — maintenance windows, new Pro features, desk notes, or launch updates. Members can dismiss each message once."
+      />
 
       <form onSubmit={publish} className="pf-workspace-panel space-y-4 p-6">
         <h3 className="text-sm font-bold text-[var(--pf-black)]">New announcement</h3>

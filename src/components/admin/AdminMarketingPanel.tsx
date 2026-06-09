@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Copy, Download, ExternalLink, RefreshCw } from "lucide-react";
+import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -196,31 +197,26 @@ export function AdminMarketingPanel() {
   }, [loadSpotlight]);
 
   return (
-    <div className="mt-8 space-y-8">
-      <section className="pf-workspace-panel p-5 sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-              Brand system
-            </p>
-            <h2 className="mt-1 text-lg font-bold text-[var(--pf-black)]">Marketing assets</h2>
-            <p className="mt-2 max-w-2xl text-sm text-[var(--pf-gray-600)]">
-              On-brand PNGs generated from code — same colors and typography as social charts and
-              the app. Use real call charts for proof posts; use these templates for link previews,
-              paid ads, and Figma compositing.
-            </p>
-          </div>
+    <div className="space-y-8">
+      <AdminPanelHeader
+        group="Social & growth"
+        title="Marketing assets"
+        description="On-brand PNGs generated from code — same colors and typography as social charts and the app. Use real call charts for proof posts; use these templates for link previews, paid ads, and Figma compositing."
+        actions={
           <Button type="button" variant="secondary" size="sm" onClick={refresh}>
             <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
             Refresh previews
           </Button>
-        </div>
-        <p className="mt-3 text-xs text-[var(--pf-gray-600)]">
-          Full workflow in repo: <code className="rounded bg-[var(--pf-gray-100)] px-1">docs/BRAND-KIT.md</code>
-          {" · "}
-          <code className="rounded bg-[var(--pf-gray-100)] px-1">npm run marketing:export</code>
-        </p>
-      </section>
+        }
+        footer={
+          <p className="text-xs text-[var(--pf-gray-600)]">
+            Full workflow in repo:{" "}
+            <code className="rounded bg-[var(--pf-gray-100)] px-1">docs/BRAND-KIT.md</code>
+            {" · "}
+            <code className="rounded bg-[var(--pf-gray-100)] px-1">npm run marketing:export</code>
+          </p>
+        }
+      />
 
       {spotlight ? (
         <section className="pf-workspace-panel p-5 sm:p-6">

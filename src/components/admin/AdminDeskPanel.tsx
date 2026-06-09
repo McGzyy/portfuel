@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { DeskBriefAdmin } from "@/lib/desk/brief";
+import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { AdminDeskDraftHelper } from "@/components/admin/AdminDeskDraftHelper";
 import { AdminDeskResearchPanel } from "@/components/admin/AdminDeskResearchPanel";
 import { AdminDeskPortfolioPanel } from "@/components/admin/AdminDeskPortfolioPanel";
@@ -73,18 +74,24 @@ export function AdminDeskPanel() {
 
   if (loading) {
     return (
-      <div className="mt-8 flex justify-center py-16">
+      <div className="flex justify-center py-16">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--pf-border)] border-t-[var(--pf-red)]" />
       </div>
     );
   }
 
   if (error && !data) {
-    return <p className="mt-8 text-sm text-rose-600">{error}</p>;
+    return <p className="text-sm text-rose-600">{error}</p>;
   }
 
   return (
-    <div className="mt-8 max-w-3xl space-y-6">
+    <div className="max-w-3xl space-y-6">
+      <AdminPanelHeader
+        group="Content & desk"
+        title="Fueled desk ops"
+        description="Weekly brief, AI research drafts, portfolio theses, and publish helpers for house research."
+      />
+
       <AdminDeskResearchPanel
         onApplyWeeklyNote={(text) => setWeeklyNote(text)}
         onApplyPortfolioThesis={(symbol, text) =>

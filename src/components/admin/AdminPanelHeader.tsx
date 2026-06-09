@@ -9,7 +9,7 @@ export function AdminPanelHeader({
 }: {
   group: string;
   title: string;
-  description?: string;
+  description?: ReactNode;
   actions?: ReactNode;
   footer?: ReactNode;
 }) {
