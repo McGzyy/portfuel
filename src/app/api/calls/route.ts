@@ -175,21 +175,23 @@ export async function POST(request: Request) {
         .single());
     }
 
-    if (error) {
+    if (error || !call) {
       console.error("[calls POST]", error);
       return NextResponse.json({ error: "create_failed" }, { status: 500 });
     }
 
+    const createdCall = call;
+
     if (isFueled && sourceTweetUrl) {
       void attachSocialResearchSnapshotToCall({
-        callId: call.id,
+        callId: createdCall.id,
         symbol: resolvedSymbol,
         mode: body.socialAnalysisMode ?? "default",
         tweetUrl: sourceTweetUrl,
       });
     } else if (isFueled && socialRawText) {
       void attachCachedResearchSnapshotToCall({
-        callId: call.id,
+        callId: createdCall.id,
         symbol: resolvedSymbol,
         mode: body.socialAnalysisMode ?? "default",
         source: "ticker_ai",
@@ -203,8 +205,8 @@ export async function POST(request: Request) {
       .eq("id", session.userId);
 
     void notifyWatchlistNewCall({
-      callId: call.id,
-      symbol: call.symbol,
+      callId: createdCall.id,
+      symbol: createdCall.symbol,
       callerUserId: session.userId,
       callerUsername: session.username,
       callerDisplayName: session.displayName,
@@ -212,8 +214,8 @@ export async function POST(request: Request) {
     });
 
     void notifyFollowedMemberNewCall({
-      callId: call.id,
-      symbol: call.symbol,
+      callId: createdCall.id,
+      symbol: createdCall.symbol,
       callerUserId: session.userId,
       callerUsername: session.username,
       callerDisplayName: session.displayName,
@@ -221,8 +223,8 @@ export async function POST(request: Request) {
     });
 
     void notifyDiscordNewCall({
-      callId: call.id,
-      symbol: call.symbol,
+      callId: createdCall.id,
+      symbol: createdCall.symbol,
       direction: body.direction,
       isFueled,
       displayName: session.displayName,
@@ -234,7 +236,7 @@ export async function POST(request: Request) {
     );
 
     if (isFueled) {
-      void tryAutopostFueledOnPublish(call.id).catch((e) =>
+      void tryAutopostFueledOnPublish(createdCall.id).catch((e) =>
         console.error("[calls POST x-fueled-autopost]", e)
       );
     }
@@ -243,7 +245,7 @@ export async function POST(request: Request) {
       console.error("[calls POST watchlist-intent]", e)
     );
 
-    return NextResponse.json({ ok: true, call });
+    return NextResponse.json({ ok: true, call: createdCall });
   } catch (e) {
     const mod = moderationErrorResponse(e);
     if (mod) return NextResponse.json({ error: mod.error }, { status: mod.status });

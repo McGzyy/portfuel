@@ -5,6 +5,30 @@ export const USER_CALL_SELECT_LEGACY =
 /** Peak + close columns (migration 20260623110000). */
 export const USER_CALL_SELECT_EXTENDED = `${USER_CALL_SELECT_LEGACY}, peak_return_pct, closed_at, exit_price`;
 
+/** Member call row loaded for profile / overview (peak fields optional pre-migration). */
+export type UserCallRow = {
+  id: string;
+  symbol: string;
+  asset_class: "equity" | "crypto" | null;
+  direction: "long" | "short";
+  thesis: string;
+  called_at: string;
+  return_pct: number | null;
+  target_progress: number | null;
+  entry_price: number | null;
+  price_at_call: number | null;
+  target_price: number | null;
+  stop_price: number | null;
+  last_price: number | null;
+  timeframe_tag: string | null;
+  vote_score: number;
+  comment_count: number;
+  is_fueled: boolean;
+  peak_return_pct?: number | null;
+  closed_at?: string | null;
+  exit_price?: number | null;
+};
+
 export function isMissingColumnDbError(error: {
   code?: string;
   message?: string;

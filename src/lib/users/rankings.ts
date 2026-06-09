@@ -1,8 +1,37 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isCallWin } from "@/lib/scoring/call-credit";
-import {
-  isMissingColumnDbError,
-} from "@/lib/calls/call-fields";
+import { isMissingColumnDbError } from "@/lib/calls/call-fields";
+
+type RankingCallRow = {
+  return_pct: number | null;
+  peak_return_pct?: number | null;
+  closed_at?: string | null;
+  target_progress: number | null;
+  score_points: number | null;
+};
+
+async function fetchCallsForRanking(
+  db: ReturnType<typeof createServiceClient>,
+  userId: string
+): Promise<RankingCallRow[]> {
+  const extended = await db
+    .from("calls")
+    .select("return_pct, peak_return_pct, closed_at, target_progress, score_points")
+    .eq("user_id", userId);
+
+  if (!extended.error) return (extended.data ?? []) as RankingCallRow[];
+
+  if (isMissingColumnDbError(extended.error)) {
+    const legacy = await db
+      .from("calls")
+      .select("return_pct, target_progress, score_points")
+      .eq("user_id", userId);
+    if (legacy.error) throw legacy.error;
+    return (legacy.data ?? []) as RankingCallRow[];
+  }
+
+  throw extended.error;
+}
 
 /** Recompute rank_score and win_rate for all active members from their calls. */
 export async function refreshMemberRankings(): Promise<{ usersUpdated: number }> {
@@ -15,27 +44,13 @@ export async function refreshMemberRankings(): Promise<{ usersUpdated: number }>
 
   let usersUpdated = 0;
   for (const user of users ?? []) {
-    let result = await db
-      .from("calls")
-      .select("return_pct, peak_return_pct, closed_at, target_progress, score_points")
-      .eq("user_id", user.id);
-
-    if (result.error && isMissingColumnDbError(result.error)) {
-      result = await db
-        .from("calls")
-        .select("return_pct, target_progress, score_points")
-        .eq("user_id", user.id);
-    }
-
-    if (result.error) throw result.error;
-
-    const rows = result.data ?? [];
+    const rows = await fetchCallsForRanking(db, user.id);
     const withReturn = rows.filter((c) => c.return_pct != null);
     const wins = withReturn.filter((c) =>
       isCallWin({
         return_pct: c.return_pct != null ? Number(c.return_pct) : null,
         peak_return_pct: c.peak_return_pct != null ? Number(c.peak_return_pct) : null,
-        closed_at: (c as { closed_at?: string | null }).closed_at ?? null,
+        closed_at: c.closed_at ?? null,
         target_progress:
           c.target_progress != null ? Number(c.target_progress) : null,
       })
