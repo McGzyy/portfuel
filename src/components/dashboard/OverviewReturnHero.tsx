@@ -20,13 +20,13 @@ function HeroStat({
   accent?: "up" | "down" | "neutral";
 }) {
   return (
-    <div className="pf-hero-stat rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)]/80 px-2.5 py-2 sm:min-w-[4.5rem] sm:rounded-xl sm:px-3 sm:py-2.5">
-      <p className="text-[9px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)] sm:text-[10px]">
+    <div className="pf-hero-stat min-w-0 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)]/80 px-1 py-1.5 text-center sm:rounded-xl sm:px-3 sm:py-2.5 sm:text-left">
+      <p className="text-[8px] font-semibold uppercase leading-tight tracking-wide text-[var(--pf-gray-500)] sm:text-[10px]">
         {label}
       </p>
       <p
         className={cn(
-          "mt-0.5 text-base font-bold tabular-nums tracking-tight sm:text-lg",
+          "mt-0.5 text-sm font-bold tabular-nums tracking-tight sm:text-lg",
           accent === "up"
             ? "text-emerald-600"
             : accent === "down"
@@ -145,16 +145,12 @@ export function OverviewReturnHero({
               {last != null ? formatPct(last) : "—"}
             </p>
           </div>
-          <div className="pf-track-record-stats flex w-full gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:grid sm:w-auto sm:max-w-[28rem] sm:grid-cols-5 sm:overflow-visible [&::-webkit-scrollbar]:hidden">
+          <div className="pf-track-record-stats grid w-full grid-cols-5 gap-1 sm:w-auto sm:max-w-[28rem] sm:gap-2">
             <HeroStat label="Calls" value={String(points.length)} />
             <HeroStat label="Wins" value={String(wins)} accent="up" />
             <HeroStat label="Losses" value={String(losses)} accent={losses > 0 ? "down" : "neutral"} />
-            {winRate != null ? (
-              <HeroStat label="Win rate" value={`${winRate}%`} />
-            ) : null}
-            {rankScore != null ? (
-              <HeroStat label="Rank" value={rankScore.toFixed(1)} />
-            ) : null}
+            <HeroStat label="Win rate" value={winRate != null ? `${winRate}%` : "—"} />
+            <HeroStat label="Rank" value={rankScore != null ? rankScore.toFixed(1) : "—"} />
           </div>
         </div>
       </div>

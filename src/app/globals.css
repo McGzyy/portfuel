@@ -620,8 +620,7 @@ body {
 }
 
 .pf-track-record-stats .pf-hero-stat {
-  min-width: 4.75rem;
-  flex-shrink: 0;
+  min-width: 0;
 }
 
 /* Workspace cross-page nav rail (below command headers) */
