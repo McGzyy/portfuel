@@ -23,6 +23,7 @@ import {
   chartLayoutOptions,
   type PfChartTheme,
 } from "@/lib/charts/theme";
+import { chartLocalizationOptions } from "@/lib/time/timestamp";
 
 function markerForPoint(p: ReturnChartPoint, theme: PfChartTheme): SeriesMarker<Time> | null {
   if (!p.outcome) return null;
@@ -101,6 +102,7 @@ export function ReturnLineChart({
       grid: chartGridOptions(chartTheme),
       width: containerRef.current.clientWidth,
       height,
+      localization: chartLocalizationOptions(),
       timeScale: {
         borderColor: chartTheme.border,
         timeVisible: !compact,

@@ -1,5 +1,6 @@
 import type { LinePoint, ReturnChartPoint, ReturnOutcome } from "@/lib/charts/types";
 import { isCallWin } from "@/lib/scoring/call-credit";
+import { parseAppTimestamp, toUnixSeconds } from "@/lib/time/timestamp";
 
 export type CumulativeCallInput = {
   called_at: string;
@@ -29,7 +30,7 @@ function outcomeFromCall(call: CumulativeCallInput): ReturnOutcome {
 
 export function buildCumulativeReturnSeries(calls: CumulativeCallInput[]): ReturnChartPoint[] {
   const sorted = [...calls].sort(
-    (a, b) => new Date(a.called_at).getTime() - new Date(b.called_at).getTime()
+    (a, b) => parseAppTimestamp(a.called_at).getTime() - parseAppTimestamp(b.called_at).getTime()
   );
 
   let cumulative = 0;
@@ -40,7 +41,7 @@ export function buildCumulativeReturnSeries(calls: CumulativeCallInput[]): Retur
     cumulative += step;
     const outcome = outcomeFromCall(call);
     points.push({
-      time: Math.floor(new Date(call.called_at).getTime() / 1000),
+      time: toUnixSeconds(call.called_at),
       value: Math.round(cumulative * 100) / 100,
       callId: call.id,
       symbol: call.symbol?.toUpperCase(),

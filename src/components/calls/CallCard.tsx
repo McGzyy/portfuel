@@ -11,6 +11,7 @@ import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { CallCloseButton } from "@/components/calls/CallCloseButton";
 import { CallReturnDisplay } from "@/components/calls/CallReturnDisplay";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
+import { formatPublishedAt } from "@/lib/time/timestamp";
 import { cn, timeAgo } from "@/lib/utils";
 import type { TeaserCallRow } from "@/lib/db/supabase";
 
@@ -176,7 +177,9 @@ export function CallCard({
                 peakReturnPct={call.peak_return_pct}
                 closedAt={call.closed_at}
               />
-              <p className="text-xs text-[var(--pf-gray-400)]">{timeAgo(call.called_at)}</p>
+              <p className="text-xs text-[var(--pf-gray-400)]">
+                {formatPublishedAt(call.called_at)} · {timeAgo(call.called_at)}
+              </p>
             </div>
           </div>
         </div>

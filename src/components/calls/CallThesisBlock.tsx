@@ -10,6 +10,7 @@ import { CallCloseButton } from "@/components/calls/CallCloseButton";
 import { CallReturnDisplay } from "@/components/calls/CallReturnDisplay";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
+import { formatPublishedAt } from "@/lib/time/timestamp";
 import { cn, timeAgo } from "@/lib/utils";
 
 type ThesisCall = {
@@ -145,7 +146,7 @@ export function CallThesisBlock({
             ) : null}
           </div>
           <p className="mt-2 text-xs text-[var(--pf-gray-500)]">
-            Published {timeAgo(call.called_at)}
+            Published {formatPublishedAt(call.called_at)} · {timeAgo(call.called_at)}
             {call.live ? (
               <span className="ml-2 inline-flex items-center gap-1 font-semibold uppercase tracking-wide text-emerald-600">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />

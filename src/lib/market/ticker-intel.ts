@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/db/supabase";
+import { localDayStartUnix } from "@/lib/time/timestamp";
 import { enrichCallWithLivePrice } from "@/lib/calls/live-metrics";
 import { fetchCallsBySymbol, refreshQuotesForSymbols } from "@/lib/calls/service";
 import { persistCallsLiveMetrics } from "@/lib/calls/quote-refresh";
@@ -213,8 +214,7 @@ export async function loadTickerIntel(
     })) ?? [];
 
   const markers = calls.map((c) => {
-    const calledTs = Math.floor(new Date(c.called_at).getTime() / 1000);
-    const dayStart = Math.floor(calledTs / 86400) * 86400;
+    const dayStart = localDayStartUnix(c.called_at);
     const name = c.users.display_name ?? c.users.pin;
     return {
       time: dayStart,

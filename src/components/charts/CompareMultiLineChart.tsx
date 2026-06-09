@@ -18,6 +18,7 @@ import {
   chartGridOptions,
   chartLayoutOptions,
 } from "@/lib/charts/theme";
+import { chartLocalizationOptions } from "@/lib/time/timestamp";
 
 const SERIES_COLORS = ["#e31b23", "#059669", "#2563eb"] as const;
 
@@ -54,6 +55,7 @@ export function CompareMultiLineChart({
       grid: chartGridOptions(chartTheme),
       width: containerRef.current.clientWidth,
       height,
+      localization: chartLocalizationOptions(),
       timeScale: {
         borderColor: chartTheme.border,
         timeVisible: true,

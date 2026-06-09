@@ -1,3 +1,5 @@
+import { parseAppTimestamp } from "@/lib/time/timestamp";
+
 export const FEED_SEEN_COOKIE = "pf_feed_seen_at";
 
 export function parseFeedSeenAt(cookieValue: string | undefined): number {
@@ -8,5 +10,5 @@ export function parseFeedSeenAt(cookieValue: string | undefined): number {
 
 export function isCallNewSinceSeen(calledAt: string, seenAtMs: number): boolean {
   if (!seenAtMs) return false;
-  return new Date(calledAt).getTime() > seenAtMs;
+  return parseAppTimestamp(calledAt).getTime() > seenAtMs;
 }

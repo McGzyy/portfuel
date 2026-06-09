@@ -243,7 +243,7 @@ body {
 }
 
 .pf-workspace-bottom-nav-item-active {
-  color: var(--pf-black);
+  color: var(--foreground);
 }
 
 .pf-workspace-bottom-nav-item-active svg {

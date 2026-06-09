@@ -146,6 +146,7 @@ export async function POST(request: Request) {
         asset_class: body.assetClass,
         direction: body.direction,
         thesis: body.thesis.trim(),
+        called_at: new Date().toISOString(),
         entry_price: entryForRecord,
         target_price: body.targetPrice ?? null,
         stop_price: body.stopPrice ?? null,

@@ -21,6 +21,7 @@ import {
 } from "lightweight-charts";
 import type { CandlePoint, ChartMarker, LinePoint, PriceLine } from "@/lib/charts/types";
 import { markerHudAtTime, markerNearCallOnDay, markerNearTime, callMarkersOnDay, sameDayCallIds } from "@/lib/charts/marker-hit";
+import { chartLocalizationOptions } from "@/lib/time/timestamp";
 import { collapseDayCallMarkers, isClusterMarker } from "@/lib/charts/marker-clusters";
 import { useIsDarkMode } from "@/components/appearance/AppearanceProvider";
 import {
@@ -204,6 +205,7 @@ export function TickerChart({
       grid: chartGridOptions(chartTheme),
       width: containerRef.current.clientWidth,
       height: showVolume ? 440 : chartTheme.height,
+      localization: chartLocalizationOptions(),
       timeScale: {
         borderColor: chartTheme.border,
         timeVisible: true,

@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { getEquityCandles } from "@/lib/market/equity-candles";
 import { getQuote, getCompanyProfile } from "@/lib/market/finnhub";
 import { fetchCallsBySymbol } from "@/lib/calls/service";
+import { localDayStartUnix } from "@/lib/time/timestamp";
 
 export async function GET(
   _request: Request,
@@ -40,8 +41,7 @@ export async function GET(
       })) ?? [];
 
     const markers = calls.map((c) => {
-      const calledTs = Math.floor(new Date(c.called_at).getTime() / 1000);
-      const dayStart = Math.floor(calledTs / 86400) * 86400;
+      const dayStart = localDayStartUnix(c.called_at);
       const name = c.users.display_name ?? c.users.pin;
       return {
         time: dayStart,
