@@ -6,12 +6,21 @@ import { ChevronDown, Map, Mail } from "lucide-react";
 import { WORKSPACE_GUIDE_OPEN_EVENT } from "@/lib/onboarding/workspace-guide";
 import { getHelpSection, SUPPORT_EMAIL, type HelpSectionId } from "@/lib/help/content";
 import { helpSectionHref } from "@/lib/help/content";
+import { helpContentSlug } from "@/lib/help/search";
 import { cn } from "@/lib/utils";
 
-function FaqItem({ question, answer }: { question: string; answer: string }) {
+function FaqItem({
+  id,
+  question,
+  answer,
+}: {
+  id: string;
+  question: string;
+  answer: string;
+}) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-[var(--pf-border)] last:border-b-0">
+    <div id={id} className="scroll-mt-24 border-b border-[var(--pf-border)] last:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -79,7 +88,11 @@ export function HelpDocsPanel({ sectionId }: { sectionId: HelpSectionId }) {
       </section>
 
       {section.articles.map((article) => (
-        <section key={article.title} className="pf-workspace-panel p-5 sm:p-6">
+        <section
+          key={article.title}
+          id={helpContentSlug(article.title)}
+          className="scroll-mt-24 pf-workspace-panel p-5 sm:p-6"
+        >
           <h3 className="text-base font-bold text-[var(--foreground)]">{article.title}</h3>
           <div className="mt-3 space-y-3 text-sm leading-relaxed text-[var(--pf-gray-600)]">
             {article.body.map((p) => (
@@ -102,7 +115,12 @@ export function HelpDocsPanel({ sectionId }: { sectionId: HelpSectionId }) {
             FAQ
           </h3>
           {section.faqs.map((faq) => (
-            <FaqItem key={faq.question} question={faq.question} answer={faq.answer} />
+            <FaqItem
+              key={faq.question}
+              id={`faq-${helpContentSlug(faq.question)}`}
+              question={faq.question}
+              answer={faq.answer}
+            />
           ))}
         </section>
       ) : null}

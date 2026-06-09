@@ -50,6 +50,16 @@ export const AI_WATCHLIST_DIGEST_MONTHLY_LIMIT: Record<MembershipTier | "admin",
 export const AI_WATCHLIST_DIGEST_DISCLAIMER =
   "Educational summary of your watchlist context — not investment advice. AI can be wrong.";
 
+/** PortFuel help assistant — Pro-only product Q&A grounded in docs. */
+export const AI_HELP_ASSISTANT_MONTHLY_LIMIT: Record<MembershipTier | "admin", number> = {
+  member: 0,
+  pro: 40,
+  admin: 300,
+};
+
+export const AI_HELP_ASSISTANT_DISCLAIMER =
+  "Answers PortFuel product questions only — not investment advice. AI can be wrong; open a support ticket for account-specific issues.";
+
 export function isAiCoachConfigured(): boolean {
   const key = process.env.OPENAI_API_KEY?.trim();
   return Boolean(key?.startsWith("sk-"));
@@ -109,4 +119,19 @@ export function watchlistDigestLimitForRole(
 ): number {
   if (role === "admin") return AI_WATCHLIST_DIGEST_MONTHLY_LIMIT.admin;
   return AI_WATCHLIST_DIGEST_MONTHLY_LIMIT[tier === "pro" ? "pro" : "member"];
+}
+
+export function helpAssistantLimitForRole(
+  tier: MembershipTier | null,
+  role: "member" | "admin"
+): number {
+  if (role === "admin") return AI_HELP_ASSISTANT_MONTHLY_LIMIT.admin;
+  return AI_HELP_ASSISTANT_MONTHLY_LIMIT[tier === "pro" ? "pro" : "member"];
+}
+
+export function canUseHelpAssistant(
+  tier: MembershipTier | null,
+  role: "member" | "admin"
+): boolean {
+  return role === "admin" || tier === "pro";
 }

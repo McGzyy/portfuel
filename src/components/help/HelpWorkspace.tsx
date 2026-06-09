@@ -2,7 +2,9 @@
 
 import { Suspense } from "react";
 import { HelpDocsPanel } from "@/components/help/HelpDocsPanel";
+import { HelpAssistantPanel } from "@/components/help/HelpAssistantPanel";
 import { HelpNav, HelpNavMobile } from "@/components/help/HelpNav";
+import { HelpSearchBar } from "@/components/help/HelpSearchBar";
 import { SupportTicketsPanel } from "@/components/help/SupportTicketsPanel";
 import { getHelpSection, type HelpSectionId } from "@/lib/help/content";
 
@@ -31,6 +33,8 @@ function HelpWorkspaceInner({
 
       <HelpNavMobile active={sectionId} ticketsView={ticketsView} />
 
+      <HelpSearchBar />
+
       <div className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-8">
         <div className="hidden lg:block">
           <HelpNav active={sectionId} ticketsView={ticketsView} />
@@ -43,7 +47,10 @@ function HelpWorkspaceInner({
                 <h2 className="text-lg font-bold text-[var(--foreground)]">{section.label}</h2>
                 <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">{section.description}</p>
               </div>
-              <HelpDocsPanel sectionId={sectionId} />
+              <div className="space-y-4">
+                <HelpAssistantPanel />
+                <HelpDocsPanel sectionId={sectionId} />
+              </div>
             </>
           ) : (
             <SupportTicketsPanel sectionId={sectionId} />

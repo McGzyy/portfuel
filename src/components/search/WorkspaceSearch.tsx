@@ -30,6 +30,7 @@ import {
 import { WORKSPACE_SHORTCUTS_OPEN_EVENT } from "@/lib/workspace/shortcuts";
 import { cn, formatPrice } from "@/lib/utils";
 import { splitByQuery } from "@/lib/search/highlight";
+import { searchHelpDocs, helpSearchResultToPage } from "@/lib/help/search";
 import {
   clearRecentTickers,
   pushRecentTicker,
@@ -53,6 +54,7 @@ type PaletteItem =
   | { kind: "headline"; data: SearchHeadlineResult }
   | { kind: "journal"; data: SearchJournalEntryResult }
   | { kind: "call"; data: SearchCallResult }
+  | { kind: "helpDoc"; data: SearchPageResult }
   | { kind: "action"; data: { id: "report" | "shortcuts"; label: string; description: string } };
 
 type WorkspaceSearchContextValue = {
@@ -166,6 +168,12 @@ function WorkspaceCommandPalette({
     setActiveIndex(0);
   }, [onOpenChange]);
 
+  const helpDocs = useMemo(() => {
+    const q = query.trim();
+    if (q.length < 2) return [] as SearchPageResult[];
+    return searchHelpDocs(q, 6).map(helpSearchResultToPage);
+  }, [query]);
+
   const resultSections = useMemo(() => {
     if (!results) return [] as { title: string; items: PaletteItem[] }[];
 
@@ -207,6 +215,12 @@ function WorkspaceCommandPalette({
         items: results.members.map((data) => ({ kind: "member" as const, data })),
       });
     }
+    if (helpDocs.length > 0) {
+      sections.push({
+        title: "Help docs",
+        items: helpDocs.map((data) => ({ kind: "helpDoc" as const, data })),
+      });
+    }
     if (results.pages.length > 0) {
       sections.push({
         title: !query.trim() ? "Quick links" : "Pages",
@@ -239,7 +253,7 @@ function WorkspaceCommandPalette({
     }
 
     return sections;
-  }, [results, query]);
+  }, [results, query, helpDocs]);
 
   const items = useMemo(
     () => resultSections.flatMap((section) => section.items),
@@ -582,6 +596,36 @@ function WorkspaceCommandPalette({
                       >
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
                           <Icon className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-semibold text-[var(--pf-black)]">
+                            {item.data.label}
+                          </span>
+                          <span className="block truncate text-xs text-[var(--pf-gray-500)]">
+                            {item.data.description}
+                          </span>
+                        </span>
+                        <ArrowRight className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" />
+                      </button>
+                    );
+                  }
+                  if (item.kind === "helpDoc") {
+                    return (
+                      <button
+                        key={`help-${item.data.href}`}
+                        type="button"
+                        data-index={index}
+                        onMouseEnter={() => setActiveIndex(index)}
+                        onClick={() => navigate(item.data.href)}
+                        className={cn(
+                          "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
+                          activeIndex === index
+                            ? "bg-[var(--pf-gray-100)]"
+                            : "hover:bg-[var(--pf-gray-50)]"
+                        )}
+                      >
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
+                          <LifeBuoy className="h-4 w-4" />
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-semibold text-[var(--pf-black)]">
