@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/db/supabase";
-import { isDemoMode } from "@/lib/demo/config";
+import { isDemoMode, isDemoCallId } from "@/lib/demo/config";
 import { getDemoCallsFeed } from "@/lib/demo/fixtures";
 import { loadTickerIntel } from "@/lib/market/ticker-intel";
 import { buildFeaturedCallPriceLines } from "@/lib/charts/price-lines";
@@ -96,6 +96,12 @@ export async function loadSocialChartPayload(
   }
 
   if (!call) return { error: "not_found" };
+
+  if (isDemoMode() && isDemoCallId(callId) && !memberWin) {
+    const key = milestone ?? inferMilestone(call) ?? "return_10";
+    const { loadDemoSocialChartPayload } = await import("@/lib/charts/social-chart-demo");
+    return loadDemoSocialChartPayload(key);
+  }
 
   const intel = await loadTickerIntel(call.symbol);
   const calledTs = Math.floor(new Date(call.called_at).getTime() / 1000);
