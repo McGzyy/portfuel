@@ -12,16 +12,14 @@ import {
   Calendar,
   GitCompare,
   MessageCircle,
-  Megaphone,
   Notebook,
   Trophy,
   LifeBuoy,
   Sparkles,
 } from "lucide-react";
 import { WhatsNewBadge } from "@/components/announcements/WhatsNewBadge";
-import { COPY } from "@/lib/copy";
 import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
-import { WorkspaceGuideTrigger } from "@/components/dashboard/WorkspaceGuideTrigger";
+import { WorkspaceSidebarFooter } from "@/components/dashboard/WorkspaceSidebarFooter";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
 import { MemberAvatar } from "@/components/member/MemberAvatar";
@@ -129,49 +127,7 @@ export function WorkspaceSidebar({
         ))}
       </nav>
 
-      <div className="shrink-0 space-y-2 border-t border-[var(--pf-border)] p-3">
-        <Link
-          href={COPY.newCallHref}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--pf-red)] px-3 py-2.5 text-sm font-semibold text-white shadow-[var(--pf-shadow-sm)] transition-colors hover:bg-[var(--pf-red-hover)]"
-        >
-          <Megaphone className="h-4 w-4" strokeWidth={2.25} />
-          {COPY.publishCallCta}
-        </Link>
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard/help"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-black)]"
-            >
-              <LifeBuoy className="h-3.5 w-3.5" />
-              Help
-            </Link>
-            <WorkspaceGuideTrigger />
-          </div>
-          <div className="flex items-center gap-3">
-            {isAdmin ? (
-              <Link
-                href="/admin"
-                className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
-              >
-                Admin
-              </Link>
-            ) : null}
-              <Link
-                href={`/member/${username}`}
-                className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
-              >
-                Profile
-              </Link>
-              <Link
-                href="/dashboard/settings"
-                className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
-              >
-                Settings
-              </Link>
-          </div>
-        </div>
-      </div>
+      <WorkspaceSidebarFooter username={username} isAdmin={isAdmin} />
     </aside>
   );
 }

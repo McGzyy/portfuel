@@ -10,7 +10,6 @@ import {
   Bell,
   Menu,
   MessageCircle,
-  Megaphone,
   Notebook,
   Rows3,
   ScanSearch,
@@ -22,13 +21,12 @@ import {
   X,
 } from "lucide-react";
 import { WhatsNewBadge } from "@/components/announcements/WhatsNewBadge";
-import { COPY } from "@/lib/copy";
 import {
   WORKSPACE_BOTTOM_NAV,
   WORKSPACE_MORE_PATH_PREFIXES,
 } from "@/lib/dashboard/quick-actions";
 import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
-import { WorkspaceGuideTrigger } from "@/components/dashboard/WorkspaceGuideTrigger";
+import { WorkspaceSidebarFooter } from "@/components/dashboard/WorkspaceSidebarFooter";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
 import { MemberAvatar } from "@/components/member/MemberAvatar";
@@ -193,54 +191,12 @@ export function MemberNav({
           ))}
         </nav>
 
-        <div className="space-y-2 border-t border-[var(--pf-border)] p-3 pb-[var(--pf-drawer-footer-pad)]">
-          <Link
-            href={COPY.newCallHref}
-            onClick={() => setDrawerOpen(false)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--pf-red)] px-3 py-2.5 text-sm font-semibold text-white"
-          >
-            <Megaphone className="h-4 w-4" strokeWidth={2.25} />
-            {COPY.publishCallCta}
-          </Link>
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
-            <div className="flex items-center gap-3">
-              <Link
-                href="/dashboard/help"
-                onClick={() => setDrawerOpen(false)}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
-              >
-                <LifeBuoy className="h-3.5 w-3.5" />
-                Help
-              </Link>
-              <WorkspaceGuideTrigger onOpen={() => setDrawerOpen(false)} />
-            </div>
-            <div className="flex items-center gap-3">
-              {isAdmin ? (
-                <Link
-                  href="/admin"
-                  onClick={() => setDrawerOpen(false)}
-                  className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
-                >
-                  Admin
-                </Link>
-              ) : null}
-              <Link
-                href={`/member/${username}`}
-                onClick={() => setDrawerOpen(false)}
-                className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
-              >
-                Profile
-              </Link>
-              <Link
-                href="/dashboard/settings"
-                onClick={() => setDrawerOpen(false)}
-                className="text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
-              >
-                Settings
-              </Link>
-            </div>
-          </div>
-        </div>
+        <WorkspaceSidebarFooter
+          username={username}
+          isAdmin={isAdmin}
+          onNavigate={() => setDrawerOpen(false)}
+          className="pb-[var(--pf-drawer-footer-pad)]"
+        />
       </aside>
 
       <nav
