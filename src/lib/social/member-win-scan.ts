@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import { getDemoCallsFeed } from "@/lib/demo/fixtures";
 import { MEMBER_WIN_GATE_MILESTONE_KEY } from "@/lib/social/member-win-config";
 import {
   isMemberWinReadyToPost,
@@ -22,7 +23,25 @@ export type MemberWinCandidate = {
 };
 
 export async function fetchMemberWinCandidates(limit = 10): Promise<MemberWinCandidate[]> {
-  if (isDemoMode()) return [];
+  if (isDemoMode()) {
+    const now = Date.now();
+    const candidates = getDemoCallsFeed("performing")
+      .filter((c) => !c.is_fueled && (c.return_pct ?? 0) >= 15)
+      .slice(0, limit);
+
+    return candidates.map((c, i) => ({
+      callId: c.id,
+      symbol: c.symbol,
+      direction: c.direction,
+      returnPct: c.return_pct,
+      calledAt: c.called_at,
+      userId: c.user_id,
+      username: c.users.username,
+      displayName: c.users.display_name,
+      gateAt: new Date(now - (52 - i * 8) * 3_600_000).toISOString(),
+      status: i === 0 ? "ready" : i === 1 ? "waiting_sustain" : "ready",
+    }));
+  }
 
   const db = createServiceClient();
   const { data: users, error: usersErr } = await db

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test tests/*.test.mjs && npm run test:social",
+    "test": "node --test tests/*.test.mjs && npx tsx --test tests/call-credit.test.mts && npm run test:social",
     "test:social": "npx tsx --test tests/social-smoke.test.mts",
     "smoke:social": "npx tsx scripts/smoke-social.mts",
     "migrations:list": "node scripts/list-migrations.mjs",

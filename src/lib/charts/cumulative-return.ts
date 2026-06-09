@@ -1,15 +1,29 @@
 import type { LinePoint, ReturnChartPoint, ReturnOutcome } from "@/lib/charts/types";
+import { isCallWin } from "@/lib/scoring/call-credit";
 
 export type CumulativeCallInput = {
   called_at: string;
   return_pct: number | null;
+  peak_return_pct?: number | null;
+  target_progress?: number | null;
+  closed_at?: string | null;
   id?: string;
   symbol?: string;
 };
 
-function outcomeFromReturn(returnPct: number): ReturnOutcome {
-  if (returnPct > 0) return "win";
-  if (returnPct < 0) return "loss";
+function outcomeFromCall(call: CumulativeCallInput): ReturnOutcome {
+  const step = call.return_pct ?? 0;
+  if (
+    isCallWin({
+      return_pct: call.return_pct,
+      peak_return_pct: call.peak_return_pct,
+      closed_at: call.closed_at,
+      target_progress: call.target_progress,
+    })
+  ) {
+    return "win";
+  }
+  if (step < 0) return "loss";
   return "flat";
 }
 
@@ -27,7 +41,7 @@ export function buildCumulativeReturnSeries(calls: CumulativeCallInput[]): Retur
   for (const call of sorted) {
     const step = call.return_pct ?? 0;
     cumulative += step;
-    const outcome = outcomeFromReturn(step);
+    const outcome = outcomeFromCall(call);
     points.push({
       time: Math.floor(new Date(call.called_at).getTime() / 1000),
       value: Math.round(cumulative * 100) / 100,

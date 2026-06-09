@@ -3,12 +3,8 @@ import { getCoreCryptoAsset } from "@/lib/market/crypto-allowlist";
 import { getCryptoLastPriceForSymbol } from "@/lib/market/crypto-candles";
 import type { AssetClass } from "@/lib/market/validate-symbol";
 import { getQuote } from "@/lib/market/finnhub";
-import {
-  computeHypeScore,
-  computeReturnPct,
-  computeScorePoints,
-  computeTargetProgress,
-} from "@/lib/scoring/returns";
+import { computeHypeScore } from "@/lib/scoring/returns";
+import { buildLiveCallMetricsUpdate } from "@/lib/calls/call-metrics";
 import { computeCallLiveMetrics } from "@/lib/calls/live-metrics";
 import { processCallMilestones } from "@/lib/notifications/milestones";
 import { processMemberWinGates } from "@/lib/social/member-win-gate";
@@ -37,6 +33,8 @@ type CallRow = {
   vote_score: number;
   comment_count: number;
   is_fueled: boolean;
+  peak_return_pct?: number | null;
+  closed_at?: string | null;
 };
 
 async function loadSnapshot(sym: string) {
@@ -148,45 +146,15 @@ export async function refreshQuotesForSymbols(
   }[] = [];
 
   for (const call of allCalls) {
+    if (call.closed_at) continue;
     const last = priceMap.get(call.symbol.toUpperCase());
     if (last == null) continue;
 
-    const basis = call.entry_price ?? call.price_at_call;
-    const returnPct =
-      basis != null
-        ? computeReturnPct({
-            direction: call.direction,
-            basisPrice: Number(basis),
-            lastPrice: last,
-          })
-        : null;
-
-    let targetProgress: number | null = null;
-    if (call.entry_price && call.target_price) {
-      targetProgress = computeTargetProgress({
-        direction: call.direction,
-        entry: Number(call.entry_price),
-        target: Number(call.target_price),
-        lastPrice: last,
-      });
-    }
-
-    const ageDays =
-      (Date.now() - new Date(call.called_at).getTime()) / 86400000;
-    const scorePoints = computeScorePoints({
-      returnPct,
-      voteScore: call.vote_score,
-      ageDays,
-    });
+    const metrics = buildLiveCallMetricsUpdate(call, last);
 
     await db
       .from("calls")
-      .update({
-        last_price: last,
-        return_pct: returnPct,
-        target_progress: targetProgress,
-        score_points: scorePoints,
-      } as never)
+      .update(metrics as never)
       .eq("id", call.id);
     updated++;
 
@@ -199,8 +167,8 @@ export async function refreshQuotesForSymbols(
       is_fueled: Boolean(call.is_fueled),
       entry_price: call.entry_price,
       target_price: call.target_price,
-      return_pct: returnPct,
-      target_progress: targetProgress,
+      return_pct: metrics.return_pct,
+      target_progress: metrics.target_progress,
     });
   }
 
@@ -220,6 +188,7 @@ export async function persistCallsLiveMetrics(
   const db = createServiceClient();
   let n = 0;
   for (const call of calls) {
+    if ((call as CallRow).closed_at) continue;
     const metrics = computeCallLiveMetrics(call, lastPrice);
     if (!metrics.live) continue;
 
@@ -286,45 +255,15 @@ export async function refreshAllQuotesAndScores(): Promise<{
   }[] = [];
 
   for (const call of rows) {
+    if (call.closed_at) continue;
     const last = priceMap.get(call.symbol.toUpperCase());
     if (last == null) continue;
 
-    const basis = call.entry_price ?? call.price_at_call;
-    const returnPct =
-      basis != null
-        ? computeReturnPct({
-            direction: call.direction,
-            basisPrice: Number(basis),
-            lastPrice: last,
-          })
-        : null;
-
-    let targetProgress: number | null = null;
-    if (call.entry_price && call.target_price) {
-      targetProgress = computeTargetProgress({
-        direction: call.direction,
-        entry: Number(call.entry_price),
-        target: Number(call.target_price),
-        lastPrice: last,
-      });
-    }
-
-    const ageDays =
-      (Date.now() - new Date(call.called_at).getTime()) / 86400000;
-    const scorePoints = computeScorePoints({
-      returnPct,
-      voteScore: call.vote_score,
-      ageDays,
-    });
+    const metrics = buildLiveCallMetricsUpdate(call, last);
 
     await db
       .from("calls")
-      .update({
-        last_price: last,
-        return_pct: returnPct,
-        target_progress: targetProgress,
-        score_points: scorePoints,
-      } as never)
+      .update(metrics as never)
       .eq("id", call.id);
     updated++;
 
@@ -337,8 +276,8 @@ export async function refreshAllQuotesAndScores(): Promise<{
       is_fueled: Boolean(call.is_fueled),
       entry_price: call.entry_price,
       target_price: call.target_price,
-      return_pct: returnPct,
-      target_progress: targetProgress,
+      return_pct: metrics.return_pct,
+      target_progress: metrics.target_progress,
     });
   }
 

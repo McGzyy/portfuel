@@ -43,7 +43,7 @@ export function snippetAroundMatch(text: string, query: string, maxLen = 140): s
 
   const half = Math.floor((maxLen - q.length) / 2);
   let start = Math.max(0, matchAt - half);
-  let end = Math.min(trimmed.length, start + maxLen);
+  const end = Math.min(trimmed.length, start + maxLen);
   if (end - start < maxLen) start = Math.max(0, end - maxLen);
 
   let snippet = trimmed.slice(start, end);

@@ -1,3 +1,5 @@
+import { creditReturnPct } from "@/lib/scoring/call-credit";
+
 export function computeReturnPct(input: {
   direction: "long" | "short";
   basisPrice: number;
@@ -8,6 +10,8 @@ export function computeReturnPct(input: {
   const raw = ((lastPrice - basisPrice) / basisPrice) * 100;
   return direction === "long" ? raw : -raw;
 }
+
+export { creditReturnPct, isCallWin, updatePeakReturn } from "@/lib/scoring/call-credit";
 
 export function computeTargetProgress(input: {
   direction: "long" | "short";
@@ -26,10 +30,19 @@ export function computeTargetProgress(input: {
 
 export function computeScorePoints(input: {
   returnPct: number | null;
+  peakReturnPct?: number | null;
+  closedAt?: string | null;
+  targetProgress?: number | null;
   voteScore: number;
   ageDays: number;
 }): number {
-  const ret = input.returnPct ?? 0;
+  const credit = creditReturnPct({
+    return_pct: input.returnPct,
+    peak_return_pct: input.peakReturnPct,
+    closed_at: input.closedAt,
+    target_progress: input.targetProgress,
+  });
+  const ret = credit ?? 0;
   const voteBoost = Math.max(-5, Math.min(5, input.voteScore)) * 0.5;
   const decay = Math.max(0.3, 1 - input.ageDays / 90);
   return ret * decay + voteBoost;

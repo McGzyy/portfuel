@@ -14,12 +14,14 @@ export function FeedToolbar({
   searchQuery,
   newCount = 0,
   showNewOnly = false,
+  fueledCount = 0,
 }: {
   mode: FeedTab;
   feedFilter: FeedFilter;
   searchQuery: string;
   newCount?: number;
   showNewOnly?: boolean;
+  fueledCount?: number;
 }) {
   const filterArg = feedFilter === "all" ? undefined : feedFilter;
   const qArg = searchQuery || undefined;
@@ -74,6 +76,7 @@ export function FeedToolbar({
           searchQuery={searchQuery || undefined}
           newCount={newCount}
           showNewOnly={showNewOnly}
+          fueledCount={fueledCount}
         />
       </div>
       <p className="text-xs text-[var(--pf-gray-500)]">

@@ -489,6 +489,21 @@ body {
   pointer-events: none;
 }
 
+.pf-overview-return-hero {
+  position: relative;
+  background:
+    linear-gradient(180deg, #fff 0%, var(--pf-gray-50) 100%),
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(227, 27, 35, 0.06), transparent 60%);
+}
+
+.pf-overview-return-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 40% 30% at 0% 100%, rgba(5, 150, 105, 0.05), transparent);
+}
+
 .pf-workspace-panel {
   border-radius: var(--pf-radius-lg);
   border: 1px solid var(--pf-border);
@@ -1289,9 +1304,16 @@ body {
 
 /* Dark theme — common hardcoded light utilities */
 [data-theme="dark"] .pf-overview-command,
+[data-theme="dark"] .pf-overview-return-hero,
 [data-theme="dark"] #workspace-mobile-nav,
 [data-theme="dark"] .pf-live-bar {
   background-color: var(--pf-surface);
+}
+
+[data-theme="dark"] .pf-overview-return-hero {
+  background:
+    linear-gradient(180deg, var(--pf-surface) 0%, var(--pf-gray-50) 100%),
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(227, 27, 35, 0.12), transparent 60%);
 }
 
 [data-theme="dark"] .bg-white\/80 {

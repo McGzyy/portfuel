@@ -134,6 +134,7 @@ export async function POST(request: Request) {
     }
     const scorePoints = computeScorePoints({
       returnPct,
+      peakReturnPct: returnPct,
       voteScore: 0,
       ageDays: 0,
     });
@@ -153,6 +154,7 @@ export async function POST(request: Request) {
         price_at_call: priceAtCall,
         last_price: priceAtCall,
         return_pct: returnPct,
+        peak_return_pct: returnPct,
         target_progress: targetProgress,
         score_points: scorePoints,
         is_fueled: isFueled,

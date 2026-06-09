@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   createChart,
   createSeriesMarkers,
+  BaselineSeries,
   LineSeries,
   ColorType,
   type IChartApi,
@@ -40,12 +41,29 @@ function markerForPoint(p: ReturnChartPoint, theme: PfChartTheme): SeriesMarker<
   };
 }
 
+function filledSeriesOptions(theme: PfChartTheme, isDark: boolean) {
+  return {
+    baseValue: { type: "price" as const, price: 0 },
+    lineWidth: 3 as const,
+    topLineColor: theme.candle.up,
+    bottomLineColor: theme.candle.down,
+    topFillColor1: isDark ? "rgba(52, 211, 153, 0.28)" : "rgba(5, 150, 105, 0.24)",
+    topFillColor2: isDark ? "rgba(52, 211, 153, 0.02)" : "rgba(5, 150, 105, 0.02)",
+    bottomFillColor1: isDark ? "rgba(251, 113, 133, 0.02)" : "rgba(227, 27, 35, 0.02)",
+    bottomFillColor2: isDark ? "rgba(251, 113, 133, 0.22)" : "rgba(227, 27, 35, 0.18)",
+    priceLineVisible: true,
+    lastValueVisible: true,
+    crosshairMarkerRadius: 5,
+  };
+}
+
 export function ReturnLineChart({
   points,
   height = 260,
   compact,
   interactive = false,
   showMarkers = false,
+  filled = false,
 }: {
   points: ReturnChartPoint[];
   height?: number;
@@ -53,11 +71,13 @@ export function ReturnLineChart({
   /** Navigate to ticker on click when symbol is set. */
   interactive?: boolean;
   showMarkers?: boolean;
+  /** Baseline fill above/below zero — hero performance charts. */
+  filled?: boolean;
 }) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const seriesRef = useRef<ISeriesApi<"Line"> | ISeriesApi<"Baseline"> | null>(null);
   const markersRef = useRef<ReturnType<typeof createSeriesMarkers<Time>> | null>(null);
   const pointDataRef = useRef(points);
 
@@ -92,12 +112,14 @@ export function ReturnLineChart({
       },
     });
 
-    const series = chart.addSeries(LineSeries, {
-      color: chartTheme.candle.up,
-      lineWidth: compact ? 2 : 2,
-      priceLineVisible: !compact,
-      lastValueVisible: true,
-    });
+    const series = filled
+      ? chart.addSeries(BaselineSeries, filledSeriesOptions(chartTheme, isDark))
+      : chart.addSeries(LineSeries, {
+          color: chartTheme.candle.up,
+          lineWidth: compact ? 2 : 2,
+          priceLineVisible: !compact,
+          lastValueVisible: true,
+        });
 
     chartRef.current = chart;
     seriesRef.current = series;
@@ -128,7 +150,7 @@ export function ReturnLineChart({
       seriesRef.current = null;
       markersRef.current = null;
     };
-  }, [height, compact, interactive, router, isDark, chartTheme]);
+  }, [height, compact, interactive, router, isDark, chartTheme, filled]);
 
   useEffect(() => {
     if (!seriesRef.current || points.length === 0) return;

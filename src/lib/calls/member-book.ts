@@ -1,4 +1,5 @@
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
+import { isCallWin } from "@/lib/scoring/call-credit";
 import { refreshQuotesForSymbols } from "@/lib/calls/service";
 import { isDemoMode } from "@/lib/demo/config";
 import { getDemoMemberCalls, getDemoProfileCalls } from "@/lib/demo/fixtures";
@@ -87,7 +88,17 @@ function summarizeOpenBook(calls: MemberBookCallRow[]): MemberOpenBookSummary {
     equityCount: calls.filter((c) => (c.asset_class ?? "equity") === "equity").length,
     cryptoCount: calls.filter((c) => c.asset_class === "crypto").length,
     avgReturnPct,
-    winners: withReturn.filter((c) => Number(c.return_pct) > 0).length,
+    winners: withReturn.filter((c) =>
+      isCallWin({
+        return_pct: c.return_pct != null ? Number(c.return_pct) : null,
+        peak_return_pct:
+          (c as { peak_return_pct?: number | null }).peak_return_pct != null
+            ? Number((c as { peak_return_pct?: number | null }).peak_return_pct)
+            : null,
+        closed_at: (c as { closed_at?: string | null }).closed_at ?? null,
+        target_progress: c.target_progress != null ? Number(c.target_progress) : null,
+      })
+    ).length,
     losers: withReturn.filter((c) => Number(c.return_pct) < 0).length,
     best,
     worst,

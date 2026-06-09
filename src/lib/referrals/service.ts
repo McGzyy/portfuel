@@ -298,7 +298,7 @@ export async function fetchReferralHistory(
     .map((r) => r.referred_user_id as string | null)
     .filter(Boolean) as string[];
 
-  let userLabels = new Map<string, string>();
+  const userLabels = new Map<string, string>();
   if (referredIds.length > 0) {
     const { data: users } = await db
       .from("users")

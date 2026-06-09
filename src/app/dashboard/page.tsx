@@ -17,7 +17,7 @@ import { fetchWorkspacePulse } from "@/lib/workspace/pulse";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { getHotTickersFromCalls } from "@/lib/calls/hot-tickers";
 import { fetchWeeklyQuotaStatus } from "@/lib/members/weekly-quota";
-import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerformanceChart";
+import { OverviewReturnHero } from "@/components/dashboard/OverviewReturnHero";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { FueledDeskPreview } from "@/components/dashboard/FueledDeskPreview";
@@ -109,6 +109,8 @@ function toOwnStripCard(
     thesis: c.thesis,
     called_at: c.called_at,
     return_pct: c.return_pct,
+    peak_return_pct: c.peak_return_pct ?? null,
+    closed_at: c.closed_at ?? null,
     ...prices,
     timeframe_tag: c.timeframe_tag,
     is_fueled: Boolean(c.is_fueled),
@@ -302,6 +304,13 @@ export default async function DashboardOverviewPage({
         isPro={isPro}
       />
 
+      <OverviewReturnHero
+        points={performanceSeries}
+        profileHref={`/member/${session.username}`}
+        winRate={memberStats?.win_rate}
+        rankScore={memberStats?.rank_score != null ? Number(memberStats.rank_score) : null}
+      />
+
       <WorkspaceOverviewStats
         username={session.username}
         winRate={memberStats?.win_rate}
@@ -433,11 +442,6 @@ export default async function DashboardOverviewPage({
         </div>
 
         <div className="space-y-6 lg:col-span-5 xl:col-span-4">
-          <OverviewPerformanceChart
-            points={performanceSeries}
-            profileHref={`/member/${session.username}`}
-          />
-
           <FollowingFeedPanel following={followingMembers} previews={followingPreviews} />
 
           <WorkspacePanel

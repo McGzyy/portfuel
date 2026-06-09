@@ -277,7 +277,10 @@ export async function composeMemberWinPost(
         ? `${call.return_pct >= 0 ? "+" : ""}${call.return_pct.toFixed(1)}%`
         : "";
     const returnLine = ret ? `${ret} since publication` : "";
-    const handle = call.users.username ? `@${call.users.username}` : call.users.display_name;
+    const handle =
+      call.users.username
+        ? `@${call.users.username}`
+        : (call.users.display_name ?? "Member");
     const thesis =
       call.thesis.length > 120 ? `${call.thesis.slice(0, 117)}…` : call.thesis;
     const text = trimTweet(

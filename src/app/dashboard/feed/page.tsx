@@ -148,6 +148,7 @@ export default async function DashboardFeedPage({
         searchQuery={searchQuery}
         newCount={newCount}
         showNewOnly={showNewOnly}
+        fueledCount={fueledCalls.length}
       />
       <FeedVisitTracker />
 

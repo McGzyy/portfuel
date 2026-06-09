@@ -11,23 +11,24 @@ process.env.X_API_DRY_RUN = "true";
 delete process.env.X_AUTOPOST_MILESTONES;
 delete process.env.X_AUTOPOST_FUELED_ON_PUBLISH;
 
-import { callMilestoneKeysForCall } from "../src/lib/notifications/milestone-keys.ts";
-import { getXConfig } from "../src/lib/social/x-config.ts";
-import { formatPostError } from "../src/lib/social/format-post-error.ts";
-import { loadDemoSocialChartPayload } from "../src/lib/charts/social-chart-demo.ts";
-import { renderSocialChartPng } from "../src/lib/charts/social-chart-render.ts";
-import { renderMarketingOgPng } from "../src/lib/charts/marketing-render.tsx";
-import { loadMarketingCallContext, loadMarketingSpotlight } from "../src/lib/marketing/marketing-call-data.ts";
-import { composeFueledPostByCallId } from "../src/lib/social/x-compose.ts";
-import { postFueledMilestone } from "../src/lib/social/x-milestone-post.ts";
-import { tryAutopostFueledOnPublish } from "../src/lib/social/x-fueled-autopost.ts";
-import { postMemberWin } from "../src/lib/social/x-member-win-post.ts";
-import { DEMO_MEMBER_WIN_CALL_ID } from "../src/lib/charts/social-chart-demo.ts";
-import { composeWeeklyDigestPost, fetchWeeklyDigestRows } from "../src/lib/social/weekly-digest.ts";
-import { postWeeklyDigest } from "../src/lib/social/x-weekly-digest-post.ts";
-import { renderWeeklyDigestOgPng } from "../src/lib/charts/weekly-digest-og.tsx";
-import { loadTrackRecordCardPayload } from "../src/lib/charts/track-record-card-data.ts";
-import { renderTrackRecordCardPng } from "../src/lib/charts/track-record-card-render.ts";
+import { callMilestoneKeysForCall } from "../src/lib/notifications/milestone-keys";
+import { getXConfig } from "../src/lib/social/x-config";
+import { formatPostError } from "../src/lib/social/format-post-error";
+import { loadDemoSocialChartPayload } from "../src/lib/charts/social-chart-demo";
+import { renderSocialChartPng } from "../src/lib/charts/social-chart-render";
+import { renderMarketingOgPng } from "../src/lib/charts/marketing-render";
+import { loadMarketingCallContext, loadMarketingSpotlight } from "../src/lib/marketing/marketing-call-data";
+import { composeFueledPostByCallId } from "../src/lib/social/x-compose";
+import { postFueledMilestone } from "../src/lib/social/x-milestone-post";
+import { tryAutopostFueledOnPublish } from "../src/lib/social/x-fueled-autopost";
+import { postMemberWin } from "../src/lib/social/x-member-win-post";
+import { fetchMemberWinCandidates } from "../src/lib/social/member-win-scan";
+import { DEMO_MEMBER_WIN_CALL_ID } from "../src/lib/charts/social-chart-demo";
+import { composeWeeklyDigestPost, fetchWeeklyDigestRows } from "../src/lib/social/weekly-digest";
+import { postWeeklyDigest } from "../src/lib/social/x-weekly-digest-post";
+import { renderWeeklyDigestOgPng } from "../src/lib/charts/weekly-digest-og";
+import { loadTrackRecordCardPayload } from "../src/lib/charts/track-record-card-data";
+import { renderTrackRecordCardPng } from "../src/lib/charts/track-record-card-render";
 
 test("callMilestoneKeysForCall — return thresholds", () => {
   assert.deepEqual(callMilestoneKeysForCall({ return_pct: 5, target_progress: null }), []);
@@ -122,6 +123,13 @@ test("tryAutopostFueledOnPublish — no-op when disabled", async () => {
   await assert.doesNotReject(async () => {
     await tryAutopostFueledOnPublish("demo-call-001");
   });
+});
+
+test("fetchMemberWinCandidates — demo queue for admin", async () => {
+  const candidates = await fetchMemberWinCandidates(5);
+  assert.ok(candidates.length >= 1);
+  assert.equal(candidates[0]?.callId, DEMO_MEMBER_WIN_CALL_ID);
+  assert.equal(candidates[0]?.status, "ready");
 });
 
 test("postMemberWin — dry-run with demo member call and chart", async () => {

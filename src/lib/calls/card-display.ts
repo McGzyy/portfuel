@@ -54,6 +54,8 @@ export function mapCallRowToCardData(
     thesis: string;
     called_at: string;
     return_pct: number | null;
+    peak_return_pct?: number | null;
+    closed_at?: string | null;
     timeframe_tag: string | null;
     is_fueled: boolean;
     vote_score?: number;
@@ -76,6 +78,8 @@ export function mapCallRowToCardData(
     thesis: c.thesis,
     called_at: c.called_at,
     return_pct: c.return_pct,
+    peak_return_pct: c.peak_return_pct ?? null,
+    closed_at: c.closed_at ?? null,
     ...prices,
     timeframe_tag: c.timeframe_tag,
     is_fueled: c.is_fueled,

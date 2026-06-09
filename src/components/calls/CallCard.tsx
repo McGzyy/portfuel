@@ -8,7 +8,10 @@ import { CallResearchExpand } from "@/components/calls/CallResearchExpand";
 import { Card, CardContent } from "@/components/ui/card";
 import { SymbolSparkline } from "@/components/charts/SymbolSparkline";
 import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
-import { cn, formatPct, timeAgo } from "@/lib/utils";
+import { CallCloseButton } from "@/components/calls/CallCloseButton";
+import { CallReturnDisplay } from "@/components/calls/CallReturnDisplay";
+import { isOpenMemberCall } from "@/lib/calls/open-calls";
+import { cn, timeAgo } from "@/lib/utils";
 import type { TeaserCallRow } from "@/lib/db/supabase";
 
 type CallCardExtras = {
@@ -19,6 +22,8 @@ type CallCardExtras = {
   stop_price?: number | null;
   last_price?: number | null;
   timeframe_tag?: string | null;
+  peak_return_pct?: number | null;
+  closed_at?: string | null;
 };
 
 export type CallCardData = (TeaserCallRow | {
@@ -80,9 +85,15 @@ export function CallCard({
     (isAdmin || (call.user_id != null && call.user_id === viewerUserId));
   const handle = /^\d{5}$/.test(call.pin) ? call.pin : `@${call.pin}`;
   const name = call.display_name ?? `Trader ${handle}`;
-  const ret = call.return_pct;
-  const retClass =
-    ret == null ? "text-[var(--pf-gray-500)]" : ret >= 0 ? "pf-return-up" : "pf-return-down";
+  const canClose =
+    canDelete &&
+    !call.is_fueled &&
+    !call.closed_at &&
+    isOpenMemberCall({
+      called_at: call.called_at,
+      target_progress: call.target_progress,
+      closed_at: call.closed_at,
+    });
 
   const accent =
     call.direction === "long" ? "pf-call-accent-long" : "pf-call-accent-short";
@@ -121,6 +132,11 @@ export function CallCard({
                 <Badge variant="default">Crypto</Badge>
               ) : null}
               {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
+              {call.closed_at ? (
+                <Badge variant="default" className="border-slate-200 bg-slate-100 text-slate-700">
+                  Closed
+                </Badge>
+              ) : null}
               {call.is_trusted ? <Badge variant="trusted">Trusted</Badge> : null}
               {isNew ? (
                 <Badge variant="default" className="border-emerald-200 bg-emerald-50 text-emerald-800">
@@ -155,9 +171,11 @@ export function CallCard({
               <SymbolSparkline symbol={call.symbol} width={56} height={28} className="mt-0.5" />
             ) : null}
             <div className="text-right">
-              <p className={cn("text-xl font-bold tabular-nums tracking-tight", retClass)}>
-                {formatPct(ret)}
-              </p>
+              <CallReturnDisplay
+                returnPct={call.return_pct}
+                peakReturnPct={call.peak_return_pct}
+                closedAt={call.closed_at}
+              />
               <p className="text-xs text-[var(--pf-gray-400)]">{timeAgo(call.called_at)}</p>
             </div>
           </div>
@@ -192,6 +210,9 @@ export function CallCard({
             >
               Chart & intel →
             </Link>
+            {canClose ? (
+              <CallCloseButton callId={call.id} symbol={call.symbol} />
+            ) : null}
             {canDelete ? (
               <CallDeleteButton callId={call.id} symbol={call.symbol} />
             ) : null}

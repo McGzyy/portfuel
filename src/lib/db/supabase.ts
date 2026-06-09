@@ -58,6 +58,9 @@ export type Database = {
           price_at_call: number | null;
           last_price: number | null;
           return_pct: number | null;
+          peak_return_pct: number | null;
+          closed_at: string | null;
+          exit_price: number | null;
           target_progress: number | null;
           score_points: number;
           vote_score: number;

@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 
 const filters = [
   { key: "all", label: "All members" },
+  { key: "fueled", label: "Fueled desk" },
   { key: "following", label: "Following" },
   { key: "equity", label: "Stocks" },
   { key: "crypto", label: "Crypto" },
@@ -15,12 +16,14 @@ export function DashboardFeedFilters({
   searchQuery,
   newCount = 0,
   showNewOnly = false,
+  fueledCount = 0,
 }: {
   active: string;
   tab: FeedTab;
   searchQuery?: string;
   newCount?: number;
   showNewOnly?: boolean;
+  fueledCount?: number;
 }) {
   const tabArg = tab === "latest" ? undefined : tab;
   const filterArg = active === "all" ? undefined : active;
@@ -57,18 +60,24 @@ export function DashboardFeedFilters({
           newSince: showNewOnly || undefined,
         });
         const isActive = !showNewOnly && active === f.key;
+        const label =
+          f.key === "fueled" && fueledCount > 0 ? `${f.label} (${fueledCount})` : f.label;
         return (
           <Link
             key={f.key}
             href={href}
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
-              isActive
-                ? "pf-pill-active rounded-full border px-3 py-1 text-xs font-semibold"
-                : "pf-pill-inactive rounded-full border px-3 py-1 text-xs font-semibold transition-colors hover:bg-[var(--pf-gray-50)]"
+              isActive && f.key === "fueled"
+                ? "border-[var(--pf-red)] bg-[var(--pf-red-muted)] text-[var(--pf-red)]"
+                : isActive
+                  ? "pf-pill-active rounded-full border px-3 py-1 text-xs font-semibold"
+                  : f.key === "fueled"
+                    ? "border-[var(--pf-red)]/25 text-[var(--pf-red)] hover:bg-[var(--pf-red-muted)]"
+                    : "pf-pill-inactive rounded-full border px-3 py-1 text-xs font-semibold transition-colors hover:bg-[var(--pf-gray-50)]"
             )}
           >
-            {f.label}
+            {label}
           </Link>
         );
       })}

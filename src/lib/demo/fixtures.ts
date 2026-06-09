@@ -88,6 +88,9 @@ type RawCall = {
   is_fueled: boolean;
   source: "user" | "fueled";
   timeframe_tag: string;
+  peak_return_pct?: number;
+  closed_at?: string;
+  exit_price?: number;
 };
 
 const RAW_CALLS: RawCall[] = [
@@ -266,6 +269,9 @@ const RAW_CALLS: RawCall[] = [
     is_fueled: false,
     source: "user",
     timeframe_tag: "Event",
+    peak_return_pct: 19.2,
+    closed_at: daysAgo(1),
+    exit_price: 158.4,
   },
   {
     id: "demo-call-009",
@@ -310,6 +316,7 @@ const RAW_CALLS: RawCall[] = [
     is_fueled: false,
     source: "user",
     timeframe_tag: "Position",
+    peak_return_pct: 18.4,
   },
   {
     id: "demo-call-011",
@@ -441,6 +448,9 @@ function toCallWithUser(raw: RawCall): CallWithUser {
     price_at_call: raw.price_at_call,
     last_price: raw.last_price,
     return_pct: raw.return_pct,
+    peak_return_pct: raw.peak_return_pct ?? raw.return_pct,
+    closed_at: raw.closed_at ?? null,
+    exit_price: raw.exit_price ?? null,
     target_progress: raw.target_progress,
     score_points: raw.return_pct * 2 + raw.vote_score,
     vote_score: raw.vote_score,
