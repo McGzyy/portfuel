@@ -11,6 +11,10 @@ export function formatPostError(error: string): string {
       return "X API is disabled — set X_API_ENABLED=true in env.";
     case "invalid_input":
       return "Invalid request — check inputs and try again.";
+    case "call_id_and_milestone_required":
+      return "Call ID and milestone are required.";
+    case "call_id_required":
+      return "Call ID is required.";
     default:
       return error.startsWith("http_") || error === "no_token"
         ? `X API error: ${error}`

@@ -1,26 +1,11 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { getDemoCallsFeed } from "@/lib/demo/fixtures";
-import type { CallMilestoneKey } from "@/lib/notifications/milestones";
+import type { CallMilestoneKey } from "@/lib/notifications/milestone-keys";
+import { callMilestoneKeysForCall } from "@/lib/notifications/milestone-keys";
 import { fetchMemberWinCandidates } from "@/lib/social/member-win-scan";
 import { fetchWeeklyDigestRows } from "@/lib/social/weekly-digest";
 import { hasSocialPostBeenSent, listSocialPostLog } from "@/lib/social/post-log";
-
-function milestonesForCall(call: {
-  return_pct: number | null;
-  target_progress: number | null;
-}): CallMilestoneKey[] {
-  const keys: CallMilestoneKey[] = [];
-  const ret = call.return_pct;
-  if (ret != null) {
-    if (ret >= 10) keys.push("return_10");
-    if (ret >= 25) keys.push("return_25");
-  }
-  if (call.target_progress != null && call.target_progress >= 100) {
-    keys.push("target_reached");
-  }
-  return keys;
-}
 
 export async function fetchDeskMilestoneQueue() {
   let calls: {
@@ -29,6 +14,8 @@ export async function fetchDeskMilestoneQueue() {
     direction: string;
     return_pct: number | null;
     target_progress: number | null;
+    entry_price: number | null;
+    target_price: number | null;
   }[] = [];
 
   if (isDemoMode()) {
@@ -40,12 +27,14 @@ export async function fetchDeskMilestoneQueue() {
         direction: c.direction,
         return_pct: c.return_pct,
         target_progress: c.target_progress ?? null,
+        entry_price: c.entry_price ?? null,
+        target_price: c.target_price ?? null,
       }));
   } else {
     const db = createServiceClient();
     const { data, error } = await db
       .from("calls")
-      .select("id, symbol, direction, return_pct, target_progress")
+      .select("id, symbol, direction, return_pct, target_progress, entry_price, target_price")
       .eq("is_fueled", true)
       .order("return_pct", { ascending: false })
       .limit(15);
@@ -53,7 +42,15 @@ export async function fetchDeskMilestoneQueue() {
       console.error("[social-activity/desk]", error);
       return [];
     }
-    calls = (data ?? []) as typeof calls;
+    calls = (data ?? []).map((c) => ({
+      id: c.id,
+      symbol: c.symbol,
+      direction: c.direction,
+      return_pct: c.return_pct != null ? Number(c.return_pct) : null,
+      target_progress: c.target_progress != null ? Number(c.target_progress) : null,
+      entry_price: c.entry_price != null ? Number(c.entry_price) : null,
+      target_price: c.target_price != null ? Number(c.target_price) : null,
+    }));
   }
 
   const pending: Array<{
@@ -65,7 +62,7 @@ export async function fetchDeskMilestoneQueue() {
   }> = [];
 
   for (const call of calls) {
-    for (const milestone of milestonesForCall(call)) {
+    for (const milestone of callMilestoneKeysForCall(call)) {
       const refId = `milestone-${call.id}-${milestone}`;
       const posted = await hasSocialPostBeenSent("fueled_milestone", refId);
       if (!posted) {

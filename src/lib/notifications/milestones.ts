@@ -5,8 +5,12 @@ import { tryAutopostFueledMilestone } from "@/lib/social/x-milestone-autopost";
 import { tryAutopostMemberStillRunning } from "@/lib/social/x-member-win-still-running";
 import { tryAutopostMemberWinUpdate } from "@/lib/social/x-member-win-update";
 import { createNotification } from "@/lib/notifications/service";
+import {
+  callMilestoneKeysForCall,
+  type CallMilestoneKey,
+} from "@/lib/notifications/milestone-keys";
 
-export type CallMilestoneKey = "return_10" | "return_25" | "target_reached";
+export type { CallMilestoneKey } from "@/lib/notifications/milestone-keys";
 
 type CallRow = {
   id: string;
@@ -21,21 +25,7 @@ type CallRow = {
 };
 
 function milestonesForCall(call: CallRow): CallMilestoneKey[] {
-  const keys: CallMilestoneKey[] = [];
-  const ret = call.return_pct;
-  if (ret != null) {
-    if (ret >= 10) keys.push("return_10");
-    if (ret >= 25) keys.push("return_25");
-  }
-  if (
-    call.entry_price != null &&
-    call.target_price != null &&
-    call.target_progress != null &&
-    call.target_progress >= 100
-  ) {
-    keys.push("target_reached");
-  }
-  return keys;
+  return callMilestoneKeysForCall(call);
 }
 
 function copyForMilestone(

@@ -16,6 +16,7 @@ Add to Vercel (Production) and local `.env`:
 | `X_POST_FUELED` | `true` | Include latest Fueled desk call in cron batch |
 | `X_POST_LEADERBOARD` | `true` | Include top-3 rankings snippet in cron batch |
 | `X_AUTOPOST_FUELED_ON_PUBLISH` | `false` | When an admin publishes a Fueled call, auto-post it to X (still respects dry run + idempotency) |
+| `X_AUTOPOST_MILESTONES` | `false` | After quote refresh, auto-post Fueled desk milestone charts (+10%, +25%, target). **Keep `false` until you dry-run approve copy in Admin → Social.** |
 | `X_POST_MEMBER_WINS` | `false` | Cron: post one opted-in member win per run (when eligible) |
 | `X_MEMBER_WIN_MIN_RETURN_PCT` | `20` | Normal path minimum return % |
 | `X_MEMBER_WIN_MIN_AGE_HOURS` | `48` | Normal path minimum hours since call |
@@ -62,7 +63,9 @@ Inbound curation lives on **Admin → X Ingest** (linked from the Social tab): p
 
 ## Cron
 
-`GET /api/cron/x-social` — scheduled in `vercel.json` (Mondays, after weekly digest). Respects `X_POST_*` flags and dry run.
+`GET /api/cron/x-social` — scheduled in `vercel.json` (Mondays). Handles text-only **Fueled desk**, **leaderboard**, **member wins**, and **weekly digest**. Respects `X_POST_*` flags and dry run.
+
+**Fueled milestone chart posts** are **not** in this cron. They autopost when quote refresh detects a new milestone (`processCallMilestones` → `tryAutopostFueledMilestone`), gated by `X_AUTOPOST_MILESTONES`. Manual posts: Admin → Social → Milestone charts.
 
 Manual test (local):
 
@@ -112,8 +115,8 @@ Use this before flipping live posts in production.
 ### Phase 2 — Live on staging
 
 1. Set `X_API_DRY_RUN=false` on a **test X account** or restricted brand account
-2. Admin → Social → **Post to X** once manually; verify link + chart PNG
-3. Publish a Fueled desk call with a known return milestone; confirm milestone chart cron path
+2. Admin → Social → **Dry-run post** on a milestone chart, then **Post to X with chart** once manually; verify link + chart PNG
+3. Publish or refresh quotes on a Fueled desk call at a milestone; confirm autopost only when `X_AUTOPOST_MILESTONES=true` (fires on quote refresh, not Monday cron)
 4. Review `social_post_log` for idempotency (re-run cron — should skip duplicates)
 
 ### Phase 3 — Production

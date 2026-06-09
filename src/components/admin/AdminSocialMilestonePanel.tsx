@@ -75,6 +75,7 @@ export function AdminSocialMilestonePanel() {
   const [message, setMessage] = useState("");
   const [xConfig, setXConfig] = useState<XConfigSummary | null>(null);
   const [postPreview, setPostPreview] = useState<PostPreview | null>(null);
+  const [forceRepost, setForceRepost] = useState(false);
 
   const loadCopy = useCallback(async () => {
     const res = await fetch("/api/admin/social/copy");
@@ -92,21 +93,55 @@ export function AdminSocialMilestonePanel() {
     }
   }, []);
 
+  const previewMilestone = useCallback(async (item: MilestoneItem) => {
+    setSelected(item);
+    setMessage("");
+    setPostPreview(null);
+    const res = await fetch("/api/admin/social/preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "fueled_milestone",
+        callId: item.callId,
+        milestone: item.milestone,
+      }),
+    });
+    const json = await res.json();
+    if (res.ok) {
+      setPreviewText(json.text as string);
+      setPreviewLead((json.lead as string) ?? "");
+      setPreviewTail((json.tail as string) ?? "");
+      if (json.chartUrl) {
+        setPostPreview({
+          lead: (json.lead as string) ?? "",
+          tail: (json.tail as string) ?? "",
+          text: json.text as string,
+          chartUrl: json.chartUrl as string,
+          cacheKey: String(Date.now()),
+        });
+      } else {
+        setPostPreview(null);
+      }
+    }
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/social/fueled-milestones");
       if (res.ok) {
-        const json = (await res.json()) as { milestones: MilestoneItem[] };
+        const json = (await res.json()) as {
+          milestones: MilestoneItem[];
+          nextUnposted: MilestoneItem | null;
+        };
         setItems(json.milestones);
-        if (json.milestones[0]) {
-          setSelected(json.milestones[0]);
-        }
+        const pick = json.nextUnposted ?? json.milestones[0];
+        if (pick) await previewMilestone(pick);
       }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [previewMilestone]);
 
   useEffect(() => {
     void loadCopy();
@@ -176,6 +211,10 @@ export function AdminSocialMilestonePanel() {
       });
       const json = await res.json();
       if (!res.ok) {
+        if (json.error === "already_posted") {
+          setMessage("Already published — enable Force repost below to send again.");
+          return;
+        }
         setMessage(formatPostError(json.error as string));
         return;
       }
@@ -235,41 +274,14 @@ export function AdminSocialMilestonePanel() {
     setDemoChartKey((k) => k + 1);
   }
 
-  async function preview(item: MilestoneItem) {
-    setSelected(item);
-    setMessage("");
-    setPostPreview(null);
-    const res = await fetch("/api/admin/social/preview", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "fueled_milestone",
-        callId: item.callId,
-        milestone: item.milestone,
-      }),
-    });
-    const json = await res.json();
-    if (res.ok) {
-      setPreviewText(json.text as string);
-      setPreviewLead((json.lead as string) ?? "");
-      setPreviewTail((json.tail as string) ?? "");
-      if (json.chartUrl) {
-        setPostPreview({
-          lead: (json.lead as string) ?? "",
-          tail: (json.tail as string) ?? "",
-          text: json.text as string,
-          chartUrl: json.chartUrl as string,
-          cacheKey: String(Date.now()),
-        });
-      } else {
-        setPostPreview(null);
-      }
-    }
-  }
-
   async function post(item: MilestoneItem, dryRun: boolean) {
     setSelected(item);
-    await runMilestonePost({ callId: item.callId, milestone: item.milestone, dryRun });
+    await runMilestonePost({
+      callId: item.callId,
+      milestone: item.milestone,
+      dryRun,
+      force: !dryRun && forceRepost,
+    });
   }
 
   async function dryRunDemo() {
@@ -285,7 +297,7 @@ export function AdminSocialMilestonePanel() {
   const demoSvgUrl = `/api/admin/social/demo-chart?milestone=${demoMilestone}&format=svg&k=${demoChartKey}`;
 
   return (
-    <section className="pf-workspace-panel p-6">
+    <section id="milestone-charts" className="pf-workspace-panel p-6">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
         Milestone charts
       </p>
@@ -510,7 +522,7 @@ export function AdminSocialMilestonePanel() {
                 <button
                   key={item.refId}
                   type="button"
-                  onClick={() => void preview(item)}
+                  onClick={() => void previewMilestone(item)}
                   className={
                     selected?.refId === item.refId
                       ? "rounded-full border border-[var(--pf-red)] bg-[var(--pf-red-muted)] px-3 py-1 text-xs font-bold text-[var(--pf-red)]"
@@ -566,15 +578,24 @@ export function AdminSocialMilestonePanel() {
             </pre>
           ) : null}
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold text-[var(--pf-gray-600)]">
+              <input
+                type="checkbox"
+                className="accent-[var(--pf-red)]"
+                checked={forceRepost}
+                onChange={(e) => setForceRepost(e.target.checked)}
+              />
+              Force repost
+            </label>
             <Button
               type="button"
               variant="outline"
               size="sm"
               disabled={!selected}
-              onClick={() => selected && void preview(selected)}
+              onClick={() => selected && void previewMilestone(selected)}
             >
-              Preview copy
+              Refresh preview
             </Button>
             <Button
               type="button"

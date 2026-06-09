@@ -20,6 +20,7 @@ type XConfigSummary = {
   memberWinPosts: boolean;
   weeklyDigestPosts: boolean;
   autopostFueledOnPublish: boolean;
+  autopostMilestones: boolean;
 };
 
 export function AdminSocialPanel() {
@@ -110,8 +111,9 @@ export function AdminSocialPanel() {
           X posts & publishing
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
-          Preview and publish desk milestones, weekly rankings, and member spotlight posts with
-          branded charts. To curate inbound X posts into desk research, use Admin → X Ingest.
+          Start with <strong>desk milestone charts</strong> below — dry-run validates the full PNG +
+          copy pipeline before you flip live posting. Text-only cron posts (Fueled desk, rankings) are
+          at the bottom. Inbound curation: Admin → X Ingest.
         </p>
 
         {config ? (
@@ -133,6 +135,11 @@ export function AdminSocialPanel() {
               { label: "API", value: config.enabled ? "On" : "Off" },
               { label: "Dry run", value: config.dryRun ? "On" : "Off" },
               {
+                label: "Auto milestones",
+                value: config.autopostMilestones ? "On" : "Off",
+                accent: config.autopostMilestones && config.livePostingReady ? undefined : undefined,
+              },
+              {
                 label: "Cron",
                 value: [
                   config.fueledPosts && "Fueled",
@@ -146,6 +153,52 @@ export function AdminSocialPanel() {
             ]}
           />
         ) : null}
+
+        <p className="mt-4">
+          <a
+            href="#milestone-charts"
+            className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
+          >
+            Jump to milestone charts →
+          </a>
+        </p>
+      </section>
+
+      <AdminSocialMilestonePanel />
+
+      <section className="pf-workspace-panel flex flex-wrap items-center justify-between gap-4 p-4">
+        <div>
+          <p className="text-sm font-semibold text-[var(--pf-black)]">Curate from X</p>
+          <p className="mt-1 text-xs text-[var(--pf-gray-600)]">
+            Paste a tweet URL, analyze tickers, publish a Fueled desk call.
+          </p>
+        </div>
+        <Link
+          href="/admin?tab=x-ingest"
+          className="rounded-lg border border-[var(--pf-border)] px-4 py-2 text-sm font-semibold text-[var(--pf-red)] hover:bg-[var(--pf-red-muted)]"
+        >
+          Open X Ingest →
+        </Link>
+      </section>
+
+      <AdminSocialActivityPanel />
+
+      <AdminSocialCopyPanel />
+
+      <AdminMemberWinsPanel />
+
+      <AdminWeeklyDigestPanel />
+
+      <section className="pf-workspace-panel p-6">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
+          Text-only cron posts
+        </p>
+        <h3 className="mt-1 text-base font-bold text-[var(--pf-black)]">
+          Fueled desk & rankings (no chart)
+        </h3>
+        <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
+          Monday cron batch — link previews only. Milestone chart posts use the panel above.
+        </p>
 
         <div className="mt-5 flex flex-wrap gap-2">
           <Button
@@ -202,31 +255,6 @@ export function AdminSocialPanel() {
           </pre>
         ) : null}
       </section>
-
-      <section className="pf-workspace-panel flex flex-wrap items-center justify-between gap-4 p-4">
-        <div>
-          <p className="text-sm font-semibold text-[var(--pf-black)]">Curate from X</p>
-          <p className="mt-1 text-xs text-[var(--pf-gray-600)]">
-            Paste a tweet URL, analyze tickers, publish a Fueled desk call.
-          </p>
-        </div>
-        <Link
-          href="/admin?tab=x-ingest"
-          className="rounded-lg border border-[var(--pf-border)] px-4 py-2 text-sm font-semibold text-[var(--pf-red)] hover:bg-[var(--pf-red-muted)]"
-        >
-          Open X Ingest →
-        </Link>
-      </section>
-
-      <AdminSocialActivityPanel />
-
-      <AdminSocialCopyPanel />
-
-      <AdminMemberWinsPanel />
-
-      <AdminWeeklyDigestPanel />
-
-      <AdminSocialMilestonePanel />
     </div>
   );
 }

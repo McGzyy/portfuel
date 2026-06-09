@@ -38,9 +38,7 @@ export function getXConfig(): XConfig {
     memberWinPosts: envFlag("X_POST_MEMBER_WINS", false),
     weeklyDigestPosts: envFlag("X_POST_WEEKLY_DIGEST", false),
     autopostFueledOnPublish: envFlag("X_AUTOPOST_FUELED_ON_PUBLISH", false),
-    autopostMilestones: !["0", "false", "no"].includes(
-      (process.env.X_AUTOPOST_MILESTONES ?? "true").trim().toLowerCase()
-    ),
+    autopostMilestones: envFlag("X_AUTOPOST_MILESTONES", false),
   };
 }
 
