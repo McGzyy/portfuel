@@ -580,7 +580,7 @@ body {
   font-size: 0.9375rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--pf-black);
+  color: var(--foreground);
 }
 
 /* Settings — mobile section picker + tighter rhythm */
