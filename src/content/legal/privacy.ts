@@ -46,7 +46,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     title: "5. Your choices",
     paragraphs: [
       "You can update your display name in profile settings. Username changes are not supported after registration.",
-      "Cancel recurring billing through Stripe Customer Portal from your profile. You may request account deletion by contacting support; some content may remain in backups for a limited time.",
+      "Cancel recurring billing through Stripe Customer Portal from your profile. You may request account deletion by emailing support@portfuel.pro or opening a ticket in Help & support; some content may remain in backups for a limited time.",
     ],
   },
   {
@@ -74,7 +74,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
   {
     title: "10. Contact",
     paragraphs: [
-      "Privacy questions: use the support contact published on portfuel.pro (add a dedicated privacy email before launch if required in your jurisdiction).",
+      "Privacy questions: email support@portfuel.pro or use Help & support in the workspace (portfuel.pro/dashboard/help).",
     ],
   },
 ];

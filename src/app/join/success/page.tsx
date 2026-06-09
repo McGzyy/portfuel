@@ -7,6 +7,7 @@ import { Check, Loader2, Mail } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { EmailUnlockSteps } from "@/components/auth/EmailUnlockSteps";
 import { Button } from "@/components/ui/button";
+import { ErrorMessageWithSupport } from "@/components/help/SupportContactLink";
 
 export default function JoinSuccessPage() {
   const router = useRouter();
@@ -126,7 +127,9 @@ export default function JoinSuccessPage() {
         {status === "error" ? (
           <>
             <h1 className="text-xl font-bold text-[var(--pf-black)]">Confirmation issue</h1>
-            <p className="mt-2 text-sm text-[var(--pf-gray-600)]">{errorMsg}</p>
+            <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
+              <ErrorMessageWithSupport message={errorMsg} variant="email" />
+            </p>
             <div className="mt-8 flex flex-col gap-3">
               <Link href="/login">
                 <Button className="w-full" size="lg">

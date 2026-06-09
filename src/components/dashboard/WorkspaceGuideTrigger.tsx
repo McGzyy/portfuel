@@ -14,7 +14,7 @@ export function WorkspaceGuideTrigger({ onOpen }: { onOpen?: () => void }) {
       className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-black)]"
     >
       <Map className="h-3.5 w-3.5" />
-      Help
+      Map
     </button>
   );
 }

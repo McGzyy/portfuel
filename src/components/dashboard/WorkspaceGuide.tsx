@@ -207,6 +207,15 @@ export function WorkspaceGuide({
             >
               Overview
             </Link>
+            {" "}
+            or browse the full{" "}
+            <Link
+              href="/dashboard/help"
+              className="font-semibold text-[var(--pf-red)] hover:underline"
+              onClick={() => void dismissGuide()}
+            >
+              help center
+            </Link>
             .
           </p>
           <button

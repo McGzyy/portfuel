@@ -9,7 +9,7 @@ export function AuthShell({
 }: {
   children: React.ReactNode;
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   className?: string;
 }) {
   return (

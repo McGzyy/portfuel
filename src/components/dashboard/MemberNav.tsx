@@ -17,6 +17,7 @@ import {
   Calendar,
   GitCompare,
   Trophy,
+  LifeBuoy,
   X,
 } from "lucide-react";
 import { COPY } from "@/lib/copy";
@@ -43,6 +44,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   bell: Bell,
   trophy: Trophy,
   notebook: Notebook,
+  help: LifeBuoy,
 };
 
 function isNavActive(pathname: string, href: string, exact?: boolean) {
@@ -193,7 +195,17 @@ export function MemberNav({
             {COPY.publishCallCta}
           </Link>
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
-            <WorkspaceGuideTrigger onOpen={() => setDrawerOpen(false)} />
+            <div className="flex items-center gap-3">
+              <Link
+                href="/dashboard/help"
+                onClick={() => setDrawerOpen(false)}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-black)]"
+              >
+                <LifeBuoy className="h-3.5 w-3.5" />
+                Help
+              </Link>
+              <WorkspaceGuideTrigger onOpen={() => setDrawerOpen(false)} />
+            </div>
             <div className="flex items-center gap-3">
               {isAdmin ? (
                 <Link

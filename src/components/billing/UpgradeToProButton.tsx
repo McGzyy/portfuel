@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ErrorMessageWithSupport } from "@/components/help/SupportContactLink";
 import { formatMoneyFromCents } from "@/lib/stripe/format-money";
 import { formatUpgradeProrationHint } from "@/lib/stripe/format-upgrade-preview";
 import { PLAN_BY_TIER } from "@/lib/marketing/plans";
@@ -148,7 +149,11 @@ export function UpgradeToProButton({
           </div>
         )}
       </div>
-      {upgradeError ? <p className="mt-2 text-sm text-rose-600">{upgradeError}</p> : null}
+      {upgradeError ? (
+        <p className="mt-2 text-sm text-rose-600">
+          <ErrorMessageWithSupport message={upgradeError} />
+        </p>
+      ) : null}
     </div>
   );
 }

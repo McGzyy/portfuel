@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ErrorMessageWithSupport } from "@/components/help/SupportContactLink";
 import type { BillingInterval, MembershipTier } from "@/lib/stripe/config";
 
 const CHECKOUT_VOUCHER_ERRORS: Record<string, string> = {
@@ -69,7 +70,11 @@ export function CompleteCheckoutButton({
       <Button size="lg" className="w-full" disabled={loading} onClick={startCheckout}>
         {loading ? "Redirecting to Stripe…" : label ?? "Complete checkout"}
       </Button>
-      {error ? <p className="mt-2 text-center text-sm text-[var(--pf-red)]">{error}</p> : null}
+      {error ? (
+        <p className="mt-2 text-center text-sm text-[var(--pf-red)]">
+          <ErrorMessageWithSupport message={error} />
+        </p>
+      ) : null}
     </div>
   );
 }

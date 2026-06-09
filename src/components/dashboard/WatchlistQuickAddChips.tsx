@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ONBOARDING_DEFAULT_SYMBOLS } from "@/lib/onboarding/constants";
 import { journalSymbolPath } from "@/lib/journal/paths";
+import { ErrorMessageWithSupport } from "@/components/help/SupportContactLink";
 import { watchlistAddErrorMessage } from "@/lib/watchlist/add-errors";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { cn } from "@/lib/utils";
@@ -89,7 +90,11 @@ export function WatchlistQuickAddChips({
           </button>
         ))}
       </div>
-      {error ? <p className="mt-2 text-xs font-medium text-rose-600">{error}</p> : null}
+      {error ? (
+        <p className="mt-2 text-xs font-medium text-rose-600">
+          <ErrorMessageWithSupport message={error} />
+        </p>
+      ) : null}
     </div>
   );
 }

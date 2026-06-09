@@ -1,3 +1,4 @@
+import { SupportContactLink } from "@/components/help/SupportContactLink";
 import { cn } from "@/lib/utils";
 
 export type ModerationBannerProps = {
@@ -40,8 +41,8 @@ export function ModerationBanner({
     >
       <p className="font-semibold">Account restrictions active</p>
       <p className="mt-0.5 text-amber-900/90">
-        You can browse the workspace, but you cannot {list}. If this is unexpected, contact
-        support.
+        You can browse the workspace, but you cannot {list}. If this is unexpected,{" "}
+        <SupportContactLink variant="ticket">contact support</SupportContactLink>.
       </p>
     </div>
   );

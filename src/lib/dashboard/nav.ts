@@ -11,7 +11,8 @@ export type DashboardNavIcon =
   | "messages"
   | "bell"
   | "trophy"
-  | "notebook";
+  | "notebook"
+  | "help";
 
 export type DashboardNavItem = {
   href: string;
@@ -99,6 +100,17 @@ export const WORKSPACE_NAV_GROUPS: { title: string; items: DashboardNavItem[] }[
         i.href
       )
     ),
+  },
+  {
+    title: "Support",
+    items: [
+      {
+        href: "/dashboard/help",
+        label: "Help & support",
+        description: "Docs, tickets, and contact",
+        icon: "help",
+      },
+    ],
   },
 ];
 
@@ -193,6 +205,11 @@ const WORKSPACE_GUIDE_SECTIONS_TEMPLATE: {
         label: "Profile",
         description: "Your public track record and published calls.",
         profileLink: true,
+      },
+      {
+        href: "/dashboard/help",
+        label: "Help & support",
+        description: "Documentation, troubleshooting, and support tickets.",
       },
       {
         href: "/dashboard/settings",

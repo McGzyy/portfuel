@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ManageBillingButton } from "@/components/billing/BillingActions";
+import { SupportContactLink } from "@/components/help/SupportContactLink";
 import { CancellationFeedbackForm } from "@/components/settings/CancellationFeedbackForm";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { cn } from "@/lib/utils";
@@ -75,7 +76,11 @@ export function SettingsDangerZone({
       ) : null}
 
       <p className="mt-3 text-xs text-rose-900/70">
-        Need help? Contact support before cancelling if billing looks wrong.
+        Need help?{" "}
+        <SupportContactLink variant="ticket" className="text-rose-800">
+          Contact support
+        </SupportContactLink>{" "}
+        before cancelling if billing looks wrong.
       </p>
     </section>
   );

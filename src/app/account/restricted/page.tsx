@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { SupportContactLink } from "@/components/help/SupportContactLink";
+
 export default function AccountRestrictedPage() {
   return (
     <AuthShell
@@ -8,7 +10,9 @@ export default function AccountRestrictedPage() {
     >
       <div className="space-y-4 text-center text-sm text-[var(--pf-gray-600)]">
         <p>
-          You can still manage billing from your profile. Contact support if you need this lifted.
+          You can still manage billing from your profile.{" "}
+          <SupportContactLink variant="ticket">Contact support</SupportContactLink> if you need this
+          lifted.
         </p>
         <Link
           href="/settings"

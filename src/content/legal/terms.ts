@@ -76,7 +76,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
   {
     title: "10. Contact",
     paragraphs: [
-      "Questions about these Terms or billing: contact support through the email or channel listed on portfuel.pro (update before launch if you use a dedicated support address).",
+      "Questions about these Terms or billing: email support@portfuel.pro or open Help & support in your workspace after signing in (portfuel.pro/dashboard/help).",
     ],
   },
 ];

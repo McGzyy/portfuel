@@ -42,6 +42,7 @@ export const WORKSPACE_MORE_PATH_PREFIXES = [
   "/dashboard/notifications",
   "/dashboard/book",
   "/dashboard/settings",
+  "/dashboard/help",
   "/settings",
   "/admin",
 ] as const;

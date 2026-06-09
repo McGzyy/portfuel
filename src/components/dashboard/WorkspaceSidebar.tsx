@@ -15,6 +15,7 @@ import {
   Megaphone,
   Notebook,
   Trophy,
+  LifeBuoy,
 } from "lucide-react";
 import { COPY } from "@/lib/copy";
 import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
@@ -36,6 +37,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   bell: Bell,
   trophy: Trophy,
   notebook: Notebook,
+  help: LifeBuoy,
 };
 
 export function WorkspaceSidebar({
@@ -128,7 +130,16 @@ export function WorkspaceSidebar({
           {COPY.publishCallCta}
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
-          <WorkspaceGuideTrigger />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard/help"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-black)]"
+            >
+              <LifeBuoy className="h-3.5 w-3.5" />
+              Help
+            </Link>
+            <WorkspaceGuideTrigger />
+          </div>
           <div className="flex items-center gap-3">
             {isAdmin ? (
               <Link

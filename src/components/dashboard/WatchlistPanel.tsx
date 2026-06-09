@@ -23,6 +23,7 @@ import { tickerPagePath } from "@/lib/market/ticker-path";
 import { resolvePriceMoveThreshold } from "@/lib/alerts/price-threshold";
 import type { WatchlistAlertPrefs } from "@/lib/alerts/preferences";
 import { DEFAULT_WATCHLIST_ALERT_PREFS } from "@/lib/alerts/preferences";
+import { ErrorMessageWithSupport } from "@/components/help/SupportContactLink";
 import { watchlistAddErrorMessage } from "@/lib/watchlist/add-errors";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { useWatchlistItemsOptional } from "@/components/dashboard/WatchlistItemsProvider";
@@ -295,7 +296,11 @@ export function WatchlistPanel({
         </p>
       ) : null}
 
-      {error ? <p className="mt-2 text-xs text-rose-600">{error}</p> : null}
+      {error ? (
+        <p className="mt-2 text-xs text-rose-600">
+          <ErrorMessageWithSupport message={error} />
+        </p>
+      ) : null}
 
       {!loading && items.length > 0 ? (
         <div className="mt-3">

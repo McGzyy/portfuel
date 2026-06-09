@@ -6,6 +6,7 @@ import { Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import type { WatchlistRemoveSummary } from "@/lib/watchlist/journal-archive";
+import { ErrorMessageWithSupport } from "@/components/help/SupportContactLink";
 import { cn } from "@/lib/utils";
 
 function buildRemoveMessage(summary: WatchlistRemoveSummary): {
@@ -187,7 +188,11 @@ export function RemoveFromWatchlistButton({
                     and is restored when you re-add this symbol.
                   </p>
                 ) : null}
-                {error ? <p className="mt-3 text-xs text-rose-600">{error}</p> : null}
+                {error ? (
+                  <p className="mt-3 text-xs text-rose-600">
+                    <ErrorMessageWithSupport message={error} />
+                  </p>
+                ) : null}
                 <div className="mt-5 flex flex-wrap justify-end gap-2">
                   <Button type="button" variant="outline" size="sm" onClick={close} disabled={removing}>
                     Cancel
