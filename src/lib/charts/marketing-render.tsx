@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import type { ReactNode } from "react";
 import { fmtSocialAsOf } from "@/lib/charts/social-chart-format";
-import { loadSocialChartLogoBase64 } from "@/lib/charts/social-chart-logo";
+import { compositeChartFooterLogo } from "@/lib/charts/social-chart-logo";
 import { socialChartOgFonts } from "@/lib/charts/social-chart-og-fonts";
 import {
   MARKETING_AD_COPY,
@@ -218,15 +218,7 @@ function BulletList({ lines }: { lines: string[] }) {
   );
 }
 
-function FooterBar({
-  pad,
-  compact = false,
-  logoSrc,
-}: {
-  pad: number;
-  compact?: boolean;
-  logoSrc: string | null;
-}) {
+function FooterBar({ pad, compact = false }: { pad: number; compact?: boolean }) {
   const asOf = fmtSocialAsOf();
   return (
     <div
@@ -249,9 +241,6 @@ function FooterBar({
           portfuel.pro
         </div>
       </div>
-      {logoSrc ? (
-        <img src={logoSrc} height={compact ? 36 : 46} alt="" style={{ display: "flex" }} />
-      ) : null}
     </div>
   );
 }
@@ -578,11 +567,6 @@ function adChartMeta(variant: MarketingAdVariant, ctx: MarketingCallContext): Sp
   return ctx.topMember;
 }
 
-function logoDataUri(): string | null {
-  const b64 = loadSocialChartLogoBase64();
-  return b64 ? `data:image/png;base64,${b64}` : null;
-}
-
 export async function renderMarketingOgPng(
   variant: MarketingOgVariant = "home",
   ctx?: MarketingCallContext
@@ -590,8 +574,8 @@ export async function renderMarketingOgPng(
   const { width, height } = MARKETING_SIZES.og;
   const c = MARKETING_OG_COPY[variant];
   const pad = 52;
-  const logoSrc = logoDataUri();
   const calls = ctx ?? (await loadMarketingCallContext());
+  const footerH = 72;
 
   const response = new ImageResponse(
     (
@@ -657,13 +641,20 @@ export async function renderMarketingOgPng(
             {ogVisual(variant, calls)}
           </div>
         </div>
-        <FooterBar pad={pad} logoSrc={logoSrc} />
+        <FooterBar pad={pad} />
       </BackgroundShell>
     ),
     { width, height, fonts: socialChartOgFonts() }
   );
 
-  return Buffer.from(await response.arrayBuffer());
+  const png = Buffer.from(await response.arrayBuffer());
+  return compositeChartFooterLogo(png, {
+    width,
+    height,
+    footerH,
+    logoH: 46,
+    padX: pad,
+  });
 }
 
 function AdCopyBlock({
@@ -743,7 +734,8 @@ export async function renderMarketingAdPng(opts: {
   const isSquare = sizeKey === "square";
   const callCtx = opts.ctx ?? (await loadMarketingCallContext());
   const chartMeta = adChartMeta(opts.variant, callCtx);
-  const logoSrc = logoDataUri();
+  const footerH = isSquare ? 64 : 72;
+  const logoH = isSquare ? 36 : 46;
 
   const response = new ImageResponse(
     (
@@ -808,11 +800,18 @@ export async function renderMarketingAdPng(opts: {
           </div>
         )}
 
-        <FooterBar pad={pad} compact={isSquare} logoSrc={logoSrc} />
+        <FooterBar pad={pad} compact={isSquare} />
       </BackgroundShell>
     ),
     { width, height, fonts: socialChartOgFonts() }
   );
 
-  return Buffer.from(await response.arrayBuffer());
+  const png = Buffer.from(await response.arrayBuffer());
+  return compositeChartFooterLogo(png, {
+    width,
+    height,
+    footerH,
+    logoH,
+    padX: pad,
+  });
 }

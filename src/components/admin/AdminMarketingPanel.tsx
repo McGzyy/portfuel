@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Copy, Download, ExternalLink, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,68 @@ import {
 
 const OG_VARIANTS: MarketingOgVariant[] = ["home", "join", "proof", "desk", "demo"];
 const AD_VARIANTS: MarketingAdVariant[] = ["proof", "structure", "desk"];
+
+type SpotlightEntry = {
+  callId: string | null;
+  symbol: string;
+  returnPct: string;
+  lane: "member" | "desk";
+  insight: string;
+  username: string | null;
+  usedIn: string[];
+};
+
+type SpotlightPayload = {
+  source: "live" | "demo" | "fallback";
+  updatedAt: string;
+  renderRevision: number;
+  entries: {
+    topMember: SpotlightEntry;
+    topFueled: SpotlightEntry;
+    structure: SpotlightEntry;
+  };
+  rankings: Array<{
+    rank: number;
+    callId: string | null;
+    symbol: string;
+    returnPct: string;
+    lane: "member" | "desk";
+  }>;
+};
+
+function SpotlightCard({ entry, title }: { entry: SpotlightEntry; title: string }) {
+  const chartUrl = entry.callId
+    ? `/api/social/chart/${encodeURIComponent(entry.callId)}?format=png`
+    : null;
+
+  return (
+    <div className="rounded-lg border border-[var(--pf-border)] bg-white p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+        {title}
+      </p>
+      <p className="mt-1 text-base font-bold text-[var(--pf-black)]">
+        {entry.symbol}{" "}
+        <span className="font-semibold text-[var(--pf-green)]">{entry.returnPct}</span>
+      </p>
+      <p className="mt-0.5 text-xs text-[var(--pf-gray-600)]">{entry.insight}</p>
+      <p className="mt-2 text-[10px] text-[var(--pf-gray-500)]">
+        {entry.usedIn.join(" · ")}
+      </p>
+      {chartUrl ? (
+        <a
+          href={chartUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 inline-flex text-xs font-semibold text-[var(--pf-red)] hover:underline"
+        >
+          Open chart PNG
+        </a>
+      ) : (
+        <p className="mt-2 text-[10px] text-[var(--pf-gray-400)]">Demo/fallback data</p>
+      )}
+    </div>
+  );
+}
 
 function CopyBlock({ label, text }: { label: string; text: string }) {
   const [copied, setCopied] = useState(false);
@@ -104,6 +166,17 @@ export function AdminMarketingPanel() {
   const [callId, setCallId] = useState("");
   const [adHeadline, setAdHeadline] = useState("");
   const [adVariant, setAdVariant] = useState<MarketingAdVariant>("proof");
+  const [spotlight, setSpotlight] = useState<SpotlightPayload | null>(null);
+
+  const loadSpotlight = useCallback(async () => {
+    const res = await fetch("/api/admin/marketing-spotlight");
+    if (!res.ok) return;
+    setSpotlight((await res.json()) as SpotlightPayload);
+  }, []);
+
+  useEffect(() => {
+    void loadSpotlight();
+  }, [loadSpotlight]);
 
   const chartUrl = useMemo(() => {
     const id = callId.trim();
@@ -117,7 +190,10 @@ export function AdminMarketingPanel() {
     return `/api/og/ad?${params.toString()}`;
   }, [adVariant, adHeadline]);
 
-  const refresh = useCallback(() => setCacheKey(Date.now()), []);
+  const refresh = useCallback(() => {
+    setCacheKey(Date.now());
+    void loadSpotlight();
+  }, [loadSpotlight]);
 
   return (
     <div className="mt-8 space-y-8">
@@ -145,6 +221,59 @@ export function AdminMarketingPanel() {
           <code className="rounded bg-[var(--pf-gray-100)] px-1">npm run marketing:export</code>
         </p>
       </section>
+
+      {spotlight ? (
+        <section className="pf-workspace-panel p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                Live data
+              </p>
+              <h3 className="mt-1 text-sm font-bold text-[var(--pf-black)]">
+                Current marketing spotlights
+              </h3>
+              <p className="mt-1 text-xs text-[var(--pf-gray-600)]">
+                Highest all-time return % calls powering OG/ad heroes and rankings. Source:{" "}
+                <span className="font-semibold text-[var(--pf-gray-700)]">{spotlight.source}</span>
+                {" · "}
+                rev {spotlight.renderRevision}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <SpotlightCard entry={spotlight.entries.topMember} title="Top member call" />
+            <SpotlightCard entry={spotlight.entries.topFueled} title="Top Fueled desk call" />
+            <SpotlightCard entry={spotlight.entries.structure} title="Structure ad (2nd member)" />
+          </div>
+          {spotlight.rankings.length > 0 ? (
+            <div className="mt-4 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-3">
+              <p className="text-xs font-semibold text-[var(--pf-gray-700)]">
+                Home & demo rankings (top 3)
+              </p>
+              <ul className="mt-2 space-y-1 text-xs text-[var(--pf-gray-600)]">
+                {spotlight.rankings.map((r) => (
+                  <li key={r.rank}>
+                    #{r.rank} {r.symbol} {r.returnPct} · {r.lane === "desk" ? "Fueled" : "Member"}
+                    {r.callId ? (
+                      <>
+                        {" · "}
+                        <a
+                          href={`/api/social/chart/${encodeURIComponent(r.callId)}?format=png`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-[var(--pf-red)] hover:underline"
+                        >
+                          chart
+                        </a>
+                      </>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       <section>
         <h3 className="text-sm font-bold text-[var(--pf-black)]">Link preview cards (1200×630)</h3>

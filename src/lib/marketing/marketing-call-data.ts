@@ -251,3 +251,119 @@ export function joinSparkFromContext(ctx: MarketingCallContext): MarketingSparkH
     insight: "Entry, target, stop · tracked live",
   };
 }
+
+export type MarketingSpotlightEntry = {
+  callId: string | null;
+  symbol: string;
+  returnPct: string;
+  lane: "member" | "desk";
+  insight: string;
+  username: string | null;
+  usedIn: string[];
+};
+
+export type MarketingSpotlightPayload = {
+  source: "live" | "demo" | "fallback";
+  updatedAt: string;
+  entries: {
+    topMember: MarketingSpotlightEntry;
+    topFueled: MarketingSpotlightEntry;
+    structure: MarketingSpotlightEntry;
+  };
+  rankings: Array<{
+    rank: number;
+    callId: string | null;
+    symbol: string;
+    returnPct: string;
+    lane: "member" | "desk";
+  }>;
+};
+
+function spotlightEntry(
+  call: CallWithUser | null,
+  usedIn: string[],
+  fallback: MarketingSparkHero
+): MarketingSpotlightEntry {
+  if (!call) {
+    return {
+      callId: null,
+      symbol: fallback.symbol,
+      returnPct: fallback.returnPct,
+      lane: fallback.lane,
+      insight: fallback.insight,
+      username: null,
+      usedIn,
+    };
+  }
+  return {
+    callId: call.id,
+    symbol: call.symbol,
+    returnPct: fmtReturnPct(call.return_pct),
+    lane: call.is_fueled ? "desk" : "member",
+    insight: callInsight(call),
+    username: call.users.username ?? call.users.pin,
+    usedIn,
+  };
+}
+
+function fallbackSpotlight(): MarketingSpotlightPayload {
+  return {
+    source: "fallback",
+    updatedAt: new Date().toISOString(),
+    entries: {
+      topMember: spotlightEntry(null, ["og/join", "og/proof", "ad/proof"], FALLBACK.topMember),
+      topFueled: spotlightEntry(null, ["og/desk", "ad/desk"], FALLBACK.topFueled),
+      structure: spotlightEntry(null, ["ad/structure"], FALLBACK.structureSpark),
+    },
+    rankings: FALLBACK.rankRows.map((r, i) => ({
+      rank: i + 1,
+      callId: null,
+      symbol: r.sym,
+      returnPct: r.ret,
+      lane: r.desk ? ("desk" as const) : ("member" as const),
+    })),
+  };
+}
+
+/** Which live calls power marketing OG/ad spotlights — for admin visibility. */
+export async function loadMarketingSpotlight(): Promise<MarketingSpotlightPayload> {
+  try {
+    const calls = await fetchTopPerformingCalls(12);
+    if (calls.length === 0) return fallbackSpotlight();
+
+    const { ctx, sparkCalls } = buildContextFromCalls(calls);
+    const source = useDemoCalls() ? ("demo" as const) : ("live" as const);
+
+    return {
+      source,
+      updatedAt: new Date().toISOString(),
+      entries: {
+        topMember: spotlightEntry(
+          sparkCalls.topMember,
+          ["og/join", "og/proof", "ad/proof"],
+          ctx.topMember
+        ),
+        topFueled: spotlightEntry(
+          sparkCalls.topFueled,
+          ["og/desk", "ad/desk"],
+          ctx.topFueled
+        ),
+        structure: spotlightEntry(
+          sparkCalls.structure,
+          ["ad/structure"],
+          ctx.structureSpark
+        ),
+      },
+      rankings: calls.slice(0, 3).map((c, i) => ({
+        rank: i + 1,
+        callId: c.id,
+        symbol: c.symbol,
+        returnPct: fmtReturnPct(c.return_pct),
+        lane: c.is_fueled ? ("desk" as const) : ("member" as const),
+      })),
+    };
+  } catch (e) {
+    console.error("[marketing-call-data] spotlight", e);
+    return fallbackSpotlight();
+  }
+}

@@ -43,15 +43,28 @@ async function loadTrimmedLogo(): Promise<{ buffer: Buffer; width: number; heigh
   return { buffer: trimmed, width: meta.width, height: meta.height };
 }
 
-export async function compositeSocialChartLogo(chartPng: Buffer): Promise<Buffer> {
+export type ChartLogoCompositeOpts = {
+  width: number;
+  height: number;
+  footerH: number;
+  logoH?: number;
+  padX?: number;
+};
+
+export async function compositeChartFooterLogo(
+  chartPng: Buffer,
+  opts: ChartLogoCompositeOpts
+): Promise<Buffer> {
   const logo = await loadTrimmedLogo();
   if (!logo) return chartPng;
 
+  const padX = opts.padX ?? SOCIAL_CHART_PAD_X;
+  const logoH = opts.logoH ?? SOCIAL_CHART_LOGO_HEIGHT;
   const aspect = logo.width / logo.height;
-  const logoH = SOCIAL_CHART_LOGO_HEIGHT;
   const logoW = Math.round(logoH * aspect);
-  const left = T.width - SOCIAL_CHART_PAD_X - logoW;
-  const top = socialChartLogoTop();
+  const left = opts.width - padX - logoW;
+  const top =
+    opts.height - opts.footerH + Math.round((opts.footerH - logoH) / 2);
 
   const logoBuf = await sharp(logo.buffer)
     .resize(logoW, logoH, {
@@ -65,4 +78,14 @@ export async function compositeSocialChartLogo(chartPng: Buffer): Promise<Buffer
     .composite([{ input: logoBuf, left, top, blend: "over" }])
     .png()
     .toBuffer();
+}
+
+export async function compositeSocialChartLogo(chartPng: Buffer): Promise<Buffer> {
+  return compositeChartFooterLogo(chartPng, {
+    width: T.width,
+    height: T.height,
+    footerH: SOCIAL_CHART_FOOTER_H,
+    logoH: SOCIAL_CHART_LOGO_HEIGHT,
+    padX: SOCIAL_CHART_PAD_X,
+  });
 }
