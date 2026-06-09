@@ -5,6 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import {
+  SupportAttachmentLinks,
+  SupportAttachmentPicker,
+  uploadTicketAttachments,
+} from "@/components/help/SupportAttachmentPicker";
+import type { SupportAttachmentView } from "@/lib/support/attachments";
+import {
   SUPPORT_STATUSES,
   formatTicketRef,
   supportCategoryLabel,
@@ -35,25 +41,29 @@ function StatusBadge({ status }: { status: SupportTicketStatus }) {
 function AdminTicketDetail({
   ticket,
   messages,
+  attachments,
   onStatusChange,
   onReply,
   saving,
 }: {
   ticket: SupportTicketWithUser;
   messages: SupportTicketMessageWithAuthor[];
+  attachments: SupportAttachmentView[];
   onStatusChange: (status: SupportTicketStatus) => Promise<void>;
-  onReply: (body: string) => Promise<void>;
+  onReply: (body: string, files: File[]) => Promise<void>;
   saving: boolean;
 }) {
   const [body, setBody] = useState("");
+  const [replyFiles, setReplyFiles] = useState<File[]>([]);
   const [status, setStatus] = useState(ticket.status);
   const memberLabel = ticket.display_name?.trim() || ticket.username;
 
   async function submitReply(e: React.FormEvent) {
     e.preventDefault();
     if (!body.trim()) return;
-    await onReply(body.trim());
+    await onReply(body.trim(), replyFiles);
     setBody("");
+    setReplyFiles([]);
   }
 
   return (
@@ -125,6 +135,7 @@ function AdminTicketDetail({
               <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[var(--pf-gray-600)]">
                 {msg.body}
               </p>
+              <SupportAttachmentLinks attachments={attachments} messageId={msg.id} />
             </div>
           );
         })}
@@ -140,6 +151,11 @@ function AdminTicketDetail({
             maxLength={8000}
             placeholder="Reply to member — they receive in-app and email notification…"
             className="w-full rounded-lg border border-[var(--pf-border)] bg-white px-3 py-2.5 text-sm"
+          />
+          <SupportAttachmentPicker
+            files={replyFiles}
+            onChange={setReplyFiles}
+            disabled={saving}
           />
           <button
             type="submit"
@@ -165,6 +181,7 @@ export function AdminSupportPanel() {
   const [error, setError] = useState("");
   const [activeTicket, setActiveTicket] = useState<SupportTicketWithUser | null>(null);
   const [messages, setMessages] = useState<SupportTicketMessageWithAuthor[]>([]);
+  const [attachments, setAttachments] = useState<SupportAttachmentView[]>([]);
 
   const loadTickets = useCallback(async () => {
     setLoading(true);
@@ -188,12 +205,15 @@ export function AdminSupportPanel() {
       const json = (await res.json()) as {
         ticket: SupportTicketWithUser;
         messages: SupportTicketMessageWithAuthor[];
+        attachments?: SupportAttachmentView[];
       };
       setActiveTicket(json.ticket);
       setMessages(json.messages);
+      setAttachments(json.attachments ?? []);
     } catch {
       setActiveTicket(null);
       setMessages([]);
+      setAttachments([]);
     }
   }, []);
 
@@ -206,6 +226,7 @@ export function AdminSupportPanel() {
     else {
       setActiveTicket(null);
       setMessages([]);
+      setAttachments([]);
     }
   }, [ticketId, loadTicket]);
 
@@ -225,7 +246,7 @@ export function AdminSupportPanel() {
     }
   }
 
-  async function handleReply(body: string) {
+  async function handleReply(body: string, files: File[]) {
     if (!ticketId) return;
     setSaving(true);
     try {
@@ -235,6 +256,14 @@ export function AdminSupportPanel() {
         body: JSON.stringify({ body }),
       });
       if (!res.ok) throw new Error("reply_failed");
+      const json = (await res.json()) as { messageId?: string };
+      if (files.length > 0 && json.messageId) {
+        await uploadTicketAttachments({
+          ticketId,
+          messageId: json.messageId,
+          files,
+        });
+      }
       await loadTicket(ticketId);
       await loadTickets();
     } finally {
@@ -260,6 +289,7 @@ export function AdminSupportPanel() {
         <AdminTicketDetail
           ticket={activeTicket}
           messages={messages}
+          attachments={attachments}
           onStatusChange={handleStatusChange}
           onReply={handleReply}
           saving={saving}

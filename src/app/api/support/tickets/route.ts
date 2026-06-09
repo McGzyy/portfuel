@@ -32,7 +32,12 @@ export async function POST(request: Request) {
       subject: body.subject,
       message: body.message,
     });
-    return NextResponse.json({ ok: true, ...result });
+    return NextResponse.json({
+      ok: true,
+      id: result.id,
+      ticketNumber: result.ticketNumber,
+      messageId: result.messageId,
+    });
   } catch (e) {
     if (e instanceof z.ZodError) {
       return NextResponse.json({ error: "invalid_input" }, { status: 400 });

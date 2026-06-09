@@ -6,6 +6,7 @@ import { FeedNewBanner } from "@/components/dashboard/FeedNewBanner";
 import { buildFeedHref, type FeedTab } from "@/lib/dashboard/nav";
 import type { FeedFilter } from "@/lib/calls/filter-feed";
 import { FeedRefreshButton } from "@/components/dashboard/FeedRefreshButton";
+import { FeedSavedFilters } from "@/components/dashboard/FeedSavedFilters";
 import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
 
 export function FeedToolbar({
@@ -79,6 +80,12 @@ export function FeedToolbar({
           fueledCount={fueledCount}
         />
       </div>
+      <FeedSavedFilters
+        feedFilter={feedFilter}
+        tab={mode}
+        searchQuery={searchQuery}
+        showNewOnly={showNewOnly}
+      />
       <p className="text-xs text-[var(--pf-gray-500)]">
         {quotesRefreshLabel()} · Use <span className="font-medium">Update prices</span> for
         immediate marks

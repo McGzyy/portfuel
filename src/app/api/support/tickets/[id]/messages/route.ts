@@ -16,14 +16,14 @@ export async function POST(
     const { id } = await params;
     const body = bodySchema.parse(await request.json());
 
-    await postSupportTicketMessage({
+    const { messageId } = await postSupportTicketMessage({
       ticketId: id,
       authorUserId: session.userId,
       authorRole: "member",
       body: body.body,
     });
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, messageId });
   } catch (e) {
     if (e instanceof z.ZodError) {
       return NextResponse.json({ error: "invalid_input" }, { status: 400 });

@@ -5,6 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, Loader2, Plus } from "lucide-react";
 import {
+  SupportAttachmentLinks,
+  SupportAttachmentPicker,
+  uploadTicketAttachments,
+} from "@/components/help/SupportAttachmentPicker";
+import type { SupportAttachmentView } from "@/lib/support/attachments";
+import {
   SUPPORT_CATEGORIES,
   formatTicketRef,
   supportCategoryLabel,
@@ -36,6 +42,7 @@ function StatusBadge({ status }: { status: SupportTicketWithUser["status"] }) {
 function TicketThread({
   ticket,
   messages,
+  attachments,
   onReply,
   onResolve,
   replying,
@@ -43,12 +50,14 @@ function TicketThread({
 }: {
   ticket: SupportTicketWithUser;
   messages: SupportTicketMessageWithAuthor[];
-  onReply: (body: string) => Promise<void>;
+  attachments: SupportAttachmentView[];
+  onReply: (body: string, files: File[]) => Promise<void>;
   onResolve: () => Promise<void>;
   replying: boolean;
   resolving: boolean;
 }) {
   const [body, setBody] = useState("");
+  const [replyFiles, setReplyFiles] = useState<File[]>([]);
   const [error, setError] = useState("");
   const closed = ticket.status === "closed" || ticket.status === "resolved";
 
@@ -57,8 +66,9 @@ function TicketThread({
     if (!body.trim()) return;
     setError("");
     try {
-      await onReply(body.trim());
+      await onReply(body.trim(), replyFiles);
       setBody("");
+      setReplyFiles([]);
     } catch {
       setError("Could not send reply. Try again.");
     }
@@ -113,6 +123,7 @@ function TicketThread({
               <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[var(--pf-gray-600)]">
                 {msg.body}
               </p>
+              <SupportAttachmentLinks attachments={attachments} messageId={msg.id} />
             </div>
           );
         })}
@@ -132,6 +143,11 @@ function TicketThread({
             maxLength={8000}
             placeholder="Add details for the support team…"
             className="w-full rounded-lg border border-[var(--pf-border)] bg-white px-3 py-2.5 text-sm text-[var(--foreground)] outline-none ring-[var(--pf-red)] focus:ring-2"
+          />
+          <SupportAttachmentPicker
+            files={replyFiles}
+            onChange={setReplyFiles}
+            disabled={replying}
           />
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
           <button
@@ -167,6 +183,7 @@ function NewTicketForm({
   const [category, setCategory] = useState<SupportCategory>(defaultCategory);
   const [subject, setSubject] = useState(defaultSubject);
   const [message, setMessage] = useState(defaultMessage);
+  const [attachFiles, setAttachFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -184,11 +201,29 @@ function NewTicketForm({
         setError("Could not create ticket. Check fields and try again.");
         return;
       }
-      const json = (await res.json()) as { id: string };
+      const json = (await res.json()) as { id: string; messageId?: string };
+      if (attachFiles.length > 0 && json.messageId) {
+        try {
+          await uploadTicketAttachments({
+            ticketId: json.id,
+            messageId: json.messageId,
+            files: attachFiles,
+          });
+        } catch (uploadErr) {
+          setError(
+            uploadErr instanceof Error
+              ? uploadErr.message
+              : "Ticket created but attachments failed to upload."
+          );
+          onCreated(json.id);
+          return;
+        }
+      }
       onCreated(json.id);
       setOpen(false);
       setSubject("");
       setMessage("");
+      setAttachFiles([]);
     } catch {
       setError("Something went wrong.");
     } finally {
@@ -262,6 +297,8 @@ function NewTicketForm({
         />
       </div>
 
+      <SupportAttachmentPicker files={attachFiles} onChange={setAttachFiles} disabled={saving} />
+
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}
 
       <button
@@ -300,6 +337,7 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
   const [resolving, setResolving] = useState(false);
   const [activeTicket, setActiveTicket] = useState<SupportTicketWithUser | null>(null);
   const [messages, setMessages] = useState<SupportTicketMessageWithAuthor[]>([]);
+  const [attachments, setAttachments] = useState<SupportAttachmentView[]>([]);
   const [listError, setListError] = useState("");
 
   const loadTickets = useCallback(async () => {
@@ -325,12 +363,15 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
       const json = (await res.json()) as {
         ticket: SupportTicketWithUser;
         messages: SupportTicketMessageWithAuthor[];
+        attachments?: SupportAttachmentView[];
       };
       setActiveTicket(json.ticket);
       setMessages(json.messages);
+      setAttachments(json.attachments ?? []);
     } catch {
       setActiveTicket(null);
       setMessages([]);
+      setAttachments([]);
     } finally {
       setDetailLoading(false);
     }
@@ -345,6 +386,7 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
     else {
       setActiveTicket(null);
       setMessages([]);
+      setAttachments([]);
     }
   }, [ticketId, loadTicket]);
 
@@ -365,7 +407,7 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
     }
   }
 
-  async function handleReply(body: string) {
+  async function handleReply(body: string, files: File[]) {
     if (!ticketId) return;
     setReplying(true);
     try {
@@ -375,6 +417,14 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
         body: JSON.stringify({ body }),
       });
       if (!res.ok) throw new Error("reply_failed");
+      const json = (await res.json()) as { messageId?: string };
+      if (files.length > 0 && json.messageId) {
+        await uploadTicketAttachments({
+          ticketId,
+          messageId: json.messageId,
+          files,
+        });
+      }
       await loadTicket(ticketId);
       await loadTickets();
     } finally {
@@ -405,6 +455,7 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
           <TicketThread
             ticket={activeTicket}
             messages={messages}
+            attachments={attachments}
             onReply={handleReply}
             onResolve={handleResolve}
             replying={replying}

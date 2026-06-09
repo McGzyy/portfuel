@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/db/supabase";
+import { listTicketAttachments, type SupportAttachmentView } from "@/lib/support/attachments";
 import { sendPortfuelEmail } from "@/lib/email/client";
 import { isEmailConfigured, getAppUrl } from "@/lib/email/config";
 import type {
@@ -210,7 +211,7 @@ async function attachMessageAuthors(
 
 export async function createSupportTicket(
   input: CreateSupportTicketInput
-): Promise<{ id: string; ticketNumber: number }> {
+): Promise<{ id: string; ticketNumber: number; messageId: string }> {
   const db = createServiceClient();
   const subject = input.subject.trim();
   const message = input.message.trim();
@@ -234,14 +235,18 @@ export async function createSupportTicket(
     throw new Error("insert_failed");
   }
 
-  const { error: msgErr } = await db.from("support_ticket_messages").insert({
-    ticket_id: ticket.id,
-    author_user_id: input.userId,
-    author_role: "member",
-    body: message,
-  } as never);
+  const { data: firstMessage, error: msgErr } = await db
+    .from("support_ticket_messages")
+    .insert({
+      ticket_id: ticket.id,
+      author_user_id: input.userId,
+      author_role: "member",
+      body: message,
+    } as never)
+    .select("id")
+    .single();
 
-  if (msgErr) {
+  if (msgErr || !firstMessage) {
     console.error("[support/create-message]", msgErr);
     throw new Error("message_failed");
   }
@@ -251,7 +256,11 @@ export async function createSupportTicket(
     await notifyAdminsNewTicket(full, message);
   }
 
-  return { id: ticket.id, ticketNumber: ticket.ticket_number as number };
+  return {
+    id: ticket.id,
+    ticketNumber: ticket.ticket_number as number,
+    messageId: (firstMessage as { id: string }).id,
+  };
 }
 
 export async function listMemberSupportTickets(
@@ -290,6 +299,7 @@ export async function getSupportTicketForMember(
 ): Promise<{
   ticket: SupportTicketWithUser;
   messages: SupportTicketMessageWithAuthor[];
+  attachments: SupportAttachmentView[];
 } | null> {
   const ticket = await fetchTicketWithUser(ticketId);
   if (!ticket || ticket.user_id !== userId) return null;
@@ -303,12 +313,14 @@ export async function getSupportTicketForMember(
 
   if (error) throw error;
   const messages = await attachMessageAuthors((data ?? []) as SupportTicketMessageRow[]);
-  return { ticket, messages };
+  const attachments = await listTicketAttachments(ticketId);
+  return { ticket, messages, attachments };
 }
 
 export async function getSupportTicketAdmin(ticketId: string): Promise<{
   ticket: SupportTicketWithUser;
   messages: SupportTicketMessageWithAuthor[];
+  attachments: SupportAttachmentView[];
 } | null> {
   const ticket = await fetchTicketWithUser(ticketId);
   if (!ticket) return null;
@@ -322,12 +334,13 @@ export async function getSupportTicketAdmin(ticketId: string): Promise<{
 
   if (error) throw error;
   const messages = await attachMessageAuthors((data ?? []) as SupportTicketMessageRow[]);
-  return { ticket, messages };
+  const attachments = await listTicketAttachments(ticketId);
+  return { ticket, messages, attachments };
 }
 
 export async function postSupportTicketMessage(
   input: PostSupportMessageInput
-): Promise<void> {
+): Promise<{ messageId: string }> {
   const db = createServiceClient();
   const body = input.body.trim();
   const now = new Date().toISOString();
@@ -346,14 +359,18 @@ export async function postSupportTicketMessage(
   const nextStatus: SupportTicketStatus =
     input.authorRole === "admin" ? "waiting_on_member" : "waiting_on_support";
 
-  const { error: msgErr } = await db.from("support_ticket_messages").insert({
-    ticket_id: input.ticketId,
-    author_user_id: input.authorUserId,
-    author_role: input.authorRole,
-    body,
-  } as never);
+  const { data: inserted, error: msgErr } = await db
+    .from("support_ticket_messages")
+    .insert({
+      ticket_id: input.ticketId,
+      author_user_id: input.authorUserId,
+      author_role: input.authorRole,
+      body,
+    } as never)
+    .select("id")
+    .single();
 
-  if (msgErr) {
+  if (msgErr || !inserted) {
     console.error("[support/reply]", msgErr);
     throw new Error("message_failed");
   }
@@ -373,6 +390,8 @@ export async function postSupportTicketMessage(
   } else {
     await notifyAdminsNewTicket(ticket, body);
   }
+
+  return { messageId: (inserted as { id: string }).id };
 }
 
 export async function updateSupportTicketStatus(
