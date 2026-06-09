@@ -24,7 +24,8 @@ export async function postWeeklyDigest(opts?: {
   | { ok: false; error: string; text?: string }
 > {
   const config = getXConfig();
-  if (!config.enabled) return { ok: false, error: "disabled" };
+  const isExplicitDryRun = opts?.dryRun === true;
+  if (!config.enabled && !isExplicitDryRun) return { ok: false, error: "disabled" };
 
   const composed = await composeWeeklyDigestPost();
   if (!composed.ok) return { ok: false, error: "no_content" };

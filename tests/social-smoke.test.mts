@@ -23,6 +23,11 @@ import { postFueledMilestone } from "../src/lib/social/x-milestone-post.ts";
 import { tryAutopostFueledOnPublish } from "../src/lib/social/x-fueled-autopost.ts";
 import { postMemberWin } from "../src/lib/social/x-member-win-post.ts";
 import { DEMO_MEMBER_WIN_CALL_ID } from "../src/lib/charts/social-chart-demo.ts";
+import { composeWeeklyDigestPost, fetchWeeklyDigestRows } from "../src/lib/social/weekly-digest.ts";
+import { postWeeklyDigest } from "../src/lib/social/x-weekly-digest-post.ts";
+import { renderWeeklyDigestOgPng } from "../src/lib/charts/weekly-digest-og.tsx";
+import { loadTrackRecordCardPayload } from "../src/lib/charts/track-record-card-data.ts";
+import { renderTrackRecordCardPng } from "../src/lib/charts/track-record-card-render.ts";
 
 test("callMilestoneKeysForCall — return thresholds", () => {
   assert.deepEqual(callMilestoneKeysForCall({ return_pct: 5, target_progress: null }), []);
@@ -131,4 +136,34 @@ test("postMemberWin — dry-run with demo member call and chart", async () => {
   assert.equal(result.chartGenerated, true);
   assert.ok((result.chartSizeBytes ?? 0) > 8_000);
   assert.ok(result.text.length <= 280);
+});
+
+test("weekly digest — demo rows, compose, chart PNG, dry-run post", async () => {
+  const rows = await fetchWeeklyDigestRows(3);
+  assert.ok(rows.length >= 1);
+
+  const composed = await composeWeeklyDigestPost(rows);
+  assert.equal(composed.ok, true);
+  if (!composed.ok) return;
+  assert.ok(composed.text.length <= 280);
+
+  const chartPng = await renderWeeklyDigestOgPng(composed.rows);
+  assert.ok(chartPng.length > 5_000, `expected digest PNG > 5KB, got ${chartPng.length}`);
+
+  const posted = await postWeeklyDigest({ dryRun: true });
+  assert.equal(posted.ok, true);
+  if (!posted.ok) return;
+  assert.equal(posted.dryRun, true);
+  assert.equal(posted.chartGenerated, true);
+});
+
+test("track record share card — demo member PNG", async () => {
+  const loaded = await loadTrackRecordCardPayload("ace_calls");
+  assert.equal("payload" in loaded, true);
+  if (!("payload" in loaded)) return;
+
+  const png = await renderTrackRecordCardPng(loaded.payload);
+  assert.ok(png.length > 8_000, `expected track record PNG > 8KB, got ${png.length}`);
+  assert.equal(png[0], 0x89);
+  assert.match(loaded.payload.username, /ace_calls/i);
 });

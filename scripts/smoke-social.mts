@@ -14,6 +14,10 @@ import { loadMarketingCallContext } from "../src/lib/marketing/marketing-call-da
 import { postFueledMilestone } from "../src/lib/social/x-milestone-post.ts";
 import { postMemberWin } from "../src/lib/social/x-member-win-post.ts";
 import { DEMO_MEMBER_WIN_CALL_ID } from "../src/lib/charts/social-chart-demo.ts";
+import { composeWeeklyDigestPost, fetchWeeklyDigestRows } from "../src/lib/social/weekly-digest.ts";
+import { postWeeklyDigest } from "../src/lib/social/x-weekly-digest-post.ts";
+import { loadTrackRecordCardPayload } from "../src/lib/charts/track-record-card-data.ts";
+import { renderTrackRecordCardPng } from "../src/lib/charts/track-record-card-render.ts";
 
 const checks: Array<{ name: string; ok: boolean; detail?: string }> = [];
 
@@ -83,6 +87,35 @@ try {
     : fail("member win dry-run", member.ok ? "no chart" : (member as { error: string }).error);
 } catch (e) {
   fail("member win dry-run", String(e));
+}
+
+try {
+  const rows = await fetchWeeklyDigestRows(3);
+  const composed = await composeWeeklyDigestPost(rows);
+  const posted =
+    composed.ok ? await postWeeklyDigest({ dryRun: true }) : { ok: false as const, error: "no_content" };
+  posted.ok && posted.chartGenerated
+    ? pass("weekly digest dry-run", `${rows.length} rows · chart ${posted.chartSizeBytes}b`)
+    : fail(
+        "weekly digest dry-run",
+        posted.ok ? "no chart" : composed.ok ? posted.error : "compose failed"
+      );
+} catch (e) {
+  fail("weekly digest dry-run", String(e));
+}
+
+try {
+  const loaded = await loadTrackRecordCardPayload("ace_calls");
+  if (!("payload" in loaded)) {
+    fail("track record card", "demo member not found");
+  } else {
+    const png = await renderTrackRecordCardPng(loaded.payload);
+    png.length > 8_000
+      ? pass("track record card", `@${loaded.payload.username} · ${(png.length / 1024).toFixed(1)} KB`)
+      : fail("track record card", `only ${png.length} bytes`);
+  }
+} catch (e) {
+  fail("track record card", String(e));
 }
 
 console.log("\nPortFuel social smoke\n");
