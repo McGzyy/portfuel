@@ -235,7 +235,17 @@ export function AdminSocialActivityPanel() {
             }))}
           />
           <div className="rounded-lg border border-[var(--pf-border)] px-4 py-3">
-            <p className="text-sm font-semibold text-[var(--pf-black)]">Weekly digest</p>
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="text-sm font-semibold text-[var(--pf-black)]">Weekly digest</p>
+              {data.queue.weeklyDigest.eligible && !data.queue.weeklyDigest.alreadyPostedThisWeek ? (
+                <a
+                  href="#weekly-digest"
+                  className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
+                >
+                  Open weekly digest →
+                </a>
+              ) : null}
+            </div>
             <p className="mt-1 text-sm text-[var(--pf-gray-600)]">
               {data.queue.weeklyDigest.alreadyPostedThisWeek
                 ? "Already published this week."

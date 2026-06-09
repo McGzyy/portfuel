@@ -168,6 +168,13 @@ export function AdminSocialPanel() {
           >
             Member wins →
           </a>
+          {" · "}
+          <a
+            href="#weekly-digest"
+            className="text-sm font-semibold text-[var(--pf-red)] hover:underline"
+          >
+            Weekly digest →
+          </a>
         </p>
       </section>
 

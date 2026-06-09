@@ -15,7 +15,7 @@ Add to Vercel (Production) and local `.env`:
 | `X_API_BEARER_TOKEN` | OAuth 2.0 user token | `tweet.write` scope required for live posts |
 | `X_POST_FUELED` | `true` | Include latest Fueled desk call in cron batch |
 | `X_POST_LEADERBOARD` | `true` | Include top-3 rankings snippet in cron batch |
-| `X_AUTOPOST_FUELED_ON_PUBLISH` | `false` | When an admin publishes a Fueled call, auto-post it to X (still respects dry run + idempotency) |
+| `X_AUTOPOST_FUELED_ON_PUBLISH` | `false` | When an admin publishes a Fueled call, auto-post text to X (respects dry run + idempotency per call) |
 | `X_AUTOPOST_MILESTONES` | `false` | After quote refresh, auto-post Fueled desk milestone charts (+10%, +25%, target). **Keep `false` until you dry-run approve copy in Admin → Social.** |
 | `X_POST_MEMBER_WINS` | `false` | Cron: post one opted-in member win per run (when eligible) |
 | `X_MEMBER_WIN_MIN_RETURN_PCT` | `20` | Normal path minimum return % |

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import {
   AdminXPostPreview,
   type AdminXPostPreviewData,
@@ -15,14 +16,22 @@ type DigestRow = {
   handle: string;
 };
 
+type XConfigSummary = {
+  livePostingReady: boolean;
+  dryRun: boolean;
+  bearerTokenSet: boolean;
+};
+
 export function AdminWeeklyDigestPanel() {
   const [rows, setRows] = useState<DigestRow[]>([]);
   const [text, setText] = useState("");
+  const [xConfig, setXConfig] = useState<XConfigSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [message, setMessage] = useState("");
   const [chartKey, setChartKey] = useState(0);
   const [postPreview, setPostPreview] = useState<AdminXPostPreviewData | null>(null);
+  const [forceRepost, setForceRepost] = useState(false);
 
   const chartUrl = "/api/admin/social/weekly-digest/chart";
 
@@ -35,9 +44,11 @@ export function AdminWeeklyDigestPanel() {
           rows: DigestRow[];
           text: string | null;
           charCount: number;
+          x: XConfigSummary;
         };
         setRows(json.rows);
         setText(json.text ?? "");
+        setXConfig(json.x);
         setChartKey((k) => k + 1);
         if (json.text) {
           setPostPreview({
@@ -67,10 +78,14 @@ export function AdminWeeklyDigestPanel() {
       const res = await fetch("/api/admin/social/weekly-digest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dryRun }),
+        body: JSON.stringify({ dryRun, force: !dryRun && forceRepost }),
       });
       const json = await res.json();
       if (!res.ok) {
+        if (json.error === "already_posted") {
+          setMessage("Already published this week — enable Force repost to send again.");
+          return;
+        }
         setMessage(formatPostError(json.error as string));
         return;
       }
@@ -99,7 +114,7 @@ export function AdminWeeklyDigestPanel() {
   }
 
   return (
-    <section className="pf-workspace-panel p-6">
+    <section id="weekly-digest" className="pf-workspace-panel p-6">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
         Weekly digest
       </p>
@@ -112,6 +127,27 @@ export function AdminWeeklyDigestPanel() {
         <code className="rounded bg-[var(--pf-gray-100)] px-1 text-xs">X_POST_WEEKLY_DIGEST</code>{" "}
         (typically Mondays with leaderboard).
       </p>
+
+      {xConfig ? (
+        <MetricsStrip
+          variant="embedded"
+          className="mt-4 border-t border-[var(--pf-border)] pt-4 !px-0"
+          eyebrow="X weekly digest"
+          items={[
+            {
+              label: "Bearer",
+              value: xConfig.bearerTokenSet ? "Set" : "Missing",
+              accent: xConfig.bearerTokenSet ? "positive" : "negative",
+            },
+            {
+              label: "Live post",
+              value: xConfig.livePostingReady ? "Ready" : "Blocked",
+              accent: xConfig.livePostingReady ? "positive" : undefined,
+            },
+            { label: "Dry run", value: xConfig.dryRun ? "On" : "Off" },
+          ]}
+        />
+      ) : null}
 
       {loading ? (
         <p className="mt-6 text-sm text-[var(--pf-gray-500)]">Loading week data…</p>
@@ -165,6 +201,16 @@ export function AdminWeeklyDigestPanel() {
             </div>
           ) : null}
 
+          <label className="mt-4 inline-flex cursor-pointer items-center gap-2 text-xs font-semibold text-[var(--pf-gray-600)]">
+            <input
+              type="checkbox"
+              className="accent-[var(--pf-red)]"
+              checked={forceRepost}
+              onChange={(e) => setForceRepost(e.target.checked)}
+            />
+            Force repost (ignore idempotency)
+          </label>
+
           <div className="mt-4 flex flex-wrap gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => void load()}>
               Refresh
@@ -178,7 +224,17 @@ export function AdminWeeklyDigestPanel() {
             >
               Dry run
             </Button>
-            <Button type="button" size="sm" disabled={posting} onClick={() => void post(false)}>
+            <Button
+              type="button"
+              size="sm"
+              disabled={posting || !xConfig?.livePostingReady}
+              title={
+                xConfig?.livePostingReady
+                  ? undefined
+                  : "Set X_API_ENABLED, bearer token, and X_API_DRY_RUN=false for live posts"
+              }
+              onClick={() => void post(false)}
+            >
               Publish to X
             </Button>
           </div>

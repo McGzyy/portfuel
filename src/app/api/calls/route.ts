@@ -21,6 +21,7 @@ import {
   attachSocialResearchSnapshotToCall,
 } from "@/lib/calls/research-snapshot";
 import { markWatchlistActiveOnPublish } from "@/lib/watchlist/position-intent";
+import { tryAutopostFueledOnPublish } from "@/lib/social/x-fueled-autopost";
 
 const createSchema = z.object({
   symbol: z.string().min(1).max(12),
@@ -217,6 +218,12 @@ export async function POST(request: Request) {
     void refreshQuotesForSymbols([resolvedSymbol]).catch((e) =>
       console.error("[calls POST refresh-quotes]", e)
     );
+
+    if (isFueled) {
+      void tryAutopostFueledOnPublish(call.id).catch((e) =>
+        console.error("[calls POST x-fueled-autopost]", e)
+      );
+    }
 
     void markWatchlistActiveOnPublish(session.userId, resolvedSymbol).catch((e) =>
       console.error("[calls POST watchlist-intent]", e)
