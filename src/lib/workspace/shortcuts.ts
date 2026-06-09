@@ -83,6 +83,8 @@ export const WORKSPACE_GOTO_ROUTES: Record<string, string> = {
   p: "/dashboard/help",
 };
 
+export const WORKSPACE_SHORTCUTS_OPEN_EVENT = "pf:open-workspace-shortcuts";
+
 export const WORKSPACE_ACTION_ROUTES: Record<string, string> = {
   c: "/calls/new",
 };

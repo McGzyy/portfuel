@@ -5,6 +5,7 @@ import Link from "next/link";
 import { X } from "lucide-react";
 import {
   WORKSPACE_SHORTCUT_GROUPS,
+  WORKSPACE_SHORTCUTS_OPEN_EVENT,
   shortcutKeysForPlatform,
 } from "@/lib/workspace/shortcuts";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,12 @@ function isEditableTarget(target: EventTarget | null): boolean {
 
 export function WorkspaceShortcutsModal() {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener(WORKSPACE_SHORTCUTS_OPEN_EVENT, onOpen);
+    return () => window.removeEventListener(WORKSPACE_SHORTCUTS_OPEN_EVENT, onOpen);
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {

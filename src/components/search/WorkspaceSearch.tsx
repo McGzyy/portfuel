@@ -10,13 +10,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import {
   ArrowRight,
   Bookmark,
   ExternalLink,
   LayoutDashboard,
+  LifeBuoy,
   Loader2,
   Megaphone,
   Newspaper,
@@ -24,7 +25,9 @@ import {
   Search,
   UserRound,
   X,
+  Keyboard,
 } from "lucide-react";
+import { WORKSPACE_SHORTCUTS_OPEN_EVENT } from "@/lib/workspace/shortcuts";
 import { cn, formatPrice } from "@/lib/utils";
 import { splitByQuery } from "@/lib/search/highlight";
 import {
@@ -49,7 +52,8 @@ type PaletteItem =
   | { kind: "page"; data: SearchPageResult }
   | { kind: "headline"; data: SearchHeadlineResult }
   | { kind: "journal"; data: SearchJournalEntryResult }
-  | { kind: "call"; data: SearchCallResult };
+  | { kind: "call"; data: SearchCallResult }
+  | { kind: "action"; data: { id: "report" | "shortcuts"; label: string; description: string } };
 
 type WorkspaceSearchContextValue = {
   open: boolean;
@@ -145,6 +149,7 @@ function WorkspaceCommandPalette({
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
@@ -206,6 +211,30 @@ function WorkspaceCommandPalette({
       sections.push({
         title: !query.trim() ? "Quick links" : "Pages",
         items: results.pages.map((data) => ({ kind: "page" as const, data })),
+      });
+    }
+
+    if (!query.trim()) {
+      sections.push({
+        title: "Actions",
+        items: [
+          {
+            kind: "action" as const,
+            data: {
+              id: "report" as const,
+              label: "Report an issue",
+              description: "Open a support ticket about this page",
+            },
+          },
+          {
+            kind: "action" as const,
+            data: {
+              id: "shortcuts" as const,
+              label: "Keyboard shortcuts",
+              description: "View all workspace shortcuts",
+            },
+          },
+        ],
       });
     }
 
@@ -326,7 +355,16 @@ function WorkspaceCommandPalette({
   function activateItem(item: PaletteItem) {
     if (item.kind === "symbol") navigateSymbol(item.data);
     else if (item.kind === "headline") openHeadline(item.data.url);
-    else navigate(item.data.href);
+    else if (item.kind === "action") {
+      close();
+      if (item.data.id === "report") {
+        router.push(
+          `/dashboard/help?view=tickets&new=1&from=${encodeURIComponent(pathname)}`
+        );
+      } else {
+        window.dispatchEvent(new Event(WORKSPACE_SHORTCUTS_OPEN_EVENT));
+      }
+    } else navigate(item.data.href);
   }
 
   function onInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -520,6 +558,37 @@ function WorkspaceCommandPalette({
                           </span>
                           <span className="block truncate font-mono text-xs text-[var(--pf-gray-500)]">
                             @{item.data.username}
+                          </span>
+                        </span>
+                        <ArrowRight className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" />
+                      </button>
+                    );
+                  }
+                  if (item.kind === "action") {
+                    const Icon = item.data.id === "report" ? LifeBuoy : Keyboard;
+                    return (
+                      <button
+                        key={`action-${item.data.id}`}
+                        type="button"
+                        data-index={index}
+                        onMouseEnter={() => setActiveIndex(index)}
+                        onClick={() => activateItem(item)}
+                        className={cn(
+                          "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
+                          activeIndex === index
+                            ? "bg-[var(--pf-gray-100)]"
+                            : "hover:bg-[var(--pf-gray-50)]"
+                        )}
+                      >
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-semibold text-[var(--pf-black)]">
+                            {item.data.label}
+                          </span>
+                          <span className="block truncate text-xs text-[var(--pf-gray-500)]">
+                            {item.data.description}
                           </span>
                         </span>
                         <ArrowRight className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" />

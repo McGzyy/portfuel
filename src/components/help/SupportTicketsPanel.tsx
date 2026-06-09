@@ -37,16 +37,20 @@ function TicketThread({
   ticket,
   messages,
   onReply,
+  onResolve,
   replying,
+  resolving,
 }: {
   ticket: SupportTicketWithUser;
   messages: SupportTicketMessageWithAuthor[];
   onReply: (body: string) => Promise<void>;
+  onResolve: () => Promise<void>;
   replying: boolean;
+  resolving: boolean;
 }) {
   const [body, setBody] = useState("");
   const [error, setError] = useState("");
-  const closed = ticket.status === "closed";
+  const closed = ticket.status === "closed" || ticket.status === "resolved";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -76,6 +80,16 @@ function TicketThread({
             </p>
           </div>
           <StatusBadge status={ticket.status} />
+          {!closed ? (
+            <button
+              type="button"
+              onClick={() => void onResolve()}
+              disabled={resolving}
+              className="rounded-lg border border-[var(--pf-border)] px-3 py-1.5 text-xs font-semibold text-[var(--pf-gray-700)] transition-colors hover:bg-[var(--pf-gray-50)] disabled:opacity-50"
+            >
+              {resolving ? "Closing…" : "Mark resolved"}
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -137,14 +151,22 @@ function TicketThread({
 function NewTicketForm({
   onCreated,
   sectionId,
+  defaultOpen = false,
+  defaultSubject = "",
+  defaultMessage = "",
+  defaultCategory = "technical" as SupportCategory,
 }: {
   onCreated: (ticketId: string) => void;
   sectionId: HelpSectionId;
+  defaultOpen?: boolean;
+  defaultSubject?: string;
+  defaultMessage?: string;
+  defaultCategory?: SupportCategory;
 }) {
-  const [open, setOpen] = useState(false);
-  const [category, setCategory] = useState<SupportCategory>("technical");
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
+  const [open, setOpen] = useState(defaultOpen);
+  const [category, setCategory] = useState<SupportCategory>(defaultCategory);
+  const [subject, setSubject] = useState(defaultSubject);
+  const [message, setMessage] = useState(defaultMessage);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -264,11 +286,18 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
   const router = useRouter();
   const searchParams = useSearchParams();
   const ticketId = searchParams.get("ticket");
+  const openNew = searchParams.get("new") === "1";
+  const fromPage = searchParams.get("from") ?? "";
+  const reportSubject = fromPage ? `Issue on ${fromPage}` : "";
+  const reportMessage = fromPage
+    ? `Page: ${fromPage}\n\nDescribe what happened:\n`
+    : "";
 
   const [tickets, setTickets] = useState<SupportTicketWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [replying, setReplying] = useState(false);
+  const [resolving, setResolving] = useState(false);
   const [activeTicket, setActiveTicket] = useState<SupportTicketWithUser | null>(null);
   const [messages, setMessages] = useState<SupportTicketMessageWithAuthor[]>([]);
   const [listError, setListError] = useState("");
@@ -319,6 +348,23 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
     }
   }, [ticketId, loadTicket]);
 
+  async function handleResolve() {
+    if (!ticketId) return;
+    setResolving(true);
+    try {
+      const res = await fetch(`/api/support/tickets/${ticketId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "resolved" }),
+      });
+      if (!res.ok) throw new Error("resolve_failed");
+      await loadTicket(ticketId);
+      await loadTickets();
+    } finally {
+      setResolving(false);
+    }
+  }
+
   async function handleReply(body: string) {
     if (!ticketId) return;
     setReplying(true);
@@ -360,7 +406,9 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
             ticket={activeTicket}
             messages={messages}
             onReply={handleReply}
+            onResolve={handleResolve}
             replying={replying}
+            resolving={resolving}
           />
         ) : (
           <p className="text-sm text-[var(--pf-gray-500)]">Ticket not found.</p>
@@ -387,6 +435,10 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
 
       <NewTicketForm
         sectionId={sectionId}
+        defaultOpen={openNew && !ticketId}
+        defaultSubject={reportSubject}
+        defaultMessage={reportMessage}
+        defaultCategory="technical"
         onCreated={(id) => {
           void loadTickets();
           openTicket(id);
