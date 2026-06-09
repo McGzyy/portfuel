@@ -31,7 +31,8 @@ export async function postMemberWin(opts?: {
   | { ok: false; error: string; text?: string }
 > {
   const config = getXConfig();
-  if (!config.enabled) return { ok: false, error: "disabled" };
+  const isExplicitDryRun = opts?.dryRun === true;
+  if (!config.enabled && !isExplicitDryRun) return { ok: false, error: "disabled" };
 
   const callId = opts?.callId ?? (await pickNextMemberWinCallId());
   if (!callId) return { ok: false, error: "no_content" };

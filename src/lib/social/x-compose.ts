@@ -260,6 +260,48 @@ export async function composeMemberWinPost(
   | { ok: false; error: "no_content" }
 > {
   const copyVariant = resolveMemberWinCopyVariant(callId);
+
+  if (isDemoMode()) {
+    const call = getDemoCallsFeed("latest").find((c) => c.id === callId && !c.is_fueled);
+    if (!call) return { ok: false, error: "no_content" };
+    if (isSymbolBlockedForMemberWin(call.symbol)) return { ok: false, error: "no_content" };
+
+    const copy = await fetchSocialPostCopy(copyVariant);
+    const link = appPath(`/ticker/${call.symbol}`, {
+      source: "x",
+      medium: "social",
+      campaign: "member_win",
+    });
+    const ret =
+      call.return_pct != null
+        ? `${call.return_pct >= 0 ? "+" : ""}${call.return_pct.toFixed(1)}%`
+        : "";
+    const returnLine = ret ? `${ret} since publication` : "";
+    const handle = call.users.username ? `@${call.users.username}` : call.users.display_name;
+    const thesis =
+      call.thesis.length > 120 ? `${call.thesis.slice(0, 117)}…` : call.thesis;
+    const text = trimTweet(
+      applyCopyTemplate(copy.memberWinTemplate, {
+        symbol: call.symbol,
+        direction: call.direction,
+        return_line: returnLine,
+        member_handle: handle,
+        thesis_block: `${thesis}\n`,
+        referral_line: "",
+        link,
+        disclaimer: copy.disclaimer,
+      })
+    );
+    return {
+      ok: true,
+      text,
+      refId: call.id,
+      callId: call.id,
+      withChart: true,
+      copyVariant,
+    };
+  }
+
   const db = createServiceClient();
   const { data, error } = await db
     .from("calls")

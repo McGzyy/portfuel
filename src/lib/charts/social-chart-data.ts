@@ -97,6 +97,11 @@ export async function loadSocialChartPayload(
 
   if (!call) return { error: "not_found" };
 
+  if (isDemoMode() && isDemoCallId(callId) && memberWin) {
+    const { loadDemoMemberWinChartPayload } = await import("@/lib/charts/social-chart-demo");
+    return loadDemoMemberWinChartPayload(callId);
+  }
+
   if (isDemoMode() && isDemoCallId(callId) && !memberWin) {
     const key = milestone ?? inferMilestone(call) ?? "return_10";
     const { loadDemoSocialChartPayload } = await import("@/lib/charts/social-chart-demo");

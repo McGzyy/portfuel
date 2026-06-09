@@ -21,6 +21,8 @@ import { loadMarketingCallContext, loadMarketingSpotlight } from "../src/lib/mar
 import { composeFueledPostByCallId } from "../src/lib/social/x-compose.ts";
 import { postFueledMilestone } from "../src/lib/social/x-milestone-post.ts";
 import { tryAutopostFueledOnPublish } from "../src/lib/social/x-fueled-autopost.ts";
+import { postMemberWin } from "../src/lib/social/x-member-win-post.ts";
+import { DEMO_MEMBER_WIN_CALL_ID } from "../src/lib/charts/social-chart-demo.ts";
 
 test("callMilestoneKeysForCall — return thresholds", () => {
   assert.deepEqual(callMilestoneKeysForCall({ return_pct: 5, target_progress: null }), []);
@@ -115,4 +117,18 @@ test("tryAutopostFueledOnPublish — no-op when disabled", async () => {
   await assert.doesNotReject(async () => {
     await tryAutopostFueledOnPublish("demo-call-001");
   });
+});
+
+test("postMemberWin — dry-run with demo member call and chart", async () => {
+  const result = await postMemberWin({
+    callId: DEMO_MEMBER_WIN_CALL_ID,
+    dryRun: true,
+    skipReadiness: true,
+  });
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.equal(result.dryRun, true);
+  assert.equal(result.chartGenerated, true);
+  assert.ok((result.chartSizeBytes ?? 0) > 8_000);
+  assert.ok(result.text.length <= 280);
 });

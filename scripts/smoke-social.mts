@@ -12,6 +12,8 @@ import { renderSocialChartPng } from "../src/lib/charts/social-chart-render.ts";
 import { renderMarketingOgPng } from "../src/lib/charts/marketing-render.tsx";
 import { loadMarketingCallContext } from "../src/lib/marketing/marketing-call-data.ts";
 import { postFueledMilestone } from "../src/lib/social/x-milestone-post.ts";
+import { postMemberWin } from "../src/lib/social/x-member-win-post.ts";
+import { DEMO_MEMBER_WIN_CALL_ID } from "../src/lib/charts/social-chart-demo.ts";
 
 const checks: Array<{ name: string; ok: boolean; detail?: string }> = [];
 
@@ -68,6 +70,19 @@ try {
     : fail("milestone dry-run post", result.ok ? "no chart" : (result as { error: string }).error);
 } catch (e) {
   fail("milestone dry-run post", String(e));
+}
+
+try {
+  const member = await postMemberWin({
+    callId: DEMO_MEMBER_WIN_CALL_ID,
+    dryRun: true,
+    skipReadiness: true,
+  });
+  member.ok && member.chartGenerated
+    ? pass("member win dry-run", `${member.text.length} chars · chart ${member.chartSizeBytes}b`)
+    : fail("member win dry-run", member.ok ? "no chart" : (member as { error: string }).error);
+} catch (e) {
+  fail("member win dry-run", String(e));
 }
 
 console.log("\nPortFuel social smoke\n");
