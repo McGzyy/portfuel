@@ -1,5 +1,8 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isCallWin } from "@/lib/scoring/call-credit";
+import {
+  isMissingColumnDbError,
+} from "@/lib/calls/call-fields";
 
 /** Recompute rank_score and win_rate for all active members from their calls. */
 export async function refreshMemberRankings(): Promise<{ usersUpdated: number }> {
@@ -12,13 +15,21 @@ export async function refreshMemberRankings(): Promise<{ usersUpdated: number }>
 
   let usersUpdated = 0;
   for (const user of users ?? []) {
-    const { data: calls, error } = await db
+    let result = await db
       .from("calls")
       .select("return_pct, peak_return_pct, closed_at, target_progress, score_points")
       .eq("user_id", user.id);
-    if (error) throw error;
 
-    const rows = calls ?? [];
+    if (result.error && isMissingColumnDbError(result.error)) {
+      result = await db
+        .from("calls")
+        .select("return_pct, target_progress, score_points")
+        .eq("user_id", user.id);
+    }
+
+    if (result.error) throw result.error;
+
+    const rows = result.data ?? [];
     const withReturn = rows.filter((c) => c.return_pct != null);
     const wins = withReturn.filter((c) =>
       isCallWin({

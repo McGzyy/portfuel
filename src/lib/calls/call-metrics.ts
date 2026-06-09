@@ -4,6 +4,8 @@ import {
   computeTargetProgress,
   updatePeakReturn,
 } from "@/lib/scoring/returns";
+import { createServiceClient } from "@/lib/db/supabase";
+import { isMissingColumnDbError } from "@/lib/calls/call-fields";
 
 export type CallMetricsRow = {
   id: string;
@@ -65,4 +67,23 @@ export function buildLiveCallMetricsUpdate(
     target_progress: targetProgress,
     score_points: scorePoints,
   };
+}
+
+/** Persist live metrics; retries without peak column if migration is pending. */
+export async function persistCallMetricsUpdate(
+  callId: string,
+  metrics: ReturnType<typeof buildLiveCallMetricsUpdate>
+): Promise<boolean> {
+  const db = createServiceClient();
+  const { peak_return_pct: _peak, ...legacy } = metrics;
+
+  let { error } = await db.from("calls").update(metrics as never).eq("id", callId);
+  if (error && isMissingColumnDbError(error)) {
+    ({ error } = await db.from("calls").update(legacy as never).eq("id", callId));
+  }
+  if (error) {
+    console.error("[call-metrics/persist]", callId, error);
+    return false;
+  }
+  return true;
 }

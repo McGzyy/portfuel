@@ -4,7 +4,7 @@ import { getCryptoLastPriceForSymbol } from "@/lib/market/crypto-candles";
 import type { AssetClass } from "@/lib/market/validate-symbol";
 import { getQuote } from "@/lib/market/finnhub";
 import { computeHypeScore } from "@/lib/scoring/returns";
-import { buildLiveCallMetricsUpdate } from "@/lib/calls/call-metrics";
+import { buildLiveCallMetricsUpdate, persistCallMetricsUpdate } from "@/lib/calls/call-metrics";
 import { computeCallLiveMetrics } from "@/lib/calls/live-metrics";
 import { processCallMilestones } from "@/lib/notifications/milestones";
 import { processMemberWinGates } from "@/lib/social/member-win-gate";
@@ -152,11 +152,9 @@ export async function refreshQuotesForSymbols(
 
     const metrics = buildLiveCallMetricsUpdate(call, last);
 
-    await db
-      .from("calls")
-      .update(metrics as never)
-      .eq("id", call.id);
-    updated++;
+    if (await persistCallMetricsUpdate(call.id, metrics)) {
+      updated++;
+    }
 
     milestoneRows.push({
       id: call.id,
@@ -261,11 +259,9 @@ export async function refreshAllQuotesAndScores(): Promise<{
 
     const metrics = buildLiveCallMetricsUpdate(call, last);
 
-    await db
-      .from("calls")
-      .update(metrics as never)
-      .eq("id", call.id);
-    updated++;
+    if (await persistCallMetricsUpdate(call.id, metrics)) {
+      updated++;
+    }
 
     milestoneRows.push({
       id: call.id,

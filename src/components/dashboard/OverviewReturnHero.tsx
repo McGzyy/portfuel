@@ -45,11 +45,14 @@ export function OverviewReturnHero({
   profileHref,
   winRate,
   rankScore,
+  publishedCallCount = 0,
 }: {
   points: ReturnChartPoint[];
   profileHref: string;
   winRate?: number | null;
   rankScore?: number | null;
+  /** Total published calls — used when chart points are empty but calls exist. */
+  publishedCallCount?: number;
 }) {
   const [range, setRange] = useState<ChartRangeKey>("all");
   const filtered = useMemo(
@@ -65,6 +68,7 @@ export function OverviewReturnHero({
   const losses = points.filter((p) => p.outcome === "loss").length;
 
   if (points.length === 0) {
+    const hasCalls = publishedCallCount > 0;
     return (
       <section
         className="pf-overview-return-hero overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-5 py-6 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-7"
@@ -79,22 +83,35 @@ export function OverviewReturnHero({
               Your return over time
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
-              Publish a call with entry, target, and stop — this chart builds a cumulative view as
-              each thesis is marked to market.
+              {hasCalls
+                ? `${publishedCallCount} published call${publishedCallCount === 1 ? "" : "s"} on your book — return will plot after the first price mark.`
+                : "Publish a call with entry, target, and stop — this chart builds a cumulative view as each thesis is marked to market."}
             </p>
           </div>
-          <Link
-            href={COPY.newCallHref}
-            className="inline-flex items-center rounded-full bg-[var(--pf-red)] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[var(--pf-red-dark)]"
-          >
-            {COPY.publishCallCta} →
-          </Link>
+          {hasCalls ? (
+            <Link
+              href={profileHref}
+              className="inline-flex items-center rounded-full border border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-2 text-xs font-semibold text-[var(--pf-black)] hover:bg-[var(--pf-gray-50)]"
+            >
+              View on profile →
+            </Link>
+          ) : (
+            <Link
+              href={COPY.newCallHref}
+              className="inline-flex items-center rounded-full bg-[var(--pf-red)] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[var(--pf-red-dark)]"
+            >
+              {COPY.publishCallCta} →
+            </Link>
+          )}
         </div>
         <div className="mt-6 flex h-[220px] flex-col items-center justify-center rounded-xl border border-dashed border-[var(--pf-border)] bg-[var(--pf-gray-50)]/60 text-center">
-          <p className="text-sm text-[var(--pf-gray-500)]">No published calls yet.</p>
+          <p className="text-sm text-[var(--pf-gray-500)]">
+            {hasCalls ? "Waiting for return data on your call(s)." : "No published calls yet."}
+          </p>
           <p className="mt-1 max-w-sm text-xs text-[var(--pf-gray-400)]">
-            Wins and drawdowns will stack here in call order — click any marker to jump to the
-            ticker.
+            {hasCalls
+              ? "Use Update prices on the feed, or open the ticker — marks refresh automatically for Pro."
+              : "Wins and drawdowns will stack here in call order — click any marker to jump to the ticker."}
           </p>
         </div>
       </section>

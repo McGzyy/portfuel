@@ -28,12 +28,9 @@ function outcomeFromCall(call: CumulativeCallInput): ReturnOutcome {
 }
 
 export function buildCumulativeReturnSeries(calls: CumulativeCallInput[]): ReturnChartPoint[] {
-  const sorted = [...calls]
-    .filter((c) => c.return_pct != null)
-    .sort(
-      (a, b) =>
-        new Date(a.called_at).getTime() - new Date(b.called_at).getTime()
-    );
+  const sorted = [...calls].sort(
+    (a, b) => new Date(a.called_at).getTime() - new Date(b.called_at).getTime()
+  );
 
   let cumulative = 0;
   const points: ReturnChartPoint[] = [];

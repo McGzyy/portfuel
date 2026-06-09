@@ -22,6 +22,7 @@ import {
 } from "@/lib/calls/research-snapshot";
 import { markWatchlistActiveOnPublish } from "@/lib/watchlist/position-intent";
 import { tryAutopostFueledOnPublish } from "@/lib/social/x-fueled-autopost";
+import { isMissingColumnDbError } from "@/lib/calls/call-fields";
 
 const createSchema = z.object({
   symbol: z.string().min(1).max(12),
@@ -139,9 +140,7 @@ export async function POST(request: Request) {
       ageDays: 0,
     });
 
-    const { data: call, error } = await db
-      .from("calls")
-      .insert({
+    const insertPayload = {
         user_id: session.userId,
         symbol: resolvedSymbol,
         asset_class: body.assetClass,
@@ -159,9 +158,22 @@ export async function POST(request: Request) {
         score_points: scorePoints,
         is_fueled: isFueled,
         source_tweet_url: sourceTweetUrl,
-      } as never)
+    };
+
+    let { data: call, error } = await db
+      .from("calls")
+      .insert(insertPayload as never)
       .select("id, symbol")
       .single();
+
+    if (error && isMissingColumnDbError(error) && insertPayload.peak_return_pct != null) {
+      const { peak_return_pct: _p, ...legacyInsert } = insertPayload;
+      ({ data: call, error } = await db
+        .from("calls")
+        .insert(legacyInsert as never)
+        .select("id, symbol")
+        .single());
+    }
 
     if (error) {
       console.error("[calls POST]", error);

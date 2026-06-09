@@ -309,6 +309,7 @@ export default async function DashboardOverviewPage({
         profileHref={`/member/${session.username}`}
         winRate={memberStats?.win_rate}
         rankScore={memberStats?.rank_score != null ? Number(memberStats.rank_score) : null}
+        publishedCallCount={Math.max(ownCalls.length, memberStats?.calls_count ?? 0)}
       />
 
       <WorkspaceOverviewStats
