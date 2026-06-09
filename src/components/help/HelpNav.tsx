@@ -10,9 +10,11 @@ import { cn } from "@/lib/utils";
 export function HelpNav({
   active,
   ticketsView,
+  awaitingReplyCount = 0,
 }: {
   active: HelpSectionId;
   ticketsView: boolean;
+  awaitingReplyCount?: number;
 }) {
   return (
     <nav className="flex flex-col gap-1 lg:sticky lg:top-4" aria-label="Help topics">
@@ -56,6 +58,16 @@ export function HelpNav({
         <span className="flex items-center gap-2 text-sm font-semibold">
           <Ticket className="h-4 w-4 shrink-0" />
           Support tickets
+          {awaitingReplyCount > 0 ? (
+            <span
+              className={cn(
+                "rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                ticketsView ? "bg-white/20 text-white" : "bg-amber-500 text-white"
+              )}
+            >
+              {awaitingReplyCount}
+            </span>
+          ) : null}
         </span>
         <span
           className={cn(

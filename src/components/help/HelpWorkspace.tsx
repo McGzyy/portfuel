@@ -7,6 +7,7 @@ import { HelpNav } from "@/components/help/HelpNav";
 import { HelpSectionPicker } from "@/components/help/HelpSectionPicker";
 import { HelpSearchBar } from "@/components/help/HelpSearchBar";
 import { SupportTicketsPanel } from "@/components/help/SupportTicketsPanel";
+import { useAwaitingTicketCount } from "@/components/help/useAwaitingTicketCount";
 import { getHelpSection, type HelpSectionId } from "@/lib/help/content";
 
 function HelpWorkspaceInner({
@@ -17,6 +18,7 @@ function HelpWorkspaceInner({
   ticketsView: boolean;
 }) {
   const section = getHelpSection(sectionId);
+  const awaitingReplyCount = useAwaitingTicketCount();
 
   return (
     <div className="pf-help-page mx-auto max-w-5xl space-y-4 sm:space-y-6">
@@ -34,11 +36,19 @@ function HelpWorkspaceInner({
 
       <HelpSearchBar />
 
-      <HelpSectionPicker active={sectionId} ticketsView={ticketsView} />
+      <HelpSectionPicker
+        active={sectionId}
+        ticketsView={ticketsView}
+        awaitingReplyCount={awaitingReplyCount}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-8">
         <div className="hidden lg:block">
-          <HelpNav active={sectionId} ticketsView={ticketsView} />
+          <HelpNav
+            active={sectionId}
+            ticketsView={ticketsView}
+            awaitingReplyCount={awaitingReplyCount}
+          />
         </div>
 
         <div className="min-w-0">

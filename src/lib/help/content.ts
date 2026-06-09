@@ -265,6 +265,37 @@ export function getHelpSection(id: HelpSectionId): HelpSection {
   return HELP_SECTIONS.find((s) => s.id === id) ?? HELP_SECTIONS[0];
 }
 
+/** Default support ticket category when opening from a help section / FAQ. */
+export function defaultTicketCategoryForSection(
+  sectionId: HelpSectionId
+): "billing" | "account" | "calls" | "technical" | "other" {
+  switch (sectionId) {
+    case "billing":
+      return "billing";
+    case "account":
+      return "account";
+    case "calls":
+      return "calls";
+    case "troubleshooting":
+    case "research":
+      return "technical";
+    default:
+      return "other";
+  }
+}
+
+export function buildFaqTicketHref(sectionId: HelpSectionId, faqQuestion: string): string {
+  const params = new URLSearchParams({
+    view: "tickets",
+    new: "1",
+    section: sectionId,
+    category: defaultTicketCategoryForSection(sectionId),
+    subject: faqQuestion.slice(0, 200),
+    message: `FAQ: ${faqQuestion}\n\nI still need help with:\n`,
+  });
+  return `/dashboard/help?${params.toString()}`;
+}
+
 export const SUPPORT_EMAIL =
   process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || "support@portfuel.pro";
 

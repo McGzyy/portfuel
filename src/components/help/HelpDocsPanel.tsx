@@ -4,8 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Map, Mail } from "lucide-react";
 import { WORKSPACE_GUIDE_OPEN_EVENT } from "@/lib/onboarding/workspace-guide";
-import { getHelpSection, SUPPORT_EMAIL, type HelpSectionId } from "@/lib/help/content";
-import { helpSectionHref } from "@/lib/help/content";
+import {
+  buildFaqTicketHref,
+  getHelpSection,
+  helpSectionHref,
+  SUPPORT_EMAIL,
+  type HelpSectionId,
+} from "@/lib/help/content";
 import { helpContentSlug } from "@/lib/help/search";
 import { cn } from "@/lib/utils";
 
@@ -13,10 +18,12 @@ function FaqItem({
   id,
   question,
   answer,
+  sectionId,
 }: {
   id: string;
   question: string;
   answer: string;
+  sectionId: HelpSectionId;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -35,7 +42,15 @@ function FaqItem({
         />
       </button>
       {open ? (
-        <p className="pb-3.5 text-sm leading-relaxed text-[var(--pf-gray-600)]">{answer}</p>
+        <div className="pb-3.5">
+          <p className="text-sm leading-relaxed text-[var(--pf-gray-600)]">{answer}</p>
+          <Link
+            href={buildFaqTicketHref(sectionId, question)}
+            className="mt-3 inline-flex text-xs font-semibold text-[var(--pf-red)] hover:underline"
+          >
+            Still stuck? Open a support ticket
+          </Link>
+        </div>
       ) : null}
     </div>
   );
@@ -120,6 +135,7 @@ export function HelpDocsPanel({ sectionId }: { sectionId: HelpSectionId }) {
               id={`faq-${helpContentSlug(faq.question)}`}
               question={faq.question}
               answer={faq.answer}
+              sectionId={sectionId}
             />
           ))}
         </section>

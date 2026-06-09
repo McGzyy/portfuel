@@ -18,9 +18,11 @@ function pickerHref(value: PickerValue, sectionFallback: HelpSectionId): string 
 export function HelpSectionPicker({
   active,
   ticketsView,
+  awaitingReplyCount = 0,
 }: {
   active: HelpSectionId;
   ticketsView: boolean;
+  awaitingReplyCount?: number;
 }) {
   const router = useRouter();
   const value: PickerValue = ticketsView ? "tickets" : active;
@@ -52,7 +54,10 @@ export function HelpSectionPicker({
                 {item.label}
               </option>
             ))}
-            <option value="tickets">Support tickets</option>
+            <option value="tickets">
+              Support tickets
+              {awaitingReplyCount > 0 ? ` (${awaitingReplyCount} reply needed)` : ""}
+            </option>
           </select>
           <ChevronDown
             className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--pf-gray-400)]"

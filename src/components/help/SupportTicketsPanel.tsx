@@ -23,18 +23,27 @@ import { statusTone } from "@/lib/support/tickets";
 import { helpSectionHref, type HelpSectionId } from "@/lib/help/content";
 import { cn, timeAgo } from "@/lib/utils";
 
-function StatusBadge({ status }: { status: SupportTicketWithUser["status"] }) {
+function StatusBadge({
+  status,
+  emphasizeReply,
+}: {
+  status: SupportTicketWithUser["status"];
+  emphasizeReply?: boolean;
+}) {
   const tone = statusTone(status);
+  const awaitingReply = status === "waiting_on_member";
   return (
     <span
       className={cn(
         "inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
-        tone === "done" && "bg-[var(--pf-gray-100)] text-[var(--pf-gray-600)]",
-        tone === "waiting" && "bg-amber-100 text-amber-800",
-        tone === "open" && "bg-emerald-100 text-emerald-800"
+        awaitingReply && emphasizeReply
+          ? "bg-amber-500 text-white"
+          : tone === "done" && "bg-[var(--pf-gray-100)] text-[var(--pf-gray-600)]",
+        !(awaitingReply && emphasizeReply) && tone === "waiting" && "bg-amber-100 text-amber-800",
+        !(awaitingReply && emphasizeReply) && tone === "open" && "bg-emerald-100 text-emerald-800"
       )}
     >
-      {supportStatusLabel(status)}
+      {awaitingReply && emphasizeReply ? "Reply needed" : supportStatusLabel(status)}
     </span>
   );
 }
@@ -325,10 +334,21 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
   const ticketId = searchParams.get("ticket");
   const openNew = searchParams.get("new") === "1";
   const fromPage = searchParams.get("from") ?? "";
-  const reportSubject = fromPage ? `Issue on ${fromPage}` : "";
-  const reportMessage = fromPage
-    ? `Page: ${fromPage}\n\nDescribe what happened:\n`
-    : "";
+  const prefilledSubject = searchParams.get("subject")?.trim() ?? "";
+  const prefilledMessage = searchParams.get("message")?.trim() ?? "";
+  const prefilledCategoryRaw = searchParams.get("category")?.trim();
+  const prefilledCategory =
+    prefilledCategoryRaw === "billing" ||
+    prefilledCategoryRaw === "account" ||
+    prefilledCategoryRaw === "calls" ||
+    prefilledCategoryRaw === "technical" ||
+    prefilledCategoryRaw === "other"
+      ? prefilledCategoryRaw
+      : undefined;
+  const reportSubject = prefilledSubject || (fromPage ? `Issue on ${fromPage}` : "");
+  const reportMessage =
+    prefilledMessage ||
+    (fromPage ? `Page: ${fromPage}\n\nDescribe what happened:\n` : "");
 
   const [tickets, setTickets] = useState<SupportTicketWithUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -489,7 +509,7 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
         defaultOpen={openNew && !ticketId}
         defaultSubject={reportSubject}
         defaultMessage={reportMessage}
-        defaultCategory="technical"
+        defaultCategory={prefilledCategory ?? "technical"}
         onCreated={(id) => {
           void loadTickets();
           openTicket(id);
@@ -523,7 +543,10 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
                 <button
                   type="button"
                   onClick={() => openTicket(t.id)}
-                  className="flex w-full flex-col gap-2 px-4 py-4 text-left transition-colors hover:bg-[var(--pf-gray-50)] sm:flex-row sm:items-center sm:justify-between sm:px-5"
+                  className={cn(
+                    "flex w-full flex-col gap-2 px-4 py-4 text-left transition-colors hover:bg-[var(--pf-gray-50)] sm:flex-row sm:items-center sm:justify-between sm:px-5",
+                    t.status === "waiting_on_member" && "border-l-4 border-amber-500 bg-amber-50/40"
+                  )}
                 >
                   <div className="min-w-0">
                     <p className="font-mono text-[10px] font-bold uppercase tracking-wide text-[var(--pf-red)]">
@@ -536,7 +559,7 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
                       {supportCategoryLabel(t.category)} · {timeAgo(t.last_message_at)}
                     </p>
                   </div>
-                  <StatusBadge status={t.status} />
+                  <StatusBadge status={t.status} emphasizeReply />
                 </button>
               </li>
             ))}
