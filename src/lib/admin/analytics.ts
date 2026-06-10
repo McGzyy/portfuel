@@ -1,12 +1,23 @@
 import { buildSignupCohorts, type SignupCohortWeek } from "@/lib/admin/cohorts";
-import { estimatePlatformMrr } from "@/lib/admin/revenue";
+import {
+  buildPlatformBillingBreakdown,
+  fetchStripeActiveMrr,
+  type PlatformBillingBreakdown,
+} from "@/lib/admin/billing-breakdown";
 import { buildDailySeries } from "@/lib/admin/time-series";
 import { cancellationReasonLabel } from "@/lib/billing/cancellation-feedback-types";
 import type { CancellationFeedbackReason } from "@/lib/billing/cancellation-feedback-types";
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import type { DailyCount } from "@/lib/admin/time-series";
-import type { BillingInterval, MembershipTier } from "@/lib/stripe/config";
+export type AdminRevenueSnapshot = PlatformBillingBreakdown & {
+  memberTierPct: number | null;
+  proTierPct: number | null;
+  /** @deprecated alias — use paidMonthly */
+  monthlyBilling: number;
+  /** @deprecated alias — use paidAnnual */
+  annualBilling: number;
+};
 
 export type AdminAnalyticsPeriod = 7 | 30 | 90;
 
@@ -29,15 +40,7 @@ export type AdminAnalytics = {
     churnedPeriod: number;
     churnedPrior: number;
   };
-  revenue: {
-    /** Estimated MRR from active tiers + billing interval (monthly/annual). */
-    mrrUsd: number;
-    arrUsd: number;
-    memberTierPct: number | null;
-    proTierPct: number | null;
-    monthlyBilling: number;
-    annualBilling: number;
-  };
+  revenue: AdminRevenueSnapshot;
   cohorts: SignupCohortWeek[];
   calls: {
     total: number;
@@ -111,10 +114,13 @@ export async function fetchAdminAnalytics(
     invitesRes,
     churnFeedbackRes,
     cohortUsersRes,
+    stripeMrrRes,
   ] = await Promise.all([
     db
       .from("users")
-      .select("id, subscription_status, membership_tier, trusted_at, role, billing_interval"),
+      .select(
+        "id, subscription_status, membership_tier, trusted_at, role, billing_interval, stripe_customer_id, stripe_subscription_id, pro_granted_until, comp_access_until"
+      ),
     db
       .from("users")
       .select("created_at")
@@ -173,6 +179,7 @@ export async function fetchAdminAnalytics(
       .select("created_at, subscription_status")
       .gte("created_at", cohortSince)
       .neq("role", "admin"),
+    fetchStripeActiveMrr(),
   ]);
 
   const users = usersRes.data ?? [];
@@ -209,20 +216,21 @@ export async function fetchAdminAnalytics(
 
   const activeMemberTier = activeMembers.filter((u) => u.membership_tier === "member").length;
   const activeProTier = activeMembers.filter((u) => u.membership_tier === "pro").length;
-  const activePaid = activeMemberTier + activeProTier;
-  const monthlyBilling = activeMembers.filter(
-    (u) => (u as { billing_interval?: BillingInterval }).billing_interval !== "annual"
-  ).length;
-  const annualBilling = activeMembers.filter(
-    (u) => (u as { billing_interval?: BillingInterval }).billing_interval === "annual"
-  ).length;
-  const mrrUsd = estimatePlatformMrr(
-    activeMembers.map((u) => ({
-      membership_tier: (u.membership_tier ?? "member") as MembershipTier,
-      billing_interval: (u as { billing_interval?: BillingInterval }).billing_interval,
-    }))
+
+  const billing = buildPlatformBillingBreakdown(
+    members as Parameters<typeof buildPlatformBillingBreakdown>[0],
+    stripeMrrRes
   );
-  const arrUsd = mrrUsd * 12;
+  const effectivePaid = billing.effectiveMember + billing.effectivePro;
+  const revenue: AdminRevenueSnapshot = {
+    ...billing,
+    memberTierPct:
+      effectivePaid > 0 ? billing.effectiveMember / effectivePaid : null,
+    proTierPct: effectivePaid > 0 ? billing.effectivePro / effectivePaid : null,
+    monthlyBilling: billing.paidMonthly,
+    annualBilling: billing.paidAnnual,
+  };
+
   const cohorts = buildSignupCohorts(cohortUsersRes.data ?? [], 8);
 
   const signupSeries = buildDailySeries(
@@ -282,14 +290,7 @@ export async function fetchAdminAnalytics(
       churnedPeriod: churnPeriodRes.count ?? 0,
       churnedPrior: churnPriorRes.count ?? 0,
     },
-    revenue: {
-      mrrUsd,
-      arrUsd,
-      memberTierPct: activePaid > 0 ? activeMemberTier / activePaid : null,
-      proTierPct: activePaid > 0 ? activeProTier / activePaid : null,
-      monthlyBilling,
-      annualBilling,
-    },
+    revenue,
     cohorts,
     calls: {
       total: callsTotal,
@@ -356,9 +357,23 @@ function getDemoAdminAnalytics(periodDays: AdminAnalyticsPeriod): AdminAnalytics
     revenue: {
       mrrUsd: 3 * 79 + 2 * 129,
       arrUsd: (3 * 79 + 2 * 129) * 12,
+      mrrSource: "stripe",
+      stripeSubscriptionCount: 3,
+      effectiveMember: 3,
+      effectivePro: 2,
+      paidStripe: 3,
+      paidStripeMember: 1,
+      paidStripePro: 2,
+      paidMonthly: 2,
+      paidAnnual: 1,
+      compExempt: 1,
+      compMember: 0,
+      compPro: 1,
+      proTrial: 1,
+      compOpenEnded: 1,
       memberTierPct: 3 / 5,
       proTierPct: 2 / 5,
-      monthlyBilling: 4,
+      monthlyBilling: 2,
       annualBilling: 1,
     },
     cohorts: buildSignupCohorts(

@@ -17,6 +17,31 @@ function fmtUsd(n: number): string {
   return n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${Math.round(n)}`;
 }
 
+function mrrKpiTitle(source: AdminAnalytics["revenue"]["mrrSource"]): string {
+  if (source === "stripe") return "MRR (Stripe)";
+  if (source === "estimated") return "MRR (est.)";
+  return "MRR";
+}
+
+function mrrKpiSub(revenue: AdminAnalytics["revenue"]): string {
+  const arr = `${fmtUsd(revenue.arrUsd)} ARR`;
+  if (revenue.mrrSource === "stripe" && revenue.stripeSubscriptionCount != null) {
+    const subs = revenue.stripeSubscriptionCount;
+    const paid = `${revenue.paidStripe} paying · ${revenue.paidMonthly} mo · ${revenue.paidAnnual} yr`;
+    return `${arr} · ${subs} Stripe sub${subs === 1 ? "" : "s"} · ${paid}`;
+  }
+  if (revenue.paidStripe > 0) {
+    return `${arr} · ${revenue.paidStripe} paying · ${revenue.paidMonthly} mo · ${revenue.paidAnnual} yr`;
+  }
+  if (revenue.compExempt > 0 || revenue.proTrial > 0) {
+    const parts: string[] = [];
+    if (revenue.compExempt > 0) parts.push(`${revenue.compExempt} comp`);
+    if (revenue.proTrial > 0) parts.push(`${revenue.proTrial} trial`);
+    return `${arr} · ${parts.join(" · ")}`;
+  }
+  return arr;
+}
+
 function fmtRate(n: number | null): string {
   if (n == null) return "—";
   return `${Math.round(n * 100)}%`;
@@ -226,7 +251,7 @@ export function AdminAnalyticsPanel() {
       <AdminPanelHeader
         group="Insights"
         title="Platform analytics"
-        description="Growth, revenue mix, product activity, and churn signals from live Supabase data. MRR uses tier + billing interval (monthly/annual)."
+        description="Growth, billing, product activity, and churn signals from live Supabase + Stripe. MRR is summed from active Stripe subscriptions when configured; otherwise estimated from paying members only."
         actions={
           <>
             <div className="inline-flex rounded-lg border border-[var(--pf-border)] p-0.5">
@@ -278,9 +303,9 @@ export function AdminAnalyticsPanel() {
           sub={`${data.members.active} active · ${data.members.pending} pending`}
         />
         <KpiCard
-          title="MRR (est.)"
+          title={mrrKpiTitle(data.revenue.mrrSource)}
           value={fmtUsd(data.revenue.mrrUsd)}
-          sub={`${fmtUsd(data.revenue.arrUsd)} ARR · ${data.revenue.monthlyBilling} monthly · ${data.revenue.annualBilling} annual`}
+          sub={mrrKpiSub(data.revenue)}
         />
         <KpiCard
           title={`Activation (${data.meta.periodDays}d)`}
@@ -320,52 +345,73 @@ export function AdminAnalyticsPanel() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <section className="pf-workspace-panel p-5 lg:col-span-1">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-            Revenue mix
-          </p>
-          <h3 className="mt-1 text-sm font-bold text-[var(--pf-black)]">Active tier split</h3>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                Billing
+              </p>
+              <h3 className="mt-1 text-sm font-bold text-[var(--pf-black)]">
+                Paying vs exempt access
+              </h3>
+            </div>
+            <Link
+              href="/admin?tab=members"
+              className="shrink-0 text-xs font-semibold text-[var(--pf-red)] hover:underline"
+            >
+              Members
+            </Link>
+          </div>
           <div className="mt-4 divide-y divide-[var(--pf-border)]">
             <StatRow
-              label="Member ($79)"
-              value={String(data.members.memberTier)}
+              label="Paying via Stripe"
+              value={String(data.revenue.paidStripe)}
               hint={
-                data.revenue.memberTierPct != null
-                  ? `${Math.round(data.revenue.memberTierPct * 100)}% of paid`
-                  : undefined
+                data.revenue.paidStripe > 0
+                  ? `Member ${data.revenue.paidStripeMember} · Pro ${data.revenue.paidStripePro} · ${data.revenue.paidMonthly} mo · ${data.revenue.paidAnnual} yr`
+                  : "No Stripe customer on active accounts"
               }
             />
             <StatRow
-              label="Pro ($129)"
-              value={String(data.members.proTier)}
+              label="Comp / exempt"
+              value={String(data.revenue.compExempt)}
               hint={
-                data.revenue.proTierPct != null
-                  ? `${Math.round(data.revenue.proTierPct * 100)}% of paid`
-                  : undefined
+                data.revenue.compExempt > 0
+                  ? `Member ${data.revenue.compMember} · Pro ${data.revenue.compPro}${
+                      data.revenue.compOpenEnded > 0
+                        ? ` · ${data.revenue.compOpenEnded} open-ended`
+                        : ""
+                    }`
+                  : "Founding / admin comp — no Stripe sub"
               }
+            />
+            <StatRow
+              label="Pro trial grant"
+              value={String(data.revenue.proTrial)}
+              hint="Active pro_granted_until, no Stripe"
+            />
+            <StatRow
+              label="Effective access"
+              value={`${data.revenue.effectiveMember + data.revenue.effectivePro}`}
+              hint={`Member ${data.revenue.effectiveMember} · Pro ${data.revenue.effectivePro} (includes grants)`}
             />
             <StatRow label="Trusted members" value={String(data.members.trusted)} />
             <StatRow label="Cancelled (all time)" value={String(data.members.cancelled)} />
-            <StatRow
-              label="Monthly billing"
-              value={String(data.revenue.monthlyBilling)}
-              hint="Active subs on monthly cycle"
-            />
-            <StatRow
-              label="Annual billing"
-              value={String(data.revenue.annualBilling)}
-              hint="MRR normalized from annual plans"
-            />
           </div>
           {data.revenue.memberTierPct != null ? (
-            <div className="mt-4 flex h-2 overflow-hidden rounded-full">
-              <div
-                className="bg-[var(--pf-gray-400)]"
-                style={{ width: `${data.revenue.memberTierPct * 100}%` }}
-              />
-              <div
-                className="bg-[var(--pf-red)]"
-                style={{ width: `${(data.revenue.proTierPct ?? 0) * 100}%` }}
-              />
+            <div className="mt-4">
+              <p className="mb-2 text-[11px] text-[var(--pf-gray-500)]">
+                Effective tier split (member vs pro)
+              </p>
+              <div className="flex h-2 overflow-hidden rounded-full">
+                <div
+                  className="bg-[var(--pf-gray-400)]"
+                  style={{ width: `${data.revenue.memberTierPct * 100}%` }}
+                />
+                <div
+                  className="bg-[var(--pf-red)]"
+                  style={{ width: `${(data.revenue.proTierPct ?? 0) * 100}%` }}
+                />
+              </div>
             </div>
           ) : null}
         </section>
