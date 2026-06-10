@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export type MetricItem = {
@@ -5,6 +6,7 @@ export type MetricItem = {
   value: string;
   hint?: string;
   accent?: "positive" | "negative" | "neutral";
+  href?: string;
 };
 
 export function MetricsStrip({
@@ -44,24 +46,44 @@ export function MetricsStrip({
         </p>
       )}
       <div className="pf-metrics-strip-grid">
-        {items.map((item) => (
-          <div key={item.label} className="pf-metrics-strip-cell">
-            <p className="pf-metrics-strip-label">{item.label}</p>
-            <p
-              className={cn(
-                "pf-metrics-strip-value",
-                item.accent === "positive" && "text-emerald-500",
-                item.accent === "negative" && "text-rose-500",
-                dark && item.accent == null && "text-white"
-              )}
-            >
-              {item.value}
-            </p>
-            {item.hint ? (
-              <p className="pf-metrics-strip-hint">{item.hint}</p>
-            ) : null}
-          </div>
-        ))}
+        {items.map((item) => {
+          const cell = (
+            <>
+              <p className="pf-metrics-strip-label">{item.label}</p>
+              <p
+                className={cn(
+                  "pf-metrics-strip-value",
+                  item.accent === "positive" && "text-emerald-500",
+                  item.accent === "negative" && "text-rose-500",
+                  dark && item.accent == null && "text-white"
+                )}
+              >
+                {item.value}
+              </p>
+              {item.hint ? (
+                <p className="pf-metrics-strip-hint">{item.hint}</p>
+              ) : null}
+            </>
+          );
+
+          if (item.href) {
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="pf-metrics-strip-cell rounded-md transition-colors hover:bg-[var(--pf-gray-50)]"
+              >
+                {cell}
+              </Link>
+            );
+          }
+
+          return (
+            <div key={item.label} className="pf-metrics-strip-cell">
+              {cell}
+            </div>
+          );
+        })}
       </div>
     </section>
   );

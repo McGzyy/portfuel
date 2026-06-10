@@ -11,6 +11,7 @@ import {
   type AdminAnalytics,
   type AdminAnalyticsPeriod,
 } from "@/lib/admin/analytics";
+import { adminMembersHref } from "@/lib/admin/nav";
 import { cn, formatPct } from "@/lib/utils";
 
 function fmtUsd(n: number): string {
@@ -106,14 +107,16 @@ function StatRow({
   value,
   hint,
   accent,
+  href,
 }: {
   label: string;
   value: string;
   hint?: string;
   accent?: "positive" | "negative";
+  href?: string;
 }) {
-  return (
-    <div className="flex items-center justify-between gap-3 py-2.5">
+  const inner = (
+    <>
       <div className="min-w-0">
         <p className="text-sm font-medium text-[var(--pf-gray-700)]">{label}</p>
         {hint ? <p className="text-[11px] text-[var(--pf-gray-500)]">{hint}</p> : null}
@@ -128,8 +131,21 @@ function StatRow({
       >
         {value}
       </p>
-    </div>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="-mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[var(--pf-gray-50)]"
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return <div className="flex items-center justify-between gap-3 py-2.5">{inner}</div>;
 }
 
 function HorizontalBar({
@@ -355,7 +371,7 @@ export function AdminAnalyticsPanel() {
               </h3>
             </div>
             <Link
-              href="/admin?tab=members"
+              href={adminMembersHref()}
               className="shrink-0 text-xs font-semibold text-[var(--pf-red)] hover:underline"
             >
               Members
@@ -365,6 +381,7 @@ export function AdminAnalyticsPanel() {
             <StatRow
               label="Paying via Stripe"
               value={String(data.revenue.paidStripe)}
+              href={adminMembersHref({ billing: "stripe" })}
               hint={
                 data.revenue.paidStripe > 0
                   ? `Member ${data.revenue.paidStripeMember} · Pro ${data.revenue.paidStripePro} · ${data.revenue.paidMonthly} mo · ${data.revenue.paidAnnual} yr`
@@ -374,6 +391,7 @@ export function AdminAnalyticsPanel() {
             <StatRow
               label="Comp / exempt"
               value={String(data.revenue.compExempt)}
+              href={adminMembersHref({ billing: "comp" })}
               hint={
                 data.revenue.compExempt > 0
                   ? `Member ${data.revenue.compMember} · Pro ${data.revenue.compPro}${
@@ -387,6 +405,7 @@ export function AdminAnalyticsPanel() {
             <StatRow
               label="Pro trial grant"
               value={String(data.revenue.proTrial)}
+              href={adminMembersHref({ billing: "trial" })}
               hint="Active pro_granted_until, no Stripe"
             />
             <StatRow

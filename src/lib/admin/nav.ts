@@ -26,6 +26,13 @@ export function adminTabHref(tab: AdminTab): string {
   return tab === "analytics" ? "/admin" : `/admin?tab=${tab}`;
 }
 
+export type AdminMembersBillingFilter = "stripe" | "comp" | "trial";
+
+export function adminMembersHref(opts?: { billing?: AdminMembersBillingFilter }): string {
+  if (!opts?.billing) return "/admin?tab=members";
+  return `/admin?tab=members&billing=${opts.billing}`;
+}
+
 export function parseAdminTab(raw: string | null): AdminTab {
   const found = ADMIN_TABS.find((t) => t.id === raw);
   return found?.id ?? "analytics";

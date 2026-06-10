@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
+import { adminMembersHref } from "@/lib/admin/nav";
 import {
   memberBillingSource,
   memberBillingSourceLabel,
@@ -80,6 +81,18 @@ export function AdminMembersPanel() {
   useEffect(() => {
     setBillingFilter(parseBillingFilter(searchParams.get("billing")));
   }, [searchParams]);
+
+  const applyBillingFilter = useCallback(
+    (next: BillingFilter) => {
+      setBillingFilter(next);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", "members");
+      if (next === "all") params.delete("billing");
+      else params.set("billing", next);
+      router.replace(`/admin?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -184,9 +197,18 @@ export function AdminMembersPanel() {
                   label: "Stripe",
                   value: String(stats.stripe),
                   accent: stats.stripe > 0 ? "positive" : undefined,
+                  href: adminMembersHref({ billing: "stripe" }),
                 },
-                { label: "Comp", value: String(stats.comp) },
-                { label: "Trial", value: String(stats.trial) },
+                {
+                  label: "Comp",
+                  value: String(stats.comp),
+                  href: adminMembersHref({ billing: "comp" }),
+                },
+                {
+                  label: "Trial",
+                  value: String(stats.trial),
+                  href: adminMembersHref({ billing: "trial" }),
+                },
               ]}
             />
           </div>
@@ -204,7 +226,7 @@ export function AdminMembersPanel() {
           aria-label="Search members"
         />
         <div className="flex flex-wrap items-center gap-2">
-          <BillingFilterChips value={billingFilter} onChange={setBillingFilter} />
+          <BillingFilterChips value={billingFilter} onChange={applyBillingFilter} />
           <FilterSelect
             label="Status"
             value={statusFilter}
@@ -264,7 +286,7 @@ export function AdminMembersPanel() {
                           setQuery("");
                           setStatusFilter("all");
                           setPlanFilter("all");
-                          setBillingFilter("all");
+                          applyBillingFilter("all");
                         }}
                       >
                         Clear filters
