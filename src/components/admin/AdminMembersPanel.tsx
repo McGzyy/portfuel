@@ -1,10 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
+import {
+  memberBillingSource,
+  memberBillingSourceLabel,
+  type MemberBillingSource,
+} from "@/lib/billing/billing-source";
 import { cn, timeAgo } from "@/lib/utils";
 
 type Member = {
@@ -28,6 +33,7 @@ type Member = {
 
 type StatusFilter = "all" | Member["subscription_status"];
 type PlanFilter = "all" | "member" | "pro" | "none";
+type BillingFilter = "all" | MemberBillingSource;
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -53,29 +59,27 @@ function effectiveTier(m: Member): "member" | "pro" | null {
   return m.membership_tier;
 }
 
-function hasActiveProGrant(m: Member) {
-  return Boolean(
-    m.pro_granted_until && new Date(m.pro_granted_until).getTime() > Date.now()
-  );
-}
-
-function isCompPro(m: Member) {
-  return (
-    m.subscription_status === "active" &&
-    effectiveTier(m) === "pro" &&
-    !m.stripe_customer_id &&
-    !hasActiveProGrant(m)
-  );
+function parseBillingFilter(raw: string | null): BillingFilter {
+  if (raw === "stripe" || raw === "comp" || raw === "trial") return raw;
+  return "all";
 }
 
 export function AdminMembersPanel() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [planFilter, setPlanFilter] = useState<PlanFilter>("all");
+  const [billingFilter, setBillingFilter] = useState<BillingFilter>(() =>
+    parseBillingFilter(searchParams.get("billing"))
+  );
+
+  useEffect(() => {
+    setBillingFilter(parseBillingFilter(searchParams.get("billing")));
+  }, [searchParams]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -100,11 +104,15 @@ export function AdminMembersPanel() {
   }, [load]);
 
   const stats = useMemo(() => {
-    const active = members.filter((m) => m.subscription_status === "active").length;
+    const activeMembers = members.filter((m) => m.subscription_status === "active");
+    const active = activeMembers.length;
     const pending = members.filter((m) => m.subscription_status === "pending").length;
     const pro = members.filter((m) => effectiveTier(m) === "pro").length;
     const banned = members.filter((m) => m.banned_at).length;
-    return { total: members.length, active, pending, pro, banned };
+    const stripe = activeMembers.filter((m) => memberBillingSource(m) === "stripe").length;
+    const comp = activeMembers.filter((m) => memberBillingSource(m) === "comp").length;
+    const trial = activeMembers.filter((m) => memberBillingSource(m) === "trial").length;
+    return { total: members.length, active, pending, pro, banned, stripe, comp, trial };
   }, [members]);
 
   const filtered = useMemo(() => {
@@ -115,6 +123,7 @@ export function AdminMembersPanel() {
       if (planFilter === "none" && tier !== null) return false;
       if (planFilter === "member" && tier !== "member") return false;
       if (planFilter === "pro" && tier !== "pro") return false;
+      if (billingFilter !== "all" && memberBillingSource(m) !== billingFilter) return false;
       if (!q) return true;
       return (
         m.username.toLowerCase().includes(q) ||
@@ -122,7 +131,7 @@ export function AdminMembersPanel() {
         (m.email?.toLowerCase().includes(q) ?? false)
       );
     });
-  }, [members, query, statusFilter, planFilter]);
+  }, [members, query, statusFilter, planFilter, billingFilter]);
 
   function openMember(userId: string) {
     router.push(`/admin/members/${userId}`);
@@ -149,22 +158,38 @@ export function AdminMembersPanel() {
         title="Member directory"
         description="Search, filter, and open Member 360 for access, Pro grants, and moderation."
         footer={
-          <MetricsStrip
-            variant="embedded"
-            className="border-t border-[var(--pf-border)] pt-4 !px-0"
-            eyebrow="Roster"
-            items={[
-              { label: "Total", value: String(stats.total) },
-              { label: "Active", value: String(stats.active), accent: "positive" },
-              { label: "Pending", value: String(stats.pending) },
-              { label: "Pro", value: String(stats.pro), accent: stats.pro > 0 ? "positive" : undefined },
-              {
-                label: "Banned",
-                value: String(stats.banned),
-                accent: stats.banned > 0 ? "negative" : undefined,
-              },
-            ]}
-          />
+          <div className="space-y-4 border-t border-[var(--pf-border)] pt-4">
+            <MetricsStrip
+              variant="embedded"
+              className="!px-0"
+              eyebrow="Roster"
+              items={[
+                { label: "Total", value: String(stats.total) },
+                { label: "Active", value: String(stats.active), accent: "positive" },
+                { label: "Pending", value: String(stats.pending) },
+                { label: "Pro", value: String(stats.pro), accent: stats.pro > 0 ? "positive" : undefined },
+                {
+                  label: "Banned",
+                  value: String(stats.banned),
+                  accent: stats.banned > 0 ? "negative" : undefined,
+                },
+              ]}
+            />
+            <MetricsStrip
+              variant="embedded"
+              className="!px-0"
+              eyebrow="Billing (active)"
+              items={[
+                {
+                  label: "Stripe",
+                  value: String(stats.stripe),
+                  accent: stats.stripe > 0 ? "positive" : undefined,
+                },
+                { label: "Comp", value: String(stats.comp) },
+                { label: "Trial", value: String(stats.trial) },
+              ]}
+            />
+          </div>
         }
       />
 
@@ -178,7 +203,8 @@ export function AdminMembersPanel() {
           className="max-w-md"
           aria-label="Search members"
         />
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <BillingFilterChips value={billingFilter} onChange={setBillingFilter} />
           <FilterSelect
             label="Status"
             value={statusFilter}
@@ -238,6 +264,7 @@ export function AdminMembersPanel() {
                           setQuery("");
                           setStatusFilter("all");
                           setPlanFilter("all");
+                          setBillingFilter("all");
                         }}
                       >
                         Clear filters
@@ -248,6 +275,8 @@ export function AdminMembersPanel() {
               ) : (
                 filtered.map((m) => {
                   const tier = effectiveTier(m);
+                  const billing = memberBillingSource(m);
+                  const billingLabel = memberBillingSourceLabel(billing);
                   return (
                     <tr
                       key={m.id}
@@ -311,12 +340,8 @@ export function AdminMembersPanel() {
                       </td>
                       <td className="px-4 py-3.5">
                         <TierBadge tier={tier} />
-                        {hasActiveProGrant(m) ? (
-                          <p className="mt-0.5 text-[10px] text-[var(--pf-gray-400)]">Trial grant</p>
-                        ) : isCompPro(m) ? (
-                          <p className="mt-0.5 text-[10px] text-[var(--pf-gray-400)]">Comp</p>
-                        ) : m.stripe_customer_id ? (
-                          <p className="mt-0.5 text-[10px] text-[var(--pf-gray-400)]">Stripe</p>
+                        {billingLabel ? (
+                          <p className="mt-0.5 text-[10px] text-[var(--pf-gray-400)]">{billingLabel}</p>
                         ) : null}
                       </td>
                       <td className="px-4 py-3.5">
@@ -356,6 +381,45 @@ export function AdminMembersPanel() {
         Friend demos: send <span className="font-mono">/join?invite=1</span>, then open their row
         and use <strong>Comp Pro</strong> on Member 360.
       </p>
+    </div>
+  );
+}
+
+function BillingFilterChips({
+  value,
+  onChange,
+}: {
+  value: BillingFilter;
+  onChange: (value: BillingFilter) => void;
+}) {
+  const options: { value: BillingFilter; label: string }[] = [
+    { value: "all", label: "All billing" },
+    { value: "stripe", label: "Stripe" },
+    { value: "comp", label: "Comp" },
+    { value: "trial", label: "Trial" },
+  ];
+
+  return (
+    <div
+      className="inline-flex rounded-lg border border-[var(--pf-border)] p-0.5"
+      role="group"
+      aria-label="Billing source"
+    >
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => onChange(option.value)}
+          className={cn(
+            "rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors",
+            value === option.value
+              ? "bg-[var(--pf-black)] text-white"
+              : "text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-50)]"
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
     </div>
   );
 }

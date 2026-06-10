@@ -1,5 +1,6 @@
 import { isAdminCompMember } from "@/lib/billing/comp-access";
-import { effectiveMembershipTier, isProGrantActive } from "@/lib/billing/effective-access";
+import { memberBillingSource } from "@/lib/billing/billing-source";
+import { effectiveMembershipTier } from "@/lib/billing/effective-access";
 import { estimatePlatformMrr } from "@/lib/admin/revenue";
 import { getStripe } from "@/lib/stripe/client";
 import { isStripeConfigured, type BillingInterval, type MembershipTier } from "@/lib/stripe/config";
@@ -34,11 +35,7 @@ export type PlatformBillingBreakdown = {
 };
 
 function classifyBillingSource(row: ActiveMemberBillingRow): "stripe" | "trial" | "comp" | "none" {
-  if (row.subscription_status !== "active") return "none";
-  if (row.stripe_customer_id) return "stripe";
-  if (isProGrantActive(row.pro_granted_until)) return "trial";
-  if (row.membership_tier) return "comp";
-  return "none";
+  return memberBillingSource(row);
 }
 
 export function buildPlatformBillingBreakdown(
