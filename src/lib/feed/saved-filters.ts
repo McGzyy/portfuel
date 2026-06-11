@@ -106,3 +106,13 @@ export function viewMatchesPreset(
     Boolean(preset.newSince) === Boolean(view.newSince)
   );
 }
+
+/** Short human-readable description for tooltips and empty states. */
+export function savedFeedPresetSummary(preset: SavedFeedPreset): string {
+  const parts: string[] = [];
+  parts.push(FILTER_LABELS[preset.filter]);
+  parts.push(TAB_LABELS[preset.tab]);
+  if (preset.newSince) parts.push("New only");
+  if (preset.q?.trim()) parts.push(`Search “${preset.q.trim()}”`);
+  return parts.join(" · ");
+}

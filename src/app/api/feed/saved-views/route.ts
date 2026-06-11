@@ -50,6 +50,9 @@ export async function GET() {
     if (e instanceof Error && e.message === "subscription_inactive") {
       return NextResponse.json({ error: "subscription_inactive" }, { status: 403 });
     }
+    if (e instanceof Error && e.message === "service_unavailable") {
+      return NextResponse.json({ error: "service_unavailable" }, { status: 503 });
+    }
     console.error("[feed/saved-views GET]", e);
     return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
@@ -97,6 +100,9 @@ export async function POST(request: Request) {
     if (e instanceof Error && e.message === "subscription_inactive") {
       return NextResponse.json({ error: "subscription_inactive" }, { status: 403 });
     }
+    if (e instanceof Error && e.message === "service_unavailable") {
+      return NextResponse.json({ error: "service_unavailable" }, { status: 503 });
+    }
     console.error("[feed/saved-views POST]", e);
     return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
@@ -123,6 +129,9 @@ export async function DELETE(request: Request) {
     }
     if (e instanceof Error && e.message === "subscription_inactive") {
       return NextResponse.json({ error: "subscription_inactive" }, { status: 403 });
+    }
+    if (e instanceof Error && e.message === "service_unavailable") {
+      return NextResponse.json({ error: "service_unavailable" }, { status: 503 });
     }
     console.error("[feed/saved-views DELETE]", e);
     return NextResponse.json({ error: "server_error" }, { status: 500 });

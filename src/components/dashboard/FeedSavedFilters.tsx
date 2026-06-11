@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Bookmark, X } from "lucide-react";
+import { Bookmark, Cloud, CloudOff, X } from "lucide-react";
 import type { FeedFilter } from "@/lib/calls/filter-feed";
 import type { FeedTab } from "@/lib/dashboard/nav";
 import {
   isDefaultFeedView,
   presetHref,
   readSavedFeedPresets,
+  savedFeedPresetSummary,
   suggestFeedPresetName,
   SAVED_FEED_PRESET_LIMIT,
   viewMatchesPreset,
@@ -16,6 +17,33 @@ import {
   type SavedFeedPreset,
 } from "@/lib/feed/saved-filters";
 import { cn } from "@/lib/utils";
+
+type SyncSource = "cloud" | "local" | null;
+
+type NoticeTone = "neutral" | "success" | "error";
+
+function noticeClass(tone: NoticeTone): string {
+  if (tone === "success") return "text-emerald-600";
+  if (tone === "error") return "text-rose-600";
+  return "text-[var(--pf-gray-500)]";
+}
+
+function savedViewsErrorMessage(code: string | undefined): string {
+  switch (code) {
+    case "duplicate":
+      return "This view is already saved.";
+    case "limit_reached":
+      return `Max ${SAVED_FEED_PRESET_LIMIT} saved views — remove one first.`;
+    case "unauthorized":
+      return "Sign in again to sync saved views.";
+    case "subscription_inactive":
+      return "Active membership required to sync saved views.";
+    case "service_unavailable":
+      return "Cloud sync is unavailable — using this device only.";
+    default:
+      return "Could not save view. Try again.";
+  }
+}
 
 export function FeedSavedFilters({
   feedFilter,
@@ -30,7 +58,9 @@ export function FeedSavedFilters({
 }) {
   const [presets, setPresets] = useState<SavedFeedPreset[]>([]);
   const [notice, setNotice] = useState("");
+  const [noticeTone, setNoticeTone] = useState<NoticeTone>("neutral");
   const [loading, setLoading] = useState(true);
+  const [syncSource, setSyncSource] = useState<SyncSource>(null);
 
   const view = {
     filter: feedFilter,
@@ -39,14 +69,28 @@ export function FeedSavedFilters({
     newSince: showNewOnly,
   };
 
+  const showNotice = useCallback((message: string, tone: NoticeTone = "neutral") => {
+    setNotice(message);
+    setNoticeTone(tone);
+    if (tone !== "error") {
+      window.setTimeout(() => setNotice(""), 2800);
+    }
+  }, []);
+
   const loadPresets = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/feed/saved-views");
       if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
         setPresets(readSavedFeedPresets());
+        setSyncSource(readSavedFeedPresets().length > 0 ? "local" : null);
+        if (json.error === "service_unavailable") {
+          showNotice(savedViewsErrorMessage(json.error), "error");
+        }
         return;
       }
+
       const json = (await res.json()) as { presets: SavedFeedPreset[] };
       let next = json.presets ?? [];
 
@@ -62,20 +106,25 @@ export function FeedSavedFilters({
             const migrated = (await mig.json()) as { presets: SavedFeedPreset[] };
             next = migrated.presets ?? [];
             writeSavedFeedPresets([]);
+            showNotice("Saved views synced to your account.", "success");
           } else {
             next = local;
+            setSyncSource("local");
           }
         }
       }
 
       setPresets(next);
       writeSavedFeedPresets(next);
+      setSyncSource("cloud");
     } catch {
-      setPresets(readSavedFeedPresets());
+      const local = readSavedFeedPresets();
+      setPresets(local);
+      setSyncSource(local.length > 0 ? "local" : null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showNotice]);
 
   useEffect(() => {
     void loadPresets();
@@ -86,9 +135,11 @@ export function FeedSavedFilters({
     !isDefaultFeedView(view) &&
     !presets.some((p) => viewMatchesPreset(p, view));
 
+  const atLimit = presets.length >= SAVED_FEED_PRESET_LIMIT;
+
   async function saveCurrent() {
-    if (presets.length >= SAVED_FEED_PRESET_LIMIT) {
-      setNotice(`Max ${SAVED_FEED_PRESET_LIMIT} saved views — remove one first.`);
+    if (atLimit) {
+      showNotice(savedViewsErrorMessage("limit_reached"), "error");
       return;
     }
     setNotice("");
@@ -106,21 +157,15 @@ export function FeedSavedFilters({
       });
       if (!res.ok) {
         const json = (await res.json().catch(() => ({}))) as { error?: string };
-        if (json.error === "duplicate") {
-          setNotice("This view is already saved.");
-        } else if (json.error === "limit_reached") {
-          setNotice(`Max ${SAVED_FEED_PRESET_LIMIT} saved views — remove one first.`);
-        } else {
-          setNotice("Could not save view. Try again.");
-        }
+        showNotice(savedViewsErrorMessage(json.error), "error");
         return;
       }
       const json = (await res.json()) as { presets: SavedFeedPreset[] };
       const next = json.presets ?? [];
       setPresets(next);
       writeSavedFeedPresets(next);
-      setNotice("View saved.");
-      window.setTimeout(() => setNotice(""), 2500);
+      setSyncSource("cloud");
+      showNotice("View saved to your account.", "success");
     } catch {
       const preset: SavedFeedPreset = {
         id: crypto.randomUUID(),
@@ -134,8 +179,8 @@ export function FeedSavedFilters({
       const next = [preset, ...presets].slice(0, SAVED_FEED_PRESET_LIMIT);
       writeSavedFeedPresets(next);
       setPresets(next);
-      setNotice("View saved locally (sync when online).");
-      window.setTimeout(() => setNotice(""), 2500);
+      setSyncSource("local");
+      showNotice("View saved on this device only (offline).", "neutral");
     }
   }
 
@@ -149,6 +194,7 @@ export function FeedSavedFilters({
         const next = json.presets ?? [];
         setPresets(next);
         writeSavedFeedPresets(next);
+        setSyncSource("cloud");
         return;
       }
     } catch {
@@ -157,16 +203,39 @@ export function FeedSavedFilters({
     const next = presets.filter((p) => p.id !== id);
     writeSavedFeedPresets(next);
     setPresets(next);
+    if (syncSource === "cloud") setSyncSource("local");
   }
-
-  if (!loading && presets.length === 0 && !canSave) return null;
 
   return (
     <div className="space-y-2 border-t border-[var(--pf-border)] pt-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-          Saved views
-        </span>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            Saved views
+          </span>
+          {!loading ? (
+            <span className="text-[10px] tabular-nums text-[var(--pf-gray-400)]">
+              {presets.length}/{SAVED_FEED_PRESET_LIMIT}
+            </span>
+          ) : null}
+          {syncSource === "cloud" ? (
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600"
+              title="Synced across your devices"
+            >
+              <Cloud className="h-3 w-3" aria-hidden />
+              Synced
+            </span>
+          ) : syncSource === "local" ? (
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700"
+              title="Stored on this device until cloud sync works"
+            >
+              <CloudOff className="h-3 w-3" aria-hidden />
+              This device
+            </span>
+          ) : null}
+        </div>
         {canSave ? (
           <button
             type="button"
@@ -177,8 +246,11 @@ export function FeedSavedFilters({
             Save current
           </button>
         ) : null}
-        {notice ? <span className="text-[11px] text-[var(--pf-gray-500)]">{notice}</span> : null}
+        {notice ? (
+          <span className={cn("text-[11px]", noticeClass(noticeTone))}>{notice}</span>
+        ) : null}
       </div>
+
       {loading ? (
         <p className="text-[11px] text-[var(--pf-gray-400)]">Loading saved views…</p>
       ) : presets.length > 0 ? (
@@ -189,6 +261,7 @@ export function FeedSavedFilters({
               <span key={preset.id} className="inline-flex items-center gap-0.5">
                 <Link
                   href={presetHref(preset)}
+                  title={savedFeedPresetSummary(preset)}
                   className={cn(
                     "rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
                     active
@@ -210,7 +283,15 @@ export function FeedSavedFilters({
             );
           })}
         </div>
-      ) : null}
+      ) : (
+        <p className="text-[11px] text-[var(--pf-gray-500)]">
+          {isDefaultFeedView(view)
+            ? "Change tab, filter, or search — then save a combo for one-click access on any device."
+            : atLimit
+              ? `Remove a saved view to add “${suggestFeedPresetName(view)}”.`
+              : "No saved views yet — use Save current to keep this filter combo."}
+        </p>
+      )}
     </div>
   );
 }

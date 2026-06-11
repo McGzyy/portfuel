@@ -20,6 +20,14 @@ type FeedSavedViewRow = {
   created_at: string;
 };
 
+function isFeedSavedViewsUnavailable(error: { message?: string; code?: string }): boolean {
+  const msg = error.message ?? "";
+  return (
+    error.code === "PGRST205" ||
+    /user_feed_saved_views|relation .* does not exist|schema cache/i.test(msg)
+  );
+}
+
 function rowToPreset(row: FeedSavedViewRow): SavedFeedPreset {
   return {
     id: row.id,
@@ -42,7 +50,12 @@ export async function listUserFeedSavedViews(userId: string): Promise<SavedFeedP
     .order("created_at", { ascending: false })
     .limit(SAVED_FEED_PRESET_LIMIT);
 
-  if (error) throw error;
+  if (error) {
+    if (isFeedSavedViewsUnavailable(error)) {
+      throw new Error("service_unavailable");
+    }
+    throw error;
+  }
   return ((data ?? []) as FeedSavedViewRow[]).map(rowToPreset);
 }
 
@@ -96,7 +109,12 @@ export async function createUserFeedSavedView(
     .select("id, user_id, name, filter, tab, search_query, new_since, sort_order, created_at")
     .single();
 
-  if (error) throw error;
+  if (error) {
+    if (isFeedSavedViewsUnavailable(error)) {
+      throw new Error("service_unavailable");
+    }
+    throw error;
+  }
   return { preset: rowToPreset(data as FeedSavedViewRow) };
 }
 
@@ -113,7 +131,12 @@ export async function deleteUserFeedSavedView(
     .select("id")
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) {
+    if (isFeedSavedViewsUnavailable(error)) {
+      throw new Error("service_unavailable");
+    }
+    throw error;
+  }
   return Boolean(data);
 }
 
@@ -138,6 +161,11 @@ export async function importLocalFeedPresets(
   if (rows.length === 0) return [];
 
   const { error } = await db.from("user_feed_saved_views").insert(rows as never);
-  if (error) throw error;
+  if (error) {
+    if (isFeedSavedViewsUnavailable(error)) {
+      throw new Error("service_unavailable");
+    }
+    throw error;
+  }
   return listUserFeedSavedViews(userId);
 }
