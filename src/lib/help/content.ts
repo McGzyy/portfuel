@@ -105,7 +105,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         question: "Can I delete a call?",
         answer:
-          "You can delete your own calls from the card menu. Deleted calls are removed from the feed and your profile stats.",
+          "Published calls stay on your track record — you can close a position when you're done, but members cannot remove a call from the feed. Contact support if something needs to come down. You can still clear symbols from your watchlist or journal without affecting published calls.",
       },
     ],
   },

@@ -81,13 +81,14 @@ export function CallCard({
   viewerUserId,
   isAdmin = false,
 }: CallCardProps) {
-  const canDelete =
-    Boolean(viewerUserId) &&
-    (isAdmin || (call.user_id != null && call.user_id === viewerUserId));
+  const isOwnCall = Boolean(
+    viewerUserId && call.user_id != null && call.user_id === viewerUserId
+  );
+  const canDelete = isAdmin;
   const handle = /^\d{5}$/.test(call.pin) ? call.pin : `@${call.pin}`;
   const name = call.display_name ?? `Trader ${handle}`;
   const canClose =
-    canDelete &&
+    (isAdmin || isOwnCall) &&
     !call.is_fueled &&
     !call.closed_at &&
     isOpenMemberCall({

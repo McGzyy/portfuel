@@ -22,7 +22,7 @@ export function CallDeleteButton({
 
   async function handleDelete() {
     const ok = window.confirm(
-      `Delete your ${symbol} call from PortFuel? This removes it from the feed, ticker, and your track record. This cannot be undone.`
+      `Remove this ${symbol} call from PortFuel? It will disappear from the feed, ticker pages, and the member's track record. This cannot be undone.`
     );
     if (!ok) return;
 
@@ -33,7 +33,7 @@ export function CallDeleteButton({
         const body = (await res.json().catch(() => ({}))) as { error?: string };
         window.alert(
           body.error === "forbidden"
-            ? "You can only delete your own calls."
+            ? "Only admins can remove published calls."
             : "Could not delete this call. Try again."
         );
         return;

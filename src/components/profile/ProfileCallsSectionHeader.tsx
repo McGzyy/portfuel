@@ -28,7 +28,7 @@ export function ProfileCallsSectionHeader({
               ? "Publish your first thesis — entry, target, and stop go on your public track record."
               : winPct != null
                 ? `${winPct}% win rate on closed calls · avg return ${trackRecord.avgReturnPct != null ? `${trackRecord.avgReturnPct.toFixed(1)}%` : "—"}`
-                : "Manage or delete calls below — each update feeds rankings and your profile chart."}
+                : "Close positions or publish new calls below — each update feeds rankings and your profile chart."}
           </p>
           <Link
             href="#performance"

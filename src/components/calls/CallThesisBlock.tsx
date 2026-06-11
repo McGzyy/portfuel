@@ -64,9 +64,9 @@ export function CallThesisBlock({
   showSymbol?: boolean;
 }) {
   const isOwnCall = Boolean(viewerUserId && call.user_id && viewerUserId === call.user_id);
-  const canDelete = Boolean(viewerUserId) && (isAdmin || isOwnCall);
+  const canDelete = isAdmin;
   const canClose =
-    canDelete &&
+    (isAdmin || isOwnCall) &&
     !call.is_fueled &&
     !call.closed_at &&
     isOpenMemberCall({

@@ -21,7 +21,7 @@ export async function deleteCall(params: {
   if (!row) return { ok: false, error: "not_found" };
 
   const ownerId = (row as { user_id: string }).user_id;
-  if (ownerId !== params.actorUserId && !params.isAdmin) {
+  if (!params.isAdmin) {
     return { ok: false, error: "forbidden" };
   }
 
