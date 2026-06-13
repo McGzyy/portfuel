@@ -8,7 +8,9 @@ import { CallPriceMetrics } from "@/components/calls/CallPriceMetrics";
 import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { CallCloseButton } from "@/components/calls/CallCloseButton";
 import { CallReturnDisplay } from "@/components/calls/CallReturnDisplay";
+import { CallStopHitNotice } from "@/components/calls/CallStopHitNotice";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
+import { isCallStopHit } from "@/lib/calls/stop-cross";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
 import { formatPublishedAt } from "@/lib/time/timestamp";
 import { cn, timeAgo } from "@/lib/utils";
@@ -87,6 +89,14 @@ export function CallThesisBlock({
   const prices = normalizeCallCardPrices(call);
   const accent =
     call.direction === "long" ? "pf-ticker-thesis-long" : "pf-ticker-thesis-short";
+  const stopHit = isCallStopHit({
+    direction: call.direction,
+    stop_price: prices.stop_price,
+    last_price: prices.last_price,
+    entry_price: prices.entry_price,
+    price_at_call: call.price_at_call ?? null,
+    closed_at: call.closed_at,
+  });
 
   return (
     <article
@@ -136,6 +146,14 @@ export function CallThesisBlock({
                 className="border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
               >
                 Closed
+              </Badge>
+            ) : null}
+            {stopHit ? (
+              <Badge
+                variant="default"
+                className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+              >
+                Stop hit
               </Badge>
             ) : null}
             {call.users.trusted_at ? <Badge variant="trusted">Trusted</Badge> : null}
@@ -193,6 +211,24 @@ export function CallThesisBlock({
         variant="strip"
       />
 
+      {stopHit ? (
+        <div className="border-t border-[var(--pf-border)] px-5 py-3 sm:px-6">
+          <CallStopHitNotice
+            call={{
+              id: call.id,
+              symbol: call.symbol ?? "",
+              direction: call.direction,
+              stop_price: prices.stop_price,
+              last_price: prices.last_price,
+              entry_price: prices.entry_price,
+              price_at_call: call.price_at_call,
+              closed_at: call.closed_at,
+            }}
+            showClose={canClose}
+          />
+        </div>
+      ) : null}
+
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--pf-border)] bg-[var(--pf-gray-50)]/60 px-5 py-3 sm:px-6">
         <CallEngagement
           callId={call.id}
@@ -204,7 +240,9 @@ export function CallThesisBlock({
         />
         {(canClose || canDelete) && call.symbol ? (
           <div className="flex flex-wrap items-center gap-1">
-            {canClose ? <CallCloseButton callId={call.id} symbol={call.symbol} /> : null}
+            {canClose ? (
+              <CallCloseButton callId={call.id} symbol={call.symbol} stopHit={stopHit} />
+            ) : null}
             {canDelete ? <CallDeleteButton callId={call.id} symbol={call.symbol} /> : null}
           </div>
         ) : null}

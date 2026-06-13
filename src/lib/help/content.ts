@@ -86,6 +86,7 @@ export const HELP_SECTIONS: HelpSection[] = [
         body: [
           "Open calls stay live on your book until you close them, hit target progress, or age past the open window.",
           "Close a call when your thesis plays out or you want to lock in the outcome — peak return is captured at close.",
+          "If you set a stop, PortFuel alerts you when price crosses it and shows a Stop hit badge on the call. You choose when to close — calls are never auto-closed on a stop.",
         ],
       },
       {

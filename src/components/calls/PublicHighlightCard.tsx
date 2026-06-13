@@ -15,8 +15,13 @@ export function PublicHighlightCard({ call }: { call: TeaserCallRow }) {
   const accent = call.direction === "long" ? "pf-call-accent-long" : "pf-call-accent-short";
 
   return (
-    <Card className={cn(accent, "overflow-hidden")}>
-      <CardContent className="py-5">
+    <Card className={cn(accent, "relative overflow-hidden transition-colors hover:border-[var(--pf-gray-200)]")}>
+      <Link
+        href={`/ticker/${call.symbol}`}
+        className="absolute inset-0 z-0 rounded-[inherit]"
+        aria-label={`View ${call.symbol} performance`}
+      />
+      <CardContent className="pointer-events-none py-5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -38,7 +43,7 @@ export function PublicHighlightCard({ call }: { call: TeaserCallRow }) {
             Full thesis and live levels are for members only. Join to read the complete call and
             track performance in real time.
           </p>
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[color-mix(in_srgb,var(--pf-surface)_70%,transparent)] backdrop-blur-[2px]">
+          <div className="pointer-events-auto absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[color-mix(in_srgb,var(--pf-surface)_70%,transparent)] backdrop-blur-[2px]">
             <Lock className="h-5 w-5 text-[var(--pf-red)]" strokeWidth={2} />
             <p className="text-xs font-semibold text-[var(--pf-gray-700)]">Members-only thesis</p>
             <Link href="/join">

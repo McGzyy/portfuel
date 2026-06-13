@@ -38,9 +38,14 @@ export function YourPositionsStrip({
           {calls.slice(0, 6).map((c) => (
             <li
               key={c.id}
-              className="min-w-[11.5rem] shrink-0 rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2.5"
+              className="relative min-w-[11.5rem] shrink-0 cursor-pointer rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2.5 transition-colors hover:border-[var(--pf-gray-300)]"
             >
-              <Link href={`/ticker/${c.symbol}`} className="block">
+              <Link
+                href={`/ticker/${c.symbol}`}
+                className="absolute inset-0 z-0 rounded-[inherit]"
+                aria-label={`View ${c.symbol} call`}
+              />
+              <div className="pointer-events-none relative">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
                     {c.symbol}
@@ -60,7 +65,7 @@ export function YourPositionsStrip({
                   {c.direction}
                   {c.is_fueled ? " · Fueled" : ""}
                 </p>
-              </Link>
+              </div>
             </li>
           ))}
         </ul>

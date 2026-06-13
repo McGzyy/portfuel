@@ -7,6 +7,7 @@ import { computeHypeScore } from "@/lib/scoring/returns";
 import { buildLiveCallMetricsUpdate, persistCallMetricsUpdate } from "@/lib/calls/call-metrics";
 import { computeCallLiveMetrics } from "@/lib/calls/live-metrics";
 import { processCallMilestones } from "@/lib/notifications/milestones";
+import { processCallStopCrosses } from "@/lib/notifications/stop-cross";
 import { processMemberWinGates } from "@/lib/social/member-win-gate";
 import { refreshMemberRankings } from "@/lib/users/rankings";
 
@@ -26,6 +27,7 @@ type CallRow = {
   called_at: string;
   entry_price: number | null;
   target_price: number | null;
+  stop_price: number | null;
   price_at_call: number | null;
   last_price: number | null;
   return_pct: number | null;
@@ -144,11 +146,25 @@ export async function refreshQuotesForSymbols(
     return_pct: number | null;
     target_progress: number | null;
   }[] = [];
+  const stopCrossRows: Parameters<typeof processCallStopCrosses>[0] = [];
 
   for (const call of allCalls) {
     if (call.closed_at) continue;
     const last = priceMap.get(call.symbol.toUpperCase());
     if (last == null) continue;
+
+    stopCrossRows.push({
+      id: call.id,
+      user_id: call.user_id,
+      symbol: call.symbol,
+      direction: call.direction,
+      stop_price: call.stop_price,
+      closed_at: call.closed_at,
+      last_price: call.last_price,
+      entry_price: call.entry_price,
+      price_at_call: call.price_at_call,
+      new_last_price: last,
+    });
 
     const metrics = buildLiveCallMetricsUpdate(call, last);
 
@@ -173,6 +189,9 @@ export async function refreshQuotesForSymbols(
   if (milestoneRows.length > 0) {
     await processCallMilestones(milestoneRows);
     await processMemberWinGates(milestoneRows);
+  }
+  if (stopCrossRows.length > 0) {
+    await processCallStopCrosses(stopCrossRows);
   }
 
   return { updated, quotes };
@@ -251,11 +270,25 @@ export async function refreshAllQuotesAndScores(): Promise<{
     return_pct: number | null;
     target_progress: number | null;
   }[] = [];
+  const stopCrossRows: Parameters<typeof processCallStopCrosses>[0] = [];
 
   for (const call of rows) {
     if (call.closed_at) continue;
     const last = priceMap.get(call.symbol.toUpperCase());
     if (last == null) continue;
+
+    stopCrossRows.push({
+      id: call.id,
+      user_id: call.user_id,
+      symbol: call.symbol,
+      direction: call.direction,
+      stop_price: call.stop_price,
+      closed_at: call.closed_at,
+      last_price: call.last_price,
+      entry_price: call.entry_price,
+      price_at_call: call.price_at_call,
+      new_last_price: last,
+    });
 
     const metrics = buildLiveCallMetricsUpdate(call, last);
 
@@ -302,6 +335,7 @@ export async function refreshAllQuotesAndScores(): Promise<{
 
   const { notified: milestonesNotified } = await processCallMilestones(milestoneRows);
   const { gated: memberWinGates } = await processMemberWinGates(milestoneRows);
+  await processCallStopCrosses(stopCrossRows);
 
   return { updated, milestonesNotified, memberWinGates, quotes };
 }

@@ -10,11 +10,14 @@ export function CallCloseButton({
   callId,
   symbol,
   className,
+  stopHit = false,
   onClosed,
 }: {
   callId: string;
   symbol: string;
   className?: string;
+  /** When true, confirm copy reflects that price crossed the stated stop. */
+  stopHit?: boolean;
   onClosed?: () => void;
 }) {
   const router = useRouter();
@@ -22,7 +25,9 @@ export function CallCloseButton({
 
   async function handleClose() {
     const ok = window.confirm(
-      `Close your ${symbol} call at the current market price? Return will be locked for your track record and rank score. You can still view it on your profile.`
+      stopHit
+        ? `Your ${symbol} call crossed its stop level. Close at the current market price? Return will be locked for your track record and rank score.`
+        : `Close your ${symbol} call at the current market price? Return will be locked for your track record and rank score. You can still view it on your profile.`
     );
     if (!ok) return;
 
@@ -62,12 +67,15 @@ export function CallCloseButton({
       disabled={busy}
       onClick={() => void handleClose()}
       className={cn(
-        "h-8 gap-1.5 px-2 text-xs font-semibold text-[var(--pf-gray-500)] hover:text-emerald-700",
+        "h-8 gap-1.5 px-2 text-xs font-semibold",
+        stopHit
+          ? "text-amber-800 hover:text-amber-950"
+          : "text-[var(--pf-gray-500)] hover:text-emerald-700",
         className
       )}
     >
       <CircleCheck className="h-3.5 w-3.5" strokeWidth={2.25} />
-      {busy ? "Closing…" : "Close call"}
+      {busy ? "Closing…" : stopHit ? "Close at market" : "Close call"}
     </Button>
   );
 }

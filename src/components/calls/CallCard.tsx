@@ -10,6 +10,9 @@ import { SymbolSparkline } from "@/components/charts/SymbolSparkline";
 import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { CallCloseButton } from "@/components/calls/CallCloseButton";
 import { CallReturnDisplay } from "@/components/calls/CallReturnDisplay";
+import { CallStopHitNotice } from "@/components/calls/CallStopHitNotice";
+import { CALL_CARD_INTERACTIVE } from "@/components/calls/call-card-link";
+import { isCallStopHit } from "@/lib/calls/stop-cross";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
 import { formatPublishedAt } from "@/lib/time/timestamp";
 import { cn, timeAgo } from "@/lib/utils";
@@ -65,6 +68,8 @@ type CallCardProps = {
   showSparkline?: boolean;
   viewerUserId?: string | null;
   isAdmin?: boolean;
+  /** Whole card navigates to the ticker page (default). Disable for publish preview. */
+  linkToTicker?: boolean;
 };
 
 export function CallCard({
@@ -80,6 +85,7 @@ export function CallCard({
   showSparkline = false,
   viewerUserId,
   isAdmin = false,
+  linkToTicker = true,
 }: CallCardProps) {
   const isOwnCall = Boolean(
     viewerUserId && call.user_id != null && call.user_id === viewerUserId
@@ -108,25 +114,44 @@ export function CallCard({
     call.target_progress != null ||
     call.timeframe_tag;
 
+  const stopHit =
+    !call.closed_at &&
+    isCallStopHit({
+      direction: call.direction,
+      stop_price: call.stop_price ?? null,
+      last_price: call.last_price ?? null,
+      entry_price: call.entry_price ?? null,
+      price_at_call: null,
+      closed_at: call.closed_at,
+    });
+
   return (
     <Card
       className={cn(
         accent,
         "pf-call-card-premium group overflow-hidden transition-all duration-200",
         call.is_fueled && "ring-2 ring-[var(--pf-red)]/35 shadow-[0_0_0_1px_rgba(227,27,35,0.12)]",
-        "hover:border-[var(--pf-gray-200)]"
+        linkToTicker
+          ? "relative cursor-pointer hover:border-[var(--pf-gray-200)]"
+          : "hover:border-[var(--pf-gray-200)]"
       )}
     >
-      <CardContent className={compact ? "py-3" : "py-5"}>
+      {linkToTicker ? (
+        <Link
+          href={`/ticker/${call.symbol}`}
+          className="absolute inset-0 z-0 rounded-[inherit]"
+          aria-label={`View ${call.symbol} chart and thesis`}
+        />
+      ) : null}
+      <CardContent
+        className={cn(compact ? "py-3" : "py-5", linkToTicker && "pointer-events-none")}
+      >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <Link
-                href={`/ticker/${call.symbol}`}
-                className="text-lg font-bold tracking-tight text-[var(--pf-black)] transition-colors group-hover:text-[var(--pf-red)]"
-              >
+              <span className="text-lg font-bold tracking-tight text-[var(--pf-black)] transition-colors group-hover:text-[var(--pf-red)]">
                 {call.symbol}
-              </Link>
+              </span>
               <Badge variant={call.direction === "long" ? "long" : "short"}>
                 {call.direction}
               </Badge>
@@ -137,6 +162,14 @@ export function CallCard({
               {call.closed_at ? (
                 <Badge variant="default" className="border-slate-200 bg-slate-100 text-slate-700">
                   Closed
+                </Badge>
+              ) : null}
+              {stopHit ? (
+                <Badge
+                  variant="default"
+                  className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+                >
+                  Stop hit
                 </Badge>
               ) : null}
               {call.is_trusted ? <Badge variant="trusted">Trusted</Badge> : null}
@@ -158,7 +191,10 @@ export function CallCard({
               {memberSlug(call) ? (
                 <Link
                   href={`/member/${memberSlug(call)}`}
-                  className="font-semibold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
+                  className={cn(
+                    CALL_CARD_INTERACTIVE,
+                    "font-semibold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
+                  )}
                 >
                   {name}
                 </Link>
@@ -188,13 +224,19 @@ export function CallCard({
           {call.thesis}
         </p>
         {showSummary ? (
-          <ThesisSummaryExpand
-            callId={call.id}
-            canGenerate={canGenerateSummary}
-            showUpgrade={showUpgrade}
-          />
+          <div className={linkToTicker ? CALL_CARD_INTERACTIVE : undefined}>
+            <ThesisSummaryExpand
+              callId={call.id}
+              canGenerate={canGenerateSummary}
+              showUpgrade={showUpgrade}
+            />
+          </div>
         ) : null}
-        {call.is_fueled && interactive ? <CallResearchExpand callId={call.id} /> : null}
+        {call.is_fueled && interactive ? (
+          <div className={linkToTicker ? CALL_CARD_INTERACTIVE : undefined}>
+            <CallResearchExpand callId={call.id} />
+          </div>
+        ) : null}
         {hasMetrics ? (
           <CallPriceMetrics
             entry_price={call.entry_price}
@@ -206,16 +248,25 @@ export function CallCard({
             compact={compact}
           />
         ) : null}
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        {stopHit ? (
+          <CallStopHitNotice
+            call={call}
+            showClose={canClose}
+            className={cn("mt-3", linkToTicker && CALL_CARD_INTERACTIVE)}
+          />
+        ) : null}
+        <div
+          className={cn(
+            "mt-3 flex flex-wrap items-center justify-between gap-2",
+            linkToTicker && CALL_CARD_INTERACTIVE
+          )}
+        >
           <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href={`/ticker/${call.symbol}`}
-              className="text-xs font-semibold text-[var(--pf-red)] transition-colors hover:text-[var(--pf-red-hover)]"
-            >
+            <span className="text-xs font-semibold text-[var(--pf-red)] group-hover:text-[var(--pf-red-hover)]">
               Chart & intel →
-            </Link>
+            </span>
             {canClose ? (
-              <CallCloseButton callId={call.id} symbol={call.symbol} />
+              <CallCloseButton callId={call.id} symbol={call.symbol} stopHit={stopHit} />
             ) : null}
             {canDelete ? (
               <CallDeleteButton callId={call.id} symbol={call.symbol} />
@@ -228,15 +279,18 @@ export function CallCard({
             </span>
           ) : null}
         </div>
-        <CallEngagement
-          callId={call.id}
-          initialVoteScore={call.vote_score ?? 0}
-          initialCommentCount={call.comment_count ?? 0}
-          interactive={interactive}
-          compact={compact}
-        />
+        <div className={linkToTicker ? CALL_CARD_INTERACTIVE : undefined}>
+          <CallEngagement
+            callId={call.id}
+            initialVoteScore={call.vote_score ?? 0}
+            initialCommentCount={call.comment_count ?? 0}
+            interactive={interactive}
+            compact={compact}
+          />
+        </div>
         {showThesisCoach ? (
-          <ThesisCoachInline
+          <div className={linkToTicker ? CALL_CARD_INTERACTIVE : undefined}>
+            <ThesisCoachInline
             isPro={Boolean(isPro)}
             showUpgrade={showUpgrade}
             draft={{
@@ -250,6 +304,7 @@ export function CallCard({
               timeframeTag: call.timeframe_tag ?? null,
             }}
           />
+          </div>
         ) : null}
       </CardContent>
     </Card>

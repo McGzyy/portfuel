@@ -148,7 +148,7 @@ export function PublishCallCardPreview({
           </p>
         ) : null}
 
-        <CallCard call={call} compact showSummary={false} interactive={false} />
+        <CallCard call={call} compact showSummary={false} interactive={false} linkToTicker={false} />
 
         {fromJournal && catalysts && catalysts.length > 0 ? (
           <p className="mt-3 flex flex-wrap gap-1">

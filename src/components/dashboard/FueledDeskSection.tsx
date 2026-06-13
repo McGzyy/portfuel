@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { CallCard } from "@/components/calls/CallCard";
 import type { CallCardData } from "@/components/calls/CallCard";
+import { FueledDeskCallGrid } from "@/components/dashboard/FueledDeskCallGrid";
 import { formatPct } from "@/lib/utils";
 
 export function FueledDeskSection({
@@ -54,21 +54,12 @@ export function FueledDeskSection({
           Open Fueled desk →
         </Link>
       </div>
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {calls.slice(0, 3).map((call) => (
-          <div key={call.id} className="[&_.group]:border-[var(--pf-border)] [&_.group]:bg-[var(--pf-surface)]">
-            <CallCard
-              call={call}
-              interactive={!readOnly}
-              compact
-              showSummary={false}
-              showSparkline
-              viewerUserId={viewerUserId}
-              isAdmin={isAdmin}
-            />
-          </div>
-        ))}
-      </div>
+      <FueledDeskCallGrid
+        calls={calls}
+        viewerUserId={viewerUserId}
+        isAdmin={isAdmin}
+        readOnly={readOnly}
+      />
     </section>
   );
 }
