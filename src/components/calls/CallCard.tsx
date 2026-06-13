@@ -7,6 +7,7 @@ import { ThesisSummaryExpand } from "@/components/ai/ThesisSummaryExpand";
 import { CallResearchExpand } from "@/components/calls/CallResearchExpand";
 import { Card, CardContent } from "@/components/ui/card";
 import { SymbolSparkline } from "@/components/charts/SymbolSparkline";
+import { SymbolAvatar } from "@/components/market/SymbolAvatar";
 import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { CallCloseButton } from "@/components/calls/CallCloseButton";
 import { CallReturnDisplay } from "@/components/calls/CallReturnDisplay";
@@ -149,6 +150,11 @@ export function CallCard({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
+              <SymbolAvatar
+                symbol={call.symbol}
+                assetClass={"asset_class" in call ? call.asset_class : undefined}
+                size="sm"
+              />
               <span className="text-lg font-bold tracking-tight text-[var(--pf-black)] transition-colors group-hover:text-[var(--pf-red)]">
                 {call.symbol}
               </span>

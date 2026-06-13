@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { MemberOpenBookHeader } from "@/components/book/MemberOpenBookHeader";
 import { MemberOpenBookPanel } from "@/components/book/MemberOpenBookPanel";
 import { MemberOpenBookSymbols } from "@/components/book/MemberOpenBookSymbols";
+import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard";
 import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerformanceChart";
 import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { ProQuoteRefreshMount } from "@/components/market/ProQuoteRefreshMount";
 import { fetchMemberOpenBook } from "@/lib/calls/member-book";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { requireDashboardSession } from "@/lib/dashboard/data";
+import { fetchOwnProfile } from "@/lib/users/own-profile";
+import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import {
   isProIntelligenceLocked,
   sessionToProContext,
@@ -20,7 +23,11 @@ export const metadata: Metadata = {
 export default async function DashboardBookPage() {
   const session = await requireDashboardSession();
   const proLocked = isProIntelligenceLocked(sessionToProContext(session));
-  const book = await fetchMemberOpenBook(session.userId);
+  const [book, ownProfile] = await Promise.all([
+    fetchMemberOpenBook(session.userId),
+    fetchOwnProfile(session),
+  ]);
+  const trackRecord = summarizeMemberTrackRecord(ownProfile.calls);
   const performanceSeries = buildCumulativeReturnSeries(book.openCalls);
 
   return (
@@ -32,6 +39,17 @@ export default async function DashboardBookPage() {
         isPro={!proLocked}
       />
       <WorkspaceQuickActions proUnlocked={!proLocked} />
+
+      <ShareTrackRecordCard
+        username={session.username}
+        callCount={trackRecord.callCount}
+        winRatePct={
+          trackRecord.callCount > 0
+            ? Math.round((trackRecord.winners / trackRecord.callCount) * 100)
+            : null
+        }
+        avgReturnPct={trackRecord.avgReturnPct}
+      />
 
       {book.summary.openCount > 0 ? (
         <>

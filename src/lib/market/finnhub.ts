@@ -75,6 +75,7 @@ export type FilingItem = {
 
 export type CompanyProfile = {
   name?: string;
+  logo?: string;
   marketCapitalization?: number;
   shareOutstanding?: number;
   finnhubIndustry?: string;

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { SparklineProvider } from "@/components/charts/SparklineProvider";
 import { SymbolSparkline } from "@/components/charts/SymbolSparkline";
+import { SymbolAvatar } from "@/components/market/SymbolAvatar";
 import { formatPct } from "@/lib/utils";
 import type { CallCardData } from "@/components/calls/CallCard";
 
@@ -47,9 +48,12 @@ export function YourPositionsStrip({
               />
               <div className="pointer-events-none relative">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
-                    {c.symbol}
-                  </span>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <SymbolAvatar symbol={c.symbol} assetClass={c.asset_class} size="xs" />
+                    <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
+                      {c.symbol}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-1.5">
                     <SymbolSparkline symbol={c.symbol} width={40} height={18} />
                     <span

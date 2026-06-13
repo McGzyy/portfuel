@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { SymbolAvatar } from "@/components/market/SymbolAvatar";
 import type { MemberBookSymbolRow } from "@/lib/calls/member-book";
 import { cn, formatPct } from "@/lib/utils";
 
@@ -19,8 +20,9 @@ export function MemberOpenBookSymbols({ rows }: { rows: MemberBookSymbolRow[] })
           <li key={row.symbol} className="flex flex-wrap items-center gap-3 px-5 py-3">
             <Link
               href={`/ticker/${row.symbol}`}
-              className="font-mono text-sm font-bold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
+              className="flex items-center gap-2 font-mono text-sm font-bold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
             >
+              <SymbolAvatar symbol={row.symbol} size="xs" />
               {row.symbol}
             </Link>
             <span className="text-xs text-[var(--pf-gray-500)]">

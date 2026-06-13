@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { SymbolSparkline } from "@/components/charts/SymbolSparkline";
+import { SymbolAvatar } from "@/components/market/SymbolAvatar";
 import { cn, formatPct, formatPrice, timeAgo } from "@/lib/utils";
 
 export type CallPreviewData = {
@@ -51,6 +52,7 @@ export function CallPreviewRow({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <SymbolAvatar symbol={call.symbol} size="xs" />
           <span
             className={cn(
               "font-mono text-sm font-bold tracking-tight",

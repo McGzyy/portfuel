@@ -5,6 +5,7 @@ import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MarketDataNote } from "@/components/market/MarketDataNote";
+import { SymbolAvatar } from "@/components/market/SymbolAvatar";
 import { journalSymbolPath } from "@/lib/journal/paths";
 import { cn, formatPct, formatPrice } from "@/lib/utils";
 import { TickerWatchlistChip } from "@/components/ticker/TickerWatchlistChip";
@@ -62,6 +63,11 @@ export function TickerPageHeader({
             Ticker intelligence
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
+            <SymbolAvatar
+              symbol={symbol}
+              assetClass={intel?.assetClass}
+              size="lg"
+            />
             <h1 className="font-mono text-3xl font-bold tracking-tight text-[var(--pf-black)] sm:text-4xl">
               {symbol}
             </h1>

@@ -4,12 +4,14 @@ import {
 } from "@/lib/users/public-profile";
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { getAppOrigin, getPublicSiteHost } from "@/lib/social/app-url";
+import { fetchLogoAsDataUrl, resolveSymbolLogoUrl } from "@/lib/market/symbol-logo";
 
 export type TrackRecordHighlight = {
   symbol: string;
   direction: string;
   returnPct: number | null;
   calledAt: string;
+  logoDataUrl?: string | null;
 };
 
 export type TrackRecordCardPayload = {
@@ -48,12 +50,19 @@ export async function loadTrackRecordCardPayload(
     .sort((a, b) => Number(b.return_pct) - Number(a.return_pct))
     .slice(0, 3);
 
-  const highlights: TrackRecordHighlight[] = withReturn.map((c) => ({
-    symbol: c.symbol,
-    direction: c.direction,
-    returnPct: c.return_pct != null ? Number(c.return_pct) : null,
-    calledAt: c.called_at,
-  }));
+  const highlights: TrackRecordHighlight[] = await Promise.all(
+    withReturn.map(async (c) => {
+      const logoUrl = await resolveSymbolLogoUrl(c.symbol);
+      const logoDataUrl = logoUrl ? await fetchLogoAsDataUrl(logoUrl) : null;
+      return {
+        symbol: c.symbol,
+        direction: c.direction,
+        returnPct: c.return_pct != null ? Number(c.return_pct) : null,
+        calledAt: c.called_at,
+        logoDataUrl,
+      };
+    })
+  );
 
   const chronological = [...calls]
     .filter((c) => c.return_pct != null)
