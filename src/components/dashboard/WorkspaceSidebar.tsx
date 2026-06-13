@@ -44,6 +44,7 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
 export function WorkspaceSidebar({
   username,
   displayName,
+  avatarUrl,
   isAdmin,
   dmUnread = 0,
   notifUnread = 0,
@@ -51,6 +52,7 @@ export function WorkspaceSidebar({
 }: {
   username: string;
   displayName: string;
+  avatarUrl?: string | null;
   isAdmin?: boolean;
   dmUnread?: number;
   notifUnread?: number;
@@ -62,7 +64,7 @@ export function WorkspaceSidebar({
     <aside className="pf-workspace-sidebar flex h-full min-h-0 w-full flex-col">
       <div className="shrink-0 border-b border-[var(--pf-border)] px-4 py-4">
         <Link href={`/member/${username}`} className="flex items-center gap-3">
-          <MemberAvatar displayName={displayName} username={username} size="lg" />
+          <MemberAvatar displayName={displayName} username={username} avatarUrl={avatarUrl} size="lg" />
           <div className="min-w-0">
             <p className="truncate text-sm font-bold text-[var(--foreground)]">{displayName}</p>
             <p className="mt-0.5 truncate font-mono text-[11px] text-[var(--pf-gray-500)]">

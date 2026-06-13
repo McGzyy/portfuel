@@ -12,6 +12,7 @@ import { ProfileVouchersSection } from "@/components/profile/ProfileVouchersSect
 import { ProfileDiscordSection } from "@/components/profile/ProfileDiscordSection";
 import { SettingsAccountSummary } from "@/components/settings/SettingsAccountSummary";
 import { SettingsMembershipOverview } from "@/components/settings/SettingsMembershipOverview";
+import { SettingsProfileSection } from "@/components/settings/SettingsProfileSection";
 import { SettingsSecuritySection } from "@/components/settings/SettingsSecuritySection";
 import { SettingsDangerZone } from "@/components/settings/SettingsDangerZone";
 import { SettingsAppearanceSection } from "@/components/settings/SettingsAppearanceSection";
@@ -76,7 +77,7 @@ export default async function DashboardSettingsPage({
             Settings
           </h1>
           <p className="mt-1 hidden text-sm text-[var(--pf-gray-500)] sm:block">
-            Membership, notifications, referrals, and integrations.
+            Profile, membership, notifications, referrals, and integrations.
           </p>
         </header>
 
@@ -91,6 +92,7 @@ export default async function DashboardSettingsPage({
         <SettingsAccountSummary
           username={profile.member.username}
           displayName={profile.member.display_name}
+          avatarUrl={profile.member.avatar_url}
           subscriptionStatus={profile.subscriptionStatus}
           membershipTier={profile.membershipTier}
           billingInterval={profile.billingInterval}
@@ -109,6 +111,17 @@ export default async function DashboardSettingsPage({
           <div className="min-w-0 space-y-4 sm:space-y-6">
             {proLocked && section === "billing" ? (
               <ProMembershipStrip locked watchlistSymbols={watchlistSymbols} />
+            ) : null}
+
+            {section === "profile" ? (
+              <section aria-label="Profile">
+                <SettingsProfileSection
+                  initialUsername={profile.member.username}
+                  initialDisplayName={profile.member.display_name}
+                  initialBio={profile.member.bio}
+                  initialAvatarUrl={profile.member.avatar_url}
+                />
+              </section>
             ) : null}
 
             {section === "billing" ? (

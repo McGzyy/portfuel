@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Loader2, MonitorSmartphone, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AuthSessionListItem } from "@/lib/auth/auth-sessions";
+import { SettingsChangePasswordForm } from "@/components/settings/SettingsChangePasswordForm";
 import { cn } from "@/lib/utils";
 
 type SessionsResponse = {
@@ -93,6 +94,7 @@ export function SettingsSecuritySection() {
 
   return (
     <section aria-label="Security" className="space-y-4">
+      <SettingsChangePasswordForm />
       <div className="pf-workspace-panel p-5 sm:p-6">
         <div className="flex items-start gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--pf-gray-100)] text-[var(--pf-gray-700)]">

@@ -183,7 +183,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         title: "Public profile",
         body: [
-          "Your profile URL is portfuel.pro/member/{username}. Display name and avatar appear on calls and rankings.",
+          "Your profile URL is portfuel.pro/member/{username}. Update your photo, display name, and bio under Settings → Profile.",
           "Social highlight (X/Twitter) can be configured in Settings → Sharing.",
         ],
       },

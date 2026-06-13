@@ -7,6 +7,8 @@ export type PublicMemberProfile = {
   id: string;
   username: string;
   display_name: string | null;
+  bio: string | null;
+  avatar_url: string | null;
   trusted: boolean;
   founding: boolean;
   calls_count: number;
@@ -28,6 +30,8 @@ export async function fetchMemberByUsername(
     if (!demo) return null;
     return {
       ...demo,
+      bio: null,
+      avatar_url: null,
       founding: false,
       last_active_at: new Date().toISOString(),
     };
@@ -37,7 +41,7 @@ export async function fetchMemberByUsername(
   const { data, error } = await db
     .from("users")
     .select(
-      "id, username, display_name, trusted_at, calls_count, win_rate, avg_return_pct, rank_score, created_at, last_active_at, subscription_status, role"
+      "id, username, display_name, bio, avatar_url, trusted_at, calls_count, win_rate, avg_return_pct, rank_score, created_at, last_active_at, subscription_status, role"
     )
     .ilike("username", handle)
     .maybeSingle();
@@ -51,6 +55,8 @@ export async function fetchMemberByUsername(
     id: data.id,
     username: data.username,
     display_name: data.display_name,
+    bio: (data as { bio?: string | null }).bio ?? null,
+    avatar_url: (data as { avatar_url?: string | null }).avatar_url ?? null,
     trusted: Boolean(data.trusted_at),
     founding: foundingIds.has(data.id),
     calls_count: data.calls_count ?? 0,

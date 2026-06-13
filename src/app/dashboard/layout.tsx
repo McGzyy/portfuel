@@ -16,6 +16,7 @@ import { shouldAutoShowWorkspaceGuide } from "@/lib/onboarding/workspace-guide";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import { countUnreadDmThreads } from "@/lib/messages/service";
 import { fetchUnreadCount } from "@/lib/notifications/service";
+import { fetchUserAvatarUrl } from "@/lib/users/member-avatar";
 import { workspaceMetadata } from "@/lib/seo/site";
 
 export const metadata = workspaceMetadata;
@@ -27,7 +28,7 @@ export default async function DashboardLayout({
 }) {
   const session = await requireDashboardSession();
 
-  const [unreadPair, announcements, changelog, showWorkspaceGuide] = await Promise.all([
+  const [unreadPair, announcements, changelog, showWorkspaceGuide, avatarUrl] = await Promise.all([
     Promise.all([
       countUnreadDmThreads(session.userId),
       fetchUnreadCount(session.userId),
@@ -35,6 +36,7 @@ export default async function DashboardLayout({
     fetchActiveAnnouncementsForUser(session.userId, session).catch(() => []),
     fetchChangelogForUser(session.userId, session).catch(() => []),
     shouldAutoShowWorkspaceGuide(session.userId, session.role).catch(() => false),
+    fetchUserAvatarUrl(session.userId).catch(() => null),
   ]);
   const [dmUnread, notifUnread] = unreadPair;
   const whatsNewUnread = countUnreadWhatsNew(changelog);
@@ -52,6 +54,7 @@ export default async function DashboardLayout({
             <WorkspaceSidebar
               username={session.username}
               displayName={session.displayName ?? session.username}
+              avatarUrl={avatarUrl}
               isAdmin={session.role === "admin"}
               dmUnread={dmUnread}
               notifUnread={notifUnread}
@@ -65,6 +68,7 @@ export default async function DashboardLayout({
               whatsNewUnread={whatsNewUnread}
               username={session.username}
               displayName={session.displayName ?? session.username}
+              avatarUrl={avatarUrl}
               isAdmin={session.role === "admin"}
             />
             <ModerationBanner

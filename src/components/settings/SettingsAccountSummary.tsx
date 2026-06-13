@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { formatTierPriceLong } from "@/lib/marketing/plans";
 import type { BillingInterval } from "@/lib/stripe/config";
+import { MemberAvatar } from "@/components/member/MemberAvatar";
 import { cn } from "@/lib/utils";
 
 export function SettingsAccountSummary({
   username,
   displayName,
+  avatarUrl,
   subscriptionStatus,
   membershipTier,
   billingInterval,
@@ -15,6 +17,7 @@ export function SettingsAccountSummary({
 }: {
   username: string;
   displayName: string | null;
+  avatarUrl?: string | null;
   subscriptionStatus: "pending" | "active" | "cancelled";
   membershipTier: "member" | "pro" | null;
   billingInterval: BillingInterval | null;
@@ -45,8 +48,15 @@ export function SettingsAccountSummary({
 
   return (
     <section className="pf-workspace-panel p-4 sm:p-6">
-      <div className="flex flex-col gap-4">
-        <div className="min-w-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+        <MemberAvatar
+          displayName={displayName}
+          username={username}
+          avatarUrl={avatarUrl}
+          size="lg"
+          className="!h-14 !w-14 !text-sm"
+        />
+        <div className="min-w-0 flex-1">
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
             Signed in as
           </p>
@@ -62,7 +72,9 @@ export function SettingsAccountSummary({
             })}
           </p>
         </div>
+      </div>
 
+      <div className="mt-4">
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
           <span className={cn("rounded-full px-2.5 py-1 text-center text-xs font-bold sm:text-left", statusTone)}>
             {isStaffAdmin && subscriptionStatus === "pending"

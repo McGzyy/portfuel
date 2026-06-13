@@ -13,10 +13,13 @@ import { fetchUserProfile, fetchUserRecentCalls } from "@/lib/users/profile";
 import type { PublicMemberProfile } from "@/lib/users/public-profile";
 
 function userRowToPublicMember(row: UserRow): PublicMemberProfile {
+  const extended = row as UserRow & { bio?: string | null; avatar_url?: string | null };
   return {
     id: row.id,
     username: row.username,
     display_name: row.display_name,
+    bio: extended.bio ?? null,
+    avatar_url: extended.avatar_url ?? null,
     trusted: Boolean(row.trusted_at),
     founding: false,
     calls_count: row.calls_count ?? 0,
@@ -86,6 +89,8 @@ export async function fetchOwnProfile(
         id: session.userId,
         username: session.username,
         display_name: session.displayName,
+        bio: null,
+        avatar_url: null,
         trusted: false,
         founding: false,
         calls_count: calls.length,

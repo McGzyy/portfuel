@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { FollowMemberButton } from "@/components/member/FollowMemberButton";
 import { MessageMemberButton } from "@/components/member/MessageMemberButton";
+import { MemberAvatar } from "@/components/member/MemberAvatar";
 import { formatPct, timeAgo } from "@/lib/utils";
 import type { PublicMemberProfile } from "@/lib/users/public-profile";
 
@@ -23,15 +24,28 @@ export function MemberProfileHero({
   return (
     <header className="pf-workspace-panel overflow-hidden p-6 sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--pf-gray-500)]">
-            {isSelf ? "Your public profile" : "Member profile"}
-          </p>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-3xl">
-            {member.display_name ?? member.username}
-          </h1>
-          <p className="mt-1 font-mono text-sm text-[var(--pf-gray-500)]">@{member.username}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+        <div className="flex min-w-0 items-start gap-4">
+          <MemberAvatar
+            displayName={member.display_name}
+            username={member.username}
+            avatarUrl={member.avatar_url}
+            size="lg"
+            className="!h-16 !w-16 !text-sm"
+          />
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--pf-gray-500)]">
+              {isSelf ? "Your public profile" : "Member profile"}
+            </p>
+            <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-3xl">
+              {member.display_name ?? member.username}
+            </h1>
+            <p className="mt-1 font-mono text-sm text-[var(--pf-gray-500)]">@{member.username}</p>
+            {member.bio ? (
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
+                {member.bio}
+              </p>
+            ) : null}
+            <div className="mt-3 flex flex-wrap gap-2">
             {member.trusted ? <Badge variant="trusted">Trusted</Badge> : null}
             {member.founding ? (
               <Badge className="border border-amber-200 bg-amber-50 text-amber-800">
@@ -39,6 +53,15 @@ export function MemberProfileHero({
               </Badge>
             ) : null}
             {isSelf ? <Badge variant="default">You</Badge> : null}
+            </div>
+            {isSelf ? (
+              <Link
+                href="/dashboard/settings?section=profile"
+                className="mt-3 inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
+              >
+                Edit profile →
+              </Link>
+            ) : null}
           </div>
         </div>
         <div className="flex flex-col items-end gap-3 text-right">

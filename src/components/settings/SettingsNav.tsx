@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export type SettingsSection =
+  | "profile"
   | "billing"
   | "security"
   | "notifications"
@@ -15,6 +16,12 @@ export const SETTINGS_SECTIONS: {
   mobileLabel: string;
   description: string;
 }[] = [
+  {
+    id: "profile",
+    label: "Profile",
+    mobileLabel: "Profile",
+    description: "Photo, name, bio",
+  },
   {
     id: "billing",
     label: "Plan & billing",
@@ -55,6 +62,7 @@ export const SETTINGS_SECTIONS: {
 
 export function parseSettingsSection(raw: string | undefined): SettingsSection {
   if (
+    raw === "profile" ||
     raw === "security" ||
     raw === "notifications" ||
     raw === "sharing" ||

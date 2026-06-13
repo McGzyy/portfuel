@@ -27,6 +27,7 @@ const SIZES = {
 export function MemberAvatar({
   displayName,
   username,
+  avatarUrl,
   size = "md",
   href,
   className,
@@ -34,6 +35,7 @@ export function MemberAvatar({
 }: {
   displayName?: string | null;
   username: string;
+  avatarUrl?: string | null;
   size?: keyof typeof SIZES;
   href?: string;
   className?: string;
@@ -43,7 +45,19 @@ export function MemberAvatar({
   const hue = avatarHue(username);
   const label = title ?? (displayName?.trim() || `@${username}`);
 
-  const avatar = (
+  const avatar = avatarUrl ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={avatarUrl}
+      alt=""
+      className={cn(
+        "pf-member-avatar inline-block shrink-0 rounded-full object-cover ring-2 ring-[var(--pf-surface)]",
+        SIZES[size],
+        className
+      )}
+      title={label}
+    />
+  ) : (
     <span
       className={cn(
         "pf-member-avatar inline-flex shrink-0 items-center justify-center rounded-full font-bold tracking-tight text-white ring-2 ring-[var(--pf-surface)]",
@@ -62,7 +76,11 @@ export function MemberAvatar({
 
   if (href) {
     return (
-      <Link href={href} className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-red)]" aria-label={label}>
+      <Link
+        href={href}
+        className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-red)]"
+        aria-label={label}
+      >
         {avatar}
       </Link>
     );

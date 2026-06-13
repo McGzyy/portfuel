@@ -10,6 +10,8 @@ export type Database = {
           username: string;
           password_hash: string | null;
           display_name: string | null;
+          bio: string | null;
+          avatar_url: string | null;
           email: string | null;
           totp_secret_enc: string | null;
           totp_verified: boolean;
