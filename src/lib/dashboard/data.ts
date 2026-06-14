@@ -20,6 +20,7 @@ export function mapCallForCard(
     peak_return_pct?: number | null;
     call_state?: string | null;
     trigger_entry_price?: number | null;
+    expires_at?: string | null;
     price_at_call?: number | null;
   };
 
@@ -46,6 +47,7 @@ export function mapCallForCard(
     peak_return_pct: row.peak_return_pct ?? null,
     call_state: row.call_state ?? null,
     trigger_entry_price: row.trigger_entry_price ?? null,
+    expires_at: row.expires_at ?? null,
   };
 }
 

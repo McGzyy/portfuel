@@ -27,6 +27,7 @@ import {
 } from "@/lib/dashboard/quick-actions";
 import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
 import { WorkspaceSidebarFooter } from "@/components/dashboard/WorkspaceSidebarFooter";
+import { PublishIdentitySwitcher } from "@/components/calls/PublishIdentitySwitcher";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
 import { MemberAvatar } from "@/components/member/MemberAvatar";
@@ -195,6 +196,12 @@ export function MemberNav({
             </div>
           ))}
         </nav>
+
+        {isAdmin ? (
+          <div className="border-t border-[var(--pf-border)] px-3 py-3">
+            <PublishIdentitySwitcher />
+          </div>
+        ) : null}
 
         <WorkspaceSidebarFooter
           username={username}

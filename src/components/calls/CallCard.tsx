@@ -18,6 +18,7 @@ import { CALL_CARD_INTERACTIVE } from "@/components/calls/call-card-link";
 import { isCallStopHit } from "@/lib/calls/stop-cross";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
 import { formatPublishedAt } from "@/lib/time/timestamp";
+import { pendingEntryExpiryLabel, isPendingEntryExpiringSoon } from "@/lib/calls/pending-entry-display";
 import { cn, timeAgo } from "@/lib/utils";
 import type { TeaserCallRow } from "@/lib/db/supabase";
 
@@ -34,6 +35,7 @@ type CallCardExtras = {
   closed_at?: string | null;
   call_state?: string | null;
   trigger_entry_price?: number | null;
+  expires_at?: string | null;
 };
 
 export type CallCardData = (TeaserCallRow | {
@@ -100,6 +102,8 @@ export function CallCard({
   const handle = /^\d{5}$/.test(call.pin) ? call.pin : `@${call.pin}`;
   const name = call.display_name ?? `Trader ${handle}`;
   const isPending = call.call_state === "pending_entry";
+  const expiryLabel = isPending ? pendingEntryExpiryLabel(call.expires_at) : null;
+  const expirySoon = isPending && isPendingEntryExpiringSoon(call.expires_at);
   const canClose =
     (isAdmin || isOwnCall) &&
     !call.is_fueled &&
@@ -180,6 +184,18 @@ export function CallCard({
                   className="border-amber-200 bg-amber-50 text-amber-800"
                 >
                   Pending entry
+                </Badge>
+              ) : null}
+              {expiryLabel ? (
+                <Badge
+                  variant="default"
+                  className={cn(
+                    expirySoon
+                      ? "border-orange-200 bg-orange-50 text-orange-800"
+                      : "border-slate-200 bg-slate-50 text-slate-600"
+                  )}
+                >
+                  {expiryLabel}
                 </Badge>
               ) : null}
               {call.closed_at && call.call_state !== "pending_entry" ? (

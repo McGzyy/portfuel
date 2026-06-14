@@ -1,11 +1,11 @@
 import { createServiceClient } from "@/lib/db/supabase";
+import { buildLiveCallMetricsUpdate } from "@/lib/calls/call-metrics";
+import { PENDING_ENTRY_EXPIRE_DAYS, PENDING_ENTRY_EXPIRE_WARN_DAYS } from "@/lib/calls/entry-config";
 import {
-  computeReturnPct,
-  computeScorePoints,
-  computeTargetProgress,
-} from "@/lib/scoring/returns";
-import { buildLiveCallMetricsUpdate, persistCallMetricsUpdate } from "@/lib/calls/call-metrics";
-import { PENDING_ENTRY_EXPIRE_DAYS } from "@/lib/calls/entry-config";
+  notifyPendingEntryActivated,
+  notifyPendingEntryExpired,
+  notifyPendingEntryExpiring,
+} from "@/lib/notifications/pending-entry";
 
 type PendingCallRow = {
   id: string;
@@ -186,8 +186,20 @@ export async function processPendingEntryCalls(
   for (const raw of data ?? []) {
     const call = raw as PendingCallRow;
     if (call.expires_at && new Date(call.expires_at).getTime() <= now) {
-      if (await expirePendingCall(call.id)) expired++;
+      if (await expirePendingCall(call.id)) {
+        expired++;
+        void notifyPendingEntryExpired(call);
+      }
       continue;
+    }
+
+    if (call.expires_at) {
+      const daysLeft = Math.ceil(
+        (new Date(call.expires_at).getTime() - now) / (1000 * 60 * 60 * 24)
+      );
+      if (daysLeft > 0 && daysLeft <= PENDING_ENTRY_EXPIRE_WARN_DAYS) {
+        void notifyPendingEntryExpiring(call, daysLeft);
+      }
     }
 
     const last = priceBySymbol.get(call.symbol.toUpperCase());
@@ -203,7 +215,10 @@ export async function processPendingEntryCalls(
       continue;
     }
 
-    if (await activatePendingCall(call, last)) activated++;
+    if (await activatePendingCall(call, last)) {
+      activated++;
+      void notifyPendingEntryActivated(call, last);
+    }
   }
 
   return { activated, expired };

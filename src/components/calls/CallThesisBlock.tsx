@@ -15,6 +15,7 @@ import { normalizeCallCardPrices } from "@/lib/calls/card-display";
 import { isCallStopHit } from "@/lib/calls/stop-cross";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
 import { formatPublishedAt } from "@/lib/time/timestamp";
+import { pendingEntryExpiryLabel, isPendingEntryExpiringSoon } from "@/lib/calls/pending-entry-display";
 import { cn, timeAgo } from "@/lib/utils";
 
 type ThesisCall = {
@@ -30,6 +31,7 @@ type ThesisCall = {
   closed_at?: string | null;
   call_state?: string | null;
   trigger_entry_price?: number | null;
+  expires_at?: string | null;
   entry_price: number | null;
   price_at_call?: number | null;
   target_price: number | null;
@@ -71,6 +73,8 @@ export function CallThesisBlock({
 }) {
   const isOwnCall = Boolean(viewerUserId && call.user_id && viewerUserId === call.user_id);
   const isPending = call.call_state === "pending_entry";
+  const expiryLabel = isPending ? pendingEntryExpiryLabel(call.expires_at) : null;
+  const expirySoon = isPending && isPendingEntryExpiringSoon(call.expires_at);
   const canDelete = isAdmin;
   const canClose =
     (isAdmin || isOwnCall) &&
@@ -153,6 +157,18 @@ export function CallThesisBlock({
                 className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
               >
                 Pending entry
+              </Badge>
+            ) : null}
+            {expiryLabel ? (
+              <Badge
+                variant="default"
+                className={cn(
+                  expirySoon
+                    ? "border-orange-200 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-100"
+                    : "border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                )}
+              >
+                {expiryLabel}
               </Badge>
             ) : null}
             {call.closed_at && !isPending ? (
