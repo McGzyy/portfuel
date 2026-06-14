@@ -6,7 +6,7 @@ import type { EarningsBattleboardSummary } from "@/lib/earnings/battleboard";
 import { buildResearchHubHref } from "@/lib/dashboard/research-hub";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import type { CommunityScreenerData } from "@/lib/screener/community";
-import { formatPct } from "@/lib/utils";
+import { formatPct, cn } from "@/lib/utils";
 import {
   buildProOverviewGateDescription,
   formatSymbolSample,
@@ -126,14 +126,17 @@ function ResearchPulseTeaser({
   );
 }
 
-function ResearchPulseCards({
+export function ResearchPulseCards({
   battleboard,
   screener,
   interactive,
+  embedded = false,
 }: {
   battleboard: EarningsBattleboardSummary;
   screener: CommunityScreenerData;
   interactive: boolean;
+  /** Omit outer panel chrome when nested in ProCommandCenter. */
+  embedded?: boolean;
 }) {
   const topCalled = screener.mostCalled[0];
   const topProgress = screener.targetProgress[0];
@@ -157,24 +160,21 @@ function ResearchPulseCards({
     ? `${topCrypto.symbol} ${formatPct(topCrypto.return_pct)} · @${topCrypto.username}`
     : "No crypto movers in the top 30d window";
 
-  return (
-    <section className="pf-workspace-panel px-4 py-3 sm:px-5">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-        Pro Intelligence · Research pulse
-      </p>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  const grid = (
+    <div className={embedded ? "grid gap-3 sm:grid-cols-2 xl:grid-cols-4" : "mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"}>
         <PulseLink
           href={buildResearchHubHref("earnings")}
           icon={Calendar}
-          iconClass="text-[var(--pf-red)]"
+          iconClass={embedded ? "text-sky-300" : "text-[var(--pf-red)]"}
           title="Earnings"
           detail={earningsLine}
           interactive={interactive}
+          embedded={embedded}
         />
         <PulseLink
           href={buildResearchHubHref("screener")}
           icon={ScanSearch}
-          iconClass="text-[var(--pf-red)]"
+          iconClass={embedded ? "text-sky-300" : "text-[var(--pf-red)]"}
           title="Screener"
           detail={
             <>
@@ -187,6 +187,7 @@ function ResearchPulseCards({
             </>
           }
           interactive={interactive}
+          embedded={embedded}
         />
         {topReturn ? (
           <PulseLink
@@ -196,26 +197,39 @@ function ResearchPulseCards({
             title="Best 30d return"
             detail={`${topReturn.symbol} ${formatPct(topReturn.return_pct)} · @${topReturn.username}`}
             interactive={interactive}
+            embedded={embedded}
           />
         ) : (
           <PulseLink
             href={buildResearchHubHref("screener")}
             icon={TrendingUp}
-            iconClass="text-[var(--pf-gray-400)]"
+            iconClass={embedded ? "text-slate-400" : "text-[var(--pf-gray-400)]"}
             title="Best 30d return"
             detail="No ranked returns yet this month"
             interactive={interactive}
+            embedded={embedded}
           />
         )}
         <PulseLink
           href={topCrypto ? `/ticker/${topCrypto.symbol}` : buildResearchHubHref("screener")}
           icon={Coins}
-          iconClass="text-indigo-600"
+          iconClass={embedded ? "text-indigo-300" : "text-indigo-600"}
           title="Crypto movers"
           detail={cryptoLine}
           interactive={interactive}
+          embedded={embedded}
         />
       </div>
+  );
+
+  if (embedded) return grid;
+
+  return (
+    <section className="pf-workspace-panel px-4 py-3 sm:px-5">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
+        Pro Intelligence · Research pulse
+      </p>
+      {grid}
     </section>
   );
 }
@@ -227,6 +241,7 @@ function PulseLink({
   title,
   detail,
   interactive = true,
+  embedded = false,
 }: {
   href: string;
   icon: typeof Calendar;
@@ -234,15 +249,31 @@ function PulseLink({
   title: string;
   detail: ReactNode;
   interactive?: boolean;
+  embedded?: boolean;
 }) {
-  const className = "pf-pulse-card";
+  const className = cn(
+    "pf-pulse-card",
+    embedded && "border-white/10 bg-white/5 hover:bg-white/10"
+  );
 
   const inner = (
     <>
       <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${iconClass}`} strokeWidth={2.25} />
       <span className="min-w-0">
-        <span className="block text-sm font-bold text-[var(--pf-black)]">{title}</span>
-        <span className="mt-0.5 block text-xs leading-relaxed text-[var(--pf-gray-600)]">
+        <span
+          className={cn(
+            "block text-sm font-bold",
+            embedded ? "text-white" : "text-[var(--pf-black)]"
+          )}
+        >
+          {title}
+        </span>
+        <span
+          className={cn(
+            "mt-0.5 block text-xs leading-relaxed",
+            embedded ? "text-slate-300" : "text-[var(--pf-gray-600)]"
+          )}
+        >
           {detail}
         </span>
       </span>

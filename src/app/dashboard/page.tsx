@@ -37,7 +37,6 @@ import { mapUserCallRowToCard } from "@/lib/calls/map-user-call-card";
 import { buildFeedHref } from "@/lib/dashboard/nav";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import {
-  getProGateCta,
   isProIntelligenceLocked,
   sessionToProContext,
 } from "@/lib/features/pro-intelligence";
@@ -55,8 +54,7 @@ import { JournalReadyToPublishBanner } from "@/components/journal/JournalReadyTo
 import { JournalContinueCard } from "@/components/journal/JournalContinueCard";
 import { BookPostureStrip } from "@/components/watchlist/BookPostureStrip";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
-import { ProTodayBrief } from "@/components/pro/ProTodayBrief";
-import { ProOverviewIntelStrip } from "@/components/pro/ProOverviewIntelStrip";
+import { ProCommandCenter } from "@/components/pro/ProCommandCenter";
 import { fetchCommunityScreener } from "@/lib/screener/community";
 import type { CommunityScreenerData } from "@/lib/screener/community";
 import {
@@ -323,18 +321,11 @@ export default async function DashboardOverviewPage({
 
       {watchlistCount > 0 ? <BookPostureStrip items={watchlistItems} /> : null}
 
-      {isPro && proTodayBrief ? (
-        <ProTodayBrief brief={proTodayBrief} locked={false} proGateCta={proGateCta} />
-      ) : null}
-
-      {isPro && proOverviewIntel ? (
-        <ProOverviewIntelStrip
+      {isPro && proTodayBrief && proOverviewIntel ? (
+        <ProCommandCenter
+          brief={proTodayBrief}
           battleboard={proOverviewIntel.battleboard}
           screener={proOverviewIntel.screener}
-          locked={false}
-          proGateCta={proGateCta}
-          watchlistSymbols={watchlistItems.map((w) => w.symbol)}
-          reportingSymbols={proOverviewIntel.reportingSymbols}
         />
       ) : null}
 

@@ -37,7 +37,16 @@ function rowIcon(accent: ProTodayBriefRow["accent"]) {
   }
 }
 
-function ProTodayBriefCard({ brief, interactive = true }: { brief: ProTodayBrief; interactive?: boolean }) {
+export function ProTodayBriefCard({
+  brief,
+  interactive = true,
+  showHeader = true,
+}: {
+  brief: ProTodayBrief;
+  interactive?: boolean;
+  /** When false, omit the card header (used inside ProCommandCenter). */
+  showHeader?: boolean;
+}) {
   const [briefTitle, setBriefTitle] = useState("Your daily brief");
   const [today, setToday] = useState("");
 
@@ -55,34 +64,39 @@ function ProTodayBriefCard({ brief, interactive = true }: { brief: ProTodayBrief
 
   return (
     <section
-      className="pf-pro-brief pf-keep-blue overflow-hidden rounded-[var(--pf-radius-lg)] border border-sky-500/30 bg-gradient-to-br from-sky-950 via-[#0a0a0a] to-slate-950 shadow-[var(--pf-shadow-lg)]"
-      aria-label="Pro Today brief"
+      className={cn(
+        showHeader &&
+          "pf-pro-brief pf-keep-blue overflow-hidden rounded-[var(--pf-radius-lg)] border border-sky-500/30 bg-gradient-to-br from-sky-950 via-[#0a0a0a] to-slate-950 shadow-[var(--pf-shadow-lg)]"
+      )}
+      aria-label={showHeader ? "Pro Today brief" : undefined}
     >
-      <div className="border-b border-white/10 px-5 py-4 sm:px-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">
-              Pro Today
-            </p>
-            <h2 className="mt-1 text-lg font-bold tracking-tight text-white sm:text-xl">
-              {briefTitle}
-            </h2>
-            <p className="mt-1 text-sm pf-pro-brief-meta">{today}</p>
+      {showHeader ? (
+        <div className="border-b border-white/10 px-5 py-4 sm:px-6">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">
+                Pro Today
+              </p>
+              <h2 className="mt-1 text-lg font-bold tracking-tight text-white sm:text-xl">
+                {briefTitle}
+              </h2>
+              <p className="mt-1 text-sm pf-pro-brief-meta">{today}</p>
+            </div>
+            {interactive ? (
+              <Link
+                href={buildResearchHubHref("screener")}
+                className="text-xs font-semibold text-sky-300 hover:text-sky-200 hover:underline"
+              >
+                Research tools →
+              </Link>
+            ) : (
+              <span className="text-xs font-semibold text-sky-300/60">Research tools</span>
+            )}
           </div>
-          {interactive ? (
-            <Link
-              href={buildResearchHubHref("screener")}
-              className="text-xs font-semibold text-sky-300 hover:text-sky-200 hover:underline"
-            >
-              Research tools →
-            </Link>
-          ) : (
-            <span className="text-xs font-semibold text-sky-300/60">Research tools</span>
-          )}
         </div>
-      </div>
+      ) : null}
 
-      <ul className="divide-y divide-white/10">
+      <ul className={cn("divide-y divide-white/10", !showHeader && "border-t border-white/10")}>
         {brief.rows.map((row) => {
           const Icon = rowIcon(row.accent);
           const inner = (
