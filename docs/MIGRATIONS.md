@@ -74,8 +74,28 @@ After applying migrations:
 | 49 | `20260616100000_membership_tenure.sql` | Subscription / tier start timestamps for billing overview |
 | 50 | `20260617100000_workspace_guide_seen.sql` | Persist workspace map dismissal per user |
 | 51 | `20260618100000_journal_plan_revisions.sql` | Field-level audit log for journal plan edits |
+| 52 | `20260619100000_watchlist_journal_archives.sql` | Journal archive snapshots |
+| 53 | `20260620100000_comp_access_until.sql` | Comp / trial access expiry on users |
+| 54 | `20260621100000_user_appearance.sql` | User appearance preferences |
+| 55 | `20260622100000_watchlist_position_intent.sql` | Watchlist trade posture (`position_intent`) |
+| 56 | `20260622110000_journal_entry_trade_actions.sql` | Journal entry trade action types |
+| 57 | `20260623100000_journal_research_followups.sql` | Journal research follow-up prompts |
+| 58 | `20260623110000_call_peak_and_close.sql` | Peak return + manual close columns on calls |
+| 59 | `20260624100000_support_tickets.sql` | In-app support tickets |
+| 60 | `20260625100000_help_assistant_usage.sql` | Help assistant usage tracking |
+| 61 | `20260626100000_user_auth_sessions.sql` | Auth session revocation list |
+| 62 | `20260627100000_support_ticket_attachments.sql` | Support ticket file attachments |
+| 63 | `20260628100000_user_feed_saved_views.sql` | Saved feed filter views |
+| 64 | `20260629100000_user_profile_fields.sql` | Profile bio + avatar fields |
+| 65 | `20260702100000_call_entry_modes.sql` | Conditional entry modes + pending call state |
 
 > **Note:** `20260607095000_referral_program.sql` was renamed from a duplicate `20260607100000` timestamp so journal migrations apply in a deterministic order on fresh databases.
+
+## Entry modes (required for conditional / pending calls)
+
+If publish fails on `call_state` or conditional entry inserts fail in production, apply:
+
+- `20260702100000_call_entry_modes.sql`
 
 ## Journal-specific (required for research notebook)
 

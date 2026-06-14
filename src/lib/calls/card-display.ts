@@ -56,6 +56,9 @@ export function mapCallRowToCardData(
     return_pct: number | null;
     peak_return_pct?: number | null;
     closed_at?: string | null;
+    call_state?: string | null;
+    trigger_entry_price?: number | null;
+    expires_at?: string | null;
     timeframe_tag: string | null;
     is_fueled: boolean;
     vote_score?: number;
@@ -80,6 +83,9 @@ export function mapCallRowToCardData(
     return_pct: c.return_pct,
     peak_return_pct: c.peak_return_pct ?? null,
     closed_at: c.closed_at ?? null,
+    call_state: c.call_state ?? null,
+    trigger_entry_price: c.trigger_entry_price ?? null,
+    expires_at: c.expires_at ?? null,
     ...prices,
     timeframe_tag: c.timeframe_tag,
     is_fueled: c.is_fueled,

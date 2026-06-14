@@ -12,7 +12,7 @@ import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
 import { MemberCallsSectionHeader } from "@/components/member/MemberCallsSectionHeader";
 import { MemberProfileNav } from "@/components/member/MemberProfileNav";
 import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
-import { mapCallRowToCardData } from "@/lib/calls/card-display";
+import { mapUserCallRowToCard } from "@/lib/calls/map-user-call-card";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import { isFollowing } from "@/lib/follows/service";
@@ -157,15 +157,14 @@ export default async function MemberProfilePage({
               {calls.map((c) => (
                 <li key={c.id}>
                   <CallCard
-                    call={mapCallRowToCardData(
-                      c,
-                      {
-                        display_name: member.display_name,
+                    call={{
+                      ...mapUserCallRowToCard(c, {
+                        userId: member.id,
                         username: member.username,
-                        trusted: member.trusted,
-                      },
-                      isSelf ? { user_id: session.userId } : undefined
-                    )}
+                        displayName: member.display_name,
+                      }),
+                      is_trusted: member.trusted,
+                    }}
                     interactive
                     showThesisCoach={isSelf}
                     canGenerateSummary={!proLocked}

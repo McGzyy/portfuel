@@ -2,6 +2,7 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { getDemoMemberByUsername, getDemoMemberCalls } from "@/lib/demo/fixtures";
 import { fetchFoundingMemberIds } from "@/lib/users/founding";
+import { fetchUserRecentCalls } from "@/lib/users/profile";
 
 export type PublicMemberProfile = {
   id: string;
@@ -76,19 +77,6 @@ export async function fetchMemberPublicCalls(username: string, limit = 20) {
     return { member, calls: getDemoMemberCalls(member.id, limit) };
   }
 
-  const db = createServiceClient();
-  const { data, error } = await db
-    .from("calls")
-    .select(
-      "id, symbol, asset_class, direction, thesis, called_at, return_pct, target_progress, entry_price, price_at_call, target_price, stop_price, last_price, timeframe_tag, vote_score, comment_count, is_fueled"
-    )
-    .eq("user_id", member.id)
-    .order("called_at", { ascending: false })
-    .limit(limit);
-
-  if (error) {
-    console.error("[public-profile/calls]", error);
-    return { member, calls: [] };
-  }
-  return { member, calls: data ?? [] };
+  const calls = await fetchUserRecentCalls(member.id, limit);
+  return { member, calls };
 }
