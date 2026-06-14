@@ -31,7 +31,7 @@ export type TickerIntel = {
   assetClass: AssetClass;
   companyName: string;
   finnhubSymbol?: string;
-  quote: { price: number; changePct: number } | null;
+  quote: { price: number; changePct: number; updatedAt?: string | null } | null;
   hypeScore: number;
   candles: { time: number; open: number; high: number; low: number; close: number }[];
   markers: {
@@ -124,7 +124,7 @@ export async function loadTickerIntel(
     assetClass = calls[0].asset_class as AssetClass;
   }
 
-  let quote: { price: number; changePct: number } | null = null;
+  let quote: { price: number; changePct: number; updatedAt?: string | null } | null = null;
   let candlesRaw = null;
   let profile = null;
   let news: CompanyNewsItem[] = [];
@@ -234,6 +234,16 @@ export async function loadTickerIntel(
     profile?.name ??
     (await detectAssetClass(sym)).name ??
     sym;
+
+  const { data: snapFresh } = await db
+    .from("ticker_snapshots")
+    .select("updated_at")
+    .eq("symbol", sym)
+    .maybeSingle();
+  const quoteUpdatedAt = (snapFresh as { updated_at?: string } | null)?.updated_at ?? null;
+  if (quote && quoteUpdatedAt) {
+    quote = { ...quote, updatedAt: quoteUpdatedAt };
+  }
 
   return {
     symbol: sym,

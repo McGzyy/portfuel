@@ -174,7 +174,6 @@ export default async function DashboardOverviewPage({
   const featuredDesk = fueledPreviews[0] ?? null;
 
   const isPro = !proLocked;
-  const proGateCta = getProGateCta(proContext);
 
   const [
     watchlistItems,

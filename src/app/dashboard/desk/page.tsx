@@ -16,6 +16,7 @@ import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
 import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
 import { fetchFueledTrackRecord } from "@/lib/fueled/track-record";
 import { FueledTrackRecordPanel } from "@/components/dashboard/FueledTrackRecordPanel";
+import { fetchLatestSnapshotUpdatedAt } from "@/lib/market/quote-freshness";
 import {
   isProIntelligenceLocked,
   sessionToProContext,
@@ -47,6 +48,11 @@ export default async function DashboardDeskPage() {
     .map((c) => mapCallForCard(c, hypeScores));
 
   const openPositions = portfolio.filter((e) => e.status === "open").length;
+  const quoteSymbols = [
+    ...portfolio.filter((e) => e.status === "open").map((e) => e.symbol),
+    ...fueledLatest.map((c) => c.symbol ?? "").filter(Boolean),
+  ];
+  const quotesUpdatedAt = await fetchLatestSnapshotUpdatedAt(quoteSymbols);
 
   return (
     <div className="space-y-6">
@@ -56,6 +62,8 @@ export default async function DashboardDeskPage() {
         weeklyNote={deskBrief.weeklyNote}
         openPositions={openPositions}
         totalDeskCalls={fueledLatest.length + fueledPerforming.length}
+        quotesUpdatedAt={quotesUpdatedAt}
+        isPro={!proLocked}
       />
 
       <FueledDeskBrief brief={deskBrief} />

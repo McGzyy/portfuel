@@ -100,7 +100,7 @@ export function TickerPageHeader({
                   {formatPct(change)}
                 </span>
               ) : null}
-              <MarketDataNote className="mt-2 w-full" isPro={isPro} />
+              <MarketDataNote className="mt-2 w-full" isPro={isPro} updatedAt={intel.quote.updatedAt} />
             </div>
           ) : null}
         </div>

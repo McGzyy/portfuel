@@ -31,6 +31,9 @@ export const TIER_COMPARISON_ROWS: TierComparisonRow[] = [
   { feature: "AI journal context on watchlist alerts", member: "15/mo", pro: "75/mo" },
   { feature: "AI journal research assistant (thesis gaps & catalyst checks)", member: "12/mo", pro: "60/mo" },
   { feature: "AI Assist (generate a draft call from ticker + notes)", member: false, pro: "10/day + 3 Deepen+/day" },
+  { feature: "Watchlist AI digest (weekly synthesis)", member: false, pro: true },
+  { feature: "Journal markdown export", member: false, pro: true },
+  { feature: "AI help assistant (workspace docs)", member: false, pro: "40/mo" },
 ];
 
 export type PlanCardContent = {
@@ -80,6 +83,7 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
       "SMS text alerts for watchlist (when Twilio is configured)",
       "AI journal context on alerts: 75/mo",
       "AI journal research assistant: 60 reviews/mo",
+      "Watchlist AI digest · journal export · Help AI assistant",
     ],
   },
 };
@@ -212,6 +216,9 @@ export const PRO_VALUE_BULLETS = [
   "Earnings — reporting week with community positioning",
   "Ticker compare — 2–3 symbols on one normalized chart",
   "Return distribution on your profile track record",
+  "Watchlist AI digest — weekly synthesis of your symbols (8/mo)",
+  "Journal markdown export from any symbol hub",
+  "AI help assistant on Help & support (40/mo)",
 ] as const;
 
 export const HOW_IT_WORKS_STEPS = [

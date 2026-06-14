@@ -401,14 +401,19 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
 
   const { data: snaps } = await db
     .from("ticker_snapshots")
-    .select("symbol, last_price")
+    .select("symbol, last_price, updated_at")
     .in("symbol", symbols);
 
-  const priceMap = new Map((snaps ?? []).map((s) => [s.symbol, s.last_price]));
+  const snapMap = new Map(
+    (snaps ?? []).map((s) => [
+      s.symbol,
+      { last_price: s.last_price, updated_at: (s as { updated_at?: string }).updated_at ?? null },
+    ])
+  );
 
   await Promise.all(
     entries.map(async (entry) => {
-      const stored = priceMap.get(entry.symbol);
+      const stored = snapMap.get(entry.symbol)?.last_price;
       if (stored != null && stored > 0) return;
 
       const isCrypto = entry.asset_class === "crypto" || Boolean(getCoreCryptoAsset(entry.symbol));
@@ -418,7 +423,10 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
       if (!core) return;
 
       const live = await getCryptoLastPriceForSymbol(entry.symbol);
-      if (live != null && live > 0) priceMap.set(entry.symbol, live);
+      if (live != null && live > 0) {
+        const row = snapMap.get(entry.symbol) ?? { last_price: null, updated_at: null };
+        snapMap.set(entry.symbol, { ...row, last_price: live });
+      }
     })
   );
 
@@ -434,7 +442,8 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
   }
 
   return entries.map((e) => {
-    const last = priceMap.get(e.symbol) ?? null;
+    const snap = snapMap.get(e.symbol);
+    const last = snap?.last_price ?? null;
     const baseline = e.baseline_price != null ? Number(e.baseline_price) : null;
     let change_since_add_pct: number | null = null;
     if (baseline != null && baseline > 0 && last != null) {
@@ -468,6 +477,7 @@ async function enrichWatchlistQuotes(entries: WatchlistEntry[]): Promise<Watchli
       thesis: row.thesis ?? null,
       price_alert_pct:
         row.price_alert_pct != null ? Number(row.price_alert_pct) : null,
+      quote_updated_at: snap?.updated_at ?? null,
     };
   });
 }

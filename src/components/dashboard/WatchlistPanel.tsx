@@ -28,7 +28,8 @@ import { watchlistAddErrorMessage } from "@/lib/watchlist/add-errors";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { useWatchlistItemsOptional } from "@/components/dashboard/WatchlistItemsProvider";
 import { useProQuoteRefresh } from "@/hooks/useProQuoteRefresh";
-import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
+import { MarketDataNote } from "@/components/market/MarketDataNote";
+import { pickLatestTimestamp } from "@/lib/market/quote-freshness";
 import { getDemoWatchlistSeed } from "@/lib/watchlist/demo";
 
 const DEMO_STORAGE_KEY = "portfuel_demo_watchlist";
@@ -93,6 +94,10 @@ export function WatchlistPanel({
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(false);
   const globalPrefs = alertPrefs ?? DEFAULT_WATCHLIST_ALERT_PREFS;
+  const quotesUpdatedAt = useMemo(
+    () => pickLatestTimestamp(items.map((i) => i.quote_updated_at)),
+    [items]
+  );
   const initialKey = useMemo(
     () => (initialItems ?? []).map((i) => i.symbol).join(","),
     [initialItems]
@@ -264,12 +269,12 @@ export function WatchlistPanel({
       <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
         Step 1 — add tickers you want to research. We open your private journal so you can draft a
         thesis, plan levels, and log entries over time.
-        {proUnlocked ? (
-          <span className="mt-1 block text-[var(--pf-gray-400)]">
-            {quotesRefreshLabel({ isPro: true })}
-          </span>
-        ) : null}
       </p>
+      <MarketDataNote
+        className="mt-2"
+        isPro={proUnlocked}
+        updatedAt={quotesUpdatedAt}
+      />
 
       <form onSubmit={addSymbol} className="mt-3">
         <div className="flex gap-2">

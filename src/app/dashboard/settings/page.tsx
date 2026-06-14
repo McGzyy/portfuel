@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { ModerationBanner } from "@/components/member/ModerationBanner";
 import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
+import { ProPerksQuickLinks } from "@/components/pro/ProPerksQuickLinks";
 import { ProfileBillingSection } from "@/components/billing/ProfileBillingSection";
 import { ProfileAlertsSection } from "@/components/profile/ProfileAlertsSection";
 import { ProfileEmailSection } from "@/components/profile/ProfileEmailSection";
@@ -111,6 +112,10 @@ export default async function DashboardSettingsPage({
           <div className="min-w-0 space-y-4 sm:space-y-6">
             {proLocked && section === "billing" ? (
               <ProMembershipStrip locked watchlistSymbols={watchlistSymbols} />
+            ) : null}
+
+            {!proLocked && (section === "billing" || section === "profile") ? (
+              <ProPerksQuickLinks />
             ) : null}
 
             {section === "profile" ? (

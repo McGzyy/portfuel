@@ -1,16 +1,21 @@
 import Link from "next/link";
 import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
+import { MarketDataNote } from "@/components/market/MarketDataNote";
 import { cn } from "@/lib/utils";
 
 export function FueledDeskCommandHeader({
   weeklyNote,
   openPositions,
   totalDeskCalls,
+  quotesUpdatedAt,
+  isPro = false,
   className,
 }: {
   weeklyNote?: string | null;
   openPositions: number;
   totalDeskCalls: number;
+  quotesUpdatedAt?: string | null;
+  isPro?: boolean;
   className?: string;
 }) {
   const notePreview =
@@ -38,6 +43,11 @@ export function FueledDeskCommandHeader({
             desk call{totalDeskCalls === 1 ? "" : "s"} on record — curated research separate from
             the member feed.
           </p>
+          <MarketDataNote
+            className="mt-2"
+            isPro={isPro}
+            updatedAt={quotesUpdatedAt}
+          />
           {notePreview ? (
             <p className="mt-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2 text-xs leading-relaxed text-[var(--pf-gray-600)]">
               <span className="font-semibold text-[var(--pf-gray-700)]">This week: </span>

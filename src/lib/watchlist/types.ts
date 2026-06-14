@@ -53,4 +53,6 @@ export type WatchlistEntry = {
     next_earnings_hour: string | null;
     news_headline_count_7d: number;
   };
+  /** ticker_snapshots.updated_at for displayed last_price */
+  quote_updated_at?: string | null;
 };
