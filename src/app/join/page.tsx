@@ -7,6 +7,7 @@ import { Check } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TierComparisonTable } from "@/components/marketing/TierComparisonTable";
 import { BillingIntervalPicker } from "@/components/billing/BillingIntervalPicker";
@@ -459,8 +460,7 @@ export default function JoinPage() {
                 <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
                   Password
                 </label>
-                <Input
-                  type="password"
+                <PasswordInput
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="At least 8 characters"

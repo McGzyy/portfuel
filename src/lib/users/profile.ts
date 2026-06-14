@@ -5,6 +5,7 @@ import { getDemoProfileCalls } from "@/lib/demo/fixtures";
 import {
   isMissingColumnDbError,
   USER_CALL_SELECT_EXTENDED,
+  USER_CALL_SELECT_FULL,
   USER_CALL_SELECT_LEGACY,
   type UserCallRow,
 } from "@/lib/calls/call-fields";
@@ -23,29 +24,21 @@ export async function fetchUserRecentCalls(userId: string, limit = 10): Promise<
   if (isDemoMode()) return getDemoProfileCalls(userId).slice(0, limit) as UserCallRow[];
   const db = createServiceClient();
 
-  const extended = await db
-    .from("calls")
-    .select(USER_CALL_SELECT_EXTENDED)
-    .eq("user_id", userId)
-    .order("called_at", { ascending: false })
-    .limit(limit);
-
-  if (!extended.error) return (extended.data ?? []) as UserCallRow[];
-
-  if (isMissingColumnDbError(extended.error)) {
-    const legacy = await db
+  for (const select of [USER_CALL_SELECT_FULL, USER_CALL_SELECT_EXTENDED, USER_CALL_SELECT_LEGACY]) {
+    const { data, error } = await db
       .from("calls")
-      .select(USER_CALL_SELECT_LEGACY)
+      .select(select)
       .eq("user_id", userId)
       .order("called_at", { ascending: false })
       .limit(limit);
 
-    if (!legacy.error) return (legacy.data ?? []) as UserCallRow[];
-    console.error("[profile/calls]", legacy.error);
-    return [];
+    if (!error) return (data ?? []) as unknown as UserCallRow[];
+    if (!isMissingColumnDbError(error)) {
+      console.error("[profile/calls]", error);
+      return [];
+    }
   }
 
-  console.error("[profile/calls]", extended.error);
   return [];
 }
 
@@ -56,28 +49,20 @@ export async function fetchUserCallsForExport(userId: string): Promise<UserCallR
   if (isDemoMode()) return getDemoProfileCalls(userId) as UserCallRow[];
   const db = createServiceClient();
 
-  const extended = await db
-    .from("calls")
-    .select(USER_CALL_SELECT_EXTENDED)
-    .eq("user_id", userId)
-    .order("called_at", { ascending: false })
-    .limit(EXPORT_CALL_LIMIT);
-
-  if (!extended.error) return (extended.data ?? []) as UserCallRow[];
-
-  if (isMissingColumnDbError(extended.error)) {
-    const legacy = await db
+  for (const select of [USER_CALL_SELECT_FULL, USER_CALL_SELECT_EXTENDED, USER_CALL_SELECT_LEGACY]) {
+    const { data, error } = await db
       .from("calls")
-      .select(USER_CALL_SELECT_LEGACY)
+      .select(select)
       .eq("user_id", userId)
       .order("called_at", { ascending: false })
       .limit(EXPORT_CALL_LIMIT);
 
-    if (!legacy.error) return (legacy.data ?? []) as UserCallRow[];
-    console.error("[profile/calls-export]", legacy.error);
-    return [];
+    if (!error) return (data ?? []) as unknown as UserCallRow[];
+    if (!isMissingColumnDbError(error)) {
+      console.error("[profile/calls-export]", error);
+      return [];
+    }
   }
 
-  console.error("[profile/calls-export]", extended.error);
   return [];
 }

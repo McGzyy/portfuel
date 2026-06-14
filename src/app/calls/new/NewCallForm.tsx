@@ -79,7 +79,7 @@ export function NewCallForm({
   canComment: boolean;
 }) {
   const publishBlocked = role !== "admin" && !canPublishCalls;
-  const quotaBlocked = !isAdmin && weeklyQuota.remaining === 0;
+  const quotaBlocked = !isDeskIdentity && weeklyQuota.remaining === 0;
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryDraft = readPublishQuery(searchParams);
@@ -374,6 +374,8 @@ export function NewCallForm({
               timeframeTag={timeframeTag}
               lastPrice={marketPrice}
               publishFueled={isDeskIdentity}
+              entryMode={entryMode}
+              triggerEntryPrice={triggerEntryPrice}
               fromJournal={fromJournal}
               conviction={queryDraft.conviction}
               catalysts={queryDraft.catalysts}

@@ -7,6 +7,8 @@ type CallPriceMetricsProps = {
   last_price?: number | null;
   target_progress?: number | null;
   timeframe_tag?: string | null;
+  callState?: string | null;
+  triggerEntryPrice?: number | null;
   compact?: boolean;
   live?: boolean;
   /** Strip layout for ticker thesis cards. */
@@ -20,11 +22,17 @@ export function CallPriceMetrics({
   last_price,
   target_progress,
   timeframe_tag,
+  callState,
+  triggerEntryPrice,
   compact,
   live,
   variant = "default",
 }: CallPriceMetricsProps) {
-  const hasPrices = entry_price != null || target_price != null || stop_price != null;
+  const isPending = callState === "pending_entry";
+  const hasPrices =
+    (isPending ? triggerEntryPrice != null : entry_price != null) ||
+    target_price != null ||
+    stop_price != null;
   const progress =
     target_progress != null ? Math.min(100, Math.max(0, target_progress)) : null;
 
@@ -35,7 +43,12 @@ export function CallPriceMetrics({
       <div className="border-t border-[var(--pf-border)] bg-[var(--pf-gray-50)]/40 px-5 py-4 sm:px-6">
         {hasPrices ? (
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {entry_price != null ? (
+            {isPending && triggerEntryPrice != null ? (
+              <div className="pf-ticker-metric-tile">
+                <dt>Trigger</dt>
+                <dd>${formatPrice(Number(triggerEntryPrice))}</dd>
+              </div>
+            ) : entry_price != null ? (
               <div className="pf-ticker-metric-tile">
                 <dt>Entry</dt>
                 <dd>${formatPrice(Number(entry_price))}</dd>
@@ -61,7 +74,7 @@ export function CallPriceMetrics({
             ) : null}
           </dl>
         ) : null}
-        {progress != null ? (
+        {progress != null && !isPending ? (
           <div className={cn(hasPrices && "mt-4")}>
             <div className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
               <span>Progress to target</span>
@@ -88,7 +101,14 @@ export function CallPriceMetrics({
             compact ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"
           )}
         >
-          {entry_price != null ? (
+          {isPending && triggerEntryPrice != null ? (
+            <div>
+              <dt className="font-medium uppercase tracking-wide text-[var(--pf-gray-400)]">Trigger</dt>
+              <dd className="mt-0.5 font-semibold tabular-nums text-[var(--pf-gray-800)]">
+                ${formatPrice(Number(triggerEntryPrice))}
+              </dd>
+            </div>
+          ) : entry_price != null ? (
             <div>
               <dt className="font-medium uppercase tracking-wide text-[var(--pf-gray-400)]">Entry</dt>
               <dd className="mt-0.5 font-semibold tabular-nums text-[var(--pf-gray-800)]">
@@ -125,7 +145,7 @@ export function CallPriceMetrics({
         </dl>
       ) : null}
 
-      {progress != null ? (
+      {progress != null && !isPending ? (
         <div className={cn(hasPrices && "mt-3")}>
           <div className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
             <span>Progress to target</span>

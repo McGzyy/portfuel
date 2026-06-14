@@ -32,6 +32,7 @@ type CallSpotlightRow = {
   called_at: string;
   is_fueled: boolean;
   closed_at: string | null;
+  call_state: string | null;
   users: {
     allow_social_highlight: boolean;
     subscription_status: string;
@@ -43,7 +44,7 @@ async function loadCallForSpotlight(callId: string): Promise<CallSpotlightRow | 
   const { data, error } = await db
     .from("calls")
     .select(
-      "id, user_id, symbol, direction, return_pct, called_at, is_fueled, closed_at, users!inner(allow_social_highlight, subscription_status)"
+      "id, user_id, symbol, direction, return_pct, called_at, is_fueled, closed_at, call_state, users!inner(allow_social_highlight, subscription_status)"
     )
     .eq("id", callId)
     .maybeSingle();
@@ -98,7 +99,7 @@ export async function getCallSpotlightState(
   const call = await loadCallForSpotlight(callId);
   if (!call || call.user_id !== viewerUserId) return { status: "hidden" };
 
-  if (call.is_fueled || call.closed_at) return { status: "hidden" };
+  if (call.is_fueled || call.closed_at || call.call_state === "pending_entry") return { status: "hidden" };
   if (isSymbolBlockedForMemberWin(call.symbol)) return { status: "hidden" };
   if (!meetsPromptReturn(call.return_pct)) return { status: "hidden" };
   if (call.users.subscription_status !== "active") return { status: "hidden" };
@@ -179,7 +180,7 @@ export async function confirmCallSpotlight(
   if (!call || call.user_id !== viewerUserId) {
     return { ok: false, error: "forbidden" };
   }
-  if (call.is_fueled || call.closed_at) return { ok: false, error: "not_eligible" };
+  if (call.is_fueled || call.closed_at || call.call_state === "pending_entry") return { ok: false, error: "not_eligible" };
   if (!meetsPromptReturn(call.return_pct)) return { ok: false, error: "not_eligible" };
 
   if (await hasSocialPostBeenSent("member_win", call.id)) {

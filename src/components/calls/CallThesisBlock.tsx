@@ -9,6 +9,7 @@ import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { CallCloseButton } from "@/components/calls/CallCloseButton";
 import { CallReturnDisplay } from "@/components/calls/CallReturnDisplay";
 import { CallStopHitNotice } from "@/components/calls/CallStopHitNotice";
+import { CallCancelPendingButton } from "@/components/calls/CallCancelPendingButton";
 import { CallSpotlightPrompt } from "@/components/calls/CallSpotlightPrompt";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
 import { isCallStopHit } from "@/lib/calls/stop-cross";
@@ -27,6 +28,8 @@ type ThesisCall = {
   return_pct: number | null;
   peak_return_pct?: number | null;
   closed_at?: string | null;
+  call_state?: string | null;
+  trigger_entry_price?: number | null;
   entry_price: number | null;
   price_at_call?: number | null;
   target_price: number | null;
@@ -67,15 +70,18 @@ export function CallThesisBlock({
   showSymbol?: boolean;
 }) {
   const isOwnCall = Boolean(viewerUserId && call.user_id && viewerUserId === call.user_id);
+  const isPending = call.call_state === "pending_entry";
   const canDelete = isAdmin;
   const canClose =
     (isAdmin || isOwnCall) &&
     !call.is_fueled &&
     !call.closed_at &&
+    !isPending &&
     isOpenMemberCall({
       called_at: call.called_at,
       target_progress: call.target_progress,
       closed_at: call.closed_at,
+      call_state: call.call_state,
     });
   const memberSlug =
     call.users.username && !/^\d{5}$/.test(call.users.username)
@@ -141,7 +147,15 @@ export function CallThesisBlock({
               <Badge variant="default">Crypto</Badge>
             ) : null}
             {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
-            {call.closed_at ? (
+            {isPending ? (
+              <Badge
+                variant="default"
+                className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+              >
+                Pending entry
+              </Badge>
+            ) : null}
+            {call.closed_at && !isPending ? (
               <Badge
                 variant="default"
                 className="border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
@@ -179,6 +193,8 @@ export function CallThesisBlock({
             returnPct={call.return_pct}
             peakReturnPct={call.peak_return_pct}
             closedAt={call.closed_at}
+            callState={call.call_state}
+            triggerEntryPrice={call.trigger_entry_price}
           />
         </div>
       </header>
@@ -208,6 +224,8 @@ export function CallThesisBlock({
         last_price={prices.last_price}
         target_progress={prices.target_progress}
         timeframe_tag={call.timeframe_tag}
+        callState={call.call_state}
+        triggerEntryPrice={call.trigger_entry_price}
         live={call.live}
         variant="strip"
       />
@@ -230,7 +248,7 @@ export function CallThesisBlock({
         </div>
       ) : null}
 
-      {isOwnCall && !call.is_fueled && !call.closed_at && call.symbol ? (
+      {isOwnCall && !call.is_fueled && !call.closed_at && !isPending && call.symbol ? (
         <div className="border-t border-[var(--pf-border)] px-5 py-3 sm:px-6">
           <CallSpotlightPrompt
             callId={call.id}
@@ -249,10 +267,13 @@ export function CallThesisBlock({
           compact
           embedded
         />
-        {(canClose || canDelete) && call.symbol ? (
+        {(canClose || canDelete || (isOwnCall && isPending)) && call.symbol ? (
           <div className="flex flex-wrap items-center gap-1">
             {canClose ? (
               <CallCloseButton callId={call.id} symbol={call.symbol} stopHit={stopHit} />
+            ) : null}
+            {isOwnCall && isPending ? (
+              <CallCancelPendingButton callId={call.id} symbol={call.symbol} />
             ) : null}
             {canDelete ? <CallDeleteButton callId={call.id} symbol={call.symbol} /> : null}
           </div>

@@ -8,6 +8,7 @@ import { OtpInput } from "@/components/auth/OtpInput";
 import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -143,8 +144,7 @@ export default function LoginPage() {
           <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
             Password
           </label>
-          <Input
-            type="password"
+          <PasswordInput
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"

@@ -67,22 +67,24 @@ export async function POST(request: Request) {
 
     const db = createServiceClient();
 
-    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
-    const { count } = await db
-      .from("calls")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", session.userId)
-      .gte("called_at", weekAgo);
-
     const { data: userRow } = await db
       .from("users")
       .select("submission_quota_week, calls_count")
       .eq("id", session.userId)
       .single();
 
-    const quota = userRow?.submission_quota_week ?? 2;
-    if ((count ?? 0) >= quota) {
-      return NextResponse.json({ error: "quota_exceeded", quota }, { status: 403 });
+    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+    if (!isDeskPublishIdentity(session)) {
+      const { count } = await db
+        .from("calls")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", session.userId)
+        .gte("called_at", weekAgo);
+
+      const quota = userRow?.submission_quota_week ?? 2;
+      if ((count ?? 0) >= quota) {
+        return NextResponse.json({ error: "quota_exceeded", quota }, { status: 403 });
+      }
     }
 
     const validated = await validateSymbol(symbol, body.assetClass);

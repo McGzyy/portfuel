@@ -15,6 +15,14 @@ export function mapCallForCard(
 ): CallCardData {
   const username = c.users.username ?? null;
   const prices = normalizeCallCardPrices(c);
+  const row = c as typeof c & {
+    closed_at?: string | null;
+    peak_return_pct?: number | null;
+    call_state?: string | null;
+    trigger_entry_price?: number | null;
+    price_at_call?: number | null;
+  };
+
   return {
     id: c.id,
     user_id: c.user_id,
@@ -34,6 +42,10 @@ export function mapCallForCard(
     username,
     is_trusted: Boolean(c.users.trusted_at),
     hype_score: hypeScores?.[c.symbol.toUpperCase()] ?? null,
+    closed_at: row.closed_at ?? null,
+    peak_return_pct: row.peak_return_pct ?? null,
+    call_state: row.call_state ?? null,
+    trigger_entry_price: row.trigger_entry_price ?? null,
   };
 }
 

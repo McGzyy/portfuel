@@ -30,6 +30,8 @@ export function PublishCallCardPreview({
   timeframeTag,
   lastPrice,
   publishFueled = false,
+  entryMode = "live",
+  triggerEntryPrice,
   fromJournal = false,
   conviction,
   catalysts,
@@ -47,6 +49,8 @@ export function PublishCallCardPreview({
   timeframeTag: string;
   lastPrice?: number | null;
   publishFueled?: boolean;
+  entryMode?: "live" | "conditional";
+  triggerEntryPrice?: string;
   fromJournal?: boolean;
   conviction?: string;
   catalysts?: string[];
@@ -56,26 +60,28 @@ export function PublishCallCardPreview({
   const sym = symbol.trim().toUpperCase();
   const trimmedThesis = thesis.trim();
   const showPreview = sym.length > 0 && trimmedThesis.length >= 10;
+  const isConditional = entryMode === "conditional";
 
   const call = useMemo((): CallCardData | null => {
     if (!showPreview) return null;
 
     const entry = parsePrice(entryPrice);
+    const trigger = parsePrice(triggerEntryPrice ?? "");
     const target = parsePrice(targetPrice);
     const stop = parsePrice(stopPrice);
     const prices = normalizeCallCardPrices({
       direction,
-      entry_price: entry,
-      price_at_call: entry,
+      entry_price: isConditional ? null : entry,
+      price_at_call: isConditional ? null : entry,
       target_price: target,
       stop_price: stop,
       last_price: lastPrice ?? null,
       target_progress: null,
     });
 
-    const basis = entry ?? lastPrice ?? null;
+    const basis = isConditional ? null : entry ?? lastPrice ?? null;
     const return_pct =
-      basis != null && lastPrice != null
+      !isConditional && basis != null && lastPrice != null
         ? computeReturnPct({ direction, basisPrice: basis, lastPrice })
         : null;
 
@@ -96,6 +102,8 @@ export function PublishCallCardPreview({
       display_name: user.displayName,
       pin: user.username,
       username: user.username,
+      call_state: isConditional ? "pending_entry" : "active",
+      trigger_entry_price: isConditional ? trigger : null,
     };
   }, [
     sym,
@@ -108,9 +116,12 @@ export function PublishCallCardPreview({
     timeframeTag,
     lastPrice,
     publishFueled,
+    entryMode,
+    triggerEntryPrice,
     user.displayName,
     user.username,
     showPreview,
+    isConditional,
   ]);
 
   const convictionNum = conviction ? parseInt(conviction, 10) : null;

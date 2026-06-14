@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 
 function ResetPasswordInner() {
   const router = useRouter();
@@ -62,8 +62,7 @@ function ResetPasswordInner() {
           <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
             New password
           </label>
-          <Input
-            type="password"
+          <PasswordInput
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             minLength={8}
@@ -76,8 +75,7 @@ function ResetPasswordInner() {
           <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
             Confirm password
           </label>
-          <Input
-            type="password"
+          <PasswordInput
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             minLength={8}

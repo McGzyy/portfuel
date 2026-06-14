@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export function SettingsChangePasswordForm() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -69,9 +69,8 @@ export function SettingsChangePasswordForm() {
           <label htmlFor="current-password" className="text-xs font-semibold text-[var(--pf-gray-700)]">
             Current password
           </label>
-          <Input
+          <PasswordInput
             id="current-password"
-            type="password"
             autoComplete="current-password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
@@ -82,9 +81,8 @@ export function SettingsChangePasswordForm() {
           <label htmlFor="new-password" className="text-xs font-semibold text-[var(--pf-gray-700)]">
             New password
           </label>
-          <Input
+          <PasswordInput
             id="new-password"
-            type="password"
             autoComplete="new-password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
@@ -98,9 +96,8 @@ export function SettingsChangePasswordForm() {
           <label htmlFor="confirm-password" className="text-xs font-semibold text-[var(--pf-gray-700)]">
             Confirm new password
           </label>
-          <Input
+          <PasswordInput
             id="confirm-password"
-            type="password"
             autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}

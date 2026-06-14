@@ -25,6 +25,7 @@ type CallCardExtras = {
   user_id?: string;
   username?: string | null;
   entry_price?: number | null;
+  price_at_call?: number | null;
   target_price?: number | null;
   stop_price?: number | null;
   last_price?: number | null;
@@ -116,6 +117,7 @@ export function CallCard({
 
   const hasMetrics =
     call.entry_price != null ||
+    call.trigger_entry_price != null ||
     call.target_price != null ||
     call.stop_price != null ||
     call.last_price != null ||
@@ -268,6 +270,8 @@ export function CallCard({
             last_price={call.last_price}
             target_progress={call.target_progress}
             timeframe_tag={call.timeframe_tag}
+            callState={call.call_state}
+            triggerEntryPrice={call.trigger_entry_price}
             compact={compact}
           />
         ) : null}

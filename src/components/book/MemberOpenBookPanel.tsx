@@ -40,6 +40,10 @@ function toCard(
     display_name: displayName,
     pin: username,
     username,
+    closed_at: c.closed_at ?? null,
+    peak_return_pct: c.peak_return_pct ?? null,
+    call_state: c.call_state ?? null,
+    trigger_entry_price: c.trigger_entry_price ?? null,
   };
 }
 
