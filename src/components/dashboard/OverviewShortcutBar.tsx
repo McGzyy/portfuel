@@ -1,26 +1,42 @@
 import Link from "next/link";
-import { Flame, LayoutGrid, MessageCircle, Star } from "lucide-react";
+import {
+  BookOpen,
+  Flame,
+  LayoutGrid,
+  MessageCircle,
+  Notebook,
+  Star,
+  Trophy,
+} from "lucide-react";
 
 const shortcuts = [
-  { href: "/dashboard/feed", label: "Member feed", icon: LayoutGrid },
-  { href: "/dashboard/desk", label: "Fueled desk", icon: Flame },
+  { href: "/dashboard/feed", label: "Feed", icon: LayoutGrid },
+  { href: "/dashboard/desk", label: "Desk", icon: Flame },
+  { href: "/dashboard/book", label: "Book", icon: BookOpen },
+  { href: "/dashboard/journal", label: "Journal", icon: Notebook },
   { href: "/dashboard/watchlist", label: "Watchlist", icon: Star },
   { href: "/dashboard/messages", label: "Messages", icon: MessageCircle },
+  { href: "/rankings", label: "Rankings", icon: Trophy },
 ] as const;
 
 export function OverviewShortcutBar() {
   return (
-    <div className="flex flex-wrap gap-2">
+    <nav className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Overview shortcuts">
       {shortcuts.map(({ href, label, icon: Icon }) => (
         <Link
           key={href}
           href={href}
-          className="pf-workspace-chip"
+          className="pf-workspace-chip shrink-0"
         >
           <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
           {label}
         </Link>
       ))}
-    </div>
+    </nav>
   );
+}
+
+/** @deprecated Use OverviewShortcutBar — rankings merged into shortcut bar. */
+export function DashboardQuickNav() {
+  return <OverviewShortcutBar />;
 }

@@ -5,6 +5,7 @@ import { getDemoProfileStats } from "@/lib/demo/fixtures";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
 import { fetchUserProfile, fetchUserRecentCalls } from "@/lib/users/profile";
 import type { CallCardData } from "@/components/calls/CallCard";
+import { mapUserCallRowToCard } from "@/lib/calls/map-user-call-card";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
@@ -101,19 +102,9 @@ export async function loadYourRecentCalls(
   if (!isDemoMode() && !hasSupabaseConfig()) return [];
   try {
     const recent = await fetchUserRecentCalls(userId, limit);
-    return recent.map((c) => ({
-      id: c.id,
-      symbol: c.symbol,
-      asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
-      direction: c.direction,
-      thesis: c.thesis,
-      called_at: c.called_at,
-      return_pct: c.return_pct,
-      is_fueled: c.is_fueled,
-      pin: username,
-      username,
-      display_name: displayName,
-    })) satisfies CallCardData[];
+    return recent.map((c) =>
+      mapUserCallRowToCard(c, { userId, username, displayName })
+    );
   } catch {
     return [];
   }

@@ -33,7 +33,7 @@ export function OpenCallsPanel({
             Your open calls
           </h2>
           <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
-            Live return and progress — manage or delete from each card
+            Live return and progress — pending entries show trigger and expiry
           </p>
         </div>
         <Link

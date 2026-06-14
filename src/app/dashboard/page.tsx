@@ -34,6 +34,7 @@ import {
   mapCallForCard,
   requireDashboardSession,
 } from "@/lib/dashboard/data";
+import { mapUserCallRowToCard } from "@/lib/calls/map-user-call-card";
 import { buildFeedHref } from "@/lib/dashboard/nav";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import {
@@ -55,7 +56,6 @@ import { JournalReadyToPublishBanner } from "@/components/journal/JournalReadyTo
 import { JournalContinueCard } from "@/components/journal/JournalContinueCard";
 import { BookPostureStrip } from "@/components/watchlist/BookPostureStrip";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
-import { normalizeCallCardPrices } from "@/lib/calls/card-display";
 import { ProTodayBrief } from "@/components/pro/ProTodayBrief";
 import { ProOverviewIntelStrip } from "@/components/pro/ProOverviewIntelStrip";
 import { fetchCommunityScreener } from "@/lib/screener/community";
@@ -76,6 +76,7 @@ import {
   toReferralInvitePrompt,
 } from "@/lib/referrals/prompt";
 import { ReferralOverviewStrip } from "@/components/referrals/ReferralInviteStrip";
+import { OverviewShortcutBar } from "@/components/dashboard/OverviewShortcutBar";
 
 export const metadata: Metadata = {
   title: "Overview",
@@ -91,33 +92,7 @@ function toOwnStripCard(
   displayName: string | null,
   userId: string
 ): CallCardData {
-  const prices = normalizeCallCardPrices({
-    direction: c.direction as "long" | "short",
-    entry_price: c.entry_price,
-    price_at_call: c.price_at_call,
-    target_price: c.target_price,
-    stop_price: c.stop_price,
-    last_price: c.last_price,
-    target_progress: c.target_progress,
-  });
-  return {
-    id: c.id,
-    user_id: userId,
-    symbol: c.symbol,
-    asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
-    direction: c.direction as "long" | "short",
-    thesis: c.thesis,
-    called_at: c.called_at,
-    return_pct: c.return_pct,
-    peak_return_pct: c.peak_return_pct ?? null,
-    closed_at: c.closed_at ?? null,
-    ...prices,
-    timeframe_tag: c.timeframe_tag,
-    is_fueled: Boolean(c.is_fueled),
-    display_name: displayName,
-    pin: username,
-    username,
-  };
+  return mapUserCallRowToCard(c, { userId, username, displayName });
 }
 
 function toPreview(c: ReturnType<typeof mapCallForCard>): CallPreviewData {
@@ -295,6 +270,10 @@ export default async function DashboardOverviewPage({
         openCallsCount={openCallCards.length}
         isPro={isPro}
       />
+
+      <div className="lg:hidden">
+        <OverviewShortcutBar />
+      </div>
 
       <OverviewReturnHero
         points={performanceSeries}

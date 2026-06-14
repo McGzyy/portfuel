@@ -5,7 +5,7 @@ import { CallCard, type CallCardData } from "@/components/calls/CallCard";
 import { SparklineProvider } from "@/components/charts/SparklineProvider";
 import { Button } from "@/components/ui/button";
 import type { MemberBookCallRow } from "@/lib/calls/member-book";
-import { normalizeCallCardPrices } from "@/lib/calls/card-display";
+import { mapUserCallRowToCard } from "@/lib/calls/map-user-call-card";
 import { COPY } from "@/lib/copy";
 
 function toCard(
@@ -13,39 +13,8 @@ function toCard(
   userId: string,
   username: string,
   displayName: string | null
-): CallCardData {
-  const prices = normalizeCallCardPrices({
-    direction: c.direction as "long" | "short",
-    entry_price: c.entry_price,
-    price_at_call: c.price_at_call,
-    target_price: c.target_price,
-    stop_price: c.stop_price,
-    last_price: c.last_price,
-    target_progress: c.target_progress,
-  });
-  return {
-    id: c.id,
-    user_id: userId,
-    symbol: c.symbol,
-    asset_class: (c.asset_class ?? "equity") as "equity" | "crypto",
-    direction: c.direction as "long" | "short",
-    thesis: c.thesis,
-    called_at: c.called_at,
-    return_pct: c.return_pct,
-    ...prices,
-    timeframe_tag: c.timeframe_tag,
-    is_fueled: Boolean(c.is_fueled),
-    vote_score: c.vote_score,
-    comment_count: c.comment_count,
-    display_name: displayName,
-    pin: username,
-    username,
-    closed_at: c.closed_at ?? null,
-    peak_return_pct: c.peak_return_pct ?? null,
-    call_state: c.call_state ?? null,
-    trigger_entry_price: c.trigger_entry_price ?? null,
-    expires_at: c.expires_at ?? null,
-  };
+) {
+  return mapUserCallRowToCard(c, { userId, username, displayName });
 }
 
 export function MemberOpenBookPanel({
