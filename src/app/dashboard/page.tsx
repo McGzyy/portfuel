@@ -9,7 +9,6 @@ import { COPY } from "@/lib/copy";
 import { WorkspaceOverviewStats } from "@/components/dashboard/WorkspaceOverviewStats";
 import { WorkspaceLiveBar } from "@/components/dashboard/WorkspaceLiveBar";
 import { WorkspaceCommandHeader } from "@/components/dashboard/WorkspaceCommandHeader";
-import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { OpenCallsPanel } from "@/components/dashboard/OpenCallsPanel";
 import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
@@ -298,9 +297,20 @@ export default async function DashboardOverviewPage({
         watchlistThesisCount={journalThesisCount}
       />
 
-      <FueledTrackRecordPanel record={fueledTrackRecord} />
+      {openCallCards.length > 0 ? (
+        <OpenCallsPanel
+          calls={openCallCards}
+          viewerUserId={session.userId}
+          isAdmin={session.role === "admin"}
+          username={session.username}
+          isPro={isPro}
+          proLocked={proLocked}
+        />
+      ) : null}
 
-      <WorkspaceQuickActions proUnlocked={isPro} />
+      {workspacePulse ? <WorkspaceLiveBar initial={workspacePulse} compact /> : null}
+
+      <OverviewActivityPanels hotTickers={hotTickers} />
 
       {journalReadyItems.length > 0 ? (
         <JournalReadyToPublishBanner
@@ -313,70 +323,20 @@ export default async function DashboardOverviewPage({
 
       {watchlistCount > 0 ? <BookPostureStrip items={watchlistItems} /> : null}
 
-      <AlertsEmailSetupStrip
-        watchlistCount={watchlistCount}
-        emailInstantEnabled={emailPrefs?.emailInstantEnabled ?? false}
-        notifyEmail={emailPrefs?.notifyEmail ?? null}
-        emailVerified={session.emailVerified}
-      />
-
-      <ProMembershipStrip locked={proLocked} watchlistSymbols={watchlistItems.map((w) => w.symbol)} />
-
-      {proTodayBrief ? (
-        <ProTodayBrief brief={proTodayBrief} locked={proLocked} proGateCta={proGateCta} />
+      {isPro && proTodayBrief ? (
+        <ProTodayBrief brief={proTodayBrief} locked={false} proGateCta={proGateCta} />
       ) : null}
 
-      {proOverviewIntel ? (
+      {isPro && proOverviewIntel ? (
         <ProOverviewIntelStrip
           battleboard={proOverviewIntel.battleboard}
           screener={proOverviewIntel.screener}
-          locked={proLocked}
+          locked={false}
           proGateCta={proGateCta}
           watchlistSymbols={watchlistItems.map((w) => w.symbol)}
           reportingSymbols={proOverviewIntel.reportingSymbols}
         />
       ) : null}
-
-      {journalIdeas.length > 0 ? <WatchlistJournalPulse ideas={journalIdeas} /> : null}
-
-      {workspacePulse ? <WorkspaceLiveBar initial={workspacePulse} compact /> : null}
-
-      {openCallCards.length > 0 ? (
-        <OpenCallsPanel
-          calls={openCallCards}
-          viewerUserId={session.userId}
-          isAdmin={session.role === "admin"}
-          username={session.username}
-          isPro={isPro}
-          proLocked={proLocked}
-        />
-      ) : null}
-
-      {session.role !== "admin" ? (
-        <>
-          <WorkspaceOnboardingChecklist
-            publishedCall={ownCalls.length > 0}
-            watchlistCount={watchlistCount}
-            journalThesisCount={journalThesisCount}
-            followingCount={followingMembers.length}
-          />
-          <WorkspaceChecklistCompleteBanner
-            publishedCall={ownCalls.length > 0}
-            watchlistCount={watchlistCount}
-            journalThesisCount={journalThesisCount}
-            followingCount={followingMembers.length}
-            referralPrompt={referralPrompt}
-          />
-        </>
-      ) : null}
-
-      {referralPrompt ? <ReferralOverviewStrip prompt={referralPrompt} /> : null}
-
-      {session.role === "admin" && communityPulse.count === 0 && latestPreviews.length === 0 ? (
-        <AdminCommunityHint />
-      ) : null}
-
-      <OverviewActivityPanels hotTickers={hotTickers} />
 
       <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
         <div className="space-y-6 lg:col-span-7 xl:col-span-8">
@@ -500,6 +460,48 @@ export default async function DashboardOverviewPage({
           ) : null}
         </div>
       </div>
+
+      <FueledTrackRecordPanel record={fueledTrackRecord} />
+
+      {journalIdeas.length > 0 ? <WatchlistJournalPulse ideas={journalIdeas} /> : null}
+
+      <AlertsEmailSetupStrip
+        watchlistCount={watchlistCount}
+        emailInstantEnabled={emailPrefs?.emailInstantEnabled ?? false}
+        notifyEmail={emailPrefs?.notifyEmail ?? null}
+        emailVerified={session.emailVerified}
+      />
+
+      {session.role !== "admin" ? (
+        <>
+          <WorkspaceOnboardingChecklist
+            publishedCall={ownCalls.length > 0}
+            watchlistCount={watchlistCount}
+            journalThesisCount={journalThesisCount}
+            followingCount={followingMembers.length}
+          />
+          <WorkspaceChecklistCompleteBanner
+            publishedCall={ownCalls.length > 0}
+            watchlistCount={watchlistCount}
+            journalThesisCount={journalThesisCount}
+            followingCount={followingMembers.length}
+            referralPrompt={referralPrompt}
+          />
+        </>
+      ) : null}
+
+      {referralPrompt ? <ReferralOverviewStrip prompt={referralPrompt} /> : null}
+
+      {proLocked ? (
+        <ProMembershipStrip
+          locked
+          watchlistSymbols={watchlistItems.map((w) => w.symbol)}
+        />
+      ) : null}
+
+      {session.role === "admin" && communityPulse.count === 0 && latestPreviews.length === 0 ? (
+        <AdminCommunityHint />
+      ) : null}
 
       {session.role === "admin" ? (
         <p className="text-center text-xs text-[var(--pf-gray-400)]">

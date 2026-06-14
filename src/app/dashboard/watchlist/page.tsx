@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { WatchlistCommandHeader } from "@/components/dashboard/WatchlistCommandHeader";
 import { TrackWorkflowGuide } from "@/components/dashboard/TrackWorkflowGuide";
-import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { TickerLookupBar } from "@/components/dashboard/TickerLookupBar";
 import { WatchlistPanel } from "@/components/dashboard/WatchlistPanel";
 import { WatchlistItemsProvider } from "@/components/dashboard/WatchlistItemsProvider";
@@ -73,8 +72,6 @@ export default async function DashboardWatchlistPage() {
         <ResearchPipeline current="track" logHref={nextUp?.href} />
 
         <TrackWorkflowGuide />
-
-        <WorkspaceQuickActions proUnlocked={proUnlocked} />
 
         <WatchlistAiDigestPanel
           locked={proLocked}

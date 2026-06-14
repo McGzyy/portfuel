@@ -32,7 +32,7 @@ export function DeskPortfolioPanel({
   return (
     <WorkspacePanel
       title="Fueled model portfolio"
-      subtitle="Desk-maintained theses with live marks"
+      subtitle="Desk-maintained theses with refreshed marks"
       href={deskHref}
       className="overflow-hidden"
       headerClassName="bg-[var(--pf-gray-50)]"

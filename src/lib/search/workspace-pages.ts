@@ -37,6 +37,7 @@ export function searchWorkspacePages(query: string, limit = 5): SearchPageResult
     return WORKSPACE_SEARCH_PAGES.filter((p) =>
       [
         "/dashboard",
+        "/dashboard/book",
         "/dashboard/watchlist",
         "/dashboard/journal",
         "/dashboard/feed",

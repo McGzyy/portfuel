@@ -3,7 +3,6 @@ import { LeaderboardTable } from "@/components/rankings/LeaderboardTable";
 import { RankingsTrustedNote } from "@/components/rankings/RankingsTrustedNote";
 import { RankingsSummaryBar } from "@/components/rankings/RankingsSummaryBar";
 import { SuggestedFollowsPanel } from "@/components/rankings/SuggestedFollowsPanel";
-import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { RankingsCommandHeader } from "@/components/rankings/RankingsCommandHeader";
 import { COPY } from "@/lib/copy";
 import type { LeaderboardEntry } from "@/lib/calls/leaderboard";
@@ -39,10 +38,6 @@ export function RankingsPageContent({
         topMember={topMember}
         loggedIn={loggedIn}
       />
-
-      {loggedIn ? (
-        <WorkspaceQuickActions proUnlocked={!proLocked} />
-      ) : null}
 
       {loggedIn && viewerUserId && suggestedFollows.length > 0 ? (
         <SuggestedFollowsPanel

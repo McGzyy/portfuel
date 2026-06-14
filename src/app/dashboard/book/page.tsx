@@ -4,7 +4,6 @@ import { MemberOpenBookPanel } from "@/components/book/MemberOpenBookPanel";
 import { MemberOpenBookSymbols } from "@/components/book/MemberOpenBookSymbols";
 import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard";
 import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerformanceChart";
-import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { ProQuoteRefreshMount } from "@/components/market/ProQuoteRefreshMount";
 import { fetchMemberOpenBook } from "@/lib/calls/member-book";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
@@ -38,8 +37,6 @@ export default async function DashboardBookPage() {
         username={session.username}
         isPro={!proLocked}
       />
-      <WorkspaceQuickActions proUnlocked={!proLocked} />
-
       <ShareTrackRecordCard
         username={session.username}
         callCount={trackRecord.callCount}

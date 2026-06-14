@@ -16,7 +16,6 @@ import {
   UserPlus,
 } from "lucide-react";
 import { NotificationsCommandHeader } from "@/components/notifications/NotificationsCommandHeader";
-import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { Button } from "@/components/ui/button";
 import { cn, timeAgo } from "@/lib/utils";
 import type { NotificationType, UserNotification } from "@/lib/notifications/types";
@@ -123,8 +122,6 @@ export function NotificationsList({ proUnlocked = false }: { proUnlocked?: boole
           </div>
         </div>
       </header>
-
-      <WorkspaceQuickActions proUnlocked={proUnlocked} />
 
       <div className="pf-workspace-panel flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5">
         <div className="min-w-0">

@@ -34,6 +34,7 @@ export const WORKSPACE_SHORTCUT_GROUPS: WorkspaceShortcutGroup[] = [
     title: "Navigation",
     items: [
       { keys: ["G", "H"], label: "Overview", description: "Home dashboard." },
+      { keys: ["G", "B"], label: "Open book", description: "Your open calls and track record." },
       { keys: ["G", "F"], label: "Member feed", description: "Community call board." },
       { keys: ["G", "D"], label: "Fueled desk", description: "House research and portfolio." },
       { keys: ["G", "W"], label: "Watchlist", description: "Symbols and alerts." },
@@ -73,6 +74,7 @@ export function shortcutKeysForPlatform(keys: string[]): string[] {
 
 export const WORKSPACE_GOTO_ROUTES: Record<string, string> = {
   h: "/dashboard",
+  b: "/dashboard/book",
   f: "/dashboard/feed",
   d: "/dashboard/desk",
   w: "/dashboard/watchlist",

@@ -7,7 +7,6 @@ import { DeskPortfolioChart } from "@/components/charts/DeskPortfolioChart";
 import { buildDeskPortfolioCurve } from "@/lib/charts/desk-portfolio-curve";
 import { DeskPortfolioWatchlistButton } from "@/components/desk/DeskPortfolioWatchlistButton";
 import { FueledDeskCommandHeader } from "@/components/dashboard/FueledDeskCommandHeader";
-import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { ChecklistVisitMarker } from "@/components/dashboard/ChecklistVisitMarker";
 import { CHECKLIST_DESK_VISITED_KEY } from "@/lib/onboarding/workspace-checklist";
 import { Button } from "@/components/ui/button";
@@ -58,8 +57,6 @@ export default async function DashboardDeskPage() {
         openPositions={openPositions}
         totalDeskCalls={fueledLatest.length + fueledPerforming.length}
       />
-
-      <WorkspaceQuickActions proUnlocked={!proLocked} />
 
       <FueledDeskBrief brief={deskBrief} />
 

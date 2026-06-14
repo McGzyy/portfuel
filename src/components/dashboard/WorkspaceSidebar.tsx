@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Bookmark,
   Bell,
+  BookOpen,
   Flame,
   LayoutDashboard,
   Rows3,
@@ -28,6 +29,7 @@ import { cn } from "@/lib/utils";
 
 const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   "layout-dashboard": LayoutDashboard,
+  "book-open": BookOpen,
   rows: Rows3,
   flame: Flame,
   bookmark: Bookmark,

@@ -6,7 +6,6 @@ import Link from "next/link";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MessagesCommandHeader } from "@/components/messages/MessagesCommandHeader";
-import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { cn, timeAgo } from "@/lib/utils";
 import { DmTypingIndicator } from "@/components/messages/DmTypingIndicator";
 import { useDmTyping } from "@/components/messages/useDmTyping";
@@ -159,8 +158,6 @@ export function MessagesWorkspace({ proUnlocked = false }: { proUnlocked?: boole
         unreadThreads={unreadThreads}
         activeName={otherName}
       />
-
-      <WorkspaceQuickActions proUnlocked={proUnlocked} />
 
       {error && !activeThread ? (
         <p className="text-sm text-rose-600">{error}</p>

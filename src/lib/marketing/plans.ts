@@ -12,10 +12,11 @@ export const TIER_COMPARISON_ROWS: TierComparisonRow[] = [
   { feature: "Direct messages (1:1)", member: true, pro: true },
   { feature: "Ticker charts with call markers", member: true, pro: true },
   { feature: "Watchlist, rankings & follow callers", member: true, pro: true },
-  { feature: "Fueled desk + model portfolio (live marks)", member: true, pro: true },
+  { feature: "Fueled desk + model portfolio (refreshed marks)", member: true, pro: true },
   { feature: "Onboarding watchlist + workspace tour", member: true, pro: true },
-  { feature: "In-app + email watchlist alerts", member: true, pro: true },
-  { feature: "SMS text watchlist alerts (Pro · requires Twilio)", member: false, pro: true },
+  { feature: "In-app + email watchlist alerts (global thresholds)", member: true, pro: true },
+  { feature: "Custom per-symbol price alert (%)", member: false, pro: true },
+  { feature: "SMS text watchlist alerts (requires Twilio in prod)", member: false, pro: true },
   { feature: "Published calls per week", member: "2", pro: "6" },
   { feature: "News, earnings & SEC (equity) + crypto intel", member: false, pro: true },
   { feature: "Intraday chart (1H / 15m) + SMA / VWAP", member: false, pro: true },
@@ -23,7 +24,6 @@ export const TIER_COMPARISON_ROWS: TierComparisonRow[] = [
   { feature: "Earnings — reporting week + positioning", member: false, pro: true },
   { feature: "Shareable track record card", member: true, pro: true },
   { feature: "Ticker compare (2–3 symbols)", member: false, pro: true },
-  { feature: "Watchlist price, earnings & plan-level alerts", member: true, pro: true },
   { feature: "Return distribution on profile", member: false, pro: true },
   { feature: "Pro feed & rankings analytics strips", member: false, pro: true },
   { feature: "AI thesis coach (educational — feedback on your draft)", member: "2/mo", pro: "30/mo" },
@@ -51,7 +51,7 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
     priceAmount: 79,
     tagline: "The full PortFuel workspace — desk, feed, charts, DMs, and a public track record.",
     features: [
-      "Fueled desk + model portfolio with live marks",
+      "Fueled desk + model portfolio with refreshed marks",
       "Member feed, DMs, watchlist & rankings",
       "2 published calls per week",
       "Ticker charts with entry / target / stop lines",
@@ -162,7 +162,7 @@ export const MEMBER_WALL_FEATURES = [
   "Full theses with entry, target & stop",
   "Ticker charts with community call markers",
   "Votes, comments & direct messages",
-  "Fueled desk + model portfolio (live marks)",
+  "Fueled desk + model portfolio (refreshed marks)",
   "Watchlist, rankings & your track record",
 ] as const;
 
@@ -186,7 +186,7 @@ export const LANDING_PRODUCT_PILLARS = [
   {
     title: "Fueled desk",
     description:
-      "Weekly house note and model portfolio with live marks — curated research without hunting Twitter.",
+      "Weekly house note and model portfolio with refreshed marks — curated research without hunting Twitter.",
   },
   {
     title: "Research terminal (Pro)",
@@ -204,7 +204,7 @@ export const PRO_VALUE_BULLETS = [
   "Intraday chart (1H / 15m) with SMA and VWAP overlays",
   "Pro feed & rankings analytics (target progress, win-rate depth)",
   "6 published calls per week (vs 2 on Member)",
-  "SMS text watchlist alerts (price, earnings, plan levels)",
+  "SMS text watchlist alerts (when Twilio is configured in prod)",
   "Watchlist alerts with AI journal context (75/mo)",
   "AI journal research assistant — thesis gaps & catalyst checks (60/mo)",
   "Earnings calendar for your watchlist (next 14 days)",

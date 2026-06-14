@@ -72,6 +72,11 @@ export const WORKSPACE_NAV_RAIL: WorkspaceNavRailItem[] = [
     icon: "bookmark",
   },
   {
+    href: "/dashboard/book",
+    label: "Book",
+    icon: "book-open",
+  },
+  {
     href: "/dashboard/journal",
     label: "Journal",
     icon: "notebook",

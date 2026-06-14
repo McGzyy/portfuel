@@ -4,7 +4,6 @@ import { JournalContinueCard } from "@/components/journal/JournalContinueCard";
 import { JournalIdeasPanel } from "@/components/journal/JournalIdeasPanel";
 import { JournalReadyToPublishBanner } from "@/components/journal/JournalReadyToPublishBanner";
 import { ResearchPipeline } from "@/components/journal/ResearchPipeline";
-import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { WatchlistJournalReviewPanel } from "@/components/watchlist/WatchlistJournalReviewPanel";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { isDemoMode } from "@/lib/demo/config";
@@ -84,8 +83,6 @@ export default async function DashboardJournalPage({
       />
 
       {nextUp && readyItems.length === 0 ? <JournalContinueCard nextUp={nextUp} /> : null}
-
-      <WorkspaceQuickActions proUnlocked={proUnlocked} />
 
       {journalReview ? <WatchlistJournalReviewPanel review={journalReview} /> : null}
 

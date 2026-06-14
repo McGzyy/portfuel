@@ -13,7 +13,7 @@ export function quotesRefreshMinutesForTier(isPro: boolean): number {
 export function quotesRefreshLabel(opts?: { minutes?: number; isPro?: boolean }): string {
   const minutes = opts?.minutes ?? quotesRefreshMinutesForTier(Boolean(opts?.isPro));
   if (opts?.isPro) {
-    return `Pro live quotes · refresh every ${minutes} minutes while you're here`;
+    return `Pro quotes · refresh every ${minutes} minutes while you're here`;
   }
   return `Quotes refresh every ${minutes} minutes`;
 }

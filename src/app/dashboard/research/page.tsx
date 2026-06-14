@@ -4,7 +4,6 @@ import { ProCommunityScreener } from "@/components/pro/ProCommunityScreener";
 import { ProEarningsBattleboardSection } from "@/components/pro/ProEarningsBattleboardSection";
 import { ResearchCommandHeader } from "@/components/pro/ResearchCommandHeader";
 import { TickerCompareWorkspace } from "@/components/pro/TickerCompareWorkspace";
-import { WorkspaceQuickActions } from "@/components/dashboard/WorkspaceQuickActions";
 import { buildCompareHref, parseCompareSymbolsParam } from "@/lib/dashboard/compare-symbols";
 import { parseResearchHubTab } from "@/lib/dashboard/research-hub";
 import { requireDashboardSession } from "@/lib/dashboard/data";
@@ -65,7 +64,6 @@ export default async function DashboardResearchPage({
     return (
       <div className="space-y-6">
         <ResearchCommandHeader tab="screener" />
-        <WorkspaceQuickActions proUnlocked={!proLocked} />
         {!proLocked && compareSymbols.length >= 2 ? (
           <p className="text-xs text-[var(--pf-gray-500)]">
             <a href={compareHref} className="font-semibold text-[var(--pf-red)] hover:underline">
@@ -97,7 +95,6 @@ export default async function DashboardResearchPage({
     return (
       <div className="space-y-6">
         <ResearchCommandHeader tab="earnings" />
-        <WorkspaceQuickActions proUnlocked={!proLocked} />
         <EarningsSurfacesExplainer />
         <ProEarningsBattleboardSection
           rows={rows}
@@ -124,7 +121,6 @@ export default async function DashboardResearchPage({
     return (
       <div className="space-y-6">
         <ResearchCommandHeader tab="news" />
-        <WorkspaceQuickActions proUnlocked={!proLocked} />
         <MarketHeadlinesPanel
           initialLane={initialLane}
           initialHeadlines={initialHeadlines}
@@ -156,7 +152,6 @@ export default async function DashboardResearchPage({
         tab="compare"
         detail={compareDetail(initialSymbols.length, watchlistSymbols.length)}
       />
-      <WorkspaceQuickActions proUnlocked={!proLocked} />
       <TickerCompareWorkspace
         locked={proLocked}
         proGateCta={proGateCta}

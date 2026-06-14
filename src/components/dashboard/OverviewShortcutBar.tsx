@@ -16,7 +16,7 @@ const shortcuts = [
   { href: "/dashboard/journal", label: "Journal", icon: Notebook },
   { href: "/dashboard/watchlist", label: "Watchlist", icon: Star },
   { href: "/dashboard/messages", label: "Messages", icon: MessageCircle },
-  { href: "/rankings", label: "Rankings", icon: Trophy },
+  { href: "/dashboard/rankings", label: "Rankings", icon: Trophy },
 ] as const;
 
 export function OverviewShortcutBar() {

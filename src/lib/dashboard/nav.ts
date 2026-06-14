@@ -2,6 +2,7 @@ import { COPY } from "@/lib/copy";
 
 export type DashboardNavIcon =
   | "layout-dashboard"
+  | "book-open"
   | "rows"
   | "flame"
   | "bookmark"
@@ -30,6 +31,12 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
     description: "Performance & previews",
     icon: "layout-dashboard",
     exact: true,
+  },
+  {
+    href: "/dashboard/book",
+    label: "Open book",
+    description: "Open calls & track record",
+    icon: "book-open",
   },
   {
     href: "/dashboard/feed",
@@ -84,7 +91,9 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
 export const WORKSPACE_NAV_GROUPS: { title: string; items: DashboardNavItem[] }[] = [
   {
     title: "Home",
-    items: DASHBOARD_NAV.filter((i) => i.href === "/dashboard"),
+    items: DASHBOARD_NAV.filter((i) =>
+      ["/dashboard", "/dashboard/book"].includes(i.href)
+    ),
   },
   {
     title: "Community",
@@ -150,7 +159,12 @@ const WORKSPACE_GUIDE_SECTIONS_TEMPLATE: {
       {
         href: "/dashboard",
         label: "Overview",
-        description: "Your stats, live tape, hot symbols, and previews of the feed.",
+        description: "Your stats, hot symbols, and previews of the feed.",
+      },
+      {
+        href: "/dashboard/book",
+        label: "Open book",
+        description: "Your open calls, pending entries, and on-record performance.",
       },
       {
         href: COPY.newCallHref,
@@ -185,7 +199,7 @@ const WORKSPACE_GUIDE_SECTIONS_TEMPLATE: {
       {
         href: "/dashboard/desk",
         label: "Fueled desk",
-        description: "House weekly note + model portfolio with live marks.",
+        description: "House weekly note + model portfolio with refreshed marks.",
       },
       {
         href: "/dashboard/watchlist",

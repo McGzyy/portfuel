@@ -17,7 +17,7 @@ export function FueledTrackRecordPanel({ record }: { record: FueledTrackRecord }
             <p className="pf-eyebrow">Track record</p>
             <h2 className="mt-0.5 text-lg font-bold tracking-tight sm:text-xl">Fueled desk performance</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Official PortFuel calls — live marks, separate from the member feed.
+              Official PortFuel calls — refreshed marks, separate from the member feed.
             </p>
           </div>
         </div>
