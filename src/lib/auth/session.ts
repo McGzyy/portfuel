@@ -105,6 +105,7 @@ export const getSession = cache(async function getSession(): Promise<SessionPayl
 
     const base: SessionPayload = {
       userId,
+      authUserId: payload.authUserId ? String(payload.authUserId) : userId,
       username,
       displayName,
       role: payload.role as SessionPayload["role"],

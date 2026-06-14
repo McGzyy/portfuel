@@ -1,7 +1,10 @@
 import type { MembershipTier } from "@/lib/stripe/config";
 
 export type SessionPayload = {
+  /** Active workspace identity (calls, profile, book). */
   userId: string;
+  /** Logged-in account — differs from userId when admin switches to personal. */
+  authUserId?: string;
   username: string;
   displayName: string | null;
   role: "member" | "admin";

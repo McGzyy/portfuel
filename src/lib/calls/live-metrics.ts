@@ -11,6 +11,7 @@ export type CallLiveMetricsInput = {
   return_pct: number | null;
   last_price: number | null;
   target_progress: number | null;
+  call_state?: string | null;
 };
 
 export type CallLiveMetrics = {
@@ -34,7 +35,8 @@ export function computeCallLiveMetrics(
     };
   }
 
-  const basis = call.entry_price ?? call.price_at_call;
+  const basis =
+    call.call_state === "pending_entry" ? null : call.entry_price ?? call.price_at_call;
   const returnPct =
     basis != null
       ? computeReturnPct({
@@ -44,7 +46,8 @@ export function computeCallLiveMetrics(
         })
       : null;
 
-  const entry = call.entry_price ?? call.price_at_call;
+  const entry =
+    call.call_state === "pending_entry" ? null : call.entry_price ?? call.price_at_call;
   let targetProgress: number | null = call.target_progress;
   if (entry != null && call.target_price != null) {
     targetProgress = computeTargetProgress({

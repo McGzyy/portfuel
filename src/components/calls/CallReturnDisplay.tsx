@@ -5,11 +5,28 @@ export function CallReturnDisplay({
   returnPct,
   peakReturnPct,
   closedAt,
+  callState,
+  triggerEntryPrice,
 }: {
   returnPct: number | null;
   peakReturnPct?: number | null;
   closedAt?: string | null;
+  callState?: string | null;
+  triggerEntryPrice?: number | null;
 }) {
+  if (callState === "pending_entry") {
+    return (
+      <div className="text-right">
+        <p className="text-sm font-semibold text-amber-800">Awaiting entry</p>
+        {triggerEntryPrice != null ? (
+          <p className="text-[10px] font-medium tabular-nums text-[var(--pf-gray-500)]">
+            @ ${triggerEntryPrice}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
   const retClass =
     returnPct == null ? "text-[var(--pf-gray-500)]" : returnPct >= 0 ? "pf-return-up" : "pf-return-down";
   const peaked = showPeakedLabel({

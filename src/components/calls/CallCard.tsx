@@ -12,6 +12,7 @@ import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { CallCloseButton } from "@/components/calls/CallCloseButton";
 import { CallReturnDisplay } from "@/components/calls/CallReturnDisplay";
 import { CallStopHitNotice } from "@/components/calls/CallStopHitNotice";
+import { CallCancelPendingButton } from "@/components/calls/CallCancelPendingButton";
 import { CallSpotlightPrompt } from "@/components/calls/CallSpotlightPrompt";
 import { CALL_CARD_INTERACTIVE } from "@/components/calls/call-card-link";
 import { isCallStopHit } from "@/lib/calls/stop-cross";
@@ -30,6 +31,8 @@ type CallCardExtras = {
   timeframe_tag?: string | null;
   peak_return_pct?: number | null;
   closed_at?: string | null;
+  call_state?: string | null;
+  trigger_entry_price?: number | null;
 };
 
 export type CallCardData = (TeaserCallRow | {
@@ -95,14 +98,17 @@ export function CallCard({
   const canDelete = isAdmin;
   const handle = /^\d{5}$/.test(call.pin) ? call.pin : `@${call.pin}`;
   const name = call.display_name ?? `Trader ${handle}`;
+  const isPending = call.call_state === "pending_entry";
   const canClose =
     (isAdmin || isOwnCall) &&
     !call.is_fueled &&
     !call.closed_at &&
+    !isPending &&
     isOpenMemberCall({
       called_at: call.called_at,
       target_progress: call.target_progress,
       closed_at: call.closed_at,
+      call_state: call.call_state,
     });
 
   const accent =
@@ -166,7 +172,15 @@ export function CallCard({
                 <Badge variant="default">Crypto</Badge>
               ) : null}
               {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
-              {call.closed_at ? (
+              {call.call_state === "pending_entry" ? (
+                <Badge
+                  variant="default"
+                  className="border-amber-200 bg-amber-50 text-amber-800"
+                >
+                  Pending entry
+                </Badge>
+              ) : null}
+              {call.closed_at && call.call_state !== "pending_entry" ? (
                 <Badge variant="default" className="border-slate-200 bg-slate-100 text-slate-700">
                   Closed
                 </Badge>
@@ -220,6 +234,8 @@ export function CallCard({
                 returnPct={call.return_pct}
                 peakReturnPct={call.peak_return_pct}
                 closedAt={call.closed_at}
+                callState={call.call_state}
+                triggerEntryPrice={call.trigger_entry_price}
               />
               <p className="text-xs text-[var(--pf-gray-400)]">
                 {formatPublishedAt(call.called_at)} · {timeAgo(call.called_at)}
@@ -262,7 +278,7 @@ export function CallCard({
             className={cn("mt-3", linkToTicker && CALL_CARD_INTERACTIVE)}
           />
         ) : null}
-        {isOwnCall && !call.is_fueled && !call.closed_at ? (
+        {isOwnCall && !call.is_fueled && !call.closed_at && !isPending ? (
           <div className={cn("mt-3", linkToTicker && CALL_CARD_INTERACTIVE)}>
             <CallSpotlightPrompt
               callId={call.id}
@@ -283,6 +299,9 @@ export function CallCard({
             </span>
             {canClose ? (
               <CallCloseButton callId={call.id} symbol={call.symbol} stopHit={stopHit} />
+            ) : null}
+            {isOwnCall && isPending ? (
+              <CallCancelPendingButton callId={call.id} symbol={call.symbol} />
             ) : null}
             {canDelete ? (
               <CallDeleteButton callId={call.id} symbol={call.symbol} />

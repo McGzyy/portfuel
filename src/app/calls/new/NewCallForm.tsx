@@ -14,6 +14,11 @@ import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TradeSetupPreview } from "@/components/calls/TradeSetupPreview";
 import { ThesisCoachPanel } from "@/components/ai/ThesisCoachPanel";
 import { PublishCallCardPreview } from "@/components/calls/PublishCallCardPreview";
+import { PublishIdentitySwitcher } from "@/components/calls/PublishIdentitySwitcher";
+import {
+  PublishXSourcePanel,
+  type PublishXApplyPayload,
+} from "@/components/calls/PublishXSourcePanel";
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
 import { ModerationBanner } from "@/components/member/ModerationBanner";
 import type { SessionPayload } from "@/lib/auth/session-types";
@@ -55,6 +60,7 @@ export function NewCallForm({
   showUpgrade,
   isPro,
   isAdmin = false,
+  isDeskIdentity = false,
   role,
   canPublishCalls,
   canDm,
@@ -65,6 +71,8 @@ export function NewCallForm({
   showUpgrade?: boolean;
   isPro: boolean;
   isAdmin?: boolean;
+  /** Admin desk identity — all publishes are Fueled. */
+  isDeskIdentity?: boolean;
   role: SessionPayload["role"];
   canPublishCalls: boolean;
   canDm: boolean;
@@ -92,10 +100,9 @@ export function NewCallForm({
   const [targetPrice, setTargetPrice] = useState(queryDraft.targetPrice);
   const [stopPrice, setStopPrice] = useState(queryDraft.stopPrice);
   const [timeframeTag, setTimeframeTag] = useState(queryDraft.timeframeTag);
-  const [sourceTweetUrl] = useState(queryDraft.sourceTweetUrl);
-  const [publishFueled, setPublishFueled] = useState(
-    isAdmin && queryDraft.publishFueled
-  );
+  const [sourceTweetUrl, setSourceTweetUrl] = useState(queryDraft.sourceTweetUrl);
+  const [entryMode, setEntryMode] = useState<"live" | "conditional">("live");
+  const [triggerEntryPrice, setTriggerEntryPrice] = useState("");
   const [aiMode, setAiMode] = useState<"default" | "deep">(
     queryDraft.socialMode === "deep" ? "deep" : "default"
   );
@@ -165,10 +172,11 @@ export function NewCallForm({
 
       const analysis = data.analysis as TickerAnalyzeResult;
 
-      if (isAdmin) setPublishFueled(true);
       setThesis(formatFueledThesisForPublish(analysis));
       if (analysis.direction) setDirection(analysis.direction);
-      if (analysis.entryPrice != null) setEntryPrice(String(analysis.entryPrice));
+      if (analysis.entryPrice != null && entryMode === "live") {
+        setEntryPrice(String(analysis.entryPrice));
+      }
       if (analysis.targetPrice != null) setTargetPrice(String(analysis.targetPrice));
       if (analysis.stopPrice != null) setStopPrice(String(analysis.stopPrice));
       if (analysis.timeframeNote) setTimeframeTag(analysis.timeframeNote);
@@ -211,19 +219,37 @@ export function NewCallForm({
     return () => clearTimeout(t);
   }, [symbol, assetClass]);
 
+  useEffect(() => {
+    if (entryMode === "live" && marketPrice != null) {
+      setEntryPrice(String(marketPrice));
+    }
+  }, [entryMode, marketPrice]);
+
+  function applyXPayload(payload: PublishXApplyPayload) {
+    setSymbol(payload.symbol.toUpperCase());
+    setAssetClass(payload.assetClass);
+    setDirection(payload.direction);
+    setThesis(payload.thesis);
+    if (payload.targetPrice != null) setTargetPrice(String(payload.targetPrice));
+    if (payload.stopPrice != null) setStopPrice(String(payload.stopPrice));
+    if (payload.timeframeTag) setTimeframeTag(payload.timeframeTag);
+    if (payload.sourceTweetUrl) setSourceTweetUrl(payload.sourceTweetUrl);
+    if (payload.socialMode) setAiMode(payload.socialMode);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      const fueled = isAdmin && publishFueled;
-      const modeToSend: "default" | "deep" | undefined = fueled
-        ? sourceTweetUrl
+      const modeToSend: "default" | "deep" | undefined =
+        isAdmin && sourceTweetUrl
           ? queryDraft.socialMode === "deep"
             ? "deep"
             : "default"
-          : aiMode
-        : undefined;
+          : isAdmin && aiDraftRawText
+            ? aiMode
+            : undefined;
       const res = await fetch("/api/calls", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -232,15 +258,18 @@ export function NewCallForm({
           assetClass,
           direction,
           thesis,
-          entryPrice: entryPrice ? parseFloat(entryPrice) : undefined,
+          entryMode,
+          triggerEntryPrice:
+            entryMode === "conditional" && triggerEntryPrice
+              ? parseFloat(triggerEntryPrice)
+              : undefined,
           targetPrice: targetPrice ? parseFloat(targetPrice) : undefined,
           stopPrice: stopPrice ? parseFloat(stopPrice) : undefined,
           timeframeTag: timeframeTag || undefined,
-          isFueled: fueled ? true : undefined,
           sourceTweetUrl: isAdmin && sourceTweetUrl ? sourceTweetUrl : undefined,
           socialAnalysisMode: modeToSend,
           socialAnalysisRawText:
-            fueled && !sourceTweetUrl && aiDraftRawText ? aiDraftRawText : undefined,
+            isAdmin && !sourceTweetUrl && aiDraftRawText ? aiDraftRawText : undefined,
         }),
       });
       const data = await res.json();
@@ -253,6 +282,12 @@ export function NewCallForm({
               ? `Weekly limit reached (${data.quota} calls this week). Upgrade to Pro in billing for 6 calls/week.`
               : `Weekly limit reached (${data.quota} calls this week). Your quota resets on a rolling 7-day window.`
           );
+        } else if (data.error === "trigger_must_be_below_market") {
+          setError("For a long bottom call, entry trigger must be below the current price.");
+        } else if (data.error === "trigger_must_be_above_market") {
+          setError("For a short top call, entry trigger must be above the current price.");
+        } else if (data.error === "trigger_required") {
+          setError("Enter a trigger price for a conditional entry call.");
         } else {
           setError(typeof data.error === "string" ? data.error : "Could not submit call.");
         }
@@ -269,8 +304,10 @@ export function NewCallForm({
 
   const showFeedPreview =
     symbol.trim().length > 0 && thesis.trim().length >= 10;
+  const liveEntryDisplay =
+    entryMode === "live" && marketPrice != null ? String(marketPrice) : entryPrice;
   const showTradeSetup =
-    Boolean(entryPrice || targetPrice || stopPrice) &&
+    Boolean(liveEntryDisplay || targetPrice || stopPrice || triggerEntryPrice) &&
     (showFeedPreview || journalPrefilled);
 
   return (
@@ -289,7 +326,7 @@ export function NewCallForm({
 
       <NewCallPageHeader
         weeklyQuota={weeklyQuota}
-        fueledMode={publishFueled}
+        fueledMode={isDeskIdentity}
         prefilledSymbol={symbol.trim() || undefined}
       />
 
@@ -331,12 +368,12 @@ export function NewCallForm({
               assetClass={assetClass}
               direction={direction}
               thesis={thesis}
-              entryPrice={entryPrice}
+              entryPrice={liveEntryDisplay}
               targetPrice={targetPrice}
               stopPrice={stopPrice}
               timeframeTag={timeframeTag}
               lastPrice={marketPrice}
-              publishFueled={publishFueled}
+              publishFueled={isDeskIdentity}
               fromJournal={fromJournal}
               conviction={queryDraft.conviction}
               catalysts={queryDraft.catalysts}
@@ -358,7 +395,7 @@ export function NewCallForm({
           {showTradeSetup ? (
             <TradeSetupPreview
               direction={direction}
-              entryPrice={entryPrice}
+              entryPrice={liveEntryDisplay}
               targetPrice={targetPrice}
               stopPrice={stopPrice}
             />
@@ -384,6 +421,23 @@ export function NewCallForm({
 
         <div className="pf-workspace-panel p-5 sm:p-6">
           <form onSubmit={handleSubmit} className="space-y-8">
+            {isAdmin ? (
+              <>
+                <PublishIdentitySwitcher />
+                {isDeskIdentity ? (
+                  <p className="rounded-lg border border-[var(--pf-red)]/25 bg-[var(--pf-red-muted)] px-3 py-2 text-sm text-[var(--pf-gray-800)]">
+                    Publishing as <strong>PortFuel desk</strong> — this call will be{" "}
+                    <strong>Fueled</strong>.
+                  </p>
+                ) : (
+                  <p className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2 text-sm text-[var(--pf-gray-700)]">
+                    Publishing as your <strong>personal</strong> account — regular member call.
+                  </p>
+                )}
+                <PublishXSourcePanel onApply={applyXPayload} />
+              </>
+            ) : null}
+
             {isAdmin || isPro ? (
               !journalPrefilled ? (
               <section className="space-y-3 rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-4">
@@ -480,19 +534,6 @@ export function NewCallForm({
                 />
               </div>
               </div>
-              {isAdmin ? (
-                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2.5 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={publishFueled}
-                    onChange={(e) => setPublishFueled(e.target.checked)}
-                    className="h-4 w-4 accent-[var(--pf-red)]"
-                  />
-                  <span className="font-medium text-[var(--pf-gray-800)]">
-                    Publish as Fueled desk call
-                  </span>
-                </label>
-              ) : null}
               <div>
                 <Label htmlFor="symbol">Symbol</Label>
                 <Input
@@ -518,13 +559,6 @@ export function NewCallForm({
                         ${formatPrice(marketPrice)}
                       </span>
                     </span>
-                    <button
-                      type="button"
-                      className="pf-chip-action px-2.5 py-1 text-[11px]"
-                      onClick={() => setEntryPrice(String(marketPrice))}
-                    >
-                      Use as entry
-                    </button>
                   </div>
                 ) : null}
                 {symbolHint ? (
@@ -564,19 +598,60 @@ export function NewCallForm({
             </section>
 
             <section className="space-y-4">
-              <p className="pf-eyebrow">Levels (optional)</p>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div>
-                  <Label htmlFor="entry">Entry</Label>
-                  <Input
-                    id="entry"
-                    type="number"
-                    step="any"
-                    value={entryPrice}
-                    onChange={(e) => setEntryPrice(e.target.value)}
-                    placeholder="—"
+              <p className="pf-eyebrow">Entry</p>
+              <div className="space-y-3">
+                <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-[var(--pf-border)] px-3 py-2.5">
+                  <input
+                    type="radio"
+                    name="entryMode"
+                    checked={entryMode === "live"}
+                    onChange={() => setEntryMode("live")}
+                    className="mt-1 accent-[var(--pf-red)]"
                   />
-                </div>
+                  <span className="text-sm">
+                    <span className="font-medium text-[var(--pf-gray-800)]">Live now</span>
+                    <span className="mt-0.5 block text-xs text-[var(--pf-gray-500)]">
+                      Entry locks to current price
+                      {marketPrice != null ? ` ($${formatPrice(marketPrice)})` : ""} at publish.
+                    </span>
+                  </span>
+                </label>
+                <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-[var(--pf-border)] px-3 py-2.5">
+                  <input
+                    type="radio"
+                    name="entryMode"
+                    checked={entryMode === "conditional"}
+                    onChange={() => setEntryMode("conditional")}
+                    className="mt-1 accent-[var(--pf-red)]"
+                  />
+                  <span className="text-sm">
+                    <span className="font-medium text-[var(--pf-gray-800)]">Call a level</span>
+                    <span className="mt-0.5 block text-xs text-[var(--pf-gray-500)]">
+                      No return until price reaches your trigger (auto-expires in 30 days).
+                    </span>
+                  </span>
+                </label>
+                {entryMode === "conditional" ? (
+                  <div>
+                    <Label htmlFor="trigger">Trigger entry price</Label>
+                    <Input
+                      id="trigger"
+                      type="number"
+                      step="any"
+                      required
+                      value={triggerEntryPrice}
+                      onChange={(e) => setTriggerEntryPrice(e.target.value)}
+                      placeholder={direction === "long" ? "Below current price" : "Above current price"}
+                      className="mt-1.5"
+                    />
+                  </div>
+                ) : null}
+              </div>
+            </section>
+
+            <section className="space-y-4">
+              <p className="pf-eyebrow">Levels (optional)</p>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <Label htmlFor="target">Target</Label>
                   <Input

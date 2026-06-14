@@ -32,6 +32,7 @@ export async function signSessionToken(payload: SessionPayload): Promise<string>
 }
 
 type DbBillingRow = {
+  username: string;
   subscription_status: SessionPayload["subscriptionStatus"];
   membership_tier: MembershipTier | null;
   pro_granted_until: string | null;
@@ -48,7 +49,7 @@ async function fetchBillingRow(userId: string): Promise<DbBillingRow | null> {
   const { data } = await db
     .from("users")
     .select(
-      "subscription_status, membership_tier, pro_granted_until, totp_verified, display_name, role, onboarding_completed_at, theme_mode, icon_theme"
+      "username, subscription_status, membership_tier, pro_granted_until, totp_verified, display_name, role, onboarding_completed_at, theme_mode, icon_theme"
     )
     .eq("id", userId)
     .maybeSingle();
@@ -76,8 +77,10 @@ function sessionChanged(before: SessionPayload, after: SessionPayload): boolean 
     before.proGrantedUntil !== after.proGrantedUntil ||
     before.totpVerified !== after.totpVerified ||
     before.role !== after.role ||
+    before.userId !== after.userId ||
+    before.authUserId !== after.authUserId ||
+    before.username !== after.username ||
     before.displayName !== after.displayName ||
-    before.onboardingCompleted !== after.onboardingCompleted ||
     before.emailVerified !== after.emailVerified ||
     before.banned !== after.banned ||
     before.canAccessWorkspace !== after.canAccessWorkspace ||
@@ -109,6 +112,7 @@ export function jwtPayloadToSession(payload: Record<string, unknown>): SessionPa
     : null;
   return {
     userId,
+    authUserId: payload.authUserId ? String(payload.authUserId) : userId,
     username: String(payload.username ?? payload.pin ?? ""),
     displayName: payload.displayName ? String(payload.displayName) : null,
     role: payload.role as SessionPayload["role"],
@@ -146,8 +150,9 @@ export async function refreshSessionFromDatabase(
   options?: RefreshSessionOptions
 ): Promise<{ session: SessionPayload | null; token?: string }> {
   try {
+    const authUserId = session.authUserId ?? session.userId;
     const valid = await isAuthSessionValid({
-      userId: session.userId,
+      userId: authUserId,
       sessionId: session.sessionId,
       sessionVersion: session.sessionVersion,
     });
@@ -169,8 +174,13 @@ export async function refreshSessionFromDatabase(
 
     await expireProGrantIfNeeded(session.userId);
     await expireCompAccessIfNeeded(session.userId);
-    const row = await fetchBillingRow(session.userId);
-    if (!row) return { session };
+
+    const activeRow = await fetchBillingRow(session.userId);
+    if (!activeRow) return { session };
+
+    const authRow =
+      authUserId !== session.userId ? await fetchBillingRow(authUserId) : activeRow;
+    if (!authRow) return { session };
 
     void touchLastActive(session.userId);
     if (session.sessionId) {
@@ -178,24 +188,28 @@ export async function refreshSessionFromDatabase(
     }
 
     const effectiveTier = effectiveMembershipTier(
-      row.membership_tier,
-      row.pro_granted_until
+      activeRow.membership_tier,
+      activeRow.pro_granted_until
     );
 
     const lifecycle = await fetchLifecycleSessionFields(session.userId);
+    const adminAuth = authRow.role === "admin";
 
     const merged: SessionPayload = {
       ...session,
-      subscriptionStatus: row.subscription_status,
+      authUserId,
+      username: activeRow.username,
+      subscriptionStatus: activeRow.subscription_status,
       membershipTier: effectiveTier,
-      proGrantedUntil: row.pro_granted_until,
+      proGrantedUntil: activeRow.pro_granted_until,
       ...lifecycle,
-      totpVerified: row.totp_verified,
-      displayName: row.display_name ?? session.displayName,
-      role: row.role,
-      onboardingCompleted: onboardingCompletedFromRow(row),
-      themeMode: parseThemeMode(row.theme_mode),
-      iconTheme: parseIconTheme(row.icon_theme),
+      canAccessWorkspace: adminAuth ? true : lifecycle.canAccessWorkspace,
+      totpVerified: authRow.totp_verified,
+      displayName: activeRow.display_name ?? session.displayName,
+      role: authRow.role,
+      onboardingCompleted: onboardingCompletedFromRow(authRow),
+      themeMode: parseThemeMode(activeRow.theme_mode),
+      iconTheme: parseIconTheme(activeRow.icon_theme),
     };
 
     if (!sessionChanged(session, merged)) {

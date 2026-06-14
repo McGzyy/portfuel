@@ -3,6 +3,7 @@ import { toHeaderUser } from "@/lib/auth/session-user";
 import { fetchWeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { isProIntelligenceLocked, sessionToProContext } from "@/lib/features/pro-intelligence";
 import { redirect } from "next/navigation";
+import { isDeskPublishIdentity } from "@/lib/admin/publish-identity";
 import { NewCallForm } from "./NewCallForm";
 
 export default async function NewCallPage() {
@@ -22,6 +23,7 @@ export default async function NewCallPage() {
       showUpgrade={proLocked}
       isPro={!proLocked}
       isAdmin={session.role === "admin"}
+      isDeskIdentity={isDeskPublishIdentity(session)}
       canPublishCalls={session.canPublishCalls}
       role={session.role}
       canDm={session.canDm}

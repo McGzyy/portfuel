@@ -66,6 +66,7 @@ export async function buildSessionPayloadForUser(
 
   return {
     userId: user.id,
+    authUserId: user.id,
     username: user.username,
     displayName: user.display_name,
     role: user.role,

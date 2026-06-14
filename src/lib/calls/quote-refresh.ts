@@ -10,6 +10,7 @@ import { processCallMilestones } from "@/lib/notifications/milestones";
 import { processCallStopCrosses } from "@/lib/notifications/stop-cross";
 import { processMemberWinGates } from "@/lib/social/member-win-gate";
 import { refreshMemberRankings } from "@/lib/users/rankings";
+import { metricsForCallRow, processPendingEntryCalls } from "@/lib/calls/pending-entry";
 
 export type QuoteFetchResult = {
   symbol: string;
@@ -37,6 +38,8 @@ type CallRow = {
   is_fueled: boolean;
   peak_return_pct?: number | null;
   closed_at?: string | null;
+  call_state?: string | null;
+  entry_mode?: string | null;
 };
 
 async function loadSnapshot(sym: string) {
@@ -134,6 +137,8 @@ export async function refreshQuotesForSymbols(
   }
 
   let updated = 0;
+  const pendingResult = await processPendingEntryCalls(priceMap);
+
   const milestoneRows: {
     id: string;
     user_id: string;
@@ -150,6 +155,7 @@ export async function refreshQuotesForSymbols(
 
   for (const call of allCalls) {
     if (call.closed_at) continue;
+    if (call.call_state === "pending_entry") continue;
     const last = priceMap.get(call.symbol.toUpperCase());
     if (last == null) continue;
 
@@ -166,11 +172,13 @@ export async function refreshQuotesForSymbols(
       new_last_price: last,
     });
 
-    const metrics = buildLiveCallMetricsUpdate(call, last);
+    const metrics = metricsForCallRow(call, last);
 
     if (await persistCallMetricsUpdate(call.id, metrics)) {
       updated++;
     }
+
+    if (metrics.return_pct == null) continue;
 
     milestoneRows.push({
       id: call.id,
@@ -228,6 +236,8 @@ export async function refreshAllQuotesAndScores(): Promise<{
   updated: number;
   milestonesNotified: number;
   memberWinGates: number;
+  pendingActivated?: number;
+  pendingExpired?: number;
   quotes: QuoteFetchResult[];
 }> {
   const db = createServiceClient();
@@ -258,6 +268,8 @@ export async function refreshAllQuotesAndScores(): Promise<{
   }
 
   let updated = 0;
+  const pendingResult = await processPendingEntryCalls(priceMap);
+
   const milestoneRows: {
     id: string;
     user_id: string;
@@ -274,6 +286,7 @@ export async function refreshAllQuotesAndScores(): Promise<{
 
   for (const call of rows) {
     if (call.closed_at) continue;
+    if (call.call_state === "pending_entry") continue;
     const last = priceMap.get(call.symbol.toUpperCase());
     if (last == null) continue;
 
@@ -290,11 +303,13 @@ export async function refreshAllQuotesAndScores(): Promise<{
       new_last_price: last,
     });
 
-    const metrics = buildLiveCallMetricsUpdate(call, last);
+    const metrics = metricsForCallRow(call, last);
 
     if (await persistCallMetricsUpdate(call.id, metrics)) {
       updated++;
     }
+
+    if (metrics.return_pct == null) continue;
 
     milestoneRows.push({
       id: call.id,
@@ -337,5 +352,12 @@ export async function refreshAllQuotesAndScores(): Promise<{
   const { gated: memberWinGates } = await processMemberWinGates(milestoneRows);
   await processCallStopCrosses(stopCrossRows);
 
-  return { updated, milestonesNotified, memberWinGates, quotes };
+  return {
+    updated,
+    pendingActivated: pendingResult.activated,
+    pendingExpired: pendingResult.expired,
+    milestonesNotified,
+    memberWinGates,
+    quotes,
+  };
 }

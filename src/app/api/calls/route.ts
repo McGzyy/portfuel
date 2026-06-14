@@ -23,17 +23,22 @@ import {
 import { markWatchlistActiveOnPublish } from "@/lib/watchlist/position-intent";
 import { tryAutopostFueledOnPublish } from "@/lib/social/x-fueled-autopost";
 import { isMissingColumnDbError } from "@/lib/calls/call-fields";
+import { isDeskPublishIdentity } from "@/lib/admin/publish-identity";
+import {
+  pendingEntryExpiresAt,
+  validateConditionalTrigger,
+} from "@/lib/calls/pending-entry";
 
 const createSchema = z.object({
   symbol: z.string().min(1).max(12),
   assetClass: z.enum(["equity", "crypto"]).default("equity"),
   direction: z.enum(["long", "short"]),
   thesis: z.string().min(10).max(5000),
-  entryPrice: z.number().positive().optional(),
+  entryMode: z.enum(["live", "conditional"]).default("live"),
+  triggerEntryPrice: z.number().positive().optional(),
   targetPrice: z.number().positive().optional(),
   stopPrice: z.number().positive().optional(),
   timeframeTag: z.string().max(32).optional(),
-  isFueled: z.boolean().optional(),
   sourceTweetUrl: z.string().url().max(500).optional(),
   socialAnalysisMode: z.enum(["default", "deep"]).optional(),
   socialAnalysisRawText: z.string().min(12).max(8000).optional(),
@@ -86,26 +91,46 @@ export async function POST(request: Request) {
     }
 
     const resolvedSymbol = validated.symbol;
-    let priceAtCall = body.entryPrice ?? null;
-    if (priceAtCall == null) {
-      if (body.assetClass === "crypto" && validated.finnhubSymbol) {
-        priceAtCall = (await getCryptoLastPrice(validated.finnhubSymbol)) ?? null;
-      } else {
-        const quote = await getQuote(resolvedSymbol);
-        priceAtCall = quote?.c ?? null;
+    let marketPrice: number | null = null;
+    if (body.assetClass === "crypto" && validated.finnhubSymbol) {
+      marketPrice = (await getCryptoLastPrice(validated.finnhubSymbol)) ?? null;
+    } else {
+      const quote = await getQuote(resolvedSymbol);
+      marketPrice = quote?.c ?? null;
+    }
+
+    if (marketPrice == null) {
+      return NextResponse.json({ error: "quote_unavailable" }, { status: 503 });
+    }
+
+    const entryMode = body.entryMode ?? "live";
+    const isConditional = entryMode === "conditional";
+
+    if (isConditional && body.triggerEntryPrice == null) {
+      return NextResponse.json({ error: "trigger_required" }, { status: 400 });
+    }
+
+    if (isConditional && body.triggerEntryPrice != null) {
+      const triggerCheck = validateConditionalTrigger({
+        direction: body.direction,
+        triggerPrice: body.triggerEntryPrice,
+        marketPrice,
+      });
+      if (!triggerCheck.ok) {
+        return NextResponse.json({ error: triggerCheck.error }, { status: 400 });
       }
     }
 
     await db.from("ticker_snapshots").upsert({
       symbol: resolvedSymbol,
       company_name: validated.name ?? resolvedSymbol,
-      last_price: priceAtCall,
+      last_price: marketPrice,
       asset_class: body.assetClass,
       finnhub_symbol: validated.finnhubSymbol ?? null,
       updated_at: new Date().toISOString(),
     } as never);
 
-    const isFueled = body.isFueled === true && session.role === "admin";
+    const isFueled = isDeskPublishIdentity(session);
     const sourceTweetUrl =
       session.role === "admin" && body.sourceTweetUrl?.trim()
         ? body.sourceTweetUrl.trim()
@@ -115,22 +140,22 @@ export async function POST(request: Request) {
         ? body.socialAnalysisRawText.trim()
         : null;
 
-    const entryForRecord = body.entryPrice ?? priceAtCall ?? null;
+    const entryForRecord = isConditional ? null : marketPrice;
     const returnPct =
-      entryForRecord != null && priceAtCall != null
+      !isConditional && entryForRecord != null
         ? computeReturnPct({
             direction: body.direction,
             basisPrice: Number(entryForRecord),
-            lastPrice: priceAtCall,
+            lastPrice: marketPrice,
           })
         : null;
     let targetProgress: number | null = null;
-    if (entryForRecord != null && body.targetPrice != null && priceAtCall != null) {
+    if (!isConditional && entryForRecord != null && body.targetPrice != null) {
       targetProgress = computeTargetProgress({
         direction: body.direction,
         entry: Number(entryForRecord),
         target: body.targetPrice,
-        lastPrice: priceAtCall,
+        lastPrice: marketPrice,
       });
     }
     const scorePoints = computeScorePoints({
@@ -147,12 +172,17 @@ export async function POST(request: Request) {
         direction: body.direction,
         thesis: body.thesis.trim(),
         called_at: new Date().toISOString(),
+        entry_mode: entryMode,
+        call_state: isConditional ? "pending_entry" : "active",
+        trigger_entry_price: isConditional ? body.triggerEntryPrice : null,
+        activated_at: isConditional ? null : new Date().toISOString(),
+        expires_at: isConditional ? pendingEntryExpiresAt() : null,
         entry_price: entryForRecord,
         target_price: body.targetPrice ?? null,
         stop_price: body.stopPrice ?? null,
         timeframe_tag: body.timeframeTag ?? null,
-        price_at_call: priceAtCall,
-        last_price: priceAtCall,
+        price_at_call: marketPrice,
+        last_price: marketPrice,
         return_pct: returnPct,
         peak_return_pct: returnPct,
         target_progress: targetProgress,

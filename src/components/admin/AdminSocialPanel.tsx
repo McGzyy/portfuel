@@ -182,10 +182,10 @@ export function AdminSocialPanel() {
           </p>
         </div>
         <Link
-          href="/admin?tab=x-ingest"
+          href="/calls/new"
           className="rounded-lg border border-[var(--pf-border)] px-4 py-2 text-sm font-semibold text-[var(--pf-red)] hover:bg-[var(--pf-red-muted)]"
         >
-          Open X Ingest →
+          Publish call →
         </Link>
       </section>
 

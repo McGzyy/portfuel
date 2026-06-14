@@ -7,7 +7,6 @@ import { AdminAnalyticsPanel } from "@/components/admin/AdminAnalyticsPanel";
 import { AdminDeskPanel } from "@/components/admin/AdminDeskPanel";
 import { AdminLaunchPanel } from "@/components/admin/AdminLaunchPanel";
 import { AdminSocialPanel } from "@/components/admin/AdminSocialPanel";
-import { AdminXIngestPanel } from "@/components/admin/AdminXIngestPanel";
 import { AdminVouchersPanel } from "@/components/admin/AdminVouchersPanel";
 import { AdminMarketingPanel } from "@/components/admin/AdminMarketingPanel";
 import { AdminAnnouncementsPanel } from "@/components/admin/AdminAnnouncementsPanel";
@@ -39,8 +38,6 @@ export function AdminShell() {
           <AdminSocialPanel />
         ) : tab === "marketing" ? (
           <AdminMarketingPanel />
-        ) : tab === "x-ingest" ? (
-          <AdminXIngestPanel />
         ) : tab === "vouchers" ? (
           <AdminVouchersPanel />
         ) : (

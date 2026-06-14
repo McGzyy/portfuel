@@ -144,9 +144,9 @@ export function AdminLaunchPanel() {
           Paste an X URL on Admin → X Ingest, analyze each ticker, then publish. See{" "}
           <code className="rounded bg-white px-1">docs/X-SOCIAL.md</code>.
         </p>
-        <Link href="/admin?tab=x-ingest" className="mt-3 inline-block">
+        <Link href="/calls/new" className="mt-3 inline-block">
           <Button variant="outline" size="sm">
-            Open X Ingest
+            Publish call
           </Button>
         </Link>
       </section>
