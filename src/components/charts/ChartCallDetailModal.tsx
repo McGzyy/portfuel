@@ -142,6 +142,7 @@ function ChartCallSiblingStrip({
           const active = id === activeCall.id;
           const name = preview?.users.display_name ?? preview?.users.pin ?? "Call";
           const ret = preview?.return_pct;
+          const isPending = preview?.call_state === "pending_entry";
           return (
             <button
               key={id}
@@ -155,7 +156,9 @@ function ChartCallSiblingStrip({
               )}
             >
               {name}
-              {ret != null ? (
+              {isPending ? (
+                <span className="ml-1 text-[var(--pf-gray-500)]">Awaiting</span>
+              ) : ret != null ? (
                 <span
                   className={cn(
                     "ml-1 tabular-nums",

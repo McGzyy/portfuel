@@ -76,12 +76,12 @@ type RawCall = {
   direction: "long" | "short";
   thesis: string;
   called_at: string;
-  entry_price: number;
+  entry_price: number | null;
   target_price: number;
   stop_price: number | null;
   price_at_call: number;
   last_price: number;
-  return_pct: number;
+  return_pct: number | null;
   target_progress: number;
   vote_score: number;
   comment_count: number;
@@ -91,6 +91,10 @@ type RawCall = {
   peak_return_pct?: number;
   closed_at?: string;
   exit_price?: number;
+  entry_mode?: "live" | "conditional";
+  call_state?: "pending_entry" | "active" | "cancelled" | "expired";
+  trigger_entry_price?: number | null;
+  expires_at?: string | null;
 };
 
 const RAW_CALLS: RawCall[] = [
@@ -428,6 +432,32 @@ const RAW_CALLS: RawCall[] = [
     source: "user",
     timeframe_tag: "Scalp",
   },
+  {
+    id: "demo-call-016",
+    userKey: "ace",
+    symbol: "NVDA",
+    asset_class: "equity",
+    direction: "long",
+    thesis:
+      "Conditional add on pullback — waiting for 125 to fill before tracking live. Target 142, stop 118.",
+    called_at: daysAgo(1, 2),
+    entry_price: null,
+    target_price: 142,
+    stop_price: 118,
+    price_at_call: 132.4,
+    last_price: 132.4,
+    return_pct: null,
+    target_progress: 0,
+    vote_score: 5,
+    comment_count: 2,
+    is_fueled: false,
+    source: "user",
+    timeframe_tag: "Swing",
+    entry_mode: "conditional",
+    call_state: "pending_entry",
+    trigger_entry_price: 125,
+    expires_at: new Date(NOW + 22 * 86400000).toISOString(),
+  },
 ];
 
 function toCallWithUser(raw: RawCall): CallWithUser {
@@ -452,12 +482,17 @@ function toCallWithUser(raw: RawCall): CallWithUser {
     closed_at: raw.closed_at ?? null,
     exit_price: raw.exit_price ?? null,
     target_progress: raw.target_progress,
-    score_points: raw.return_pct * 2 + raw.vote_score,
+    score_points: raw.return_pct != null ? raw.return_pct * 2 + raw.vote_score : raw.vote_score,
     vote_score: raw.vote_score,
     comment_count: raw.comment_count,
     is_fueled: raw.is_fueled,
     source: raw.source,
     source_tweet_url: null,
+    entry_mode: raw.entry_mode ?? "live",
+    call_state: raw.call_state ?? "active",
+    trigger_entry_price: raw.trigger_entry_price ?? null,
+    activated_at: null,
+    expires_at: raw.expires_at ?? null,
     created_at: ts,
     updated_at: ts,
     users: {
@@ -525,16 +560,16 @@ export function getDemoCallsBySymbol(symbol: string): CallWithUser[] {
 }
 
 export function getDemoPublicTeasers(): { performing: TeaserCallRow[]; proven: TeaserCallRow[] } {
-  const performing = RAW_CALLS.filter((c) => c.return_pct >= 5)
-    .sort((a, b) => b.return_pct - a.return_pct)
+  const performing = RAW_CALLS.filter((c) => c.return_pct != null && c.return_pct >= 5)
+    .sort((a, b) => (b.return_pct ?? 0) - (a.return_pct ?? 0))
     .slice(0, 6)
     .map(toTeaserRow);
 
   const proven = RAW_CALLS.filter((c) => {
     const ageDays = (NOW - new Date(c.called_at).getTime()) / 86400000;
-    return c.return_pct >= 10 && ageDays >= 7;
+    return c.return_pct != null && c.return_pct >= 10 && ageDays >= 7;
   })
-    .sort((a, b) => b.return_pct - a.return_pct)
+    .sort((a, b) => (b.return_pct ?? 0) - (a.return_pct ?? 0))
     .slice(0, 6)
     .map(toTeaserRow);
 

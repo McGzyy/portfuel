@@ -220,6 +220,9 @@ export default async function DashboardOverviewPage({
     const row = ownCalls.find((r) => r.id === c.id);
     return row ? isOpenMemberCall(row) : true;
   });
+  const pendingEntryCount = openCallCards.filter(
+    (c) => c.call_state === "pending_entry"
+  ).length;
 
   const displayLabel = session.displayName ?? session.username;
 
@@ -268,6 +271,8 @@ export default async function DashboardOverviewPage({
         displayName={displayLabel}
         username={session.username}
         openCallsCount={openCallCards.length}
+        pendingEntryCount={pendingEntryCount}
+        isAdmin={session.role === "admin"}
         isPro={isPro}
       />
 

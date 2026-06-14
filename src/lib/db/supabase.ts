@@ -70,6 +70,11 @@ export type Database = {
           is_fueled: boolean;
           source: string;
           source_tweet_url: string | null;
+          entry_mode: "live" | "conditional";
+          call_state: "pending_entry" | "active" | "cancelled" | "expired";
+          trigger_entry_price: number | null;
+          activated_at: string | null;
+          expires_at: string | null;
           created_at: string;
           updated_at: string;
         };

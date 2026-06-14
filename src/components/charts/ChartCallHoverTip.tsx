@@ -19,9 +19,16 @@ export function ChartCallHoverTip({
   className?: string;
 }) {
   const name = call.users.display_name ?? call.users.pin;
+  const isPending = call.call_state === "pending_entry";
   const ret = call.return_pct;
   const retClass =
-    ret == null ? "text-[var(--pf-gray-500)]" : ret >= 0 ? "pf-return-up" : "pf-return-down";
+    isPending
+      ? "text-[var(--pf-gray-500)]"
+      : ret == null
+        ? "text-[var(--pf-gray-500)]"
+        : ret >= 0
+          ? "pf-return-up"
+          : "pf-return-down";
 
   const left = Math.min(Math.max(x + 12, 8), 280);
   const top = Math.max(y - 8, 8);
@@ -46,7 +53,7 @@ export function ChartCallHoverTip({
           </Badge>
         ) : null}
         <span className={cn("ml-auto text-xs font-bold tabular-nums", retClass)}>
-          {formatPct(ret)}
+          {isPending ? "Awaiting entry" : formatPct(ret)}
         </span>
       </div>
       <p className="mt-1 text-[10px] text-[var(--pf-gray-400)]">{timeAgo(call.called_at)}</p>
