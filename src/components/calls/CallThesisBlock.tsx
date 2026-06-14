@@ -9,6 +9,7 @@ import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { CallCloseButton } from "@/components/calls/CallCloseButton";
 import { CallReturnDisplay } from "@/components/calls/CallReturnDisplay";
 import { CallStopHitNotice } from "@/components/calls/CallStopHitNotice";
+import { CallSpotlightPrompt } from "@/components/calls/CallSpotlightPrompt";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
 import { isCallStopHit } from "@/lib/calls/stop-cross";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
@@ -225,6 +226,16 @@ export function CallThesisBlock({
               closed_at: call.closed_at,
             }}
             showClose={canClose}
+          />
+        </div>
+      ) : null}
+
+      {isOwnCall && !call.is_fueled && !call.closed_at && call.symbol ? (
+        <div className="border-t border-[var(--pf-border)] px-5 py-3 sm:px-6">
+          <CallSpotlightPrompt
+            callId={call.id}
+            symbol={call.symbol}
+            returnPct={call.return_pct}
           />
         </div>
       ) : null}

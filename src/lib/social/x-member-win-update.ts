@@ -12,20 +12,19 @@ import {
 } from "@/lib/social/post-log";
 
 function memberWinUpdatesEnabled(): boolean {
-  const raw = (process.env.X_POST_MEMBER_WIN_UPDATES ?? "").trim().toLowerCase();
-  if (!raw) return false;
+  const raw = (process.env.X_POST_MEMBER_WIN_UPDATES ?? "true").trim().toLowerCase();
   if (["0", "false", "no"].includes(raw)) return false;
-  return ["1", "true", "yes"].includes(raw);
+  return true;
 }
 
-/** Quote-tweet the original member spotlight when +25% or target is reached. */
+/** Quote-tweet the original member spotlight when +50% or target is reached. */
 export async function tryAutopostMemberWinUpdate(
   callId: string,
   milestone: CallMilestoneKey,
   opts?: { isFueled?: boolean }
 ): Promise<void> {
   if (opts?.isFueled) return;
-  if (milestone !== "return_25" && milestone !== "target_reached") return;
+  if (milestone !== "return_50" && milestone !== "target_reached") return;
 
   const config = getXConfig();
   if (!config.enabled || !memberWinUpdatesEnabled()) return;
@@ -36,7 +35,10 @@ export async function tryAutopostMemberWinUpdate(
   const refId = `member_win_update-${callId}-${milestone}`;
   if (await hasSocialPostBeenSent("member_win_update", refId)) return;
 
-  const composed = await composeMemberWinUpdatePost(callId, milestone);
+  const composed = await composeMemberWinUpdatePost(
+    callId,
+    milestone === "return_50" ? "return_50" : "target_reached"
+  );
   if (!composed.ok) return;
 
   let mediaIds: string[] | undefined;

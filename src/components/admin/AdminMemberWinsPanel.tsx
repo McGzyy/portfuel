@@ -17,7 +17,7 @@ type Candidate = {
   username: string | null;
   displayName: string | null;
   gateAt: string;
-  status: "ready" | "waiting_sustain";
+  status: "ready" | "waiting_sustain" | "pending_review";
 };
 
 type XConfigSummary = {
@@ -71,7 +71,9 @@ export function AdminMemberWinsPanel() {
     setRulesSummary(json.rulesSummary);
     setXConfig(json.x);
     const pick =
-      json.candidates.find((c) => c.status === "ready") ?? json.candidates[0];
+      json.candidates.find((c) => c.status === "ready") ??
+      json.candidates.find((c) => c.status === "pending_review") ??
+      json.candidates[0];
     if (pick) await previewCandidate(pick.callId);
   }, [previewCandidate]);
 
@@ -221,10 +223,18 @@ export function AdminMemberWinsPanel() {
                 </p>
                 <span
                   className={`mt-2 inline-block rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                    c.status === "ready" ? "pf-badge-emerald" : "pf-badge-attention"
+                    c.status === "ready"
+                      ? "pf-badge-emerald"
+                      : c.status === "pending_review"
+                        ? "border border-sky-200 bg-sky-50 text-sky-800"
+                        : "pf-badge-attention"
                   }`}
                 >
-                  {c.status === "ready" ? "Ready to publish" : "Review window"}
+                  {c.status === "ready"
+                    ? "Ready to publish"
+                    : c.status === "pending_review"
+                      ? "Member requested"
+                      : "Review window"}
                 </span>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -241,7 +251,7 @@ export function AdminMemberWinsPanel() {
                   type="button"
                   size="sm"
                   variant="outline"
-                  disabled={loading || c.status !== "ready"}
+                  disabled={loading || (c.status !== "ready" && c.status !== "pending_review")}
                   onClick={() => void post(c.callId, true)}
                 >
                   Dry run

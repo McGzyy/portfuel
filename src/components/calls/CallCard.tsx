@@ -12,6 +12,7 @@ import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { CallCloseButton } from "@/components/calls/CallCloseButton";
 import { CallReturnDisplay } from "@/components/calls/CallReturnDisplay";
 import { CallStopHitNotice } from "@/components/calls/CallStopHitNotice";
+import { CallSpotlightPrompt } from "@/components/calls/CallSpotlightPrompt";
 import { CALL_CARD_INTERACTIVE } from "@/components/calls/call-card-link";
 import { isCallStopHit } from "@/lib/calls/stop-cross";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
@@ -260,6 +261,15 @@ export function CallCard({
             showClose={canClose}
             className={cn("mt-3", linkToTicker && CALL_CARD_INTERACTIVE)}
           />
+        ) : null}
+        {isOwnCall && !call.is_fueled && !call.closed_at ? (
+          <div className={cn("mt-3", linkToTicker && CALL_CARD_INTERACTIVE)}>
+            <CallSpotlightPrompt
+              callId={call.id}
+              symbol={call.symbol}
+              returnPct={call.return_pct}
+            />
+          </div>
         ) : null}
         <div
           className={cn(

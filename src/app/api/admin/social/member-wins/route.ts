@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
-import { fetchMemberWinCandidates } from "@/lib/social/member-win-scan";
+import { fetchAllMemberWinQueue } from "@/lib/social/member-win-scan";
 import { composeMemberWinPost } from "@/lib/social/x-compose";
 import { memberWinChartUrl, postMemberWin } from "@/lib/social/x-member-win-post";
 import { describeMemberWinRules } from "@/lib/social/member-win-eligibility";
@@ -11,7 +11,7 @@ import { xConfigSummary } from "@/lib/social/x-config";
 export async function GET() {
   try {
     await requireAdmin();
-    const candidates = await fetchMemberWinCandidates(15);
+    const candidates = await fetchAllMemberWinQueue(15);
     return NextResponse.json({
       candidates,
       rulesSummary: describeMemberWinRules(),

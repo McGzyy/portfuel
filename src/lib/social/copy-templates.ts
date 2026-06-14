@@ -50,6 +50,7 @@ export const DEFAULT_SOCIAL_POST_COPY: SocialPostCopy = {
 export const MILESTONE_HEADLINE: Record<CallMilestoneKey, string> = {
   return_10: "Fueled desk hit +10%",
   return_25: "Fueled desk hit +25%",
+  return_50: "Fueled desk hit +50%",
   target_reached: "Fueled desk — target reached",
 };
 

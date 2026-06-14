@@ -19,6 +19,7 @@ import {
 const MILESTONE_LABELS: Record<CallMilestoneKey, string> = {
   return_10: "+10% milestone",
   return_25: "+25% milestone",
+  return_50: "+50% milestone",
   target_reached: "Target reached",
 };
 
@@ -26,6 +27,7 @@ const MILESTONE_LABELS: Record<CallMilestoneKey, string> = {
 const DEMO_RETURN: Record<CallMilestoneKey, number> = {
   return_10: 12.4,
   return_25: 27.8,
+  return_50: 52.1,
   target_reached: 18.6,
 };
 

@@ -1,4 +1,4 @@
-export type CallMilestoneKey = "return_10" | "return_25" | "target_reached";
+export type CallMilestoneKey = "return_10" | "return_25" | "return_50" | "target_reached";
 
 export type CallMilestoneInput = {
   return_pct: number | null;
@@ -14,6 +14,7 @@ export function callMilestoneKeysForCall(call: CallMilestoneInput): CallMileston
   if (ret != null) {
     if (ret >= 10) keys.push("return_10");
     if (ret >= 25) keys.push("return_25");
+    if (ret >= 50) keys.push("return_50");
   }
   if (
     call.entry_price != null &&

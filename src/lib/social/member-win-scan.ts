@@ -8,6 +8,7 @@ import {
 } from "@/lib/social/member-win-eligibility";
 import { isSymbolBlockedForMemberWin } from "@/lib/social/member-win-blocklist";
 import { hasSocialPostBeenSent } from "@/lib/social/post-log";
+import { SPOTLIGHT_REQUESTED_KEY } from "@/lib/social/spotlight-config";
 
 export type MemberWinCandidate = {
   callId: string;
@@ -19,7 +20,7 @@ export type MemberWinCandidate = {
   username: string | null;
   displayName: string | null;
   gateAt: string;
-  status: "ready" | "waiting_sustain" | "already_posted";
+  status: "ready" | "waiting_sustain" | "already_posted" | "pending_review";
 };
 
 export async function fetchMemberWinCandidates(limit = 10): Promise<MemberWinCandidate[]> {
@@ -130,4 +131,87 @@ export async function fetchMemberWinCandidates(limit = 10): Promise<MemberWinCan
 export async function pickNextMemberWinCallId(): Promise<string | null> {
   const ready = (await fetchMemberWinCandidates(20)).find((c) => c.status === "ready");
   return ready?.callId ?? null;
+}
+
+/** Member-requested spotlights waiting for admin or sustain window. */
+export async function fetchSpotlightRequestCandidates(
+  limit = 10
+): Promise<MemberWinCandidate[]> {
+  if (isDemoMode()) return [];
+
+  const db = createServiceClient();
+  const { data: milestones, error } = await db
+    .from("call_milestones")
+    .select("call_id, created_at, user_id")
+    .eq("key", SPOTLIGHT_REQUESTED_KEY)
+    .order("created_at", { ascending: false })
+    .limit(limit * 2);
+
+  if (error || !milestones?.length) return [];
+
+  const callIds = milestones.map((m) => (m as { call_id: string }).call_id);
+  const { data: calls, error: callsErr } = await db
+    .from("calls")
+    .select(
+      "id, symbol, direction, return_pct, called_at, user_id, is_fueled, users!inner(username, display_name)"
+    )
+    .in("id", callIds)
+    .eq("is_fueled", false);
+
+  if (callsErr || !calls?.length) return [];
+
+  const out: MemberWinCandidate[] = [];
+  for (const row of calls) {
+    const c = row as unknown as {
+      id: string;
+      symbol: string;
+      direction: string;
+      return_pct: number | null;
+      called_at: string;
+      user_id: string;
+      is_fueled: boolean;
+      users: { username: string | null; display_name: string | null };
+    };
+
+    if (isSymbolBlockedForMemberWin(c.symbol)) continue;
+    const already = await hasSocialPostBeenSent("member_win", c.id);
+    if (already) continue;
+
+    const ms = milestones.find((m) => (m as { call_id: string }).call_id === c.id) as
+      | { created_at: string }
+      | undefined;
+
+    out.push({
+      callId: c.id,
+      symbol: c.symbol,
+      direction: c.direction,
+      returnPct: c.return_pct,
+      calledAt: c.called_at,
+      userId: c.user_id,
+      username: c.users.username,
+      displayName: c.users.display_name,
+      gateAt: ms?.created_at ?? c.called_at,
+      status: "pending_review",
+    });
+
+    if (out.length >= limit) break;
+  }
+
+  return out;
+}
+
+export async function fetchAllMemberWinQueue(limit = 15): Promise<MemberWinCandidate[]> {
+  const [ready, requested] = await Promise.all([
+    fetchMemberWinCandidates(limit),
+    fetchSpotlightRequestCandidates(limit),
+  ]);
+  const seen = new Set<string>();
+  const merged: MemberWinCandidate[] = [];
+  for (const c of [...requested, ...ready]) {
+    if (seen.has(c.callId)) continue;
+    seen.add(c.callId);
+    merged.push(c);
+    if (merged.length >= limit) break;
+  }
+  return merged;
 }

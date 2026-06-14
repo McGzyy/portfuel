@@ -247,7 +247,7 @@ async function composeLeaderboardPost(): Promise<
 
 export async function composeMemberWinPost(
   callId: string,
-  opts?: { skipReadiness?: boolean }
+  opts?: { skipReadiness?: boolean; previewOptIn?: boolean }
 ): Promise<
   | {
       ok: true;
@@ -338,7 +338,9 @@ export async function composeMemberWinPost(
 
   if (row.is_fueled) return { ok: false, error: "no_content" };
   if (isSymbolBlockedForMemberWin(row.symbol)) return { ok: false, error: "no_content" };
-  if (!row.users.allow_social_highlight) return { ok: false, error: "no_content" };
+  if (!opts?.previewOptIn && !row.users.allow_social_highlight) {
+    return { ok: false, error: "no_content" };
+  }
   if (row.users.subscription_status !== "active") return { ok: false, error: "no_content" };
 
   const ageCheck = meetsMemberWinReturnAgeGate(row);
@@ -409,10 +411,10 @@ export async function composeMemberWinPost(
   };
 }
 
-export type MemberWinUpdateMilestone = "return_25" | "target_reached" | "still_running";
+export type MemberWinUpdateMilestone = "return_50" | "target_reached" | "still_running";
 
 const MEMBER_UPDATE_HEADLINE: Record<MemberWinUpdateMilestone, string> = {
-  return_25: "Performance update · +25% on record",
+  return_50: "Performance update · +50% on record",
   target_reached: "Stated target reached on record",
   still_running: "Still running on record",
 };

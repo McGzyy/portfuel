@@ -42,7 +42,12 @@ function copyForMilestone(
     case "return_25":
       return {
         title: `${symbol} hit +25%`,
-        body: `Your call is up ${returnPct?.toFixed(1) ?? "25"}% since entry.`,
+        body: `Your call is up ${returnPct?.toFixed(1) ?? "25"}% since entry. Feature it on @PortFuel from this call card.`,
+      };
+    case "return_50":
+      return {
+        title: `${symbol} hit +50%`,
+        body: `Your call is up ${returnPct?.toFixed(1) ?? "50"}% since entry.`,
       };
     case "target_reached":
       return {
