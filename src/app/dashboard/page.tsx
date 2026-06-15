@@ -17,6 +17,7 @@ import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { getHotTickersFromCalls } from "@/lib/calls/hot-tickers";
 import { fetchWeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { OverviewReturnHero } from "@/components/dashboard/OverviewReturnHero";
+import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { toChartMemberAvatar } from "@/lib/charts/member-avatar";
@@ -220,7 +221,7 @@ export default async function DashboardOverviewPage({
       session.username,
       session.displayName,
       session.userId,
-      ownProfile.member.avatar_url
+      ownProfile.member?.avatar_url ?? null
     )
   );
   const openCallCards = ownCallCards.filter((c) => {
@@ -314,6 +315,17 @@ export default async function DashboardOverviewPage({
           username={session.username}
           isPro={isPro}
           proLocked={proLocked}
+        />
+      ) : null}
+
+      {ownCalls.length > 0 ? (
+        <ShareTrackRecordCard
+          username={session.username}
+          callCount={Math.max(ownCalls.length, memberStats?.calls_count ?? 0)}
+          winRatePct={memberStats?.win_rate ?? null}
+          avgReturnPct={
+            memberStats?.avg_return_pct != null ? Number(memberStats.avg_return_pct) : null
+          }
         />
       ) : null}
 
