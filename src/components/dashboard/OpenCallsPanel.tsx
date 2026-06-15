@@ -40,7 +40,7 @@ export function OpenCallsPanel({
           href="/dashboard/book"
           className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
         >
-          Open book →
+          Positions →
         </Link>
       </div>
       <SparklineProvider symbols={symbols}>
@@ -66,7 +66,7 @@ export function OpenCallsPanel({
         <div className="border-t border-[var(--pf-border)] px-5 py-3 text-center">
           <Link href="/dashboard/book">
             <Button variant="secondary" size="sm">
-              View open book ({calls.length})
+              View all positions ({calls.length})
             </Button>
           </Link>
         </div>

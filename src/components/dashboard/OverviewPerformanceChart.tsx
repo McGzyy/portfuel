@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { ReturnLineChart } from "@/components/charts/ReturnLineChart";
-import type { ReturnChartPoint } from "@/lib/charts/types";
+import type { ReturnChartPoint, ChartMemberAvatar } from "@/lib/charts/types";
 import { COPY } from "@/lib/copy";
 import { formatPct } from "@/lib/utils";
 
 export function OverviewPerformanceChart({
   points,
   profileHref,
+  memberAvatar,
 }: {
   points: ReturnChartPoint[];
   profileHref: string;
+  memberAvatar?: ChartMemberAvatar | null;
 }) {
   const last = points[points.length - 1]?.value;
   const lastAccent =
@@ -34,7 +36,15 @@ export function OverviewPerformanceChart({
       </div>
       <div className="p-2">
         {points.length > 0 ? (
-          <ReturnLineChart points={points} height={140} compact interactive showMarkers />
+          <ReturnLineChart
+            points={points}
+            height={140}
+            compact
+            interactive
+            showMarkers
+            showAvatars
+            memberAvatar={memberAvatar}
+          />
         ) : (
           <div className="flex h-[140px] flex-col items-center justify-center px-4 text-center text-xs text-[var(--pf-gray-500)]">
             <p>Publish a call to start tracking performance.</p>

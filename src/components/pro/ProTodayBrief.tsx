@@ -163,7 +163,7 @@ function ProTodayBriefTeaser({ brief }: { brief: ProTodayBrief }) {
   if (pills.length === 0) {
     return (
       <p className="text-sm text-[var(--pf-gray-600)]">
-        Pro adds a personalized morning brief — desk note, earnings, screener, and your open book.
+        Pro adds a personalized morning brief — desk note, earnings, screener, and your live positions.
       </p>
     );
   }

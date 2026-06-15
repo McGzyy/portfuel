@@ -14,6 +14,7 @@ import { Flame, LayoutGrid, Users } from "lucide-react";
 import Link from "next/link";
 import { getDemoPreviewTier } from "@/lib/demo/tier";
 import { loadDemoOverviewData } from "@/lib/demo/preview-overview";
+import { toChartMemberAvatar } from "@/lib/charts/member-avatar";
 import { formatPct, formatPrice } from "@/lib/utils";
 
 export default async function DemoOverviewPage() {
@@ -62,6 +63,7 @@ export default async function DemoOverviewPage() {
         winRate={memberStats.win_rate}
         rankScore={memberStats.rank_score}
         publishedCallCount={memberStats.calls_count}
+        memberAvatar={toChartMemberAvatar(profile)}
       />
 
       <WorkspaceOverviewStats

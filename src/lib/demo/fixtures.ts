@@ -581,6 +581,7 @@ function toCallWithUser(raw: RawCall): CallWithUser {
       display_name: u.display_name,
       trusted_at: u.trusted_at,
       rank_score: u.rank_score,
+      avatar_url: null,
     },
   };
 }

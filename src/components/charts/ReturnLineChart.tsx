@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   createChart,
@@ -15,7 +15,7 @@ import {
   type SeriesMarker,
   type MouseEventParams,
 } from "lightweight-charts";
-import type { ReturnChartPoint } from "@/lib/charts/types";
+import type { ReturnChartPoint, ChartMemberAvatar } from "@/lib/charts/types";
 import { useIsDarkMode } from "@/components/appearance/AppearanceProvider";
 import {
   activeChartTheme,
@@ -24,6 +24,9 @@ import {
   type PfChartTheme,
 } from "@/lib/charts/theme";
 import { chartLocalizationOptions } from "@/lib/time/timestamp";
+import { ChartAvatarOverlay, type ChartAvatarPin } from "@/components/charts/ChartAvatarOverlay";
+import { returnPointsToAvatarPins } from "@/lib/charts/avatar-pins";
+import { cn } from "@/lib/utils";
 
 function markerForPoint(p: ReturnChartPoint, theme: PfChartTheme): SeriesMarker<Time> | null {
   if (!p.outcome) return null;
@@ -64,6 +67,8 @@ export function ReturnLineChart({
   compact,
   interactive = false,
   showMarkers = false,
+  showAvatars = false,
+  memberAvatar,
   filled = false,
 }: {
   points: ReturnChartPoint[];
@@ -72,6 +77,9 @@ export function ReturnLineChart({
   /** Navigate to ticker on click when symbol is set. */
   interactive?: boolean;
   showMarkers?: boolean;
+  /** Circular member emblems at each call point (replaces arrow markers). */
+  showAvatars?: boolean;
+  memberAvatar?: ChartMemberAvatar | null;
   /** Baseline fill above/below zero — hero performance charts. */
   filled?: boolean;
 }) {
@@ -81,6 +89,7 @@ export function ReturnLineChart({
   const seriesRef = useRef<ISeriesApi<"Line"> | ISeriesApi<"Baseline"> | null>(null);
   const markersRef = useRef<ReturnType<typeof createSeriesMarkers<Time>> | null>(null);
   const pointDataRef = useRef(points);
+  const [chartReady, setChartReady] = useState(false);
 
   useEffect(() => {
     pointDataRef.current = points;
@@ -88,6 +97,11 @@ export function ReturnLineChart({
 
   const isDark = useIsDarkMode();
   const chartTheme = activeChartTheme(isDark);
+  const avatarPins = useMemo(
+    () => (showAvatars ? returnPointsToAvatarPins(points, memberAvatar) : []),
+    [showAvatars, points, memberAvatar]
+  );
+  const useAvatarOverlay = showAvatars && avatarPins.length > 0;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -126,6 +140,7 @@ export function ReturnLineChart({
     chartRef.current = chart;
     seriesRef.current = series;
     markersRef.current = createSeriesMarkers(series);
+    setChartReady(true);
 
     const ro = new ResizeObserver(() => {
       if (containerRef.current) {
@@ -148,6 +163,7 @@ export function ReturnLineChart({
       chart.unsubscribeClick(onClick);
       ro.disconnect();
       chart.remove();
+      setChartReady(false);
       chartRef.current = null;
       seriesRef.current = null;
       markersRef.current = null;
@@ -162,7 +178,7 @@ export function ReturnLineChart({
     }));
     seriesRef.current.setData(data);
 
-    if (showMarkers) {
+    if (showMarkers && !useAvatarOverlay) {
       const seriesMarkers = points
         .map((p) => markerForPoint(p, chartTheme))
         .filter((m): m is SeriesMarker<Time> => m != null);
@@ -172,14 +188,35 @@ export function ReturnLineChart({
     }
 
     chartRef.current?.timeScale().fitContent();
-  }, [points, showMarkers, chartTheme]);
+  }, [points, showMarkers, useAvatarOverlay, chartTheme]);
+
+  const handleAvatarPinClick = (pin: ChartAvatarPin) => {
+    if (!interactive) return;
+    const hit = pointDataRef.current.find(
+      (p) => (pin.callId && p.callId === pin.callId) || p.time === pin.time
+    );
+    if (hit?.symbol) {
+      router.push(`/ticker/${hit.symbol}`);
+    }
+  };
 
   return (
     <div
-      ref={containerRef}
-      className={interactive ? "cursor-pointer" : undefined}
+      className={cn("relative overflow-hidden", interactive ? "cursor-pointer" : undefined)}
       style={{ height }}
       title={interactive ? "Click a point to open the ticker" : undefined}
-    />
+    >
+      <div ref={containerRef} className="h-full w-full" />
+      {chartReady && useAvatarOverlay ? (
+        <ChartAvatarOverlay
+          chart={chartRef.current}
+          series={seriesRef.current}
+          pins={avatarPins}
+          size={compact ? "sm" : "md"}
+          containerRef={containerRef}
+          onPinClick={interactive ? handleAvatarPinClick : undefined}
+        />
+      ) : null}
+    </div>
   );
 }

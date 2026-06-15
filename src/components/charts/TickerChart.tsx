@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createChart,
   createSeriesMarkers,
@@ -32,6 +32,8 @@ import {
 import { cn, formatPrice } from "@/lib/utils";
 import type { ChartCallPreview } from "@/lib/charts/chart-call-preview";
 import { ChartCallHoverTip } from "@/components/charts/ChartCallHoverTip";
+import { ChartAvatarOverlay } from "@/components/charts/ChartAvatarOverlay";
+import { tickerMarkersToAvatarPins } from "@/lib/charts/avatar-pins";
 
 export type { CandlePoint, ChartMarker } from "@/lib/charts/types";
 
@@ -161,6 +163,7 @@ export function TickerChart({
   const onCallMarkerClickRef = useRef(onCallMarkerClick);
   const callPreviewsRef = useRef(callPreviewsById);
   const [crosshairHud, setCrosshairHud] = useState<CrosshairHud | null>(null);
+  const [chartReady, setChartReady] = useState(false);
   const [markerHover, setMarkerHover] = useState<{
     callId: string;
     x: number;
@@ -169,6 +172,7 @@ export function TickerChart({
   } | null>(null);
   const isDark = useIsDarkMode();
   const chartTheme = activeChartTheme(isDark);
+  const avatarPins = useMemo(() => tickerMarkersToAvatarPins(markers), [markers]);
 
   useEffect(() => {
     onCallMarkerClickRef.current = onCallMarkerClick;
@@ -239,6 +243,7 @@ export function TickerChart({
     chartRef.current = chart;
     seriesRef.current = series;
     markersRef.current = createSeriesMarkers(series);
+    setChartReady(true);
 
     if (showVolume) {
       const vol = chart.addSeries(HistogramSeries, {
@@ -373,6 +378,7 @@ export function TickerChart({
       chart.unsubscribeClick(onClick);
       ro.disconnect();
       chart.remove();
+      setChartReady(false);
       chartRef.current = null;
       seriesRef.current = null;
       volumeRef.current = null;
@@ -424,13 +430,14 @@ export function TickerChart({
     }
 
     const displayMarkers = collapseDayCallMarkers(markers);
-    const seriesMarkers: SeriesMarker<Time>[] = displayMarkers.map((m) => ({
+    const nativeMarkers = displayMarkers.filter((m) => !m.callId || m.kind === "journal");
+    const seriesMarkers: SeriesMarker<Time>[] = nativeMarkers.map((m) => ({
       time: m.time as Time,
       position: markerPosition(m),
       price: m.price,
       color: m.color ?? chartTheme.marker.default,
       shape: markerShape(m),
-      text: isClusterMarker(m) ? `${m.clusterCount} calls` : m.label,
+      text: m.kind === "journal" ? m.label : isClusterMarker(m) ? `${m.clusterCount} calls` : m.label,
     }));
     markersRef.current?.setMarkers(seriesMarkers);
 
@@ -458,11 +465,35 @@ export function TickerChart({
   const hoverCall =
     markerHover && callPreviewsById ? callPreviewsById[markerHover.callId] : null;
 
+  const handleAvatarPinClick = useCallback(
+    (pin: { callId?: string; time: number }) => {
+      if (!pin.callId) return;
+      if (onCallMarkerClickRef.current) {
+        onCallMarkerClickRef.current(pin.callId, sameDayCallIds(markerDataRef.current, pin.time));
+        return;
+      }
+      const el = document.getElementById(`thesis-${pin.callId}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      el?.classList.add("pf-thesis-highlight");
+      window.setTimeout(() => el?.classList.remove("pf-thesis-highlight"), 2200);
+    },
+    []
+  );
+
   return (
     <div className="space-y-2">
       <ChartCrosshairBar hud={crosshairHud} />
-      <div className="relative">
+      <div className="relative overflow-hidden rounded-lg border border-[var(--pf-border)]/80 bg-[var(--pf-surface)] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
         <div ref={containerRef} className={cn("w-full min-h-[320px]")} style={{ height: h }} />
+        {chartReady && avatarPins.length > 0 ? (
+          <ChartAvatarOverlay
+            chart={chartRef.current}
+            series={seriesRef.current}
+            pins={avatarPins}
+            containerRef={containerRef}
+            onPinClick={handleAvatarPinClick}
+          />
+        ) : null}
         {hoverCall && markerHover ? (
           <ChartCallHoverTip
             call={hoverCall}

@@ -83,7 +83,7 @@ export async function fetchCallsBySymbol(symbol: string): Promise<CallWithUser[]
   const db = createServiceClient();
   const { data, error } = await db
     .from("calls")
-    .select("*, users!inner(id, pin, username, display_name, trusted_at, rank_score)")
+    .select("*, users!inner(id, pin, username, display_name, trusted_at, rank_score, avatar_url)")
     .eq("symbol", symbol.toUpperCase())
     .order("is_fueled", { ascending: false })
     .order("called_at", { ascending: false });

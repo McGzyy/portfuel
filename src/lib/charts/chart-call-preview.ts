@@ -31,6 +31,7 @@ export type ChartCallPreview = {
     pin: string;
     username?: string | null;
     trusted_at: string | null;
+    avatar_url?: string | null;
   };
 };
 
@@ -67,6 +68,7 @@ export function toChartCallPreview(
       pin: c.users.username ?? c.users.pin,
       username: c.users.username,
       trusted_at: c.users.trusted_at,
+      avatar_url: c.users.avatar_url ?? null,
     },
   };
 }

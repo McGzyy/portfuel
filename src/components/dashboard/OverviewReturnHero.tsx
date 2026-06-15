@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ChartRangeToolbar } from "@/components/charts/ChartRangeToolbar";
 import { ReturnLineChart } from "@/components/charts/ReturnLineChart";
-import type { ChartRangeKey, ReturnChartPoint } from "@/lib/charts/types";
+import type { ChartRangeKey, ReturnChartPoint, ChartMemberAvatar } from "@/lib/charts/types";
+import { ChartAvatarEmblem } from "@/components/charts/ChartAvatarEmblem";
 import { filterLineByRange } from "@/lib/charts/range";
 import { computeMaxDrawdown } from "@/lib/charts/cumulative-return";
 import { COPY } from "@/lib/copy";
@@ -46,6 +47,7 @@ export function OverviewReturnHero({
   winRate,
   rankScore,
   publishedCallCount = 0,
+  memberAvatar,
 }: {
   points: ReturnChartPoint[];
   profileHref: string;
@@ -53,6 +55,7 @@ export function OverviewReturnHero({
   rankScore?: number | null;
   /** Total published calls — used when chart points are empty but calls exist. */
   publishedCallCount?: number;
+  memberAvatar?: ChartMemberAvatar | null;
 }) {
   const [range, setRange] = useState<ChartRangeKey>("all");
   const filtered = useMemo(
@@ -168,11 +171,23 @@ export function OverviewReturnHero({
               </span>
             ) : null}
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-0 w-0 border-x-[4px] border-b-[6px] border-x-transparent border-b-emerald-600" />
+              <ChartAvatarEmblem
+                username={memberAvatar?.username ?? "you"}
+                displayName={memberAvatar?.displayName}
+                avatarUrl={memberAvatar?.avatarUrl}
+                kind="win"
+                size="sm"
+              />
               Win
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-0 w-0 border-x-[4px] border-t-[6px] border-x-transparent border-t-rose-500" />
+              <ChartAvatarEmblem
+                username={memberAvatar?.username ?? "you"}
+                displayName={memberAvatar?.displayName}
+                avatarUrl={memberAvatar?.avatarUrl}
+                kind="loss"
+                size="sm"
+              />
               Loss
             </span>
           </div>
@@ -183,6 +198,8 @@ export function OverviewReturnHero({
             height={300}
             interactive
             showMarkers
+            showAvatars
+            memberAvatar={memberAvatar}
             filled
           />
         ) : (
@@ -194,7 +211,7 @@ export function OverviewReturnHero({
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--pf-border)] bg-[var(--pf-gray-50)]/50 px-5 py-3 sm:px-6">
         <p className="text-xs text-[var(--pf-gray-500)]">
-          Marked to market on each refresh · click a marker to open the ticker
+          Marked to market on each refresh · click an avatar to open the ticker
         </p>
         <Link
           href={profileHref}

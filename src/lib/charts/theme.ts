@@ -1,8 +1,8 @@
 /** PortFuel chart theme — lightweight-charts (in-app). */
 export const PF_CHART = {
   height: 400,
-  layout: { background: "#fafbfc", text: "#475569" },
-  grid: { vert: "#eef2f6", horz: "#eef2f6" },
+  layout: { background: "#f8fafc", text: "#64748b" },
+  grid: { vert: "#f1f5f9", horz: "#e8edf3" },
   border: "#e2e8f0",
   candle: { up: "#059669", down: "#e31b23", wickUp: "#059669", wickDown: "#e31b23" },
   marker: { default: "#e31b23", long: "#059669", short: "#e31b23" },
@@ -10,9 +10,9 @@ export const PF_CHART = {
 
 export const PF_CHART_DARK = {
   height: 400,
-  layout: { background: "#111111", text: "#a3a3a3" },
-  grid: { vert: "#262626", horz: "#262626" },
-  border: "#333333",
+  layout: { background: "#0c0c0c", text: "#94a3b8" },
+  grid: { vert: "#1a1a1a", horz: "#222222" },
+  border: "#2e2e2e",
   candle: { up: "#34d399", down: "#fb7185", wickUp: "#34d399", wickDown: "#fb7185" },
   marker: { default: "#f43f5e", long: "#34d399", short: "#fb7185" },
 } as const;

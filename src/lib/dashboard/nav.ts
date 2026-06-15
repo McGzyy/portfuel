@@ -34,8 +34,8 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
   },
   {
     href: "/dashboard/book",
-    label: "Open book",
-    description: "Open calls & track record",
+    label: "Positions",
+    description: "Live calls, P&L & symbol breakdown",
     icon: "book-open",
   },
   {
@@ -196,8 +196,8 @@ const WORKSPACE_GUIDE_SECTIONS_TEMPLATE: {
       },
       {
         href: "/dashboard/book",
-        label: "Open book",
-        description: "Your open calls, pending entries, and on-record performance.",
+        label: "Positions",
+        description: "Your live calls, pending entries, and open-position P&L.",
       },
       {
         href: COPY.newCallHref,

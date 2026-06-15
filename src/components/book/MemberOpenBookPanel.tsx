@@ -91,7 +91,7 @@ export function MemberOpenBookPanel({
               Recently closed
             </h2>
             <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
-              Target hit or aged off your open book
+              Target hit or removed from your live positions
             </p>
           </div>
           <div className="space-y-4 p-4 sm:p-5">

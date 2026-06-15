@@ -65,7 +65,7 @@ export function WorkspaceCommandHeader({
               href="/dashboard/book"
               className="mt-3 inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
             >
-              Open book →
+              Positions →
             </Link>
           ) : null}
         </div>

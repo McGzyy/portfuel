@@ -10,6 +10,9 @@ export type CumulativeCallInput = {
   closed_at?: string | null;
   id?: string;
   symbol?: string;
+  avatar_url?: string | null;
+  username?: string;
+  display_name?: string | null;
 };
 
 function outcomeFromCall(call: CumulativeCallInput): ReturnOutcome {
@@ -47,6 +50,9 @@ export function buildCumulativeReturnSeries(calls: CumulativeCallInput[]): Retur
       symbol: call.symbol?.toUpperCase(),
       outcome,
       label: call.symbol ? `${call.symbol} ${outcome}` : outcome,
+      avatarUrl: call.avatar_url ?? null,
+      username: call.username,
+      displayName: call.display_name ?? null,
     });
   }
 

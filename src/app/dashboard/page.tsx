@@ -19,6 +19,7 @@ import { fetchWeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { OverviewReturnHero } from "@/components/dashboard/OverviewReturnHero";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
+import { toChartMemberAvatar } from "@/lib/charts/member-avatar";
 import { FueledDeskPreview } from "@/components/dashboard/FueledDeskPreview";
 import { FueledTrackRecordPanel } from "@/components/dashboard/FueledTrackRecordPanel";
 import { fetchFueledTrackRecord } from "@/lib/fueled/track-record";
@@ -161,6 +162,7 @@ export default async function DashboardOverviewPage({
   );
 
   const performanceSeries = buildCumulativeReturnSeries(ownCalls);
+  const chartMemberAvatar = toChartMemberAvatar(ownProfile.member);
   const followingPreviews = filterCallsByFollowing(latestRaw, followingIds)
     .slice(0, 4)
     .map((c) => toPreview(mapCallForCard(c, hypeScores)));
@@ -284,6 +286,7 @@ export default async function DashboardOverviewPage({
         winRate={memberStats?.win_rate}
         rankScore={memberStats?.rank_score != null ? Number(memberStats.rank_score) : null}
         publishedCallCount={Math.max(ownCalls.length, memberStats?.calls_count ?? 0)}
+        memberAvatar={chartMemberAvatar}
       />
 
       <WorkspaceOverviewStats

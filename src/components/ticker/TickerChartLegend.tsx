@@ -31,23 +31,29 @@ export function TickerChartLegend({
       {callCount > 0 ? (
         <>
           <span className="font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-            Markers
+            Calls
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-0 w-0 border-x-[5px] border-b-[7px] border-x-transparent border-b-emerald-600" />
+            <span className="h-[18px] w-[18px] rounded-full ring-2 ring-emerald-500" />
             Long
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-0 w-0 border-x-[5px] border-t-[7px] border-x-transparent border-t-rose-500" />
+            <span className="h-[18px] w-[18px] rounded-full ring-2 ring-rose-500" />
             Short
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 bg-[var(--pf-red)]" />
+            <span className="relative h-[18px] w-[18px] rounded-full ring-[2.5px] ring-[var(--pf-red)]">
+              <span className="absolute -bottom-px -right-px h-1.5 w-1.5 rounded-full bg-[var(--pf-red)]" />
+            </span>
             Fueled ({callCount})
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-indigo-500 ring-2 ring-indigo-200" />
-            2+ same day
+            <span className="relative h-[18px] w-[18px] rounded-full bg-indigo-100 ring-2 ring-indigo-500">
+              <span className="absolute -right-0.5 -top-0.5 rounded-full bg-indigo-600 px-0.5 text-[8px] font-bold text-white">
+                +2
+              </span>
+            </span>
+            Same-day cluster
           </span>
         </>
       ) : null}
@@ -122,10 +128,10 @@ export function TickerChartLegend({
       {callCount > 0 || journalCount > 0 ? (
         <span className="text-[10px] text-[var(--pf-gray-400)]">
           {callModal
-            ? "Hover call · click to open"
+            ? "Hover avatar · click to open call"
             : journalCount > 0 && callCount === 0
               ? "Click dot → journal note"
-              : "Click marker → thesis"}
+              : "Member avatars mark each call · click to open thesis"}
         </span>
       ) : null}
     </div>

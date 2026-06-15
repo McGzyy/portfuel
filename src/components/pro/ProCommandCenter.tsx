@@ -130,7 +130,7 @@ export function ProCommandCenter({
               href="/dashboard/book"
               className="text-[11px] font-semibold text-sky-300 hover:text-sky-200 hover:underline"
             >
-              Open book →
+              Positions →
             </Link>
           </div>
           <MetricsStrip

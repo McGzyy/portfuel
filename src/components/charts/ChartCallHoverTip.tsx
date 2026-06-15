@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { MemberAvatar } from "@/components/member/MemberAvatar";
 import type { ChartCallPreview } from "@/lib/charts/chart-call-preview";
 import { truncateThesis } from "@/lib/charts/chart-call-preview";
 import { cn, formatPct, timeAgo } from "@/lib/utils";
@@ -43,6 +44,12 @@ export function ChartCallHoverTip({
       role="tooltip"
     >
       <div className="flex flex-wrap items-center gap-1.5">
+        <MemberAvatar
+          displayName={call.users.display_name}
+          username={call.users.pin}
+          avatarUrl={call.users.avatar_url}
+          size="sm"
+        />
         <span className="text-xs font-semibold text-[var(--pf-black)]">{name}</span>
         <Badge variant={call.direction === "long" ? "long" : "short"} className="text-[10px]">
           {call.direction}

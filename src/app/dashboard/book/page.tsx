@@ -7,6 +7,7 @@ import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerform
 import { ProQuoteRefreshMount } from "@/components/market/ProQuoteRefreshMount";
 import { fetchMemberOpenBook } from "@/lib/calls/member-book";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
+import { toChartMemberAvatar } from "@/lib/charts/member-avatar";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
@@ -19,7 +20,7 @@ import {
 } from "@/lib/features/pro-intelligence";
 
 export const metadata: Metadata = {
-  title: "Your open book",
+  title: "Your positions",
 };
 
 export default async function DashboardBookPage() {
@@ -33,6 +34,7 @@ export default async function DashboardBookPage() {
   const proAnalytics = computeMemberProAnalytics(ownProfile.calls);
   const proGateCta = getProGateCta(sessionToProContext(session));
   const performanceSeries = buildCumulativeReturnSeries(book.openCalls);
+  const chartMemberAvatar = toChartMemberAvatar(ownProfile.member);
 
   return (
     <div className="space-y-6">
@@ -64,6 +66,7 @@ export default async function DashboardBookPage() {
           <OverviewPerformanceChart
             points={performanceSeries}
             profileHref={`/member/${session.username}`}
+            memberAvatar={chartMemberAvatar}
           />
           <MemberOpenBookSymbols rows={book.summary.bySymbol} />
         </>

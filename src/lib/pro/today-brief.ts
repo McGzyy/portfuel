@@ -136,8 +136,8 @@ export function buildProTodayBrief(input: {
       (a, b) => (b.return_pct ?? -999) - (a.return_pct ?? -999)
     )[0]!;
     rows.push({
-      id: "open-book",
-      title: "Your open book",
+      id: "positions",
+      title: "Your positions",
       detail: `${input.openCalls.length} live call${input.openCalls.length === 1 ? "" : "s"} · best ${top.symbol}${
         top.return_pct != null ? ` ${formatPct(top.return_pct)}` : ""
       }${Number.isFinite(avg) ? ` · avg ${formatPct(avg)}` : ""}`,
@@ -199,7 +199,7 @@ export const DEMO_PRO_TODAY_BRIEF: ProTodayBrief = {
     },
     {
       id: "book-demo",
-      title: "Your open book",
+      title: "Your positions",
       detail: "3 live calls · best NVDA +12.4% · avg +6.2%",
       href: "/dashboard/book",
       accent: "book",

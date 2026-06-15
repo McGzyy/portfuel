@@ -219,7 +219,7 @@ export type TeaserCallRow = {
 export type CallWithUser = Database["public"]["Tables"]["calls"]["Row"] & {
   users: Pick<
     Database["public"]["Tables"]["users"]["Row"],
-    "id" | "pin" | "username" | "display_name" | "trusted_at" | "rank_score"
+    "id" | "pin" | "username" | "display_name" | "trusted_at" | "rank_score" | "avatar_url"
   >;
 };
 

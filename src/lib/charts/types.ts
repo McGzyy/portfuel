@@ -30,6 +30,17 @@ export type ChartMarker = {
   journalEntryId?: string;
   /** When >1, multiple community calls share this day on the chart */
   clusterCount?: number;
+  userId?: string;
+  username?: string;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+};
+
+/** Member avatar shown on track-record chart pins. */
+export type ChartMemberAvatar = {
+  username: string;
+  displayName?: string | null;
+  avatarUrl?: string | null;
 };
 
 /** Horizontal levels on ticker charts (entry / target / stop) — Phase G1. */
@@ -53,6 +64,9 @@ export type ReturnChartPoint = LinePoint & {
   symbol?: string;
   outcome?: ReturnOutcome;
   label?: string;
+  avatarUrl?: string | null;
+  username?: string;
+  displayName?: string | null;
 };
 
 export type ChartRangeKey = "1m" | "3m" | "6m" | "1y" | "all";

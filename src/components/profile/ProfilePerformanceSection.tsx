@@ -5,7 +5,7 @@ import { MemberProAnalyticsPanel } from "@/components/pro/MemberProAnalyticsPane
 import { ProfileAiCoachStrip } from "@/components/profile/ProfileAiCoachStrip";
 import type { AiCoachUsageStatus } from "@/lib/ai/usage";
 import type { ReturnBucket } from "@/lib/charts/return-distribution";
-import type { ReturnChartPoint } from "@/lib/charts/types";
+import type { ReturnChartPoint, ChartMemberAvatar } from "@/lib/charts/types";
 import type { MemberTrackRecord } from "@/lib/users/member-track-record";
 import type { MemberProAnalytics } from "@/lib/users/member-analytics";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
@@ -18,6 +18,7 @@ export function ProfilePerformanceSection({
   proLocked,
   proGateCta,
   aiUsage,
+  memberAvatar,
 }: {
   trackRecord: MemberTrackRecord;
   returnSeries: ReturnChartPoint[];
@@ -26,6 +27,7 @@ export function ProfilePerformanceSection({
   proLocked: boolean;
   proGateCta: ProGateCta;
   aiUsage: AiCoachUsageStatus;
+  memberAvatar?: ChartMemberAvatar | null;
 }) {
   return (
     <section id="performance" className="scroll-mt-24 space-y-6">
@@ -48,7 +50,7 @@ export function ProfilePerformanceSection({
       />
 
       {returnSeries.length > 1 ? (
-        <MemberReturnChart points={returnSeries} />
+        <MemberReturnChart points={returnSeries} memberAvatar={memberAvatar} />
       ) : (
         <div className="pf-workspace-panel px-6 py-10 text-center text-sm text-[var(--pf-gray-500)]">
           Publish a few calls to unlock your cumulative return chart.

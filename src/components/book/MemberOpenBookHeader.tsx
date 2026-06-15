@@ -57,10 +57,10 @@ export function MemberOpenBookHeader({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-              Workspace · Your book
+              Workspace · Positions
             </p>
             <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
-              Open book
+              Your positions
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">{subtitle}</p>
             <Link

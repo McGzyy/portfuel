@@ -4,19 +4,22 @@ import { useMemo, useState } from "react";
 import { ChartFrame } from "@/components/charts/ChartFrame";
 import { ChartRangeToolbar } from "@/components/charts/ChartRangeToolbar";
 import { ReturnLineChart } from "@/components/charts/ReturnLineChart";
-import type { ChartRangeKey, ReturnChartPoint } from "@/lib/charts/types";
+import type { ChartRangeKey, ReturnChartPoint, ChartMemberAvatar } from "@/lib/charts/types";
 import { filterLineByRange } from "@/lib/charts/range";
 import { computeMaxDrawdown } from "@/lib/charts/cumulative-return";
+import { ChartAvatarEmblem } from "@/components/charts/ChartAvatarEmblem";
 import { formatPct } from "@/lib/utils";
 
 export function MemberReturnChart({
   points,
   className,
   interactive = true,
+  memberAvatar,
 }: {
   points: ReturnChartPoint[];
   className?: string;
   interactive?: boolean;
+  memberAvatar?: ChartMemberAvatar | null;
 }) {
   const [range, setRange] = useState<ChartRangeKey>("all");
   const filtered = useMemo(
@@ -50,18 +53,30 @@ export function MemberReturnChart({
       title="Cumulative return"
       subtitle={
         interactive
-          ? "Win/loss markers · click a point to open the ticker"
+          ? "Your avatar marks each call · click to open the ticker"
           : "Running sum of marked-to-market returns on published calls"
       }
       legend={
         wins + losses > 0 ? (
           <div className="flex flex-wrap items-center gap-4 px-4 py-2 text-xs text-[var(--pf-gray-500)]">
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-0 w-0 border-x-[4px] border-b-[6px] border-x-transparent border-b-emerald-600" />
+              <ChartAvatarEmblem
+                username={memberAvatar?.username ?? "you"}
+                displayName={memberAvatar?.displayName}
+                avatarUrl={memberAvatar?.avatarUrl}
+                kind="win"
+                size="sm"
+              />
               Win ({wins})
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-0 w-0 border-x-[4px] border-t-[6px] border-x-transparent border-t-rose-500" />
+              <ChartAvatarEmblem
+                username={memberAvatar?.username ?? "you"}
+                displayName={memberAvatar?.displayName}
+                avatarUrl={memberAvatar?.avatarUrl}
+                kind="loss"
+                size="sm"
+              />
               Loss ({losses})
             </span>
           </div>
@@ -96,6 +111,8 @@ export function MemberReturnChart({
             height={260}
             interactive={interactive}
             showMarkers
+            showAvatars
+            memberAvatar={memberAvatar}
           />
         ) : (
           <div className="flex h-[200px] items-center justify-center text-sm text-[var(--pf-gray-500)]">

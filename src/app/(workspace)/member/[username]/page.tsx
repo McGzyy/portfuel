@@ -18,6 +18,7 @@ import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { computeMemberProAnalytics } from "@/lib/users/member-analytics";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
+import { toChartMemberAvatar } from "@/lib/charts/member-avatar";
 import { buildReturnDistribution } from "@/lib/charts/return-distribution";
 import { fetchAiCoachUsage } from "@/lib/ai/usage";
 import { isAiCoachConfigured } from "@/lib/ai/config";
@@ -74,6 +75,7 @@ export default async function MemberProfilePage({
   const trackRecord = summarizeMemberTrackRecord(calls);
   const proAnalytics = computeMemberProAnalytics(calls);
   const returnSeries = buildCumulativeReturnSeries(calls);
+  const chartMemberAvatar = toChartMemberAvatar(member);
   const returnBuckets = buildReturnDistribution(calls);
   const proContext = sessionToProContext(session);
   const proLocked = isProIntelligenceLocked(proContext);
@@ -107,10 +109,11 @@ export default async function MemberProfilePage({
             proLocked={proLocked}
             proGateCta={proGateCta}
             aiUsage={aiUsage}
+            memberAvatar={chartMemberAvatar}
           />
         ) : (
           <section id="performance" className="scroll-mt-24 space-y-6">
-            <MemberReturnChart points={returnSeries} />
+            <MemberReturnChart points={returnSeries} memberAvatar={chartMemberAvatar} />
             <MemberTrackRecordStrip record={trackRecord} />
           </section>
         )}

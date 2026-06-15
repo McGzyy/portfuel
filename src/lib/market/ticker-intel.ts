@@ -41,6 +41,10 @@ export type TickerIntel = {
     color?: string;
     kind?: "long" | "short" | "fueled";
     callId?: string;
+    userId?: string;
+    username?: string;
+    displayName?: string | null;
+    avatarUrl?: string | null;
   }[];
   calls: CallWithUser[];
   news: CompanyNewsItem[];
@@ -216,6 +220,7 @@ export async function loadTickerIntel(
   const markers = calls.map((c) => {
     const dayStart = localDayStartUnix(c.called_at);
     const name = c.users.display_name ?? c.users.pin;
+    const username = c.users.username ?? c.users.pin;
     return {
       time: dayStart,
       price: Number(c.price_at_call ?? c.entry_price ?? quote?.price ?? 0),
@@ -226,6 +231,10 @@ export async function loadTickerIntel(
         | "short"
         | "fueled",
       callId: c.id,
+      userId: c.users.id,
+      username,
+      displayName: c.users.display_name,
+      avatarUrl: c.users.avatar_url ?? null,
     };
   });
 
