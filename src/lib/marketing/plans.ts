@@ -50,9 +50,9 @@ export type PlanCardContent = {
 export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
   member: {
     name: "Member",
-    price: "$79",
+    price: "$49",
     period: "/mo",
-    priceAmount: 79,
+    priceAmount: 49,
     tagline: "The full PortFuel workspace — desk, feed, charts, DMs, and a public track record.",
     features: [
       "Fueled desk + model portfolio with refreshed marks",
@@ -68,9 +68,9 @@ export const PLAN_BY_TIER: Record<MembershipTier, PlanCardContent> = {
   },
   pro: {
     name: "Pro Intelligence",
-    price: "$129",
+    price: "$79",
     period: "/mo",
-    priceAmount: 129,
+    priceAmount: 79,
     tagline: "Everything in Member plus the research terminal — intel, screeners, and Pro analytics.",
     highlight: true,
     features: [
@@ -97,16 +97,16 @@ export const ANNUAL_PLAN_BY_TIER: Record<
   { price: string; period: string; priceAmount: number; savingsNote: string }
 > = {
   member: {
+    price: "$490",
+    period: "/yr",
+    priceAmount: 490,
+    savingsNote: "Save ~$98 vs paying monthly",
+  },
+  pro: {
     price: "$790",
     period: "/yr",
     priceAmount: 790,
     savingsNote: "Save ~$158 vs paying monthly",
-  },
-  pro: {
-    price: "$1,290",
-    period: "/yr",
-    priceAmount: 1290,
-    savingsNote: "Save ~$258 vs paying monthly",
   },
 };
 

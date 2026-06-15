@@ -27,7 +27,7 @@ export function OpenCallsPanel({
 
   return (
     <section className="pf-workspace-panel" aria-label="Your open calls">
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--pf-border)] px-5 py-4">
+      <div className="flex flex-col gap-2 border-b border-[var(--pf-border)] px-4 py-3 sm:flex-row sm:items-end sm:justify-between sm:px-5 sm:py-4">
         <div>
           <h2 className="text-sm font-bold tracking-tight text-[var(--pf-black)]">
             Your open calls
@@ -44,7 +44,7 @@ export function OpenCallsPanel({
         </Link>
       </div>
       <SparklineProvider symbols={symbols}>
-        <div className="space-y-4 p-4 sm:p-5">
+        <div className="space-y-3 p-3 sm:space-y-4 sm:p-5">
           {calls.slice(0, 4).map((call) => (
             <CallCard
               key={call.id}

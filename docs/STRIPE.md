@@ -3,8 +3,8 @@
 ## 1. Stripe Dashboard
 
 1. Create products in [Stripe Dashboard → Products](https://dashboard.stripe.com/products):
-   - **Member** — recurring monthly (display $79/mo) and optional **yearly** price (e.g. $790/yr)
-   - **Pro Intelligence** — recurring monthly (display $129/mo) and optional **yearly** (e.g. $1,290/yr)
+   - **Member** — recurring monthly (display $49/mo) and optional **yearly** price (e.g. $490/yr)
+   - **Pro Intelligence** — recurring monthly (display $79/mo) and optional **yearly** (e.g. $790/yr)
 2. Copy each **Price ID** (`price_...`).
 
 ## 2. Environment variables

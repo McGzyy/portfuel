@@ -43,7 +43,7 @@ export function WorkspaceCommandHeader({
   return (
     <header
       className={cn(
-        "pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6",
+        "pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-4 py-4 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6",
         className
       )}
     >

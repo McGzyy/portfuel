@@ -158,110 +158,124 @@ export function CallCard({
         />
       ) : null}
       <CardContent
-        className={cn(compact ? "py-3" : "py-5", linkToTicker && "pointer-events-none")}
+        className={cn(
+          compact ? "px-3 py-3 sm:px-6 sm:py-4" : "py-5",
+          linkToTicker && "pointer-events-none"
+        )}
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <SymbolAvatar
-                symbol={call.symbol}
-                assetClass={"asset_class" in call ? call.asset_class : undefined}
-                size="sm"
-              />
-              <span className="text-lg font-bold tracking-tight text-[var(--pf-black)] transition-colors group-hover:text-[var(--pf-red)]">
-                {call.symbol}
-              </span>
-              <Badge variant={call.direction === "long" ? "long" : "short"}>
-                {call.direction}
-              </Badge>
-              {"asset_class" in call && call.asset_class === "crypto" ? (
-                <Badge variant="default">Crypto</Badge>
-              ) : null}
-              {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
-              {call.call_state === "pending_entry" ? (
-                <Badge
-                  variant="default"
-                  className="border-amber-200 bg-amber-50 text-amber-800"
-                >
-                  Pending entry
-                </Badge>
-              ) : null}
-              {expiryLabel ? (
-                <Badge
-                  variant="default"
-                  className={cn(
-                    expirySoon
-                      ? "border-orange-200 bg-orange-50 text-orange-800"
-                      : "border-slate-200 bg-slate-50 text-slate-600"
-                  )}
-                >
-                  {expiryLabel}
-                </Badge>
-              ) : null}
-              {call.closed_at && call.call_state !== "pending_entry" ? (
-                <Badge variant="default" className="border-slate-200 bg-slate-100 text-slate-700">
-                  Closed
-                </Badge>
-              ) : null}
-              {stopHit ? (
-                <Badge
-                  variant="default"
-                  className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
-                >
-                  Stop hit
-                </Badge>
-              ) : null}
-              {call.is_trusted ? <Badge variant="trusted">Trusted</Badge> : null}
-              {isNew ? (
-                <Badge variant="default" className="border-emerald-200 bg-emerald-50 text-emerald-800">
-                  New
-                </Badge>
-              ) : null}
-              {"hype_score" in call && call.hype_score != null && call.hype_score >= 15 ? (
-                <Badge variant="default">Hype {Math.round(call.hype_score)}</Badge>
-              ) : null}
-              {call.timeframe_tag && !hasMetrics ? (
-                <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--pf-gray-400)]">
-                  {call.timeframe_tag}
+        <div className="space-y-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <SymbolAvatar
+                  symbol={call.symbol}
+                  assetClass={"asset_class" in call ? call.asset_class : undefined}
+                  size="sm"
+                />
+                <span className="text-xl font-bold tracking-tight text-[var(--pf-black)] transition-colors group-hover:text-[var(--pf-red)] sm:text-lg">
+                  {call.symbol}
                 </span>
-              ) : null}
-            </div>
-            <p className="mt-1.5 text-sm text-[var(--pf-gray-600)]">
-              {memberSlug(call) ? (
-                <Link
-                  href={`/member/${memberSlug(call)}`}
-                  className={cn(
-                    CALL_CARD_INTERACTIVE,
-                    "font-semibold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
-                  )}
-                >
-                  {name}
-                </Link>
-              ) : (
-                <span className="font-semibold text-[var(--pf-black)]">{name}</span>
-              )}{" "}
-              <span className="tabular-nums text-[var(--pf-gray-400)]">· {handle}</span>
-            </p>
-          </div>
-          <div className="flex shrink-0 items-start gap-2.5">
-            {showSparkline ? (
-              <SymbolSparkline symbol={call.symbol} width={56} height={28} className="mt-0.5" />
-            ) : null}
-            <div className="text-right">
-              <CallReturnDisplay
-                returnPct={call.return_pct}
-                peakReturnPct={call.peak_return_pct}
-                closedAt={call.closed_at}
-                callState={call.call_state}
-                triggerEntryPrice={call.trigger_entry_price}
-              />
-              <p className="text-xs text-[var(--pf-gray-400)]">
-                {formatPublishedAt(call.called_at)} · {timeAgo(call.called_at)}
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <Badge variant={call.direction === "long" ? "long" : "short"}>
+                  {call.direction}
+                </Badge>
+                {"asset_class" in call && call.asset_class === "crypto" ? (
+                  <Badge variant="default">Crypto</Badge>
+                ) : null}
+                {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
+                {call.call_state === "pending_entry" ? (
+                  <Badge
+                    variant="default"
+                    className="border-amber-200 bg-amber-50 text-amber-800"
+                  >
+                    Pending entry
+                  </Badge>
+                ) : null}
+                {expiryLabel ? (
+                  <Badge
+                    variant="default"
+                    className={cn(
+                      expirySoon
+                        ? "border-orange-200 bg-orange-50 text-orange-800"
+                        : "border-slate-200 bg-slate-50 text-slate-600"
+                    )}
+                  >
+                    {expiryLabel}
+                  </Badge>
+                ) : null}
+                {call.closed_at && call.call_state !== "pending_entry" ? (
+                  <Badge variant="default" className="border-slate-200 bg-slate-100 text-slate-700">
+                    Closed
+                  </Badge>
+                ) : null}
+                {stopHit ? (
+                  <Badge
+                    variant="default"
+                    className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+                  >
+                    Stop hit
+                  </Badge>
+                ) : null}
+                {call.is_trusted ? <Badge variant="trusted">Trusted</Badge> : null}
+                {isNew ? (
+                  <Badge variant="default" className="border-emerald-200 bg-emerald-50 text-emerald-800">
+                    New
+                  </Badge>
+                ) : null}
+                {"hype_score" in call && call.hype_score != null && call.hype_score >= 15 ? (
+                  <Badge variant="default">Hype {Math.round(call.hype_score)}</Badge>
+                ) : null}
+                {call.timeframe_tag && !hasMetrics ? (
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--pf-gray-400)]">
+                    {call.timeframe_tag}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
+                {memberSlug(call) ? (
+                  <Link
+                    href={`/member/${memberSlug(call)}`}
+                    className={cn(
+                      CALL_CARD_INTERACTIVE,
+                      "font-semibold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
+                    )}
+                  >
+                    {name}
+                  </Link>
+                ) : (
+                  <span className="font-semibold text-[var(--pf-black)]">{name}</span>
+                )}{" "}
+                <span className="tabular-nums text-[var(--pf-gray-400)]">· {handle}</span>
               </p>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)]/80 px-3 py-2.5 sm:block sm:shrink-0 sm:border-0 sm:bg-transparent sm:p-0">
+              <div className="min-w-0">
+                <CallReturnDisplay
+                  returnPct={call.return_pct}
+                  peakReturnPct={call.peak_return_pct}
+                  closedAt={call.closed_at}
+                  callState={call.call_state}
+                  triggerEntryPrice={call.trigger_entry_price}
+                  className="text-left sm:text-right"
+                />
+                <p className="mt-0.5 text-xs text-[var(--pf-gray-400)] sm:text-right">
+                  {formatPublishedAt(call.called_at)} · {timeAgo(call.called_at)}
+                </p>
+              </div>
+              {showSparkline ? (
+                <SymbolSparkline
+                  symbol={call.symbol}
+                  width={compact ? 64 : 56}
+                  height={compact ? 32 : 28}
+                  className="shrink-0"
+                />
+              ) : null}
             </div>
           </div>
         </div>
-        <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-[var(--pf-gray-700)]">
+        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-[var(--pf-gray-700)] sm:mt-4">
           {call.thesis}
         </p>
         {showSummary ? (
@@ -309,26 +323,39 @@ export function CallCard({
         ) : null}
         <div
           className={cn(
-            "mt-3 flex flex-wrap items-center justify-between gap-2",
+            "mt-3 space-y-2",
             linkToTicker && CALL_CARD_INTERACTIVE
           )}
         >
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xs font-semibold text-[var(--pf-red)] group-hover:text-[var(--pf-red-hover)]">
-              Chart & intel →
-            </span>
+          <span className="block text-xs font-semibold text-[var(--pf-red)] group-hover:text-[var(--pf-red-hover)]">
+            Chart & intel →
+          </span>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
             {canClose ? (
-              <CallCloseButton callId={call.id} symbol={call.symbol} stopHit={stopHit} />
+              <CallCloseButton
+                callId={call.id}
+                symbol={call.symbol}
+                stopHit={stopHit}
+                className="h-9 w-full justify-center rounded-md border border-[var(--pf-border)] bg-white sm:h-8 sm:w-auto sm:border-0 sm:bg-transparent"
+              />
             ) : null}
             {isOwnCall && isPending ? (
-              <CallCancelPendingButton callId={call.id} symbol={call.symbol} />
+              <CallCancelPendingButton
+                callId={call.id}
+                symbol={call.symbol}
+                className="col-span-2 w-full justify-center sm:col-span-1 sm:w-auto"
+              />
             ) : null}
             {canDelete ? (
-              <CallDeleteButton callId={call.id} symbol={call.symbol} />
+              <CallDeleteButton
+                callId={call.id}
+                symbol={call.symbol}
+                className="h-9 w-full justify-center rounded-md border border-[var(--pf-border)] bg-white sm:h-8 sm:w-auto sm:border-0 sm:bg-transparent"
+              />
             ) : null}
           </div>
           {(call.vote_score ?? 0) !== 0 || (call.comment_count ?? 0) > 0 ? (
-            <span className="text-[10px] tabular-nums text-[var(--pf-gray-400)]">
+            <span className="block text-[10px] tabular-nums text-[var(--pf-gray-400)] sm:hidden">
               {(call.vote_score ?? 0) > 0 ? "+" : ""}
               {call.vote_score ?? 0} score · {call.comment_count ?? 0} comments
             </span>

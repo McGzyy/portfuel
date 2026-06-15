@@ -7,16 +7,18 @@ export function CallReturnDisplay({
   closedAt,
   callState,
   triggerEntryPrice,
+  className,
 }: {
   returnPct: number | null;
   peakReturnPct?: number | null;
   closedAt?: string | null;
   callState?: string | null;
   triggerEntryPrice?: number | null;
+  className?: string;
 }) {
   if (callState === "pending_entry") {
     return (
-      <div className="text-right">
+      <div className={cn("text-right", className)}>
         <p className="text-sm font-semibold text-amber-800">Awaiting entry</p>
         {triggerEntryPrice != null ? (
           <p className="text-[10px] font-medium tabular-nums text-[var(--pf-gray-500)]">
@@ -36,7 +38,7 @@ export function CallReturnDisplay({
   });
 
   return (
-    <div className="text-right">
+    <div className={cn("text-right", className)}>
       <p className={cn("text-xl font-bold tabular-nums tracking-tight", retClass)}>
         {formatPct(returnPct)}
       </p>

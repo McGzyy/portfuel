@@ -1,12 +1,12 @@
 # PortFuel — Value audit & product roadmap
 
-Goal: **$79 Member** feels like a professional trading workspace; **$129 Pro Intelligence** feels like a research terminal add-on members would miss if they downgraded.
+Goal: **$49 Member** feels like a professional trading workspace; **$79 Pro Intelligence** feels like a research terminal add-on members would miss if they downgraded.
 
 ---
 
 ## What members pay for today (honest audit)
 
-### Member ($79/mo) — solid core loop ✅
+### Member ($49/mo) — solid core loop ✅
 
 | Value | Status | Notes |
 |-------|--------|--------|
@@ -19,7 +19,7 @@ Goal: **$79 Member** feels like a professional trading workspace; **$129 Pro Int
 | Fueled desk + model portfolio (house research) | ✅ | Live marks on open desk theses |
 | 2FA, Stripe billing, legal | ✅ | Production-ready |
 
-### Pro Intelligence ($129/mo) — thin vs price ⚠️
+### Pro Intelligence ($79/mo) — thin vs price ⚠️
 
 | Value | Status | Gap |
 |-------|--------|-----|

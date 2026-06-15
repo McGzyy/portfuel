@@ -9,6 +9,7 @@ import { cancellationReasonLabel } from "@/lib/billing/cancellation-feedback-typ
 import type { CancellationFeedbackReason } from "@/lib/billing/cancellation-feedback-types";
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import { PLAN_BY_TIER } from "@/lib/marketing/plans";
 import type { DailyCount } from "@/lib/admin/time-series";
 export type AdminRevenueSnapshot = PlatformBillingBreakdown & {
   memberTierPct: number | null;
@@ -355,8 +356,10 @@ function getDemoAdminAnalytics(periodDays: AdminAnalyticsPeriod): AdminAnalytics
       churnedPrior: 0,
     },
     revenue: {
-      mrrUsd: 3 * 79 + 2 * 129,
-      arrUsd: (3 * 79 + 2 * 129) * 12,
+      mrrUsd:
+        3 * PLAN_BY_TIER.member.priceAmount + 2 * PLAN_BY_TIER.pro.priceAmount,
+      arrUsd:
+        (3 * PLAN_BY_TIER.member.priceAmount + 2 * PLAN_BY_TIER.pro.priceAmount) * 12,
       mrrSource: "stripe",
       stripeSubscriptionCount: 3,
       effectiveMember: 3,
