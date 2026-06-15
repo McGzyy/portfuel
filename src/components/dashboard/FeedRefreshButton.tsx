@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-export function FeedRefreshButton() {
+export function FeedRefreshButton({ className }: { className?: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
@@ -28,7 +29,7 @@ export function FeedRefreshButton() {
       size="sm"
       disabled={busy}
       onClick={() => void refresh()}
-      className="gap-1.5"
+      className={cn("w-full gap-1.5 sm:w-auto", className)}
     >
       <RefreshCw className={busy ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} strokeWidth={2.25} />
       {busy ? "Updating…" : "Update prices"}

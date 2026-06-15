@@ -367,11 +367,17 @@ body {
   border-radius: var(--pf-radius-lg);
   border: 1px solid var(--pf-border);
   background: #fff;
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: var(--pf-shadow-md);
 }
 
 @media (min-width: 640px) {
+  .pf-ticker-shell {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
   .pf-ticker-shell {
     padding: 2rem;
   }
@@ -566,8 +572,8 @@ body {
 }
 
 .pf-ticker-header {
-  border-bottom: 1px solid var(--pf-border);
-  padding-bottom: 1.5rem;
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 @media (min-width: 1024px) {
@@ -980,6 +986,21 @@ body {
 
 .pf-metrics-strip--embedded .pf-metrics-strip-grid {
   margin-top: 0;
+}
+
+@media (max-width: 639px) {
+  .pf-metrics-strip--embedded .pf-metrics-strip-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.875rem 1rem;
+    overflow-x: visible;
+    flex-wrap: wrap;
+  }
+
+  .pf-metrics-strip--embedded .pf-metrics-strip-cell {
+    flex: none;
+    min-width: 0;
+  }
 }
 
 .pf-metrics-strip-label {

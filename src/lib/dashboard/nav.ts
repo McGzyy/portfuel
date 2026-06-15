@@ -156,6 +156,14 @@ export function isWorkspaceNavItemActive(
     return pathname === ownProfile || pathname.startsWith(`${ownProfile}/`);
   }
 
+  if (item.href === "/dashboard/watchlist" && pathname.startsWith("/ticker/")) {
+    return true;
+  }
+
+  if (item.href === "/dashboard/journal" && pathname.startsWith("/dashboard/journal/")) {
+    return true;
+  }
+
   return false;
 }
 

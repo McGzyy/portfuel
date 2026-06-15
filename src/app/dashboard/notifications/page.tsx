@@ -7,7 +7,7 @@ import {
 } from "@/lib/features/pro-intelligence";
 
 export const metadata: Metadata = {
-  title: "Notifications",
+  title: "Alerts",
 };
 
 export default async function DashboardNotificationsPage() {

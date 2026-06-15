@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 export function TickerPageNav({
   hasCalls,
@@ -16,14 +15,14 @@ export function TickerPageNav({
 
   return (
     <nav
-      className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2"
       aria-label="Ticker sections"
     >
       {links.map((item) => (
         <Link
           key={item.href}
           href={item.href}
-          className="pf-pill-inactive shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold"
+          className="pf-pill-inactive rounded-full border px-3.5 py-2 text-center text-xs font-semibold sm:shrink-0 sm:py-1.5"
         >
           {item.label}
         </Link>

@@ -12,10 +12,10 @@ export function NotificationsCommandHeader({
   const content = (
     <div className="max-w-2xl">
       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-        Activity · Notifications
+        Activity · Alerts
       </p>
       <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
-        Notifications
+        Alerts
       </h1>
       <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
         {totalCount} total

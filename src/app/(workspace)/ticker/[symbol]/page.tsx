@@ -125,7 +125,7 @@ export default async function TickerPage({
         </Suspense>
       ) : null}
       {session && isPro ? <ProQuoteRefreshMount enabled symbols={[symbol]} /> : null}
-      <section className="pf-ticker-shell">
+      <section className="pf-ticker-shell space-y-4 sm:space-y-5">
         <TickerPageHeader
           symbol={symbol}
           intel={intel}
@@ -136,7 +136,7 @@ export default async function TickerPage({
         />
 
         {session ? (
-          <>
+          <div className="space-y-3 border-t border-[var(--pf-border)] pt-4">
             <TickerPageNav hasCalls={calls.length > 0} isEquity={isEquityIntel} />
             <TickerActionBar
               symbol={symbol}
@@ -144,7 +144,7 @@ export default async function TickerPage({
               proLocked={proLocked}
               hasOwnOpenCall={ownOpenCallOnSymbol}
             />
-          </>
+          </div>
         ) : null}
       </section>
 

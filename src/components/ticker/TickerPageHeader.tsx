@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { BookOpen, Plus } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { HypeMeter } from "@/components/brand/HypeMeter";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { MarketDataNote } from "@/components/market/MarketDataNote";
 import { SymbolAvatar } from "@/components/market/SymbolAvatar";
 import { journalSymbolPath } from "@/lib/journal/paths";
@@ -30,89 +29,87 @@ export function TickerPageHeader({
     change == null ? undefined : change >= 0 ? ("positive" as const) : ("negative" as const);
 
   return (
-    <header className="pf-ticker-header">
-      <div className="flex flex-wrap items-start justify-between gap-6">
-        <div className="min-w-0 flex-1">
-          {session ? (
-            <div className="flex flex-wrap items-center gap-3">
-              {onWatchlist ? (
-                <Link
-                  href={journalSymbolPath(symbol)}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-700 transition-colors hover:text-indigo-900 hover:underline"
-                >
-                  <BookOpen className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
-                  Open journal
-                </Link>
-              ) : null}
+    <header className="pf-ticker-header space-y-4 sm:space-y-5">
+      <div className="flex items-center justify-between gap-3">
+        {session ? (
+          <Link
+            href="/dashboard"
+            className="inline-flex text-sm font-medium text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-red)]"
+          >
+            ← Workspace
+          </Link>
+        ) : (
+          <Link
+            href="/"
+            className="inline-flex text-sm font-medium text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-red)]"
+          >
+            ← Home
+          </Link>
+        )}
+        <HypeMeter score={intel?.hypeScore ?? 0} />
+      </div>
+
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--pf-red)]">
+          Ticker intelligence
+        </p>
+        <div className="mt-2 flex items-start gap-3">
+          <SymbolAvatar symbol={symbol} assetClass={intel?.assetClass} size="lg" />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="font-mono text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-4xl">
+                {symbol}
+              </h1>
+              <Badge variant={intel?.assetClass === "crypto" ? "fueled" : "default"}>
+                {intel?.assetClass === "crypto" ? "Crypto" : "Equity"}
+              </Badge>
             </div>
-          ) : (
-            <Link
-              href="/"
-              className="inline-flex text-sm font-medium text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-red)]"
-            >
-              ← Home
-            </Link>
-          )}
-          <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--pf-red)]">
-            Ticker intelligence
-          </p>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <SymbolAvatar
-              symbol={symbol}
-              assetClass={intel?.assetClass}
-              size="lg"
-            />
-            <h1 className="font-mono text-3xl font-bold tracking-tight text-[var(--pf-black)] sm:text-4xl">
-              {symbol}
-            </h1>
-            <Badge variant={intel?.assetClass === "crypto" ? "fueled" : "default"}>
-              {intel?.assetClass === "crypto" ? "Crypto" : "Equity"}
-            </Badge>
-          </div>
-          <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
-            {intel?.companyName ?? symbol}
-            {callCount > 0 ? (
-              <span className="text-[var(--pf-gray-400)]">
-                {" "}
-                · {callCount} community call{callCount === 1 ? "" : "s"}
-              </span>
-            ) : null}
-          </p>
-          {onWatchlist ? <TickerWatchlistChip symbol={symbol} /> : null}
-          {intel?.quote ? (
-            <div className="mt-4 flex flex-wrap items-baseline gap-3">
-              <p className="text-3xl font-bold tabular-nums tracking-tight text-[var(--pf-black)]">
-                ${formatPrice(intel.quote.price)}
-              </p>
-              {change != null ? (
-                <span
-                  className={cn(
-                    "text-lg font-bold tabular-nums",
-                    changeAccent === "positive" ? "pf-return-up" : "pf-return-down"
-                  )}
-                >
-                  {formatPct(change)}
+            <p className="mt-0.5 truncate text-sm text-[var(--pf-gray-500)]">
+              {intel?.companyName ?? symbol}
+              {callCount > 0 ? (
+                <span className="text-[var(--pf-gray-400)]">
+                  {" "}
+                  · {callCount} community call{callCount === 1 ? "" : "s"}
                 </span>
               ) : null}
-              <MarketDataNote className="mt-2 w-full" isPro={isPro} updatedAt={intel.quote.updatedAt} />
-            </div>
-          ) : null}
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-col items-end gap-3">
-          <HypeMeter score={intel?.hypeScore ?? 0} />
-          {session ? (
+        {onWatchlist ? (
+          <div className="mt-3 space-y-2">
+            <TickerWatchlistChip symbol={symbol} />
             <Link
-              href={`/calls/new?asset=${intel?.assetClass ?? "equity"}&symbol=${symbol}`}
+              href={journalSymbolPath(symbol)}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-700 transition-colors hover:text-indigo-900 hover:underline sm:hidden"
             >
-              <Button size="sm">
-                <Plus className="h-4 w-4" />
-                Call this ticker
-              </Button>
+              <BookOpen className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
+              Open journal
             </Link>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
+
+      {intel?.quote ? (
+        <div className="space-y-1.5 sm:space-y-0">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <p className="text-2xl font-bold tabular-nums tracking-tight text-[var(--pf-black)] sm:text-3xl">
+              ${formatPrice(intel.quote.price)}
+            </p>
+            {change != null ? (
+              <span
+                className={cn(
+                  "text-base font-bold tabular-nums sm:text-lg",
+                  changeAccent === "positive" ? "pf-return-up" : "pf-return-down"
+                )}
+              >
+                {formatPct(change)}
+              </span>
+            ) : null}
+          </div>
+          <MarketDataNote isPro={isPro} updatedAt={intel.quote.updatedAt} />
+        </div>
+      ) : null}
     </header>
   );
 }

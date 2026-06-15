@@ -159,13 +159,14 @@ export async function middleware(request: NextRequest) {
       const onBillingPath =
         pathname.startsWith("/profile") ||
         pathname.startsWith("/settings") ||
+        pathname.startsWith("/dashboard/settings") ||
         pathname === "/join" ||
         pathname.startsWith("/join/");
 
       if (sub === "cancelled") {
         if (!onBillingPath && isProtected) {
           return withFreshCookie(
-            NextResponse.redirect(new URL("/settings", request.url)),
+            NextResponse.redirect(new URL("/dashboard/settings", request.url)),
             freshToken
           );
         }
