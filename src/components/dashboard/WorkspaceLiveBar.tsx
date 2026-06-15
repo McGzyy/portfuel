@@ -13,10 +13,15 @@ const POLL_MS = 45_000;
 export function WorkspaceLiveBar({
   initial,
   compact = false,
+  previewMode = false,
+  feedHref = "/dashboard/feed",
 }: {
   initial?: WorkspacePulse | null;
   /** Overview: stats only — no scrolling tape. */
   compact?: boolean;
+  /** Demo preview — static pulse, no API polling. */
+  previewMode?: boolean;
+  feedHref?: string;
 }) {
   const router = useRouter();
   const [pulse, setPulse] = useState<WorkspacePulse | null>(initial ?? null);
@@ -58,10 +63,11 @@ export function WorkspaceLiveBar({
   });
 
   useEffect(() => {
+    if (previewMode) return;
     if (!initial) void load();
     const id = setInterval(() => void load(), POLL_MS);
     return () => clearInterval(id);
-  }, [initial, load]);
+  }, [initial, load, previewMode]);
 
   if (!pulse) return null;
 
@@ -100,14 +106,14 @@ export function WorkspaceLiveBar({
           </span>
           <button
             type="button"
-            disabled={refreshing}
+            disabled={refreshing || previewMode}
             onClick={() => void refreshPrices()}
             className="font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] disabled:opacity-50"
           >
-            {refreshing ? "Updating…" : "Update prices"}
+            {previewMode ? "Live in workspace" : refreshing ? "Updating…" : "Update prices"}
           </button>
           <Link
-            href="/dashboard/feed"
+            href={feedHref}
             className="font-semibold text-[var(--pf-gray-700)] hover:text-[var(--pf-black)]"
           >
             Feed →

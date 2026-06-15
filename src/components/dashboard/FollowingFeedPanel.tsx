@@ -8,9 +8,11 @@ import type { FollowedMember } from "@/lib/follows/types";
 export function FollowingFeedPanel({
   following,
   previews,
+  feedHref,
 }: {
   following: FollowedMember[];
   previews: CallPreviewData[];
+  feedHref?: string;
 }) {
   if (following.length === 0) {
     return (
@@ -34,7 +36,7 @@ export function FollowingFeedPanel({
     <WorkspacePanel
       title="Following"
       subtitle={`${following.length} member${following.length === 1 ? "" : "s"} · latest theses`}
-      href={buildFeedHref({ filter: "following" })}
+      href={feedHref ?? buildFeedHref({ filter: "following" })}
     >
       {previews.length === 0 ? (
         <p className="px-3 py-6 text-center text-sm text-[var(--pf-gray-500)]">

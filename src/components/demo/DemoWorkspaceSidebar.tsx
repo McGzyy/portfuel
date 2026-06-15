@@ -20,7 +20,7 @@ export function DemoWorkspaceSidebar() {
       <div className="shrink-0 border-b border-[var(--pf-border)] px-4 py-4">
         <p className="text-sm font-bold text-[var(--pf-black)]">Workspace preview</p>
         <p className="mt-0.5 text-[11px] text-[var(--pf-gray-500)]">
-          Explore before you join
+          Toggle Member vs Pro in the banner
         </p>
       </div>
 

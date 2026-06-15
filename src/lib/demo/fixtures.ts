@@ -66,6 +66,14 @@ const DEMO_USERS: Record<string, DemoUser> = {
     trusted_at: daysAgo(14),
     rank_score: 132,
   },
+  preview: {
+    id: "demo-user-preview",
+    pin: "p4242",
+    username: "alex_trades",
+    display_name: "Alex",
+    trusted_at: daysAgo(45),
+    rank_score: 212,
+  },
 };
 
 type RawCall = {
@@ -458,6 +466,77 @@ const RAW_CALLS: RawCall[] = [
     trigger_entry_price: 125,
     expires_at: new Date(NOW + 22 * 86400000).toISOString(),
   },
+  {
+    id: "demo-call-preview-001",
+    userKey: "preview",
+    symbol: "NVDA",
+    asset_class: "equity",
+    direction: "long",
+    thesis:
+      "Pullback held the 20dma — adding into strength while AI capex narrative stays intact. Target prior highs, stop under weekly structure.",
+    called_at: daysAgo(4),
+    entry_price: 124.5,
+    target_price: 148,
+    stop_price: 116,
+    price_at_call: 124.5,
+    last_price: 132.4,
+    return_pct: 6.35,
+    target_progress: 34,
+    vote_score: 9,
+    comment_count: 3,
+    is_fueled: false,
+    source: "user",
+    timeframe_tag: "Swing",
+    peak_return_pct: 8.2,
+  },
+  {
+    id: "demo-call-preview-002",
+    userKey: "preview",
+    symbol: "BTC",
+    asset_class: "crypto",
+    direction: "long",
+    thesis:
+      "ETF inflows holding — weekly close above 64k keeps the bull case alive. Trail stop under 61k.",
+    called_at: daysAgo(6),
+    entry_price: 62800,
+    target_price: 72000,
+    stop_price: 59800,
+    price_at_call: 62800,
+    last_price: 64800,
+    return_pct: 3.18,
+    target_progress: 22,
+    vote_score: 6,
+    comment_count: 1,
+    is_fueled: false,
+    source: "user",
+    timeframe_tag: "Position",
+  },
+  {
+    id: "demo-call-preview-003",
+    userKey: "preview",
+    symbol: "AMD",
+    asset_class: "equity",
+    direction: "long",
+    thesis:
+      "Conditional entry on MI300 ramp — waiting for 168 to fill before tracking live. Target 188, stop 158.",
+    called_at: daysAgo(1, 4),
+    entry_price: null,
+    target_price: 188,
+    stop_price: 158,
+    price_at_call: 178.2,
+    last_price: 178.2,
+    return_pct: null,
+    target_progress: 0,
+    vote_score: 2,
+    comment_count: 0,
+    is_fueled: false,
+    source: "user",
+    timeframe_tag: "Event",
+    entry_mode: "conditional",
+    call_state: "pending_entry",
+    trigger_entry_price: 168,
+    expires_at: new Date(NOW + 18 * 86400000).toISOString(),
+  },
 ];
 
 function toCallWithUser(raw: RawCall): CallWithUser {
@@ -733,4 +812,27 @@ export function getDemoMemberCalls(userId: string, limit = 20) {
   return ALL_CALLS.filter((c) => c.user_id === userId)
     .sort((a, b) => new Date(b.called_at).getTime() - new Date(a.called_at).getTime())
     .slice(0, limit);
+}
+
+export const DEMO_PREVIEW_USER = DEMO_USERS.preview;
+
+export function getDemoPreviewOwnCalls(): CallWithUser[] {
+  return ALL_CALLS.filter((c) => c.user_id === DEMO_PREVIEW_USER.id).sort(
+    (a, b) => new Date(b.called_at).getTime() - new Date(a.called_at).getTime()
+  );
+}
+
+export function getDemoPreviewMemberStats() {
+  const calls = getDemoPreviewOwnCalls().filter((c) => !c.is_fueled);
+  const wins = calls.filter((c) => (c.return_pct ?? 0) > 0).length;
+  return {
+    calls_count: calls.length,
+    win_rate: calls.length ? Math.round((wins / calls.length) * 100) : null,
+    avg_return_pct:
+      calls.length > 0
+        ? calls.reduce((a, c) => a + (c.return_pct ?? 0), 0) / calls.length
+        : null,
+    rank_score: DEMO_PREVIEW_USER.rank_score,
+    trusted_at: DEMO_PREVIEW_USER.trusted_at,
+  };
 }

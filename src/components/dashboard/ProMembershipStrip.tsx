@@ -15,9 +15,11 @@ const PRO_HIGHLIGHTS = [
 export function ProMembershipStrip({
   locked,
   watchlistSymbols = [],
+  upgradeHref = "/dashboard/settings?section=billing",
 }: {
   locked: boolean;
   watchlistSymbols?: string[];
+  upgradeHref?: string;
 }) {
   const personalizedHook = buildProMembershipHook(watchlistSymbols);
 
@@ -50,7 +52,7 @@ export function ProMembershipStrip({
           </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5 self-center">
-          <Link href="/dashboard/settings?section=billing">
+          <Link href={upgradeHref}>
             <Button size="sm">Upgrade</Button>
           </Link>
           <ProUpgradeProrationHint className="max-w-[11rem] text-right" />

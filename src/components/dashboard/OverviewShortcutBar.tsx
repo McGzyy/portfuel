@@ -21,15 +21,12 @@ const shortcuts = [
 
 export function OverviewShortcutBar() {
   return (
-    <nav
-      className="grid grid-cols-4 gap-2 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden"
-      aria-label="Overview shortcuts"
-    >
+    <nav className="flex flex-wrap gap-2" aria-label="Overview shortcuts">
       {shortcuts.map(({ href, label, icon: Icon }) => (
         <Link
           key={href}
           href={href}
-          className="pf-workspace-chip justify-center sm:shrink-0 sm:justify-start"
+          className="pf-workspace-chip basis-[calc(50%-0.25rem)] grow justify-center sm:basis-auto sm:grow-0 sm:justify-start"
         >
           <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
           {label}

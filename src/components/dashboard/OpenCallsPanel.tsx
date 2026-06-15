@@ -15,7 +15,7 @@ export function OpenCallsPanel({
   proLocked,
 }: {
   calls: CallCardData[];
-  viewerUserId: string;
+  viewerUserId?: string | null;
   isAdmin: boolean;
   username: string;
   isPro: boolean;
@@ -44,20 +44,21 @@ export function OpenCallsPanel({
         </Link>
       </div>
       <SparklineProvider symbols={symbols}>
-        <div className="space-y-3 p-3 sm:space-y-4 sm:p-5">
+        <div className="divide-y divide-[var(--pf-border)]">
           {calls.slice(0, 4).map((call) => (
-            <CallCard
-              key={call.id}
-              call={call}
-              compact
-              interactive
-              showSparkline
-              viewerUserId={viewerUserId}
-              isAdmin={isAdmin}
-              isPro={isPro}
-              showUpgrade={proLocked}
-              canGenerateSummary={!proLocked}
-            />
+            <div key={call.id} className="p-3 first:pt-3 last:pb-3 sm:p-5 sm:first:pt-5 sm:last:pb-5">
+              <CallCard
+                call={call}
+                compact
+                interactive
+                showSparkline
+                viewerUserId={viewerUserId}
+                isAdmin={isAdmin}
+                isPro={isPro}
+                showUpgrade={proLocked}
+                canGenerateSummary={!proLocked}
+              />
+            </div>
           ))}
         </div>
       </SparklineProvider>

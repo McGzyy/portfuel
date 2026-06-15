@@ -11,6 +11,8 @@ export function WorkspaceOverviewStats({
   quota,
   watchlistCount = 0,
   watchlistThesisCount = 0,
+  rankingsHref = "/dashboard/rankings",
+  watchlistHref = "/dashboard/watchlist",
 }: {
   username: string;
   winRate: number | null | undefined;
@@ -19,6 +21,8 @@ export function WorkspaceOverviewStats({
   quota?: WeeklyQuotaStatus;
   watchlistCount?: number;
   watchlistThesisCount?: number;
+  rankingsHref?: string;
+  watchlistHref?: string;
 }) {
   const quotaHint =
     quota && quota.limit > 0
@@ -44,7 +48,7 @@ export function WorkspaceOverviewStats({
         label="Rank score"
         value={rankScore != null ? rankScore.toFixed(1) : "—"}
         hint="Leaderboard"
-        href="/dashboard/rankings"
+        href={rankingsHref}
       />
       {quota ? (
         <WorkspaceStatCard
@@ -64,7 +68,7 @@ export function WorkspaceOverviewStats({
         label="Watchlist"
         value={String(watchlistCount)}
         hint={watchlistHint}
-        href="/dashboard/watchlist"
+        href={watchlistHref}
       />
     </div>
   );

@@ -95,9 +95,7 @@ export function CallPriceMetrics({
   return (
     <div
       className={cn(
-        compact
-          ? "mt-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)]/70 p-3 sm:rounded-none sm:border-x-0 sm:border-b-0 sm:border-t sm:border-[var(--pf-border)]/80 sm:bg-transparent sm:p-0 sm:pt-3"
-          : "mt-4 border-t border-[var(--pf-border)]/80 pt-4"
+        compact ? "mt-3 border-t border-[var(--pf-border)]/80 pt-3" : "mt-4 border-t border-[var(--pf-border)]/80 pt-4"
       )}
     >
       {hasPrices ? (
