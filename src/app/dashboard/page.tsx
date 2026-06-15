@@ -89,9 +89,10 @@ function toOwnStripCard(
   c: OwnCallRow,
   username: string,
   displayName: string | null,
-  userId: string
+  userId: string,
+  avatarUrl?: string | null
 ): CallCardData {
-  return mapUserCallRowToCard(c, { userId, username, displayName });
+  return mapUserCallRowToCard(c, { userId, username, displayName, avatarUrl });
 }
 
 function toPreview(c: ReturnType<typeof mapCallForCard>): CallPreviewData {
@@ -214,7 +215,13 @@ export default async function DashboardOverviewPage({
   }
 
   const ownCallCards = ownCalls.map((c) =>
-    toOwnStripCard(c, session.username, session.displayName, session.userId)
+    toOwnStripCard(
+      c,
+      session.username,
+      session.displayName,
+      session.userId,
+      ownProfile.member.avatar_url
+    )
   );
   const openCallCards = ownCallCards.filter((c) => {
     const row = ownCalls.find((r) => r.id === c.id);

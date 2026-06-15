@@ -1072,8 +1072,9 @@ body {
 
 .pf-call-card-premium {
   border-radius: var(--pf-radius-lg);
-  background: #fff;
+  background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
   box-shadow: var(--pf-shadow-sm);
+  border: 1px solid var(--pf-border);
 }
 
 .pf-call-card-premium:hover {

@@ -11,15 +11,17 @@ import { SymbolAvatar } from "@/components/market/SymbolAvatar";
 import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { CallCloseButton } from "@/components/calls/CallCloseButton";
 import { CallReturnDisplay } from "@/components/calls/CallReturnDisplay";
+import { CallTargetProgressBar } from "@/components/calls/CallTargetProgressBar";
+import { CallMarkedLabel } from "@/components/calls/CallMarkedLabel";
+import { MemberAvatar } from "@/components/member/MemberAvatar";
 import { CallStopHitNotice } from "@/components/calls/CallStopHitNotice";
 import { CallCancelPendingButton } from "@/components/calls/CallCancelPendingButton";
 import { CallSpotlightPrompt } from "@/components/calls/CallSpotlightPrompt";
 import { CALL_CARD_INTERACTIVE } from "@/components/calls/call-card-link";
 import { isCallStopHit } from "@/lib/calls/stop-cross";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
-import { formatPublishedAt } from "@/lib/time/timestamp";
 import { pendingEntryExpiryLabel, isPendingEntryExpiringSoon } from "@/lib/calls/pending-entry-display";
-import { cn, timeAgo } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { TeaserCallRow } from "@/lib/db/supabase";
 
 type CallCardExtras = {
@@ -36,6 +38,8 @@ type CallCardExtras = {
   call_state?: string | null;
   trigger_entry_price?: number | null;
   expires_at?: string | null;
+  avatar_url?: string | null;
+  updated_at?: string | null;
 };
 
 export type CallCardData = (TeaserCallRow | {
@@ -139,6 +143,12 @@ export function CallCard({
       closed_at: call.closed_at,
     });
 
+  const progress =
+    call.target_progress != null
+      ? Math.min(100, Math.max(0, call.target_progress))
+      : null;
+  const showProgress = progress != null && !isPending && !call.closed_at;
+
   return (
     <Card
       className={cn(
@@ -159,19 +169,66 @@ export function CallCard({
       ) : null}
       <CardContent
         className={cn(
-          compact ? "px-3 py-3 sm:px-6 sm:py-4" : "py-5",
+          compact ? "px-3 py-3 sm:px-5 sm:py-4" : "px-4 py-4 sm:px-6 sm:py-5",
           linkToTicker && "pointer-events-none"
         )}
       >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 flex-1 sm:pr-4">
+        {/* Member identity */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-2.5">
+            <MemberAvatar
+              displayName={call.display_name}
+              username={call.username ?? call.pin.replace(/^@/, "")}
+              avatarUrl={call.avatar_url}
+              size="sm"
+            />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {memberSlug(call) ? (
+                  <Link
+                    href={`/member/${memberSlug(call)}`}
+                    className={cn(
+                      CALL_CARD_INTERACTIVE,
+                      "truncate text-sm font-semibold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
+                    )}
+                  >
+                    {name}
+                  </Link>
+                ) : (
+                  <span className="truncate text-sm font-semibold text-[var(--pf-black)]">
+                    {name}
+                  </span>
+                )}
+                {call.is_trusted ? <Badge variant="trusted">Trusted</Badge> : null}
+                {isNew ? (
+                  <Badge variant="default" className="border-emerald-200 bg-emerald-50 text-emerald-800">
+                    New
+                  </Badge>
+                ) : null}
+              </div>
+              <p className="mt-0.5 text-[11px] tabular-nums text-[var(--pf-gray-400)]">{handle}</p>
+            </div>
+          </div>
+          {showSparkline ? (
+            <SymbolSparkline
+              symbol={call.symbol}
+              width={compact ? 64 : 72}
+              height={compact ? 30 : 36}
+              className="shrink-0 opacity-90"
+            />
+          ) : null}
+        </div>
+
+        {/* Symbol + return hero */}
+        <div className="mt-3 flex items-end justify-between gap-3">
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <SymbolAvatar
                 symbol={call.symbol}
                 assetClass={"asset_class" in call ? call.asset_class : undefined}
                 size="sm"
               />
-              <span className="text-lg font-bold tracking-tight text-[var(--pf-black)] transition-colors group-hover:text-[var(--pf-red)]">
+              <span className="font-mono text-xl font-bold tracking-tight text-[var(--pf-black)] transition-colors group-hover:text-[var(--pf-red)] sm:text-2xl">
                 {call.symbol}
               </span>
               <Badge variant={call.direction === "long" ? "long" : "short"}>
@@ -186,10 +243,7 @@ export function CallCard({
               expiryLabel ||
               (call.closed_at && call.call_state !== "pending_entry") ||
               stopHit ||
-              call.is_trusted ||
-              isNew ||
-              ("hype_score" in call && call.hype_score != null && call.hype_score >= 15) ||
-              (call.timeframe_tag && !hasMetrics)) && (
+              ("hype_score" in call && call.hype_score != null && call.hype_score >= 15)) && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {call.call_state === "pending_entry" ? (
                   <Badge
@@ -224,65 +278,34 @@ export function CallCard({
                     Stop hit
                   </Badge>
                 ) : null}
-                {call.is_trusted ? <Badge variant="trusted">Trusted</Badge> : null}
-                {isNew ? (
-                  <Badge variant="default" className="border-emerald-200 bg-emerald-50 text-emerald-800">
-                    New
-                  </Badge>
-                ) : null}
                 {"hype_score" in call && call.hype_score != null && call.hype_score >= 15 ? (
                   <Badge variant="default">Hype {Math.round(call.hype_score)}</Badge>
                 ) : null}
-                {call.timeframe_tag && !hasMetrics ? (
-                  <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--pf-gray-400)]">
-                    {call.timeframe_tag}
-                  </span>
-                ) : null}
               </div>
             )}
-            <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
-              {memberSlug(call) ? (
-                <Link
-                  href={`/member/${memberSlug(call)}`}
-                  className={cn(
-                    CALL_CARD_INTERACTIVE,
-                    "font-semibold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
-                  )}
-                >
-                  {name}
-                </Link>
-              ) : (
-                <span className="font-semibold text-[var(--pf-black)]">{name}</span>
-              )}{" "}
-              <span className="tabular-nums text-[var(--pf-gray-400)]">· {handle}</span>
-            </p>
           </div>
-
-          <div className="flex shrink-0 items-end justify-between gap-3 border-t border-[var(--pf-border)] pt-3 sm:flex-col sm:items-end sm:border-0 sm:pt-0">
-            <div className="min-w-0 sm:text-right">
-              <CallReturnDisplay
-                returnPct={call.return_pct}
-                peakReturnPct={call.peak_return_pct}
-                closedAt={call.closed_at}
-                callState={call.call_state}
-                triggerEntryPrice={call.trigger_entry_price}
-                className="text-left sm:text-right"
-              />
-              <p className="mt-0.5 text-xs text-[var(--pf-gray-400)] sm:text-right">
-                {formatPublishedAt(call.called_at)} · {timeAgo(call.called_at)}
-              </p>
-            </div>
-            {showSparkline ? (
-              <SymbolSparkline
-                symbol={call.symbol}
-                width={compact ? 56 : 64}
-                height={compact ? 28 : 32}
-                className="shrink-0"
-              />
-            ) : null}
-          </div>
+          <CallReturnDisplay
+            returnPct={call.return_pct}
+            peakReturnPct={call.peak_return_pct}
+            closedAt={call.closed_at}
+            callState={call.call_state}
+            triggerEntryPrice={call.trigger_entry_price}
+            size={compact ? "default" : "hero"}
+            className="shrink-0"
+          />
         </div>
-        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-[var(--pf-gray-700)] sm:mt-4">
+
+        {showProgress ? (
+          <CallTargetProgressBar progress={progress} className="mt-3" size={compact ? "slim" : "default"} />
+        ) : null}
+
+        <CallMarkedLabel
+          updatedAt={call.updated_at}
+          calledAt={call.called_at}
+          className="mt-2 text-[10px]"
+        />
+
+        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-[var(--pf-gray-700)]">
           {call.thesis}
         </p>
         {showSummary ? (
@@ -310,6 +333,7 @@ export function CallCard({
             callState={call.call_state}
             triggerEntryPrice={call.trigger_entry_price}
             compact={compact}
+            showProgressBar={!showProgress}
           />
         ) : null}
         {stopHit ? (

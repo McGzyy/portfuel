@@ -6,7 +6,7 @@ export const USER_CALL_SELECT_LEGACY =
 export const USER_CALL_SELECT_EXTENDED = `${USER_CALL_SELECT_LEGACY}, peak_return_pct, closed_at, exit_price`;
 
 /** Entry mode columns (migration 20260702100000). */
-export const USER_CALL_SELECT_FULL = `${USER_CALL_SELECT_EXTENDED}, entry_mode, call_state, trigger_entry_price, expires_at`;
+export const USER_CALL_SELECT_FULL = `${USER_CALL_SELECT_EXTENDED}, entry_mode, call_state, trigger_entry_price, expires_at, updated_at`;
 
 /** Member call row loaded for profile / overview (peak fields optional pre-migration). */
 export type UserCallRow = {
@@ -34,6 +34,7 @@ export type UserCallRow = {
   call_state?: string | null;
   trigger_entry_price?: number | null;
   expires_at?: string | null;
+  updated_at?: string | null;
 };
 
 export function isMissingColumnDbError(error: {

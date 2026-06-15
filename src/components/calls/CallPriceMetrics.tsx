@@ -1,4 +1,5 @@
 import { cn, formatPrice } from "@/lib/utils";
+import { CallTargetProgressBar } from "@/components/calls/CallTargetProgressBar";
 
 type CallPriceMetricsProps = {
   entry_price?: number | null;
@@ -11,6 +12,8 @@ type CallPriceMetricsProps = {
   triggerEntryPrice?: number | null;
   compact?: boolean;
   live?: boolean;
+  /** When false, progress bar is omitted (shown elsewhere on the card). */
+  showProgressBar?: boolean;
   /** Strip layout for ticker thesis cards. */
   variant?: "default" | "strip";
 };
@@ -26,6 +29,7 @@ export function CallPriceMetrics({
   triggerEntryPrice,
   compact,
   live,
+  showProgressBar = true,
   variant = "default",
 }: CallPriceMetricsProps) {
   const isPending = callState === "pending_entry";
@@ -74,18 +78,9 @@ export function CallPriceMetrics({
             ) : null}
           </dl>
         ) : null}
-        {progress != null && !isPending ? (
+        {progress != null && !isPending && showProgressBar ? (
           <div className={cn(hasPrices && "mt-4")}>
-            <div className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
-              <span>Progress to target</span>
-              <span className="tabular-nums">{progress.toFixed(0)}%</span>
-            </div>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--pf-gray-200)]">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[var(--pf-red)] to-[var(--pf-red-hover)] transition-[width] duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+            <CallTargetProgressBar progress={progress} />
           </div>
         ) : null}
       </div>
@@ -149,18 +144,9 @@ export function CallPriceMetrics({
         </dl>
       ) : null}
 
-      {progress != null && !isPending ? (
+      {progress != null && !isPending && showProgressBar ? (
         <div className={cn(hasPrices && "mt-3")}>
-          <div className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-            <span>Progress to target</span>
-            <span className="tabular-nums text-[var(--pf-gray-600)]">{progress.toFixed(0)}%</span>
-          </div>
-          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--pf-gray-100)]">
-            <div
-              className="h-full rounded-full bg-[var(--pf-red)] transition-[width] duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          <CallTargetProgressBar progress={progress} size={compact ? "slim" : "default"} />
         </div>
       ) : null}
 

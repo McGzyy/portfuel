@@ -309,6 +309,7 @@ export async function loadDemoOverviewData(tier: DemoPreviewTier): Promise<DemoO
       userId: DEMO_PREVIEW_PROFILE.userId,
       username: DEMO_PREVIEW_PROFILE.username,
       displayName: DEMO_PREVIEW_PROFILE.displayName,
+      avatarUrl: null,
     })
   );
 

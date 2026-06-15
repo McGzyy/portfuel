@@ -44,6 +44,8 @@ export function mapCallForCard(
     username,
     is_trusted: Boolean(c.users.trusted_at),
     hype_score: hypeScores?.[c.symbol.toUpperCase()] ?? null,
+    avatar_url: c.users.avatar_url ?? null,
+    updated_at: c.updated_at ?? null,
     closed_at: row.closed_at ?? null,
     peak_return_pct: row.peak_return_pct ?? null,
     call_state: row.call_state ?? null,

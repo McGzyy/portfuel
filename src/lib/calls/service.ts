@@ -57,7 +57,7 @@ export async function fetchCallsFeed(
   let query = db
     .from("calls")
     .select(
-      "*, users!inner(id, pin, username, display_name, trusted_at, rank_score, subscription_status)"
+      "*, users!inner(id, pin, username, display_name, trusted_at, rank_score, subscription_status, avatar_url)"
     )
     .eq("users.subscription_status", "active");
 

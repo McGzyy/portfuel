@@ -8,6 +8,7 @@ export function CallReturnDisplay({
   callState,
   triggerEntryPrice,
   className,
+  size = "default",
 }: {
   returnPct: number | null;
   peakReturnPct?: number | null;
@@ -15,6 +16,7 @@ export function CallReturnDisplay({
   callState?: string | null;
   triggerEntryPrice?: number | null;
   className?: string;
+  size?: "default" | "hero";
 }) {
   if (callState === "pending_entry") {
     return (
@@ -37,9 +39,14 @@ export function CallReturnDisplay({
     closed_at: closedAt,
   });
 
+  const retSize =
+    size === "hero"
+      ? "text-3xl font-extrabold tracking-tight sm:text-[2rem]"
+      : "text-xl font-bold tracking-tight";
+
   return (
     <div className={cn("text-right", className)}>
-      <p className={cn("text-xl font-bold tabular-nums tracking-tight", retClass)}>
+      <p className={cn(retSize, "tabular-nums", retClass)}>
         {formatPct(returnPct)}
       </p>
       {peaked && peakReturnPct != null ? (

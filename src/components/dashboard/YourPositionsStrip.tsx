@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SparklineProvider } from "@/components/charts/SparklineProvider";
 import { SymbolSparkline } from "@/components/charts/SymbolSparkline";
 import { SymbolAvatar } from "@/components/market/SymbolAvatar";
+import { CallTargetProgressBar } from "@/components/calls/CallTargetProgressBar";
 import { formatPct } from "@/lib/utils";
 import type { CallCardData } from "@/components/calls/CallCard";
 
@@ -36,42 +37,57 @@ export function YourPositionsStrip({
           </Link>
         </div>
         <ul className="flex gap-3 overflow-x-auto p-4 pb-5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {calls.slice(0, 6).map((c) => (
-            <li
-              key={c.id}
-              className="relative min-w-[11.5rem] shrink-0 cursor-pointer rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2.5 transition-colors hover:border-[var(--pf-gray-300)]"
-            >
-              <Link
-                href={`/ticker/${c.symbol}`}
-                className="absolute inset-0 z-0 rounded-[inherit]"
-                aria-label={`View ${c.symbol} call`}
-              />
-              <div className="pointer-events-none relative">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <SymbolAvatar symbol={c.symbol} assetClass={c.asset_class} size="xs" />
-                    <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
-                      {c.symbol}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <SymbolSparkline symbol={c.symbol} width={40} height={18} />
+          {calls.slice(0, 6).map((c) => {
+            const progress =
+              c.target_progress != null
+                ? Math.min(100, Math.max(0, c.target_progress))
+                : null;
+            const isPending = c.call_state === "pending_entry";
+
+            return (
+              <li
+                key={c.id}
+                className="relative min-w-[12.5rem] shrink-0 cursor-pointer rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-gradient-to-b from-white to-[var(--pf-gray-50)] px-3 py-3 shadow-[var(--pf-shadow-sm)] transition-all hover:border-[var(--pf-gray-300)] hover:shadow-[var(--pf-shadow-md)]"
+              >
+                <Link
+                  href={`/ticker/${c.symbol}`}
+                  className="absolute inset-0 z-0 rounded-[inherit]"
+                  aria-label={`View ${c.symbol} call`}
+                />
+                <div className="pointer-events-none relative space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <SymbolAvatar symbol={c.symbol} assetClass={c.asset_class} size="xs" />
+                      <span className="font-mono text-sm font-bold text-[var(--pf-black)]">
+                        {c.symbol}
+                      </span>
+                    </div>
                     <span
-                      className={`text-xs font-bold tabular-nums ${
-                        (c.return_pct ?? 0) >= 0 ? "pf-return-up" : "pf-return-down"
+                      className={`text-base font-extrabold tabular-nums ${
+                        isPending
+                          ? "text-amber-700"
+                          : (c.return_pct ?? 0) >= 0
+                            ? "pf-return-up"
+                            : "pf-return-down"
                       }`}
                     >
-                      {formatPct(c.return_pct)}
+                      {isPending ? "—" : formatPct(c.return_pct)}
                     </span>
                   </div>
+                  {progress != null && !isPending ? (
+                    <CallTargetProgressBar progress={progress} size="slim" />
+                  ) : null}
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                      {c.direction}
+                      {c.is_fueled ? " · Fueled" : ""}
+                    </p>
+                    <SymbolSparkline symbol={c.symbol} width={44} height={20} />
+                  </div>
                 </div>
-                <p className="mt-1 text-[10px] uppercase tracking-wide text-[var(--pf-gray-400)]">
-                  {c.direction}
-                  {c.is_fueled ? " · Fueled" : ""}
-                </p>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       </section>
     </SparklineProvider>
