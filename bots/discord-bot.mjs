@@ -303,23 +303,29 @@ client.on("interactionCreate", async (interaction) => {
 
   if (interaction.isChatInputCommand() && interaction.commandName === "stats") {
     try {
+      await interaction.deferReply({ ephemeral: true });
       const target = interaction.options.getUser("member") ?? interaction.user;
       const stats = await api(
         `/api/discord/member-stats?guildId=${encodeURIComponent(GUILD_ID)}&discordUserId=${encodeURIComponent(target.id)}`
       );
-      await interaction.reply({
+      await interaction.editReply({
         content: formatStatsMessage(stats),
-        ephemeral: true,
       });
     } catch (e) {
       console.error("[discord-bot] /stats error", e);
-      await interaction.reply({ content: "Could not load stats.", ephemeral: true }).catch(() => null);
+      const msg = e instanceof Error ? e.message : "Could not load stats.";
+      if (interaction.deferred) {
+        await interaction.editReply({ content: msg }).catch(() => null);
+      } else {
+        await interaction.reply({ content: msg, ephemeral: true }).catch(() => null);
+      }
     }
     return;
   }
 
   if (interaction.isChatInputCommand() && interaction.commandName === "sync") {
     try {
+      await interaction.deferReply({ ephemeral: true });
       const target = interaction.options.getUser("member", true);
       const guild = await client.guilds.fetch(GUILD_ID);
       const member = await guild.members.fetch(target.id);
@@ -327,9 +333,8 @@ client.on("interactionCreate", async (interaction) => {
         `/api/discord/entitlements?guildId=${encodeURIComponent(GUILD_ID)}&discordUserId=${encodeURIComponent(target.id)}`
       );
       if (!ent.linked) {
-        await interaction.reply({
+        await interaction.editReply({
           content: "That user has not linked PortFuel yet.",
-          ephemeral: true,
         });
         return;
       }
@@ -342,13 +347,17 @@ client.on("interactionCreate", async (interaction) => {
         client,
         `Manual /sync by ${interaction.user.tag}: ${target.tag} → active=${ent.isActive} pro=${ent.isPro}`
       );
-      await interaction.reply({
+      await interaction.editReply({
         content: `Synced roles for **${target.username}** (active=${ent.isActive}, pro=${ent.isPro}).`,
-        ephemeral: true,
       });
     } catch (e) {
       console.error("[discord-bot] /sync error", e);
-      await interaction.reply({ content: "Sync failed.", ephemeral: true }).catch(() => null);
+      const msg = e instanceof Error ? e.message : "Sync failed.";
+      if (interaction.deferred) {
+        await interaction.editReply({ content: msg }).catch(() => null);
+      } else {
+        await interaction.reply({ content: msg, ephemeral: true }).catch(() => null);
+      }
     }
     return;
   }
@@ -409,6 +418,8 @@ client.on("interactionCreate", async (interaction) => {
         return;
       }
 
+      await interaction.deferReply({ ephemeral: true });
+
       const started = await api("/api/discord/link/start", {
         method: "POST",
         body: {
@@ -417,18 +428,20 @@ client.on("interactionCreate", async (interaction) => {
         },
       });
 
-      await interaction.reply({
+      await interaction.editReply({
         content:
           `Link your PortFuel account (log in on the website if needed):\n${started.linkUrl}\n\n` +
           `This link expires in 15 minutes.`,
-        ephemeral: true,
       });
       console.log(`[discord-bot] link started for ${interaction.user.id}`);
+      return;
     }
   } catch (e) {
     console.error("[discord-bot] interaction error", e);
     const msg = e instanceof Error ? e.message : "Something went wrong.";
-    if (interaction.replied || interaction.deferred) {
+    if (interaction.deferred) {
+      await interaction.editReply({ content: msg }).catch(() => null);
+    } else if (interaction.replied) {
       await interaction.followUp({ content: msg, ephemeral: true }).catch(() => null);
     } else {
       await interaction.reply({ content: msg, ephemeral: true }).catch(() => null);
