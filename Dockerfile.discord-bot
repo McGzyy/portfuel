@@ -2,12 +2,12 @@ FROM node:20-slim
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
-
+# Bot only needs discord.js + dotenv — not the full Next.js dependency tree.
 COPY bots/discord-bot.mjs ./bots/discord-bot.mjs
+RUN npm init -y \
+  && npm install discord.js@14.26.4 dotenv@17.4.2 --omit=dev \
+  && npm cache clean --force
 
 ENV NODE_ENV=production
 
 CMD ["node", "bots/discord-bot.mjs"]
-
