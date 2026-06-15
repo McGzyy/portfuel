@@ -10,7 +10,10 @@ import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
+import { computeMemberProAnalytics } from "@/lib/users/member-analytics";
+import { MemberProAnalyticsPanel } from "@/components/pro/MemberProAnalyticsPanel";
 import {
+  getProGateCta,
   isProIntelligenceLocked,
   sessionToProContext,
 } from "@/lib/features/pro-intelligence";
@@ -27,6 +30,8 @@ export default async function DashboardBookPage() {
     fetchOwnProfile(session),
   ]);
   const trackRecord = summarizeMemberTrackRecord(ownProfile.calls);
+  const proAnalytics = computeMemberProAnalytics(ownProfile.calls);
+  const proGateCta = getProGateCta(sessionToProContext(session));
   const performanceSeries = buildCumulativeReturnSeries(book.openCalls);
 
   return (
@@ -46,6 +51,12 @@ export default async function DashboardBookPage() {
             : null
         }
         avgReturnPct={trackRecord.avgReturnPct}
+      />
+
+      <MemberProAnalyticsPanel
+        analytics={proAnalytics}
+        locked={proLocked}
+        proGateCta={proGateCta}
       />
 
       {book.summary.openCount > 0 ? (

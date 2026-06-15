@@ -19,6 +19,7 @@ import { isFollowing } from "@/lib/follows/service";
 import { fetchMemberPublicCalls } from "@/lib/users/public-profile";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
+import { computeMemberProAnalytics } from "@/lib/users/member-analytics";
 import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
 import { buildReturnDistribution } from "@/lib/charts/return-distribution";
 import { fetchAiCoachUsage } from "@/lib/ai/usage";
@@ -74,6 +75,7 @@ export default async function MemberProfilePage({
   const initialFollowing =
     !isSelf && (await isFollowing(session.userId, member.id));
   const trackRecord = summarizeMemberTrackRecord(calls);
+  const proAnalytics = computeMemberProAnalytics(calls);
   const returnSeries = buildCumulativeReturnSeries(calls);
   const returnBuckets = buildReturnDistribution(calls);
   const proContext = sessionToProContext(session);
@@ -107,6 +109,7 @@ export default async function MemberProfilePage({
             trackRecord={trackRecord}
             returnSeries={returnSeries}
             returnBuckets={returnBuckets}
+            proAnalytics={proAnalytics}
             proLocked={proLocked}
             proGateCta={proGateCta}
             aiUsage={aiUsage}
