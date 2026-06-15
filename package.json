@@ -11,6 +11,7 @@
     "test:social": "npx tsx --test tests/social-smoke.test.mts",
     "smoke:social": "npx tsx scripts/smoke-social.mts",
     "migrations:list": "node scripts/list-migrations.mjs",
+    "verify:launch": "node --env-file=.env.local scripts/verify-launch.mjs",
     "brand-assets": "node scripts/optimize-brand-assets.mjs",
     "marketing:export": "npx tsx scripts/export-marketing-assets.mjs",
     "social-chart:preview": "npx tsx scripts/preview-social-chart.ts",

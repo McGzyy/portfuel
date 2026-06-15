@@ -13,20 +13,20 @@ export function DemoPreviewBar({
 }) {
   return (
     <div className="border-b border-[var(--pf-border)] bg-[var(--pf-surface)]">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-2.5">
-        <div className="flex min-w-0 flex-wrap items-center gap-2.5 sm:gap-3">
+      <div className="mx-auto flex max-w-6xl flex-col gap-2.5 px-3 py-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 sm:px-4">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-2.5">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--pf-gray-600)]">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
             Preview
           </span>
           <DemoTierToggle tier={tier} variant="light" />
-          <p className="hidden text-xs text-[var(--pf-gray-500)] sm:block">
-            {tier === "pro"
-              ? "Pro Intelligence layout — your book uses sample data; community & desk unlock after join."
-              : "Member layout — sample book & watchlist; feed, desk, and Pro research unlock after join."}
-          </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <p className="text-[11px] leading-snug text-[var(--pf-gray-500)] sm:max-w-md sm:flex-1">
+          {tier === "pro"
+            ? "Pro layout — sample book only; feed & desk unlock after join."
+            : "Member layout — sample book; toggle Pro to compare research terminal."}
+        </p>
+        <div className="flex shrink-0 items-center sm:justify-end">
           {signedIn ? (
             <Link
               href="/dashboard"

@@ -102,8 +102,8 @@ export function DemoLockedSection({
 
       <div className="relative">
         <SkeletonRows variant={variant} />
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-white/55 via-white/85 to-white px-4">
-          <div className="max-w-sm rounded-xl border border-[var(--pf-border)] bg-white px-5 py-4 text-center shadow-[var(--pf-shadow-md)]">
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-white/55 via-white/88 to-white px-3 sm:px-4">
+          <div className="max-w-sm rounded-xl border border-[var(--pf-border)] bg-white px-4 py-3.5 text-center shadow-[var(--pf-shadow-md)] sm:px-5 sm:py-4">
             <p className="text-sm font-semibold text-[var(--pf-black)]">
               Unlock with membership
             </p>
