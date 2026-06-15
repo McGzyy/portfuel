@@ -66,6 +66,7 @@ export function ProfileDiscordSection() {
       </h2>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
         Link your account for member and Pro channels. Roles sync when your subscription changes.
+        Pro members can also DM the PortFuel bot for product help (same AI as Help &amp; support).
       </p>
 
       {!status.loading ? (

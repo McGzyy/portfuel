@@ -3,6 +3,7 @@ import {
   AttachmentBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ChannelType,
   Client,
   EmbedBuilder,
   GatewayIntentBits,
@@ -62,6 +63,14 @@ const LINK_BUTTON_ID = "pf:link";
 
 const verifyCooldownMs = 30_000;
 const verifyCooldown = new Map();
+const helpDmCooldownMs = 8_000;
+const helpDmCooldown = new Map();
+
+const HELP_DM_INTRO =
+  "I'm **PortFuel Help** — ask me anything about the workspace, billing, calls, watchlist, journal, or Pro features.\n\n" +
+  "**Pro members** with a linked PortFuel account get **40 questions/month** (same quota as Help on portfuel.pro).\n\n" +
+  `Link first in <#${VERIFICATION_CHANNEL_ID}> → **Link PortFuel**, then DM your question here.\n\n` +
+  "_Product questions only — not investment advice._";
 
 /** 0 = disabled. Default 1 day. */
 const MIN_ACCOUNT_AGE_DAYS = Number(process.env.DISCORD_MIN_ACCOUNT_AGE_DAYS ?? "1");
@@ -77,10 +86,33 @@ async function api(path, { method = "GET", body } = {}) {
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const msg = json?.error ? String(json.error) : `${res.status}`;
-    throw new Error(`API ${method} ${path} failed: ${msg}`);
+    const err = new Error(
+      json?.message ? String(json.message) : json?.error ? String(json.error) : `${res.status}`
+    );
+    err.apiCode = json?.error ? String(json.error) : `${res.status}`;
+    throw err;
   }
   return json;
+}
+
+function splitDiscordMessage(text, maxLen = 1900) {
+  const chunks = [];
+  let rest = text.trim();
+  while (rest.length > maxLen) {
+    let cut = rest.lastIndexOf("\n", maxLen);
+    if (cut < maxLen * 0.5) cut = maxLen;
+    chunks.push(rest.slice(0, cut).trim());
+    rest = rest.slice(cut).trim();
+  }
+  if (rest) chunks.push(rest);
+  return chunks;
+}
+
+async function sendDmChunks(channel, text) {
+  const parts = splitDiscordMessage(text);
+  for (const part of parts) {
+    await channel.send({ content: part });
+  }
 }
 
 function isRoleId(v) {
@@ -197,6 +229,7 @@ function verificationEmbed() {
         "**Step 2 — Link PortFuel (members only)**\n" +
         "Already subscribed on [portfuel.pro](https://www.portfuel.pro)? Click **Link PortFuel** " +
         "while logged into your dashboard, then complete the link in your browser.\n\n" +
+        "**Pro members:** DM this bot any time for PortFuel Help (product FAQs — same AI as portfuel.pro/help).\n\n" +
         "Member and Pro channels unlock after your PortFuel subscription is linked."
     )
     .setColor(0xe11d48)
@@ -248,8 +281,9 @@ const client = new Client({
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.MessageContent,
   ],
-  partials: [Partials.Channel],
+  partials: [Partials.Channel, Partials.Message],
 });
 
 client.once("ready", async () => {
@@ -446,6 +480,64 @@ client.on("interactionCreate", async (interaction) => {
     } else {
       await interaction.reply({ content: msg, ephemeral: true }).catch(() => null);
     }
+  }
+});
+
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
+  if (message.guild) return;
+  if (message.channel.type !== ChannelType.DM) return;
+
+  const content = message.content?.trim() ?? "";
+  if (!content) return;
+
+  if (/^(help|hi|hello|start|hey)\b/i.test(content)) {
+    await message.reply(HELP_DM_INTRO).catch(() => null);
+    return;
+  }
+
+  const last = helpDmCooldown.get(message.author.id) ?? 0;
+  if (Date.now() - last < helpDmCooldownMs) {
+    await message
+      .reply("One moment — wait a few seconds between questions.")
+      .catch(() => null);
+    return;
+  }
+  helpDmCooldown.set(message.author.id, Date.now());
+
+  if (content.length < 4) {
+    await message
+      .reply("Ask a PortFuel question in a full sentence (or type **help** for instructions).")
+      .catch(() => null);
+    return;
+  }
+
+  try {
+    await message.channel.sendTyping().catch(() => null);
+    const result = await api("/api/discord/help-assistant", {
+      method: "POST",
+      body: {
+        guildId: String(GUILD_ID),
+        discordUserId: String(message.author.id),
+        question: content,
+      },
+    });
+
+    const reply =
+      `${result.answer}\n\n—\n_${result.disclaimer}_` +
+      (typeof result.remaining === "number"
+        ? `\n_Questions left this month: ${result.remaining}_`
+        : "");
+
+    await sendDmChunks(message.channel, reply);
+    console.log(`[discord-bot] help DM answered for ${message.author.id}`);
+  } catch (e) {
+    console.error("[discord-bot] help DM error", e);
+    const msg =
+      e instanceof Error && e.message
+        ? e.message
+        : "Something went wrong. Try again or use portfuel.pro/dashboard/help.";
+    await message.reply(msg).catch(() => null);
   }
 });
 
