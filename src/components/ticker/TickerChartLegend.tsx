@@ -43,9 +43,11 @@ export function TickerChartLegend({
           </span>
           <span className="inline-flex items-center gap-1.5">
             <span className="relative h-[18px] w-[18px] rounded-full ring-[2.5px] ring-[var(--pf-red)]">
-              <span className="absolute -bottom-px -right-px h-1.5 w-1.5 rounded-full bg-[var(--pf-red)]" />
+              <span className="absolute -bottom-px -right-px flex h-3 w-3 items-center justify-center rounded-full bg-[var(--pf-red)] text-[6px] font-bold text-white">
+                F
+              </span>
             </span>
-            Fueled ({callCount})
+            Fueled desk ({callCount})
           </span>
           <span className="inline-flex items-center gap-1.5">
             <span className="relative h-[18px] w-[18px] rounded-full bg-indigo-100 ring-2 ring-indigo-500">

@@ -155,6 +155,7 @@ export function CallCard({
         accent,
         "pf-call-card-premium group overflow-hidden transition-all duration-200",
         call.is_fueled && "ring-2 ring-[var(--pf-red)]/35 shadow-[0_0_0_1px_rgba(227,27,35,0.12)]",
+        isPending && "border-amber-200/70 bg-amber-50/25",
         linkToTicker
           ? "relative cursor-pointer hover:border-[var(--pf-gray-200)]"
           : "hover:border-[var(--pf-gray-200)]"

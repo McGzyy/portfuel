@@ -49,6 +49,7 @@ export type PriceLine = {
   label: string;
   color?: string;
   style?: "solid" | "dashed";
+  lineWidth?: 1 | 2 | 3;
 };
 
 export type LinePoint = {

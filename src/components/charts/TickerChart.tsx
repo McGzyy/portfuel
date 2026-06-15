@@ -450,7 +450,7 @@ export function TickerChart({
       const pl = seriesRef.current.createPriceLine({
         price: line.price,
         color: line.color ?? chartTheme.marker.default,
-        lineWidth: 1,
+        lineWidth: line.lineWidth ?? (line.label.toLowerCase().includes("entry") ? 2 : 1),
         lineStyle: line.style === "dashed" ? LineStyle.Dashed : LineStyle.Solid,
         axisLabelVisible: true,
         title: line.label,

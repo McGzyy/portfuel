@@ -7,6 +7,8 @@ import { cn, formatPct } from "@/lib/utils";
 export function MemberOpenBookSymbols({ rows }: { rows: MemberBookSymbolRow[] }) {
   if (rows.length === 0) return null;
 
+  const totalCalls = rows.reduce((sum, row) => sum + row.count, 0);
+
   return (
     <section className="pf-workspace-panel overflow-hidden">
       <div className="border-b border-[var(--pf-border)] px-5 py-4">
@@ -16,8 +18,12 @@ export function MemberOpenBookSymbols({ rows }: { rows: MemberBookSymbolRow[] })
         </p>
       </div>
       <ul className="divide-y divide-[var(--pf-border)]">
-        {rows.map((row) => (
-          <li key={row.symbol} className="flex flex-wrap items-center gap-3 px-5 py-3">
+        {rows.map((row) => {
+          const weightPct = totalCalls > 0 ? Math.round((row.count / totalCalls) * 100) : 0;
+
+          return (
+          <li key={row.symbol} className="px-5 py-3">
+            <div className="flex flex-wrap items-center gap-3">
             <Link
               href={`/ticker/${row.symbol}`}
               className="flex items-center gap-2 font-mono text-sm font-bold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
@@ -46,8 +52,21 @@ export function MemberOpenBookSymbols({ rows }: { rows: MemberBookSymbolRow[] })
                 {formatPct(row.avgReturnPct)} avg
               </span>
             ) : null}
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--pf-gray-100)]">
+                <div
+                  className="h-full rounded-full bg-[var(--pf-red)]/80 transition-[width] duration-300"
+                  style={{ width: `${weightPct}%` }}
+                />
+              </div>
+              <span className="w-8 text-right text-[10px] font-semibold tabular-nums text-[var(--pf-gray-500)]">
+                {weightPct}%
+              </span>
+            </div>
           </li>
-        ))}
+          );
+        })}
       </ul>
     </section>
   );

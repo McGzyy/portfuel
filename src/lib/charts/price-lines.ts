@@ -14,7 +14,7 @@ type LevelPrefix = "Desk" | "Your" | "Community";
 
 function levelColors(prefix: LevelPrefix): { entry: string; target: string; stop: string } {
   if (prefix === "Desk") {
-    return { entry: DESK, target: DESK, stop: DESK };
+    return { entry: DESK, target: "rgba(227, 27, 35, 0.55)", stop: "rgba(227, 27, 35, 0.4)" };
   }
   if (prefix === "Community") {
     return { entry: COMMUNITY_ENTRY, target: COMMUNITY_TARGET, stop: COMMUNITY_STOP };
@@ -38,6 +38,7 @@ function pushCallLevels(
       label: `${prefix} entry`,
       color: colors.entry,
       style: "solid",
+      lineWidth: 2,
     });
   }
   if (target != null && target > 0) {
@@ -46,6 +47,7 @@ function pushCallLevels(
       label: `${prefix} target`,
       color: colors.target,
       style: "dashed",
+      lineWidth: 1,
     });
   }
   if (stop != null && stop > 0) {
@@ -54,6 +56,7 @@ function pushCallLevels(
       label: `${prefix} stop`,
       color: colors.stop,
       style: "dashed",
+      lineWidth: 1,
     });
   }
 }

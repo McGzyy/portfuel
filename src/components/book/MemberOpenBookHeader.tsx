@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
+import { PositionsHighlightCards } from "@/components/book/PositionsHighlightCards";
 import type { MemberOpenBookSummary } from "@/lib/calls/member-book";
 import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
 import { formatPct } from "@/lib/utils";
@@ -75,18 +76,21 @@ export function MemberOpenBookHeader({
       </div>
 
       {summary.openCount > 0 ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat label="Open calls" value={String(summary.openCount)} />
-          <Stat label="Symbols" value={String(summary.uniqueSymbols)} />
-          <Stat
-            label="Avg return"
-            value={summary.avgReturnPct != null ? formatPct(summary.avgReturnPct) : "—"}
-            accent={avgAccent}
-          />
-          <Stat
-            label="Long / short"
-            value={`${summary.longCount} / ${summary.shortCount}`}
-          />
+        <div className="space-y-3">
+          <PositionsHighlightCards best={summary.best} worst={summary.worst} />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Stat label="Open calls" value={String(summary.openCount)} />
+            <Stat label="Symbols" value={String(summary.uniqueSymbols)} />
+            <Stat
+              label="Avg return"
+              value={summary.avgReturnPct != null ? formatPct(summary.avgReturnPct) : "—"}
+              accent={avgAccent}
+            />
+            <Stat
+              label="Long / short"
+              value={`${summary.longCount} / ${summary.shortCount}`}
+            />
+          </div>
         </div>
       ) : null}
     </header>

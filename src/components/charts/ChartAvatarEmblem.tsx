@@ -93,9 +93,11 @@ export function ChartAvatarEmblem({
       {face}
       {kind === "fueled" ? (
         <span
-          className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-[var(--pf-red)] ring-1 ring-[var(--pf-surface)]"
+          className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--pf-red)] text-[7px] font-extrabold leading-none text-white ring-1 ring-[var(--pf-surface)]"
           aria-hidden
-        />
+        >
+          F
+        </span>
       ) : null}
       {(clusterCount ?? 0) > 1 ? (
         <span
