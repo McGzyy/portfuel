@@ -1,5 +1,5 @@
 import { Check, Minus } from "lucide-react";
-import type { MembershipTier } from "@/lib/stripe/config";
+import type { BillingInterval, MembershipTier } from "@/lib/stripe/config";
 import { formatTierColumnHeader, PLAN_BY_TIER, type TierComparisonRow } from "@/lib/marketing/plans";
 import { cn } from "@/lib/utils";
 
@@ -17,11 +17,13 @@ export function TierComparisonTable({
   rows,
   highlightTier,
   compact,
+  billingInterval = "monthly",
 }: {
   rows: TierComparisonRow[];
   /** Emphasize Member or Pro column (e.g. on /join when a plan is selected) */
   highlightTier?: MembershipTier;
   compact?: boolean;
+  billingInterval?: BillingInterval;
 }) {
   return (
     <div className="overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]">
@@ -36,7 +38,7 @@ export function TierComparisonTable({
                 highlightTier === "member" && "bg-[var(--pf-red-muted)]/50 text-[var(--pf-red)]"
               )}
             >
-              {formatTierColumnHeader("member")}
+              {formatTierColumnHeader("member", billingInterval)}
             </th>
             <th
               className={cn(
@@ -47,7 +49,7 @@ export function TierComparisonTable({
                   : "text-[var(--pf-red)]"
               )}
             >
-              {formatTierColumnHeader("pro")}
+              {formatTierColumnHeader("pro", billingInterval)}
               <span className="sr-only">{PLAN_BY_TIER.pro.name}</span>
             </th>
           </tr>

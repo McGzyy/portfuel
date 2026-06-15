@@ -7,7 +7,7 @@ import {
 import { BillingIntervalPicker } from "@/components/billing/BillingIntervalPicker";
 import { UpgradeToProButton } from "@/components/billing/UpgradeToProButton";
 import { Input } from "@/components/ui/input";
-import { formatTierPriceLong } from "@/lib/marketing/plans";
+import { formatAnnualSavingsLine, formatTierPriceLong } from "@/lib/marketing/plans";
 import type { BillingInterval } from "@/lib/stripe/config";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { buildBillingUpgradeHook } from "@/lib/pro/upgrade-prompt";
@@ -69,6 +69,9 @@ export function ProfileBillingSection({
               annualAvailable={annualAvailable}
             />
           </div>
+          {checkoutInterval === "annual" && annualAvailable ? (
+            <p className="mt-2 text-sm text-[var(--pf-gray-500)]">{formatAnnualSavingsLine()}</p>
+          ) : null}
           <div className="mt-4 max-w-sm">
             <label className="mb-2 block text-sm font-medium text-[var(--pf-gray-700)]">
               Promo code <span className="font-normal text-[var(--pf-gray-400)]">(optional)</span>

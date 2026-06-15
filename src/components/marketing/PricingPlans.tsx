@@ -1,10 +1,29 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
+import { BillingIntervalPicker } from "@/components/billing/BillingIntervalPicker";
 import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
-import { PLAN_BY_TIER, PLAN_ORDER } from "@/lib/marketing/plans";
+import {
+  formatAnnualSavingsLine,
+  planPricingForInterval,
+  PLAN_ORDER,
+} from "@/lib/marketing/plans";
+import type { BillingInterval } from "@/lib/stripe/config";
 
 export function PricingPlans() {
+  const [annualAvailable, setAnnualAvailable] = useState(false);
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>("monthly");
+
+  useEffect(() => {
+    fetch("/api/stripe/status")
+      .then((r) => r.json())
+      .then((d: { annualConfigured?: boolean }) => setAnnualAvailable(Boolean(d.annualConfigured)))
+      .catch(() => setAnnualAvailable(false));
+  }, []);
+
   return (
     <section className="border-b border-[var(--pf-border)] bg-white py-16">
       <div className="mx-auto max-w-6xl px-4">
@@ -13,9 +32,21 @@ export function PricingPlans() {
           title="Choose your edge"
           description="Secure checkout with Stripe. Member is the full workspace; Pro adds the research terminal. Two-factor required after activation."
         />
+        <div className="mt-8 flex justify-center">
+          <BillingIntervalPicker
+            value={billingInterval}
+            onChange={setBillingInterval}
+            annualAvailable={annualAvailable}
+          />
+        </div>
+        {billingInterval === "annual" && annualAvailable ? (
+          <p className="mt-3 text-center text-sm text-[var(--pf-gray-500)]">
+            {formatAnnualSavingsLine()}
+          </p>
+        ) : null}
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           {PLAN_ORDER.map((tier) => {
-            const plan = PLAN_BY_TIER[tier];
+            const plan = planPricingForInterval(tier, billingInterval);
             return (
               <div
                 key={tier}

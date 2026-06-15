@@ -132,10 +132,17 @@ export function formatTierPriceForInterval(
   return `${plan.price}${plan.period}`;
 }
 
-export function formatTierColumnHeader(tier: MembershipTier): string {
-  const plan = PLAN_BY_TIER[tier];
+export function formatTierColumnHeader(
+  tier: MembershipTier,
+  interval: BillingInterval = "monthly"
+): string {
+  const plan = planPricingForInterval(tier, interval);
   const label = tier === "member" ? "Member" : "Pro";
   return `${label} ${plan.price}`;
+}
+
+export function formatAnnualSavingsLine(): string {
+  return `Member ${formatTierPriceForInterval("member", "annual")} (${ANNUAL_PLAN_BY_TIER.member.savingsNote}) · Pro ${formatTierPriceForInterval("pro", "annual")} (${ANNUAL_PLAN_BY_TIER.pro.savingsNote})`;
 }
 
 export function formatTierPrice(tier: MembershipTier): string {

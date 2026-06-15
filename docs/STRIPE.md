@@ -19,10 +19,13 @@ STRIPE_PRICE_PRO=price_...
 # Optional — enables Monthly / Annual toggle on /join and profile checkout
 STRIPE_PRICE_MEMBER_ANNUAL=price_...
 STRIPE_PRICE_PRO_ANNUAL=price_...
+NEXT_PUBLIC_ANNUAL_BILLING_ENABLED=true
 NEXT_PUBLIC_APP_URL=https://www.portfuel.pro
 ```
 
 Annual display copy on `/join` lives in `src/lib/marketing/plans.ts` (`ANNUAL_PLAN_BY_TIER`) — keep amounts aligned with your Stripe yearly prices.
+
+Set `NEXT_PUBLIC_ANNUAL_BILLING_ENABLED=true` in Vercel **and redeploy** — `NEXT_PUBLIC_*` vars are baked in at build time. The Monthly / Annual toggle appears on `/join`, `/pricing`, and Settings billing when both annual price IDs are set.
 
 Optional (not required for Checkout redirect flow):
 

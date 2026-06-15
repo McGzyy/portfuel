@@ -14,6 +14,7 @@ import { BillingIntervalPicker } from "@/components/billing/BillingIntervalPicke
 import { CompleteCheckoutButton } from "@/components/billing/BillingActions";
 import type { BillingInterval, MembershipTier } from "@/lib/stripe/config";
 import {
+  formatAnnualSavingsLine,
   formatTierPrice,
   formatTierPriceForInterval,
   MARKETING_PRICE_SUMMARY,
@@ -305,6 +306,11 @@ export default function JoinPage() {
                     annualAvailable={annualAvailable}
                     className="mx-auto"
                   />
+                  {billingInterval === "annual" && annualAvailable ? (
+                    <p className="text-center text-sm text-[var(--pf-gray-500)]">
+                      {formatAnnualSavingsLine()}
+                    </p>
+                  ) : null}
                   <div className="grid gap-3 sm:grid-cols-2">
                     <CompleteCheckoutButton
                       tier="member"
@@ -346,6 +352,11 @@ export default function JoinPage() {
                     annualAvailable={annualAvailable}
                   />
                 </div>
+                {billingInterval === "annual" && annualAvailable ? (
+                  <p className="text-center text-sm text-[var(--pf-gray-500)]">
+                    {formatAnnualSavingsLine()}
+                  </p>
+                ) : null}
                 <div className="grid gap-4 sm:grid-cols-2">
                   {PLAN_ORDER.map((tier) => {
                     const plan = planPricingForInterval(tier, billingInterval);
@@ -390,6 +401,7 @@ export default function JoinPage() {
                   rows={TIER_COMPARISON_ROWS}
                   highlightTier={selectedTier}
                   compact
+                  billingInterval={billingInterval}
                 />
               </div>
             </div>
