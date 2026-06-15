@@ -6,7 +6,10 @@ type MemberAvatarSource = {
   avatar_url?: string | null;
 };
 
-export function toChartMemberAvatar(member: MemberAvatarSource): ChartMemberAvatar {
+export function toChartMemberAvatar(
+  member: MemberAvatarSource | null | undefined
+): ChartMemberAvatar | null {
+  if (!member) return null;
   return {
     username: member.username,
     displayName: member.display_name ?? null,
