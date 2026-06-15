@@ -1,3 +1,4 @@
+import { buildPricingKnowledgeBlock } from "@/lib/ai/help-pricing-knowledge";
 import { HELP_SECTIONS, SUPPORT_EMAIL, SUPPORT_TICKETS_HREF } from "@/lib/help/content";
 
 /** Compact PortFuel product knowledge for the help assistant system prompt. */
@@ -16,6 +17,7 @@ export function buildHelpKnowledgeBase(): string {
   return [
     "PortFuel is a member workspace for publishing timestamped trading theses (calls), tracking performance, community feed, watchlist, private journal, Pro research tools, rankings, and billing via Stripe.",
     `Support email: ${SUPPORT_EMAIL}. Support tickets: ${SUPPORT_TICKETS_HREF}.`,
+    buildPricingKnowledgeBlock(),
     blocks.join("\n\n---\n\n"),
   ].join("\n\n");
 }
