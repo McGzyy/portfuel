@@ -26,7 +26,11 @@ import {
   WORKSPACE_BOTTOM_NAV,
   WORKSPACE_MORE_PATH_PREFIXES,
 } from "@/lib/dashboard/quick-actions";
-import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
+import {
+  WORKSPACE_NAV_GROUPS,
+  isWorkspaceNavItemActive,
+  type DashboardNavIcon,
+} from "@/lib/dashboard/nav";
 import { WorkspaceSidebarFooter } from "@/components/dashboard/WorkspaceSidebarFooter";
 import { PublishIdentitySwitcher } from "@/components/calls/PublishIdentitySwitcher";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
@@ -50,12 +54,6 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   help: LifeBuoy,
   sparkles: Sparkles,
 };
-
-function isNavActive(pathname: string, href: string, exact?: boolean) {
-  return exact === true
-    ? pathname === href
-    : pathname === href || pathname.startsWith(`${href}/`);
-}
 
 function isMoreActive(pathname: string): boolean {
   return WORKSPACE_MORE_PATH_PREFIXES.some(
@@ -159,7 +157,7 @@ export function MemberNav({
               <div className="space-y-0.5">
                 {group.items.map((item) => {
                   const Icon = ICONS[item.icon];
-                  const active = isNavActive(pathname, item.href, item.exact);
+                  const active = isWorkspaceNavItemActive(pathname, item, { username });
                   return (
                     <Link
                       key={item.href}
@@ -222,7 +220,7 @@ export function MemberNav({
       >
         {WORKSPACE_BOTTOM_NAV.map((item) => {
           const Icon = ICONS[item.icon];
-          const active = isNavActive(pathname, item.href, item.exact);
+          const active = isWorkspaceNavItemActive(pathname, item, { username });
           return (
             <Link
               key={item.href}

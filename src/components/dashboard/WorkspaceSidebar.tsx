@@ -19,7 +19,11 @@ import {
   Sparkles,
 } from "lucide-react";
 import { WhatsNewBadge } from "@/components/announcements/WhatsNewBadge";
-import { WORKSPACE_NAV_GROUPS, type DashboardNavIcon } from "@/lib/dashboard/nav";
+import {
+  WORKSPACE_NAV_GROUPS,
+  isWorkspaceNavItemActive,
+  type DashboardNavIcon,
+} from "@/lib/dashboard/nav";
 import { WorkspaceSidebarFooter } from "@/components/dashboard/WorkspaceSidebarFooter";
 import { PublishIdentitySwitcher } from "@/components/calls/PublishIdentitySwitcher";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
@@ -89,10 +93,7 @@ export function WorkspaceSidebar({
             <div className="space-y-0.5">
               {group.items.map((item) => {
                 const Icon = ICONS[item.icon];
-                const active =
-                  item.exact === true
-                    ? pathname === item.href
-                    : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                const active = isWorkspaceNavItemActive(pathname, item, { username });
 
                 return (
                   <Link

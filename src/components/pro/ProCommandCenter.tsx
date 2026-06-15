@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LifeBuoy, Sparkles } from "lucide-react";
+import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
+import { buildMemberProAnalyticsItems } from "@/components/pro/MemberProAnalyticsPanel";
 import { ProTodayBriefCard } from "@/components/pro/ProTodayBrief";
 import { ResearchPulseCards } from "@/components/pro/ProOverviewIntelStrip";
 import {
@@ -12,6 +14,8 @@ import {
 import type { EarningsBattleboardSummary } from "@/lib/earnings/battleboard";
 import type { ProTodayBrief } from "@/lib/pro/today-brief";
 import type { CommunityScreenerData } from "@/lib/screener/community";
+import type { MemberProAnalytics } from "@/lib/users/member-analytics";
+import { hasMemberProAnalytics } from "@/lib/users/member-analytics";
 import { briefTitleForHour } from "@/lib/time/greeting";
 import { cn } from "@/lib/utils";
 
@@ -20,11 +24,13 @@ export function ProCommandCenter({
   brief,
   battleboard,
   screener,
+  bookAnalytics,
   className,
 }: {
   brief: ProTodayBrief;
   battleboard: EarningsBattleboardSummary;
   screener: CommunityScreenerData;
+  bookAnalytics?: MemberProAnalytics | null;
   className?: string;
 }) {
   const [briefTitle, setBriefTitle] = useState("Research terminal");
@@ -41,6 +47,11 @@ export function ProCommandCenter({
       })
     );
   }, []);
+
+  const analyticsItems =
+    bookAnalytics && hasMemberProAnalytics(bookAnalytics)
+      ? buildMemberProAnalyticsItems(bookAnalytics).slice(0, 4)
+      : [];
 
   return (
     <section
@@ -108,6 +119,27 @@ export function ProCommandCenter({
           />
         </div>
       </div>
+
+      {analyticsItems.length > 0 ? (
+        <div className="border-t border-white/10 bg-black/25 px-4 py-4 sm:px-5">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-300/80">
+              Your book analytics
+            </p>
+            <Link
+              href="/dashboard/book"
+              className="text-[11px] font-semibold text-sky-300 hover:text-sky-200 hover:underline"
+            >
+              Open book →
+            </Link>
+          </div>
+          <MetricsStrip
+            items={analyticsItems}
+            variant="dark"
+            className="!border-0 !bg-transparent !p-0 !shadow-none"
+          />
+        </div>
+      ) : null}
     </section>
   );
 }

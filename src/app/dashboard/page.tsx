@@ -34,6 +34,7 @@ import {
   requireDashboardSession,
 } from "@/lib/dashboard/data";
 import { mapUserCallRowToCard } from "@/lib/calls/map-user-call-card";
+import { computeMemberProAnalytics } from "@/lib/users/member-analytics";
 import { buildFeedHref } from "@/lib/dashboard/nav";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import {
@@ -174,6 +175,7 @@ export default async function DashboardOverviewPage({
   const featuredDesk = fueledPreviews[0] ?? null;
 
   const isPro = !proLocked;
+  const proBookAnalytics = isPro ? computeMemberProAnalytics(ownCalls) : null;
 
   const [
     watchlistItems,
@@ -325,6 +327,7 @@ export default async function DashboardOverviewPage({
           brief={proTodayBrief}
           battleboard={proOverviewIntel.battleboard}
           screener={proOverviewIntel.screener}
+          bookAnalytics={proBookAnalytics}
         />
       ) : null}
 

@@ -26,8 +26,6 @@ export default async function NewCallPage() {
       isDeskIdentity={isDeskPublishIdentity(session)}
       canPublishCalls={session.canPublishCalls}
       role={session.role}
-      canDm={session.canDm}
-      canComment={session.canComment}
     />
   );
 }

@@ -1,4 +1,4 @@
-import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
+import { MetricsStrip, type MetricItem } from "@/components/dashboard/MetricsStrip";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
 import type { ProGateCta } from "@/lib/features/pro-intelligence";
 import {
@@ -6,7 +6,7 @@ import {
   type MemberProAnalytics,
 } from "@/lib/users/member-analytics";
 
-function buildItems(analytics: MemberProAnalytics) {
+export function buildMemberProAnalyticsItems(analytics: MemberProAnalytics): MetricItem[] {
   const items = [];
 
   if (analytics.targetTrackedCount > 0) {
@@ -74,7 +74,7 @@ export function MemberProAnalyticsPanel({
 }) {
   if (!hasMemberProAnalytics(analytics)) return null;
 
-  const items = buildItems(analytics);
+  const items = buildMemberProAnalyticsItems(analytics);
 
   const body = (
     <MetricsStrip

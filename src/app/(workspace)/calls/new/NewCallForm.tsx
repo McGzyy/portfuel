@@ -18,7 +18,6 @@ import {
   type PublishXApplyPayload,
 } from "@/components/calls/PublishXSourcePanel";
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
-import { ModerationBanner } from "@/components/member/ModerationBanner";
 import type { SessionPayload } from "@/lib/auth/session-types";
 import type { HeaderUser } from "@/lib/auth/session-user";
 import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
@@ -61,8 +60,6 @@ export function NewCallForm({
   isDeskIdentity = false,
   role,
   canPublishCalls,
-  canDm,
-  canComment,
 }: {
   user: HeaderUser;
   weeklyQuota: WeeklyQuotaStatus;
@@ -73,8 +70,6 @@ export function NewCallForm({
   isDeskIdentity?: boolean;
   role: SessionPayload["role"];
   canPublishCalls: boolean;
-  canDm: boolean;
-  canComment: boolean;
 }) {
   const publishBlocked = role !== "admin" && !canPublishCalls;
   const quotaBlocked = !isDeskIdentity && weeklyQuota.remaining === 0;
@@ -322,14 +317,6 @@ export function NewCallForm({
         backLabel={
           fromJournal && initialSymbol ? `${initialSymbol} journal` : "Workspace overview"
         }
-      />
-
-      <ModerationBanner
-        role={role}
-        canPublishCalls={canPublishCalls}
-        canDm={canDm}
-        canComment={canComment}
-        className="mb-4 rounded-lg border border-amber-200/80"
       />
 
       <MemberQuotaStrip quota={weeklyQuota} showUpgrade={showUpgrade} className="mb-6" />

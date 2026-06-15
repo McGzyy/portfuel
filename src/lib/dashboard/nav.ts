@@ -134,6 +134,31 @@ export function memberPublicPath(username: string): string {
   return `/member/${encodeURIComponent(username)}`;
 }
 
+/** Sidebar / mobile drawer active state — includes satellite routes in the workspace shell. */
+export function isWorkspaceNavItemActive(
+  pathname: string,
+  item: { href: string; exact?: boolean },
+  opts?: { username?: string }
+): boolean {
+  if (item.exact === true) {
+    if (pathname === item.href) return true;
+    if (item.href === "/dashboard" && pathname === "/calls/new") return true;
+    return false;
+  }
+
+  if (pathname === item.href || pathname.startsWith(`${item.href}/`)) {
+    return true;
+  }
+
+  const username = opts?.username;
+  if (username && item.href === "/dashboard/book") {
+    const ownProfile = memberPublicPath(username);
+    return pathname === ownProfile || pathname.startsWith(`${ownProfile}/`);
+  }
+
+  return false;
+}
+
 export function buildWorkspaceGuideSections(username: string): {
   title: string;
   items: { href: string; label: string; description: string }[];
