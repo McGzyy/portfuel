@@ -11,7 +11,7 @@ import { SITE_NAME } from "@/lib/seo/site";
 export const metadata = {
   title: `Workspace preview · ${SITE_NAME}`,
   description:
-    "Explore the PortFuel member workspace — feed, Fueled desk, and rankings — before you join.",
+    "Walk through the PortFuel member workspace layout — your book and watchlist in sample data; community feed and Fueled desk unlock after join.",
 };
 
 export default async function DemoWorkspaceLayout({

@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { DemoWorkspaceBanner } from "@/components/demo/DemoWorkspaceBanner";
+import { DemoPreviewBar } from "@/components/demo/DemoPreviewBar";
 import type { DemoPreviewTier } from "@/lib/demo/tier";
 import type { PreviewDataSource } from "@/lib/demo/workspace-preview";
 
@@ -14,16 +13,7 @@ export function DemoWorkspaceBannerClient({
   signedIn?: boolean;
   tier: DemoPreviewTier;
 }) {
-  const [source, setSource] = useState<PreviewDataSource | undefined>();
-
-  useEffect(() => {
-    const stored = sessionStorage.getItem(STORAGE_KEY);
-    if (stored === "live" || stored === "sample") {
-      setSource(stored);
-    }
-  }, []);
-
-  return <DemoWorkspaceBanner source={source} signedIn={signedIn} tier={tier} />;
+  return <DemoPreviewBar tier={tier} signedIn={signedIn} />;
 }
 
 export function setDemoPreviewSource(source: PreviewDataSource) {

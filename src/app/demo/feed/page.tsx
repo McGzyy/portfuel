@@ -1,30 +1,32 @@
 import Link from "next/link";
-import { DemoPreviewSourceSync } from "@/components/demo/DemoPreviewSourceSync";
-import { DemoReadOnlyFeed } from "@/components/demo/DemoReadOnlyFeed";
-import { FueledDeskSection } from "@/components/dashboard/FueledDeskSection";
+import { Flame, LayoutGrid } from "lucide-react";
+import { DemoLockedSection } from "@/components/demo/DemoLockedSection";
+import { DemoJoinFooter } from "@/components/demo/DemoJoinFooter";
 import { FeedSummaryBar } from "@/components/dashboard/FeedSummaryBar";
 import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
-import { summarizeFeed } from "@/lib/calls/feed-summary";
 import { getDemoPreviewTier, isDemoPreviewPro } from "@/lib/demo/tier";
-import { loadPreviewFeedCalls, mapPreviewCallsForCards } from "@/lib/demo/workspace-preview";
 import { getDemoWatchlist } from "@/lib/watchlist/demo";
 import { DEMO_PREVIEW_USER } from "@/lib/demo/fixtures";
+
+/** Synthetic feed summary — illustrates Pro analytics strip, not real calls. */
+const DEMO_FEED_SUMMARY = {
+  count: 24,
+  avgReturnPct: 4.2,
+  winners: 14,
+  losers: 6,
+  fueledCount: 4,
+  longCount: 17,
+  shortCount: 7,
+  avgTargetProgress: 48,
+};
 
 export default async function DemoFeedPage() {
   const tier = await getDemoPreviewTier();
   const proLocked = !isDemoPreviewPro(tier);
-
-  const { calls: latestRaw, source } = await loadPreviewFeedCalls("latest");
-  const latestCalls = await mapPreviewCallsForCards(latestRaw);
-  const memberCalls = latestCalls.filter((c) => !c.is_fueled);
-  const fueledCalls = latestCalls.filter((c) => c.is_fueled).slice(0, 4);
-  const summary = summarizeFeed(memberCalls);
   const watchlist = getDemoWatchlist(DEMO_PREVIEW_USER.id);
 
   return (
     <div className="space-y-6">
-      <DemoPreviewSourceSync source={source} />
-
       <header className="pf-workspace-panel px-5 py-6 sm:px-6">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
           Member feed
@@ -33,34 +35,21 @@ export default async function DemoFeedPage() {
           Community calls
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-[var(--pf-gray-600)]">
-          Verified member theses with live performance, votes, and chart markers — read-only in
-          this preview. Toggle Member vs Pro in the banner to compare feed analytics.
+          The member feed is gated in preview so paid research stays behind membership. Toggle
+          Member vs Pro on the overview to compare analytics depth.
         </p>
       </header>
 
-      {fueledCalls.length > 0 ? (
-        <FueledDeskSection calls={fueledCalls} readOnly deskHref="/demo/desk" />
-      ) : null}
+      <FeedSummaryBar
+        summary={DEMO_FEED_SUMMARY}
+        mode="latest"
+        proLocked={proLocked}
+        proGateCta="join"
+      />
 
-      {memberCalls.length > 0 ? (
-        <>
-          <FeedSummaryBar
-            summary={summary}
-            mode="latest"
-            proLocked={proLocked}
-            proGateCta="join"
-          />
-          <DemoReadOnlyFeed calls={memberCalls} />
-        </>
-      ) : (
-        <div className="pf-workspace-panel px-6 py-12 text-center text-sm text-[var(--pf-gray-500)]">
-          No member calls to preview yet.{" "}
-          <Link href="/join" className="font-semibold text-[var(--pf-red)]">
-            Join
-          </Link>{" "}
-          to publish the first thesis.
-        </div>
-      )}
+      <DemoLockedSection variant="feed" icon={LayoutGrid} />
+
+      <DemoLockedSection variant="desk" icon={Flame} compact />
 
       {proLocked ? (
         <ProMembershipStrip
@@ -68,7 +57,17 @@ export default async function DemoFeedPage() {
           watchlistSymbols={watchlist.map((w) => w.symbol)}
           upgradeHref="/join"
         />
-      ) : null}
+      ) : (
+        <div className="rounded-xl border border-sky-200/60 bg-sky-50/40 px-5 py-4 text-sm text-[var(--pf-gray-700)]">
+          <strong className="text-[var(--pf-black)]">Pro preview:</strong> feed analytics strip
+          above is unlocked — individual theses still require membership.{" "}
+          <Link href="/join" className="font-semibold text-[var(--pf-red)] hover:underline">
+            Get access
+          </Link>
+        </div>
+      )}
+
+      <DemoJoinFooter tier={tier} />
     </div>
   );
 }

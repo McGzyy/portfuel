@@ -9,9 +9,11 @@ import { cn } from "@/lib/utils";
 export function DemoTierToggle({
   tier,
   className,
+  variant = "dark",
 }: {
   tier: DemoPreviewTier;
   className?: string;
+  variant?: "dark" | "light";
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -32,10 +34,15 @@ export function DemoTierToggle({
     }
   }
 
+  const isLight = variant === "light";
+
   return (
     <div
       className={cn(
-        "inline-flex rounded-lg border border-white/15 bg-black/25 p-0.5",
+        "inline-flex rounded-lg p-0.5",
+        isLight
+          ? "border border-[var(--pf-border)] bg-[var(--pf-gray-50)]"
+          : "border border-white/15 bg-black/25",
         className
       )}
       role="group"
@@ -48,8 +55,12 @@ export function DemoTierToggle({
         className={cn(
           "rounded-md px-2.5 py-1.5 text-[11px] font-bold transition-colors sm:px-3",
           active === "member"
-            ? "bg-white text-[var(--pf-black)] shadow-sm"
-            : "text-slate-300 hover:text-white"
+            ? isLight
+              ? "bg-white text-[var(--pf-black)] shadow-sm"
+              : "bg-white text-[var(--pf-black)] shadow-sm"
+            : isLight
+              ? "text-[var(--pf-gray-600)] hover:text-[var(--pf-black)]"
+              : "text-slate-300 hover:text-white"
         )}
       >
         Member
@@ -62,7 +73,9 @@ export function DemoTierToggle({
           "inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-bold transition-colors sm:px-3",
           active === "pro"
             ? "bg-sky-500 text-white shadow-sm"
-            : "text-slate-300 hover:text-white"
+            : isLight
+              ? "text-[var(--pf-gray-600)] hover:text-[var(--pf-black)]"
+              : "text-slate-300 hover:text-white"
         )}
       >
         <Sparkles className="h-3 w-3" strokeWidth={2.5} />
