@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TierComparisonTable } from "@/components/marketing/TierComparisonTable";
+import { JoinDemoPreviewStrip } from "@/components/marketing/JoinDemoPreviewStrip";
 import { BillingIntervalPicker } from "@/components/billing/BillingIntervalPicker";
 import { CompleteCheckoutButton } from "@/components/billing/BillingActions";
 import type { BillingInterval, MembershipTier } from "@/lib/stripe/config";
@@ -336,6 +337,7 @@ export default function JoinPage() {
 
         {step === "plan" && !pending ? (
           <div className="space-y-8">
+            <JoinDemoPreviewStrip />
             <Card className="pf-card-elevated border-0 shadow-[var(--pf-shadow-lg)]">
               <CardHeader>
                 <p className="pf-eyebrow">Step 1 of 2</p>

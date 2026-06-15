@@ -1,20 +1,16 @@
 import Link from "next/link";
+import { DemoJoinFooter } from "@/components/demo/DemoJoinFooter";
 import { DemoPreviewSourceSync } from "@/components/demo/DemoPreviewSourceSync";
 import { RankingsPageContent } from "@/components/rankings/RankingsPageContent";
 import { summarizeRankings } from "@/lib/calls/rankings-summary";
 import { loadPreviewLeaderboard } from "@/lib/demo/workspace-preview";
-import {
-  getProGateCta,
-  isProIntelligenceLocked,
-  sessionToProContext,
-} from "@/lib/features/pro-intelligence";
+import { getDemoPreviewTier, isDemoPreviewPro } from "@/lib/demo/tier";
 import { getSession } from "@/lib/auth/session";
 
 export default async function DemoRankingsPage() {
   const session = await getSession();
-  const proContext = sessionToProContext(session);
-  const proLocked = isProIntelligenceLocked(proContext);
-  const proGateCta = getProGateCta(proContext);
+  const tier = await getDemoPreviewTier();
+  const proLocked = !isDemoPreviewPro(tier);
 
   const { rows, source } = await loadPreviewLeaderboard(30);
   const summary = summarizeRankings(rows);
@@ -31,7 +27,8 @@ export default async function DemoRankingsPage() {
           Member leaderboard
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-[var(--pf-gray-600)]">
-          Track record scores, win rates, and trusted badges — reputation is the product.
+          Public reputation scores and win rates — follow top callers after join. Toggle Member vs
+          Pro in the preview bar to see how Pro analytics strips look on rankings.
         </p>
         {session ? (
           <p className="mt-3 text-xs text-[var(--pf-gray-500)]">
@@ -48,9 +45,11 @@ export default async function DemoRankingsPage() {
         rows={rows}
         summary={summary}
         proLocked={proLocked}
-        proGateCta={proGateCta}
+        proGateCta="join"
         loggedIn={false}
       />
+
+      <DemoJoinFooter tier={tier} />
     </div>
   );
 }

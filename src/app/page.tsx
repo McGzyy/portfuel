@@ -70,8 +70,8 @@ export default async function LandingPage() {
               </h1>
               <p className="pf-lead mt-6 lg:max-w-lg">
                 Curated theses, Fueled desk research, live performance tracking, ticker intel, DMs,
-                and rankings — built for members who treat calls like a profession. Public previews
-                show verified winners only.
+                and rankings — built for members who treat calls like a profession. Try the
+                interactive workspace preview before you join.
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
                 <Link href="/join">
