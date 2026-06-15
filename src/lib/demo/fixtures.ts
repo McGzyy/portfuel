@@ -8,6 +8,15 @@ function daysAgo(days: number, hours = 0): string {
   return new Date(NOW - days * 86400000 - hours * 3600000).toISOString();
 }
 
+/** Deterministic portrait URLs for demo members (no upload required). */
+export function demoAvatarUrl(username: string, style: "notionists" | "shapes" = "notionists"): string {
+  const seed = encodeURIComponent(username);
+  if (style === "shapes") {
+    return `https://api.dicebear.com/9.x/shapes/png?seed=${seed}&size=128`;
+  }
+  return `https://api.dicebear.com/9.x/notionists/png?seed=${seed}&backgroundColor=b6e3f4,c0aede,d1d4f9&size=128`;
+}
+
 type DemoUser = {
   id: string;
   pin: string;
@@ -15,6 +24,7 @@ type DemoUser = {
   display_name: string;
   trusted_at: string | null;
   rank_score: number;
+  avatar_url: string;
 };
 
 const DEMO_USERS: Record<string, DemoUser> = {
@@ -25,6 +35,7 @@ const DEMO_USERS: Record<string, DemoUser> = {
     display_name: "PortFuel",
     trusted_at: daysAgo(90),
     rank_score: 420,
+    avatar_url: demoAvatarUrl("portfuel", "shapes"),
   },
   ace: {
     id: "demo-user-ace",
@@ -33,6 +44,7 @@ const DEMO_USERS: Record<string, DemoUser> = {
     display_name: "Ace",
     trusted_at: daysAgo(60),
     rank_score: 318,
+    avatar_url: demoAvatarUrl("ace_calls"),
   },
   mira: {
     id: "demo-user-mira",
@@ -41,6 +53,7 @@ const DEMO_USERS: Record<string, DemoUser> = {
     display_name: "Mira",
     trusted_at: null,
     rank_score: 245,
+    avatar_url: demoAvatarUrl("mira_theta"),
   },
   diesel: {
     id: "demo-user-diesel",
@@ -49,6 +62,7 @@ const DEMO_USERS: Record<string, DemoUser> = {
     display_name: "Diesel",
     trusted_at: daysAgo(30),
     rank_score: 198,
+    avatar_url: demoAvatarUrl("diesel_edge"),
   },
   kline: {
     id: "demo-user-kline",
@@ -57,6 +71,7 @@ const DEMO_USERS: Record<string, DemoUser> = {
     display_name: "Kline",
     trusted_at: null,
     rank_score: 156,
+    avatar_url: demoAvatarUrl("kline_king"),
   },
   vega: {
     id: "demo-user-vega",
@@ -65,6 +80,7 @@ const DEMO_USERS: Record<string, DemoUser> = {
     display_name: "Vega",
     trusted_at: daysAgo(14),
     rank_score: 132,
+    avatar_url: demoAvatarUrl("vega_vol"),
   },
   preview: {
     id: "demo-user-preview",
@@ -73,6 +89,7 @@ const DEMO_USERS: Record<string, DemoUser> = {
     display_name: "Alex",
     trusted_at: daysAgo(45),
     rank_score: 212,
+    avatar_url: demoAvatarUrl("alex_trades"),
   },
 };
 
@@ -136,7 +153,7 @@ const RAW_CALLS: RawCall[] = [
     direction: "long",
     thesis:
       "Earnings drift higher — looking for continuation after flag. Tight risk under 115.",
-    called_at: daysAgo(5),
+    called_at: daysAgo(1, 5),
     entry_price: 114,
     target_price: 125,
     stop_price: 110,
@@ -537,6 +554,122 @@ const RAW_CALLS: RawCall[] = [
     trigger_entry_price: 168,
     expires_at: new Date(NOW + 18 * 86400000).toISOString(),
   },
+  {
+    id: "demo-call-017",
+    userKey: "mira",
+    symbol: "NVDA",
+    asset_class: "equity",
+    direction: "long",
+    thesis:
+      "Same-day momentum add — semi index strong, NVDA holding 130. Small size into close, stop 126.",
+    called_at: daysAgo(1, 8),
+    entry_price: 131.2,
+    target_price: 140,
+    stop_price: 126,
+    price_at_call: 131.2,
+    last_price: 132.4,
+    return_pct: 0.91,
+    target_progress: 14,
+    vote_score: 4,
+    comment_count: 1,
+    is_fueled: false,
+    source: "user",
+    timeframe_tag: "Intraday",
+  },
+  {
+    id: "demo-call-preview-004",
+    userKey: "preview",
+    symbol: "META",
+    asset_class: "equity",
+    direction: "long",
+    thesis:
+      "Cup-and-handle breakout watch — ad efficiency narrative intact. Entry 488, target 540, stop 468.",
+    called_at: daysAgo(3),
+    entry_price: 488,
+    target_price: 540,
+    stop_price: 468,
+    price_at_call: 488,
+    last_price: 502,
+    return_pct: 2.87,
+    target_progress: 26,
+    vote_score: 4,
+    comment_count: 1,
+    is_fueled: false,
+    source: "user",
+    timeframe_tag: "Position",
+  },
+  {
+    id: "demo-call-preview-005",
+    userKey: "preview",
+    symbol: "MSFT",
+    asset_class: "equity",
+    direction: "long",
+    thesis:
+      "Azure re-acceleration — bought the dip into 415 support. Took profit into resistance.",
+    called_at: daysAgo(22),
+    entry_price: 415,
+    target_price: 445,
+    stop_price: 402,
+    price_at_call: 415,
+    last_price: 442,
+    return_pct: 6.51,
+    target_progress: 100,
+    vote_score: 11,
+    comment_count: 2,
+    is_fueled: false,
+    source: "user",
+    timeframe_tag: "Swing",
+    peak_return_pct: 7.2,
+    closed_at: daysAgo(8),
+    exit_price: 442,
+  },
+  {
+    id: "demo-call-preview-006",
+    userKey: "preview",
+    symbol: "NFLX",
+    asset_class: "equity",
+    direction: "short",
+    thesis:
+      "Subscriber guide risk — faded 620 resistance. Stopped on squeeze; closed for discipline.",
+    called_at: daysAgo(28),
+    entry_price: 618,
+    target_price: 560,
+    stop_price: 635,
+    price_at_call: 618,
+    last_price: 628,
+    return_pct: -1.62,
+    target_progress: 0,
+    vote_score: 3,
+    comment_count: 1,
+    is_fueled: false,
+    source: "user",
+    timeframe_tag: "Event",
+    peak_return_pct: 2.1,
+    closed_at: daysAgo(20),
+    exit_price: 628,
+  },
+  {
+    id: "demo-call-preview-007",
+    userKey: "preview",
+    symbol: "TSLA",
+    asset_class: "equity",
+    direction: "long",
+    thesis:
+      "Delivery week setup — holding 210 support with tight risk. Target 235 into print.",
+    called_at: daysAgo(2),
+    entry_price: 212,
+    target_price: 235,
+    stop_price: 202,
+    price_at_call: 212,
+    last_price: 218.5,
+    return_pct: 3.07,
+    target_progress: 28,
+    vote_score: 5,
+    comment_count: 0,
+    is_fueled: false,
+    source: "user",
+    timeframe_tag: "Event",
+  },
 ];
 
 function toCallWithUser(raw: RawCall): CallWithUser {
@@ -581,7 +714,7 @@ function toCallWithUser(raw: RawCall): CallWithUser {
       display_name: u.display_name,
       trusted_at: u.trusted_at,
       rank_score: u.rank_score,
-      avatar_url: null,
+      avatar_url: u.avatar_url,
     },
   };
 }
@@ -772,7 +905,7 @@ export function getDemoMemberByUserId(userId: string) {
     username: u.username,
     display_name: u.display_name,
     bio: null,
-    avatar_url: null,
+    avatar_url: u.avatar_url,
     trusted: Boolean(u.trusted_at),
     calls_count: userCalls.length,
     win_rate: userCalls.length ? Math.round((wins / userCalls.length) * 100) : null,
@@ -796,7 +929,7 @@ export function getDemoMemberByUsername(username: string) {
     username: u.username,
     display_name: u.display_name,
     bio: null,
-    avatar_url: null,
+    avatar_url: u.avatar_url,
     trusted: Boolean(u.trusted_at),
     calls_count: userCalls.length,
     win_rate: userCalls.length ? Math.round((wins / userCalls.length) * 100) : null,

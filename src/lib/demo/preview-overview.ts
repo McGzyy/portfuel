@@ -47,6 +47,8 @@ export const DEMO_PREVIEW_PROFILE = {
   userId: DEMO_PREVIEW_USER.id,
   username: DEMO_PREVIEW_USER.username,
   displayName: DEMO_PREVIEW_USER.display_name,
+  display_name: DEMO_PREVIEW_USER.display_name,
+  avatar_url: DEMO_PREVIEW_USER.avatar_url,
 };
 
 function previewQuota(tier: DemoPreviewTier): WeeklyQuotaStatus {
@@ -309,7 +311,7 @@ export async function loadDemoOverviewData(tier: DemoPreviewTier): Promise<DemoO
       userId: DEMO_PREVIEW_PROFILE.userId,
       username: DEMO_PREVIEW_PROFILE.username,
       displayName: DEMO_PREVIEW_PROFILE.displayName,
-      avatarUrl: null,
+      avatarUrl: DEMO_PREVIEW_USER.avatar_url,
     })
   );
 
