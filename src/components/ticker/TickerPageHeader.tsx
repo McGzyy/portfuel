@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { BookOpen, Plus } from "lucide-react";
 import { HypeMeter } from "@/components/brand/HypeMeter";
-import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MarketDataNote } from "@/components/market/MarketDataNote";
@@ -15,8 +14,6 @@ export function TickerPageHeader({
   symbol,
   intel,
   session,
-  backHref,
-  backLabel,
   onWatchlist,
   callCount = 0,
   isPro = false,
@@ -24,8 +21,6 @@ export function TickerPageHeader({
   symbol: string;
   intel: Awaited<ReturnType<typeof loadTickerIntel>> | null;
   session: boolean;
-  backHref?: string;
-  backLabel?: string;
   onWatchlist?: boolean;
   callCount?: number;
   isPro?: boolean;
@@ -40,7 +35,6 @@ export function TickerPageHeader({
         <div className="min-w-0 flex-1">
           {session ? (
             <div className="flex flex-wrap items-center gap-3">
-              <WorkspaceBackLink href={backHref} label={backLabel} />
               {onWatchlist ? (
                 <Link
                   href={journalSymbolPath(symbol)}

@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import { ProQuoteRefreshMount } from "@/components/market/ProQuoteRefreshMount";
 import { PublishSuccessBanner } from "@/components/calls/PublishSuccessBanner";
 import { SiteHeader } from "@/components/brand/SiteHeader";
-import { AppShell } from "@/components/layout/AppShell";
 import { TickerChartSection } from "@/components/charts/TickerChartSection";
 import { TickerCompanyStats } from "@/components/ticker/TickerCompanyStats";
 import { buildIntelTeaserSummary } from "@/lib/market/intel-teaser";
@@ -206,7 +205,7 @@ export default async function TickerPage({
   );
 
   if (session) {
-    return <AppShell user={toHeaderUser(session)}>{body}</AppShell>;
+    return body;
   }
 
   return (

@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
 import { NewCallPageHeader } from "@/components/calls/NewCallPageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -311,23 +309,19 @@ export function NewCallForm({
     (showFeedPreview || journalPrefilled);
 
   return (
-    <AppShell user={user} width="default">
-      <Link
-        href={
-          fromJournal && initialSymbol
-            ? journalSymbolPath(initialSymbol)
-            : "/dashboard"
-        }
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-red)]"
-      >
-        <ArrowLeft className="h-4 w-4" strokeWidth={2} />
-        {fromJournal && initialSymbol ? `Back to ${initialSymbol} journal` : "Back to dashboard"}
-      </Link>
-
+    <div className="space-y-6">
       <NewCallPageHeader
         weeklyQuota={weeklyQuota}
         fueledMode={isDeskIdentity}
         prefilledSymbol={symbol.trim() || undefined}
+        backHref={
+          fromJournal && initialSymbol
+            ? journalSymbolPath(initialSymbol)
+            : "/dashboard"
+        }
+        backLabel={
+          fromJournal && initialSymbol ? `${initialSymbol} journal` : "Workspace overview"
+        }
       />
 
       <ModerationBanner
@@ -714,6 +708,6 @@ export function NewCallForm({
           </form>
         </div>
       </div>
-    </AppShell>
+    </div>
   );
 }

@@ -6,10 +6,14 @@ export function NewCallPageHeader({
   weeklyQuota,
   fueledMode = false,
   prefilledSymbol,
+  backHref = "/dashboard",
+  backLabel = "Workspace overview",
 }: {
   weeklyQuota: WeeklyQuotaStatus;
   fueledMode?: boolean;
   prefilledSymbol?: string;
+  backHref?: string;
+  backLabel?: string;
 }) {
   const { remaining, limit, tier } = weeklyQuota;
 
@@ -34,10 +38,10 @@ export function NewCallPageHeader({
         {tier === "pro" ? " · Pro Intelligence" : ""}
       </p>
       <Link
-        href="/dashboard"
+        href={backHref}
         className="mt-3 inline-block text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] hover:underline"
       >
-        ← Workspace overview
+        ← {backLabel}
       </Link>
     </header>
   );

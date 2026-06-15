@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/AppShell";
 import { CallCard } from "@/components/calls/CallCard";
 import { MemberProfileHero } from "@/components/member/MemberProfileHero";
 import { ProfileOwnerBar } from "@/components/member/ProfileOwnerBar";
@@ -8,13 +7,11 @@ import { MemberReturnChart } from "@/components/charts/MemberReturnChart";
 import { MemberTrackRecordStrip } from "@/components/member/MemberTrackRecordStrip";
 import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard";
 import { ProfilePerformanceSection } from "@/components/profile/ProfilePerformanceSection";
-import { WorkspaceBackLink } from "@/components/navigation/WorkspaceBackLink";
 import { MemberCallsSectionHeader } from "@/components/member/MemberCallsSectionHeader";
 import { MemberProfileNav } from "@/components/member/MemberProfileNav";
 import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
 import { mapUserCallRowToCard } from "@/lib/calls/map-user-call-card";
 import { getSession } from "@/lib/auth/session";
-import { toHeaderUser } from "@/lib/auth/session-user";
 import { isFollowing } from "@/lib/follows/service";
 import { fetchMemberPublicCalls } from "@/lib/users/public-profile";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
@@ -91,11 +88,8 @@ export default async function MemberProfilePage({
     : null;
 
   return (
-    <AppShell user={toHeaderUser(session)}>
-      <div className="mx-auto max-w-4xl space-y-6">
-        <WorkspaceBackLink />
-
-        {isSelf ? <ProfileOwnerBar username={member.username} /> : null}
+    <div className="mx-auto max-w-4xl space-y-6">
+      {isSelf ? <ProfileOwnerBar username={member.username} /> : null}
 
         <MemberProfileHero
           member={member}
@@ -181,7 +175,6 @@ export default async function MemberProfilePage({
             </ul>
           )}
         </section>
-      </div>
-    </AppShell>
+    </div>
   );
 }
