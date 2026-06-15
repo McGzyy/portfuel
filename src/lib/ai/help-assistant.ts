@@ -53,10 +53,20 @@ export async function runHelpAssistant(opts: {
     temperature: 0.2,
   });
 
+  const answer = (text ?? "").trim();
+  if (!answer) {
+    return {
+      answer:
+        "I couldn't generate an answer right now. Try rephrasing your question or open a support ticket on portfuel.pro.",
+      disclaimer: AI_HELP_ASSISTANT_DISCLAIMER,
+      remaining: opts.remainingBefore,
+    };
+  }
+
   await consumeHelpAssistantQuestion(opts.userId);
 
   return {
-    answer: text.trim(),
+    answer,
     disclaimer: AI_HELP_ASSISTANT_DISCLAIMER,
     remaining: Math.max(0, opts.remainingBefore - 1),
   };

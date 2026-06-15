@@ -12,6 +12,12 @@ const bodySchema = z.object({
   question: z.string().trim().min(1).max(1000),
 });
 
+export async function GET(request: Request) {
+  const unauthorized = requireBotKey(request);
+  if (unauthorized) return unauthorized;
+  return NextResponse.json({ ok: true, route: "discord/help-assistant" });
+}
+
 export async function POST(request: Request) {
   const unauthorized = requireBotKey(request);
   if (unauthorized) return unauthorized;

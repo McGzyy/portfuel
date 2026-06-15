@@ -84,13 +84,22 @@ async function api(path, { method = "GET", body } = {}) {
     },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const json = await res.json().catch(() => ({}));
+  const contentType = res.headers.get("content-type") ?? "";
+  const json =
+    contentType.includes("application/json")
+      ? await res.json().catch(() => null)
+      : null;
   if (!res.ok) {
     const err = new Error(
       json?.message ? String(json.message) : json?.error ? String(json.error) : `${res.status}`
     );
     err.apiCode = json?.error ? String(json.error) : `${res.status}`;
     throw err;
+  }
+  if (!json || typeof json !== "object") {
+    throw new Error(
+      "PortFuel API returned an unexpected response. The site may still be deploying — try again in a minute."
+    );
   }
   return json;
 }
@@ -523,8 +532,20 @@ client.on("messageCreate", async (message) => {
       },
     });
 
+    const answer = typeof result.answer === "string" ? result.answer.trim() : "";
+    const disclaimer =
+      typeof result.disclaimer === "string" && result.disclaimer.trim()
+        ? result.disclaimer.trim()
+        : "Answers PortFuel product questions only — not investment advice.";
+
+    if (!answer) {
+      throw new Error(
+        "PortFuel Help did not return an answer. Try again in a minute or use portfuel.pro/dashboard/help."
+      );
+    }
+
     const reply =
-      `${result.answer}\n\n—\n_${result.disclaimer}_` +
+      `${answer}\n\n—\n_${disclaimer}_` +
       (typeof result.remaining === "number"
         ? `\n_Questions left this month: ${result.remaining}_`
         : "");
