@@ -4,7 +4,7 @@ import { enqueueDiscordOutbox } from "@/lib/discord/outbox";
 import { enqueueDiscordDm } from "@/lib/discord/dm";
 import { createServiceClient } from "@/lib/db/supabase";
 import { adminSupportPanelUrl, memberTicketUrl } from "@/lib/support/tickets";
-import type { SupportTicketWithUser } from "@/lib/support/types";
+import type { SupportCategory, SupportTicketRow, SupportTicketWithUser } from "@/lib/support/types";
 import {
   formatTicketRef,
   supportCategoryLabel,
@@ -211,6 +211,99 @@ export async function resolveDiscordTicketAuthor(input: {
   return { ok: false, reason: "You can only reply on your own support tickets." };
 }
 
+export function discordTicketThreadUrl(
+  ticket: Pick<SupportTicketRow, "discord_guild_id" | "discord_thread_id">
+): string | null {
+  if (!ticket.discord_thread_id || !ticket.discord_guild_id) return null;
+  return `https://discord.com/channels/${ticket.discord_guild_id}/${ticket.discord_thread_id}`;
+}
+
+export async function notifyDiscordSupportTicketAttachmentUploaded(input: {
+  ticketId: string;
+  messageId: string;
+  attachmentId: string;
+  fileName: string;
+  contentType: string;
+}): Promise<void> {
+  const { channels } = getDiscordConfig();
+  if (!channels.memberSupport) return;
+
+  const db = createServiceClient();
+  const { data: row } = await db
+    .from("support_tickets")
+    .select("discord_thread_id")
+    .eq("id", input.ticketId)
+    .maybeSingle();
+  const threadId = row?.discord_thread_id ? String(row.discord_thread_id) : null;
+  if (!threadId) return;
+
+  const { createSupportAttachmentBotDownload } = await import("@/lib/support/attachments");
+  const file = await createSupportAttachmentBotDownload(input.attachmentId);
+  if (!file?.signedUrl) return;
+
+  await enqueueDiscordOutbox({
+    channelId: channels.memberSupport,
+    eventType: "support.ticket.thread_attachment",
+    payload: {
+      ticketId: input.ticketId,
+      threadId,
+      fileName: input.fileName,
+      contentType: input.contentType,
+      signedUrl: file.signedUrl,
+    },
+  });
+}
+
+export async function notifyDiscordSupportTicketStatusChange(
+  ticket: SupportTicketWithUser,
+  status: SupportTicketWithUser["status"]
+): Promise<void> {
+  const { channels } = getDiscordConfig();
+  if (!channels.memberSupport) return;
+
+  const db = createServiceClient();
+  const { data: row } = await db
+    .from("support_tickets")
+    .select("discord_thread_id, discord_root_message_id")
+    .eq("id", ticket.id)
+    .maybeSingle();
+
+  const threadId = row?.discord_thread_id ? String(row.discord_thread_id) : null;
+  const rootMessageId = row?.discord_root_message_id
+    ? String(row.discord_root_message_id)
+    : null;
+
+  await notifyDiscordSupportTicketThreadMessage({
+    ticketId: ticket.id,
+    ticketNumber: ticket.ticket_number,
+    authorLabel: "PortFuel",
+    authorRole: "system",
+    body: `Status → **${ticketStatusDiscordLabel(status)}**`,
+    status: ticketStatusDiscordLabel(status),
+  });
+
+  if (!threadId || !rootMessageId) return;
+
+  const ticketForEmbed = { ...ticket, status };
+  const embed = buildSupportTicketEmbed({
+    ticket: ticketForEmbed,
+    preview: ticketForEmbed.subject,
+    kind: "new",
+  });
+
+  await enqueueDiscordOutbox({
+    channelId: channels.memberSupport,
+    eventType: "support.ticket.sync_status",
+    payload: {
+      ticketId: ticket.id,
+      threadId,
+      rootMessageId,
+      embed,
+      archive: status === "resolved" || status === "closed",
+    },
+  });
+}
+
 export function buildMemberSupportHubEmbeds(appUrl: string): DiscordEmbedPayload[] {
   const help = `${appUrl.replace(/\/$/, "")}/dashboard/help?view=tickets`;
   return [
@@ -220,8 +313,8 @@ export function buildMemberSupportHubEmbeds(appUrl: string): DiscordEmbedPayload
       description:
         "> **Workspace tickets** are the source of truth.\n" +
         "> Each request opens a **staff thread** in this channel.\n\n" +
-        "**Members** — open tickets on portfuel.pro or use `/ticket` (linked account).\n" +
-        "**Staff** — reply in the ticket thread; syncs to the member workspace.",
+        "**Members** — open tickets on portfuel.pro or use `/ticket open` and `/ticket list` (linked account).\n" +
+        "**Staff** — reply in the ticket thread; messages sync to the member workspace.",
       color: DISCORD_COLORS.brand,
       footer: { text: "PortFuel · Member support" },
     },

@@ -20,6 +20,7 @@ import {
   type SupportTicketWithUser,
 } from "@/lib/support/types";
 import { statusTone } from "@/lib/support/tickets";
+import { discordTicketThreadUrl } from "@/lib/discord/support-tickets";
 import { helpSectionHref, type HelpSectionId } from "@/lib/help/content";
 import { cn, timeAgo } from "@/lib/utils";
 
@@ -69,6 +70,7 @@ function TicketThread({
   const [replyFiles, setReplyFiles] = useState<File[]>([]);
   const [error, setError] = useState("");
   const closed = ticket.status === "closed" || ticket.status === "resolved";
+  const discordUrl = discordTicketThreadUrl(ticket);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -97,6 +99,19 @@ function TicketThread({
             <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
               Opened {timeAgo(ticket.created_at)}
             </p>
+            {discordUrl ? (
+              <p className="mt-2 text-xs">
+                <a
+                  href={discordUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-[var(--pf-red)] hover:underline"
+                >
+                  Open Discord thread →
+                </a>
+                <span className="text-[var(--pf-gray-400)]"> · replies sync both ways</span>
+              </p>
+            ) : null}
           </div>
           <StatusBadge status={ticket.status} />
           {!closed ? (
@@ -499,7 +514,9 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
         <div className="px-4 py-4 sm:px-5">
           <p className="text-sm leading-relaxed text-[var(--pf-gray-600)]">
             Open a ticket for billing disputes, access issues, or bugs. Typical response within one
-            business day.
+            business day. Linked Discord members also get a private thread in{" "}
+            <span className="font-semibold">#member-support</span> — use{" "}
+            <span className="font-mono text-xs">/ticket open</span> there too.
           </p>
         </div>
       </section>

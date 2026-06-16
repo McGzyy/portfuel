@@ -200,7 +200,54 @@ export async function uploadSupportAttachment(opts: {
     throw new Error("insert_failed");
   }
 
-  return toView(row as SupportAttachmentRow);
+  const view = toView(row as SupportAttachmentRow);
+  if (opts.messageId) {
+    void import("@/lib/discord/support-tickets")
+      .then(({ notifyDiscordSupportTicketAttachmentUploaded }) =>
+        notifyDiscordSupportTicketAttachmentUploaded({
+          ticketId: opts.ticketId,
+          messageId: opts.messageId!,
+          attachmentId: view.id,
+          fileName: view.fileName,
+          contentType: view.contentType,
+        })
+      )
+      .catch((e) => console.error("[support/discord-attachment]", e));
+  }
+
+  return view;
+}
+
+export async function createSupportAttachmentBotDownload(
+  attachmentId: string
+): Promise<{ signedUrl: string; fileName: string; contentType: string; ticketId: string } | null> {
+  if (!isSupportAttachmentsEnabled()) return null;
+
+  const db = createServiceClient();
+  const { data: attachment, error } = await db
+    .from("support_ticket_attachments")
+    .select("*")
+    .eq("id", attachmentId)
+    .maybeSingle();
+
+  if (error || !attachment) return null;
+  const row = attachment as SupportAttachmentRow;
+
+  const { data: signed, error: signError } = await db.storage
+    .from(SUPPORT_ATTACHMENT_BUCKET)
+    .createSignedUrl(row.storage_path, 60 * 60);
+
+  if (signError || !signed?.signedUrl) {
+    console.error("[support/attachment-bot-sign]", signError);
+    return null;
+  }
+
+  return {
+    signedUrl: signed.signedUrl,
+    fileName: row.file_name,
+    contentType: row.content_type,
+    ticketId: row.ticket_id,
+  };
 }
 
 export async function getSupportAttachmentForDownload(opts: {

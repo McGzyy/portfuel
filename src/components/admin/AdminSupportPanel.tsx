@@ -20,6 +20,7 @@ import {
   type SupportTicketWithUser,
 } from "@/lib/support/types";
 import { statusTone } from "@/lib/support/tickets";
+import { discordTicketThreadUrl } from "@/lib/discord/support-tickets";
 import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { cn, timeAgo } from "@/lib/utils";
 
@@ -58,6 +59,7 @@ function AdminTicketDetail({
   const [replyFiles, setReplyFiles] = useState<File[]>([]);
   const [status, setStatus] = useState(ticket.status);
   const memberLabel = ticket.display_name?.trim() || ticket.username;
+  const discordUrl = discordTicketThreadUrl(ticket);
 
   async function submitReply(e: React.FormEvent) {
     e.preventDefault();
@@ -91,14 +93,10 @@ function AdminTicketDetail({
             <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
               {supportCategoryLabel(ticket.category)} · opened {timeAgo(ticket.created_at)}
             </p>
-            {ticket.discord_thread_id ? (
+            {discordUrl ? (
               <p className="mt-2 text-xs">
                 <a
-                  href={
-                    ticket.discord_guild_id
-                      ? `https://discord.com/channels/${ticket.discord_guild_id}/${ticket.discord_thread_id}`
-                      : `#`
-                  }
+                  href={discordUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-[var(--pf-red)] hover:underline"

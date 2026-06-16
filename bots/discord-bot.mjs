@@ -516,6 +516,48 @@ async function handleSupportTicketThreadMessage(payload) {
   await thread.send({ content });
 }
 
+async function handleSupportTicketSyncStatus(payload) {
+  const threadId = String(payload.threadId ?? "");
+  const rootMessageId = String(payload.rootMessageId ?? "");
+  if (!threadId || !rootMessageId) throw new Error("missing_thread_refs");
+
+  const channel = await client.channels.fetch(MEMBER_SUPPORT_CHANNEL_ID).catch(() => null);
+  if (!channel || !("messages" in channel)) throw new Error("support_channel_unavailable");
+
+  const rootMsg = await channel.messages.fetch(rootMessageId).catch(() => null);
+  if (rootMsg && payload.embed && typeof payload.embed === "object") {
+    const embed = applyEmbedPayload(new EmbedBuilder(), payload.embed);
+    await rootMsg.edit({ embeds: [embed] }).catch(() => null);
+  }
+
+  if (payload.archive) {
+    const thread = await client.channels.fetch(threadId).catch(() => null);
+    if (thread?.isThread?.()) {
+      await thread.setArchived(true, "Ticket resolved or closed").catch(() => null);
+    }
+  }
+}
+
+async function handleSupportTicketThreadAttachment(payload) {
+  const threadId = String(payload.threadId ?? "");
+  const signedUrl = String(payload.signedUrl ?? "");
+  const fileName = String(payload.fileName ?? "attachment");
+  if (!threadId || !signedUrl) throw new Error("missing_attachment_payload");
+
+  const thread = await client.channels.fetch(threadId).catch(() => null);
+  if (!thread?.isThread?.()) throw new Error("thread_not_found");
+
+  const res = await fetch(signedUrl);
+  if (!res.ok) throw new Error("attachment_fetch_failed");
+
+  const buf = Buffer.from(await res.arrayBuffer());
+  const file = new AttachmentBuilder(buf, { name: fileName.slice(0, 100) });
+  await thread.send({
+    content: `📎 **Attachment** · ${fileName.slice(0, 200)}`,
+    files: [file],
+  });
+}
+
 function ticketOpenModal(category) {
   return new ModalBuilder()
     .setCustomId(`${TICKET_OPEN_MODAL_PREFIX}${category}`)
@@ -1037,6 +1079,20 @@ async function runOutboxTick() {
         await handleSupportTicketThreadMessage(payload);
         await api("/api/discord/outbox/ack", { method: "POST", body: { id, status: "sent" } });
         console.log(`[discord-bot] thread message for outbox ${id}`);
+        continue;
+      }
+
+      if (eventType === "support.ticket.sync_status") {
+        await handleSupportTicketSyncStatus(payload);
+        await api("/api/discord/outbox/ack", { method: "POST", body: { id, status: "sent" } });
+        console.log(`[discord-bot] synced ticket status for outbox ${id}`);
+        continue;
+      }
+
+      if (eventType === "support.ticket.thread_attachment") {
+        await handleSupportTicketThreadAttachment(payload);
+        await api("/api/discord/outbox/ack", { method: "POST", body: { id, status: "sent" } });
+        console.log(`[discord-bot] thread attachment for outbox ${id}`);
         continue;
       }
 

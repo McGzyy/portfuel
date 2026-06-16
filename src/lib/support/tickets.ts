@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import {
   notifyDiscordSupportTicketCreated,
+  notifyDiscordSupportTicketStatusChange,
   notifyDiscordSupportTicketThreadMessage,
   ticketStatusDiscordLabel,
 } from "@/lib/discord/support-tickets";
@@ -469,14 +470,9 @@ export async function updateSupportTicketStatus(
 
   const ticket = await fetchTicketWithUser(ticketId);
   if (ticket) {
-    void notifyDiscordSupportTicketThreadMessage({
-      ticketId: ticket.id,
-      ticketNumber: ticket.ticket_number,
-      authorLabel: "PortFuel",
-      authorRole: "system",
-      body: `Status → **${ticketStatusDiscordLabel(status)}**`,
-      status: ticketStatusDiscordLabel(status),
-    }).catch((e) => console.error("[support/discord-status]", e));
+    void notifyDiscordSupportTicketStatusChange(ticket, status).catch((e) =>
+      console.error("[support/discord-status]", e)
+    );
   }
 }
 
