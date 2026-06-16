@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/db/supabase";
+import { notifyDiscordReferralConverted } from "@/lib/discord/admin-events";
 import { isDemoMode } from "@/lib/demo/config";
 import { appPath } from "@/lib/social/app-url";
 import {
@@ -154,6 +155,33 @@ export async function markReferralConverted(referredUserId: string): Promise<voi
     .eq("referred_user_id", referredUserId);
 
   await grantReferrerRewardForConversion(referredUserId);
+
+  const { data: referralRow } = await db
+    .from("user_referrals")
+    .select("referral_code, referrer_id, referred_user_id")
+    .eq("referred_user_id", referredUserId)
+    .eq("status", "converted")
+    .maybeSingle();
+
+  if (referralRow) {
+    const { data: users } = await db
+      .from("users")
+      .select("id, username, display_name")
+      .in("id", [referralRow.referrer_id, referralRow.referred_user_id]);
+
+    const byId = new Map((users ?? []).map((u) => [u.id, u]));
+    const referrer = byId.get(referralRow.referrer_id as string);
+    const referred = byId.get(referralRow.referred_user_id as string);
+    if (referrer && referred) {
+      void notifyDiscordReferralConverted({
+        referrerUsername: referrer.username as string,
+        referrerDisplayName: referrer.display_name as string | null,
+        referredUsername: referred.username as string,
+        referredDisplayName: referred.display_name as string | null,
+        referralCode: referralRow.referral_code as string,
+      }).catch((e) => console.error("[discord/referral-converted]", e));
+    }
+  }
 }
 
 export async function linkReferralInviteOnSignup(

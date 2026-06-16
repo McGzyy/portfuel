@@ -1,4 +1,10 @@
 import type Stripe from "stripe";
+import {
+  notifyDiscordBillingNewSubscription,
+  notifyDiscordBillingPaymentFailed,
+  notifyDiscordBillingRenewal,
+  notifyDiscordBillingCancelled,
+} from "@/lib/discord/admin-events";
 import { getStripe } from "@/lib/stripe/client";
 import { tierFromPriceId, type BillingInterval, type MembershipTier } from "@/lib/stripe/config";
 import {
@@ -23,6 +29,12 @@ export async function handleStripeWebhookEvent(event: Stripe.Event) {
       break;
     case "customer.subscription.deleted":
       await onSubscriptionDeleted(event.data.object as Stripe.Subscription);
+      break;
+    case "invoice.paid":
+      await onInvoicePaid(event.data.object as Stripe.Invoice);
+      break;
+    case "invoice.payment_failed":
+      await onInvoicePaymentFailed(event.data.object as Stripe.Invoice);
       break;
     default:
       break;
@@ -103,6 +115,18 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session) {
       console.error("[vouchers/finalize]", e)
     );
   }
+
+  const user = await findUserById(userId);
+  if (user) {
+    void notifyDiscordBillingNewSubscription({
+      userId,
+      username: user.username,
+      displayName: user.display_name,
+      tier,
+      billingInterval,
+      stripeSubscriptionId: subscriptionId,
+    }).catch((e) => console.error("[discord/billing-new]", e));
+  }
 }
 
 async function onSubscriptionUpdated(sub: Stripe.Subscription) {
@@ -143,6 +167,55 @@ async function onSubscriptionDeleted(sub: Stripe.Subscription) {
     billingInterval: billingIntervalFromStripeSubscription(sub),
     status: "cancelled",
   });
+
+  void notifyDiscordBillingCancelled({
+    username: user.username,
+    displayName: user.display_name,
+    tier,
+    stripeSubscriptionId: sub.id,
+  }).catch((e) => console.error("[discord/billing-cancel]", e));
+}
+
+async function onInvoicePaid(invoice: Stripe.Invoice) {
+  if (invoice.billing_reason !== "subscription_cycle") return;
+
+  const subscriptionId =
+    typeof invoice.subscription === "string"
+      ? invoice.subscription
+      : invoice.subscription?.id;
+  if (!subscriptionId) return;
+
+  const user = await findUserByStripeSubscriptionId(subscriptionId);
+  if (!user?.membership_tier) return;
+
+  void notifyDiscordBillingRenewal({
+    username: user.username,
+    displayName: user.display_name,
+    tier: user.membership_tier as MembershipTier,
+    amountCents: invoice.amount_paid ?? 0,
+    currency: invoice.currency ?? "usd",
+    invoiceId: invoice.id,
+  }).catch((e) => console.error("[discord/billing-renewal]", e));
+}
+
+async function onInvoicePaymentFailed(invoice: Stripe.Invoice) {
+  const subscriptionId =
+    typeof invoice.subscription === "string"
+      ? invoice.subscription
+      : invoice.subscription?.id;
+  if (!subscriptionId) return;
+
+  const user = await findUserByStripeSubscriptionId(subscriptionId);
+  if (!user) return;
+
+  void notifyDiscordBillingPaymentFailed({
+    username: user.username,
+    displayName: user.display_name,
+    tier: (user.membership_tier as MembershipTier | null) ?? null,
+    amountCents: invoice.amount_due ?? 0,
+    currency: invoice.currency ?? "usd",
+    invoiceId: invoice.id,
+  }).catch((e) => console.error("[discord/billing-failed]", e));
 }
 
 function resolveBillingInterval(

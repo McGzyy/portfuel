@@ -7,6 +7,7 @@ import { normalizeUsername, usernamePattern, validateUsername } from "@/lib/auth
 import { isEmailAvailableForSignup } from "@/lib/member-lifecycle/email-verify";
 import { normalizeEmail } from "@/lib/member-lifecycle/tokens";
 import { attributeReferral, findReferrerByCode } from "@/lib/referrals/service";
+import { notifyDiscordGrowthSignup } from "@/lib/discord/admin-events";
 
 const schema = z.object({
   username: z.string().min(3).max(32).regex(usernamePattern),
@@ -80,6 +81,12 @@ export async function POST(request: Request) {
         });
       }
     }
+
+    void notifyDiscordGrowthSignup({
+      username: user.username,
+      displayName: body.displayName.trim(),
+      referralCode: body.referralCode ?? null,
+    }).catch((e) => console.error("[discord/growth-signup]", e));
 
     return NextResponse.json({ ok: true, userId: user.id, username: user.username });
   } catch (e) {

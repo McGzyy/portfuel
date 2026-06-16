@@ -1,7 +1,9 @@
 import { createServiceClient } from "@/lib/db/supabase";
+import { notifyDiscordAdminSupportTicket } from "@/lib/discord/admin-events";
 import { listTicketAttachments, type SupportAttachmentView } from "@/lib/support/attachments";
 import { sendPortfuelEmail } from "@/lib/email/client";
 import { isEmailConfigured, getAppUrl } from "@/lib/email/config";
+import { notifyDiscordMemberSupportReply } from "@/lib/discord/dm";
 import type {
   SupportCategory,
   SupportTicketMessageRow,
@@ -97,7 +99,11 @@ async function fetchTicketWithUser(
   return withUser ?? null;
 }
 
-async function notifyAdminsNewTicket(ticket: SupportTicketWithUser, preview: string) {
+async function notifyAdminsNewTicket(
+  ticket: SupportTicketWithUser,
+  preview: string,
+  kind: "new" | "member_reply" = "new"
+) {
   const db = createServiceClient();
   const { data: admins } = await db.from("users").select("id").eq("role", "admin");
   if (!admins?.length) return;
@@ -141,6 +147,10 @@ async function notifyAdminsNewTicket(ticket: SupportTicketWithUser, preview: str
     .from("support_tickets")
     .update({ admin_notified_at: new Date().toISOString() } as never)
     .eq("id", ticket.id);
+
+  void notifyDiscordAdminSupportTicket({ ticket, preview, kind }).catch((e) =>
+    console.error("[support/discord-admin]", e)
+  );
 }
 
 async function notifyMemberReply(
@@ -171,6 +181,14 @@ async function notifyMemberReply(
       text: `Support replied on ${ticket.subject}.\n\n${preview}\n\nView: ${url}`,
     }).catch((e) => console.error("[support/member-email]", e));
   }
+
+  void notifyDiscordMemberSupportReply({
+    userId: ticket.user_id,
+    ticketId: ticket.id,
+    ticketNumber: ticket.ticket_number,
+    subject: ticket.subject,
+    preview,
+  }).catch((e) => console.error("[support/discord-member]", e));
 }
 
 async function attachMessageAuthors(
@@ -388,7 +406,7 @@ export async function postSupportTicketMessage(
   if (input.authorRole === "admin") {
     await notifyMemberReply(ticket, body);
   } else {
-    await notifyAdminsNewTicket(ticket, body);
+    await notifyAdminsNewTicket(ticket, body, "member_reply");
   }
 
   return { messageId: (inserted as { id: string }).id };

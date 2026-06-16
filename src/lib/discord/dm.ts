@@ -58,3 +58,25 @@ export async function notifyDiscordSubscriptionChange(input: {
     );
   }
 }
+
+export async function notifyDiscordMemberSupportReply(input: {
+  userId: string;
+  ticketId: string;
+  ticketNumber: number;
+  subject: string;
+  preview: string;
+}): Promise<void> {
+  const discordUserId = await linkedDiscordUserId(input.userId);
+  if (!discordUserId) return;
+
+  const appUrl = getAppUrl();
+  const ref = `PF-${input.ticketNumber}`;
+  const url = `${appUrl}/dashboard/help?view=tickets&ticket=${input.ticketId}`;
+
+  await enqueueDiscordDm(
+    discordUserId,
+    `**Support replied** on **${ref}** — *${input.subject.slice(0, 120)}*\n\n` +
+      `${input.preview.trim().slice(0, 400)}\n\n` +
+      `[View ticket](${url})`
+  );
+}

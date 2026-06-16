@@ -23,7 +23,22 @@ export function getDiscordConfig() {
       targets: process.env.DISCORD_CHANNEL_TARGETS_ID ?? "1510842222143340707",
       memberChat: process.env.DISCORD_CHANNEL_MEMBER_CHAT_ID ?? "1510799917415923763",
       proMemberChat: process.env.DISCORD_CHANNEL_PRO_MEMBER_CHAT_ID ?? "1510799989213757460",
-      botLog: process.env.DISCORD_CHANNEL_BOT_LOG_ID ?? "",
+      memberSupport:
+        process.env.DISCORD_CHANNEL_MEMBER_SUPPORT_ID?.trim() ||
+        process.env.DISCORD_CHANNEL_ADMIN_CHAT_ID?.trim() ||
+        "1516293166007849200",
+      billing: process.env.DISCORD_CHANNEL_BILLING_ID?.trim() || "1516296694839377930",
+      churn: process.env.DISCORD_CHANNEL_CHURN_ID?.trim() || "1516296758664232971",
+      growth: process.env.DISCORD_CHANNEL_GROWTH_ID?.trim() || "1516296841627570279",
+      referrals: process.env.DISCORD_CHANNEL_REFERRALS_ID?.trim() || "1516296894123344004",
+      proForums:
+        process.env.DISCORD_CHANNEL_PRO_FORUMS_ID?.trim() ||
+        process.env.DISCORD_CHANNEL_PRO_MEMBER_FORUMS?.trim() ||
+        "1510800077889867787",
+      botLog:
+        process.env.DISCORD_CHANNEL_BOT_LOG_ID?.trim() ||
+        process.env.DISCORD_CHANNEL_BOT_LOG?.trim() ||
+        "1516298968626364477",
     },
   };
 }

@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/db/supabase";
+import { notifyDiscordChurnFeedback } from "@/lib/discord/admin-events";
 import { sendPortfuelEmail } from "@/lib/email/client";
 import { isEmailConfigured, getAppUrl } from "@/lib/email/config";
 import { adminChurnFeedbackEmail } from "@/lib/email/templates";
@@ -155,6 +156,10 @@ export async function submitCancellationFeedback(
     await notifyAdminsInApp({ title, body });
     await notifyAdminsByEmail(feedback).catch((e) =>
       console.error("[churn-feedback/email]", e)
+    );
+
+    void notifyDiscordChurnFeedback(feedback).catch((e) =>
+      console.error("[churn-feedback/discord]", e)
     );
 
     await db

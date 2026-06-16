@@ -55,6 +55,10 @@ const RULES_CHANNEL_ID =
   process.env.DISCORD_CHANNEL_RULES_ID?.trim() || "1516273847190683820";
 const FAQS_CHANNEL_ID =
   process.env.DISCORD_CHANNEL_FAQS_ID?.trim() || "1510807143253803079";
+const PRO_FORUMS_CHANNEL_ID =
+  process.env.DISCORD_CHANNEL_PRO_FORUMS_ID?.trim() ||
+  process.env.DISCORD_CHANNEL_PRO_MEMBER_FORUMS?.trim() ||
+  "1510800077889867787";
 const CALLS_CHANNEL_ID = process.env.DISCORD_CHANNEL_CALLS_ID ?? "1510841810430197991";
 const TARGETS_CHANNEL_ID = process.env.DISCORD_CHANNEL_TARGETS_ID ?? "1510842222143340707";
 const MEMBER_CHAT_CHANNEL_ID =
@@ -62,7 +66,10 @@ const MEMBER_CHAT_CHANNEL_ID =
 const PRO_MEMBER_CHAT_CHANNEL_ID =
   process.env.DISCORD_CHANNEL_PRO_MEMBER_CHAT_ID ?? "1510799989213757460";
 
-const BOT_LOG_CHANNEL_ID = process.env.DISCORD_CHANNEL_BOT_LOG_ID ?? "";
+const BOT_LOG_CHANNEL_ID =
+  process.env.DISCORD_CHANNEL_BOT_LOG_ID?.trim() ||
+  process.env.DISCORD_CHANNEL_BOT_LOG?.trim() ||
+  "1516298968626364477";
 
 const VERIFY_BUTTON_ID = "pf:verify";
 const LINK_BUTTON_ID = "pf:link";
@@ -276,21 +283,6 @@ async function registerSlashCommands(client) {
   console.log("[discord-bot] registered /sync and /stats commands");
 }
 
-function verificationEmbed() {
-  return new EmbedBuilder()
-    .setTitle("Welcome to PortFuel")
-    .setDescription(
-      "**Step 1 — Verify**\n" +
-        "Click **Verify** below to unlock the **Member hub**, **#rules**, **#announcements**, **#general-chat**, and **#fueled-calls**.\n\n" +
-        "**Step 2 — Link PortFuel (subscribers)**\n" +
-        "While logged in on [portfuel.pro](https://www.portfuel.pro) → click **Link PortFuel** and finish in your browser.\n\n" +
-        "**Help AI:** DM this bot — **5 preview questions** for anyone; **40/month** for linked **Pro** members.\n\n" +
-        "Member + Pro channels unlock after your subscription is linked (~60 seconds)."
-    )
-    .setColor(0xe31b23)
-    .setFooter({ text: "PortFuel · Verification" });
-}
-
 function verificationButtons() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -304,12 +296,30 @@ function verificationButtons() {
   );
 }
 
+function fallbackVerificationEmbed() {
+  return new EmbedBuilder()
+    .setTitle("Welcome to PortFuel")
+    .setDescription("Click **Verify** below, then **Link PortFuel** if you are a subscriber.")
+    .setColor(0xe31b23)
+    .setFooter({ text: "PortFuel · Verification" });
+}
+
 async function ensureVerificationMessage(client) {
   const channel = await client.channels.fetch(VERIFICATION_CHANNEL_ID).catch(() => null);
   if (!channel || !("messages" in channel)) {
     console.warn("[discord-bot] verification channel not found");
     return;
   }
+
+  const data = await api("/api/discord/verification").catch((e) => {
+    console.error("[discord-bot] verification fetch", e);
+    return null;
+  });
+  const rawEmbeds = Array.isArray(data?.embeds) ? data.embeds : [];
+  const embed =
+    rawEmbeds.length > 0
+      ? applyEmbedPayload(new EmbedBuilder(), rawEmbeds[0])
+      : fallbackVerificationEmbed();
 
   const recent = await channel.messages.fetch({ limit: 20 }).catch(() => null);
   const existing = recent?.find(
@@ -320,13 +330,15 @@ async function ensureVerificationMessage(client) {
       )
   );
 
+  const payload = { embeds: [embed], components: [verificationButtons()] };
+
   if (existing) {
-    await existing.edit({ embeds: [verificationEmbed()], components: [verificationButtons()] }).catch(() => null);
+    await existing.edit(payload).catch(() => null);
     console.log("[discord-bot] updated verification message");
     return;
   }
 
-  await channel.send({ embeds: [verificationEmbed()], components: [verificationButtons()] });
+  await channel.send(payload);
   console.log("[discord-bot] posted verification message");
 }
 
@@ -396,6 +408,15 @@ async function ensureFaqsMessage(client) {
   await ensurePinnedHubFromApi(client, FAQS_CHANNEL_ID, "/api/discord/faqs", "faqs hub");
 }
 
+async function ensureForumsMessage(client) {
+  await ensurePinnedHubFromApi(
+    client,
+    PRO_FORUMS_CHANNEL_ID,
+    "/api/discord/forums",
+    "pro forums hub"
+  );
+}
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -413,6 +434,7 @@ client.once("ready", async () => {
   await ensureOfficialLinksMessage(client);
   await ensureRulesMessage(client);
   await ensureFaqsMessage(client);
+  await ensureForumsMessage(client);
   await registerSlashCommands(client).catch((e) =>
     console.error("[discord-bot] slash register failed", e)
   );
