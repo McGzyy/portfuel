@@ -9,11 +9,13 @@ import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { CallCloseButton } from "@/components/calls/CallCloseButton";
 import { CallReturnDisplay } from "@/components/calls/CallReturnDisplay";
 import { CallStopHitNotice } from "@/components/calls/CallStopHitNotice";
+import { CallTargetHitNotice } from "@/components/calls/CallTargetHitNotice";
 import { CallCancelPendingButton } from "@/components/calls/CallCancelPendingButton";
 import { CallSpotlightPrompt } from "@/components/calls/CallSpotlightPrompt";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
+import { canCloseMemberCall } from "@/lib/calls/close-eligibility";
 import { isCallStopHit } from "@/lib/calls/stop-cross";
-import { isOpenMemberCall } from "@/lib/calls/open-calls";
+import { isCallTargetHit } from "@/lib/calls/target-hit";
 import { formatPublishedAt } from "@/lib/time/timestamp";
 import { pendingEntryExpiryLabel, isPendingEntryExpiringSoon } from "@/lib/calls/pending-entry-display";
 import { cn, timeAgo } from "@/lib/utils";
@@ -78,12 +80,8 @@ export function CallThesisBlock({
   const canDelete = isAdmin;
   const canClose =
     (isAdmin || isOwnCall) &&
-    !call.is_fueled &&
-    !call.closed_at &&
-    !isPending &&
-    isOpenMemberCall({
-      called_at: call.called_at,
-      target_progress: call.target_progress,
+    canCloseMemberCall({
+      is_fueled: call.is_fueled,
       closed_at: call.closed_at,
       call_state: call.call_state,
     });
@@ -108,6 +106,13 @@ export function CallThesisBlock({
     price_at_call: call.price_at_call ?? null,
     closed_at: call.closed_at,
   });
+  const targetHit =
+    !stopHit &&
+    isCallTargetHit({
+      closed_at: call.closed_at,
+      target_price: prices.target_price,
+      target_progress: prices.target_progress,
+    });
 
   return (
     <article
@@ -187,6 +192,14 @@ export function CallThesisBlock({
                 Stop hit
               </Badge>
             ) : null}
+            {targetHit ? (
+              <Badge
+                variant="default"
+                className="border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100"
+              >
+                Target reached
+              </Badge>
+            ) : null}
             {call.users.trusted_at ? <Badge variant="trusted">Trusted</Badge> : null}
             {call.timeframe_tag ? (
               <span className="rounded-md bg-[var(--pf-gray-100)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
@@ -264,6 +277,21 @@ export function CallThesisBlock({
         </div>
       ) : null}
 
+      {targetHit ? (
+        <div className="border-t border-[var(--pf-border)] px-5 py-3 sm:px-6">
+          <CallTargetHitNotice
+            call={{
+              id: call.id,
+              symbol: call.symbol ?? "",
+              target_price: prices.target_price,
+              target_progress: prices.target_progress,
+              closed_at: call.closed_at,
+            }}
+            showClose={canClose}
+          />
+        </div>
+      ) : null}
+
       {isOwnCall && !call.is_fueled && !call.closed_at && !isPending && call.symbol ? (
         <div className="border-t border-[var(--pf-border)] px-5 py-3 sm:px-6">
           <CallSpotlightPrompt
@@ -286,7 +314,12 @@ export function CallThesisBlock({
         {(canClose || canDelete || (isOwnCall && isPending)) && call.symbol ? (
           <div className="flex flex-wrap items-center gap-1">
             {canClose ? (
-              <CallCloseButton callId={call.id} symbol={call.symbol} stopHit={stopHit} />
+              <CallCloseButton
+                callId={call.id}
+                symbol={call.symbol}
+                stopHit={stopHit}
+                targetHit={targetHit}
+              />
             ) : null}
             {isOwnCall && isPending ? (
               <CallCancelPendingButton callId={call.id} symbol={call.symbol} />

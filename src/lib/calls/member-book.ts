@@ -1,4 +1,5 @@
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
+import { isCallTargetHit } from "@/lib/calls/target-hit";
 import { isCallWin } from "@/lib/scoring/call-credit";
 import { refreshQuotesForSymbols } from "@/lib/calls/service";
 import { isDemoMode } from "@/lib/demo/config";
@@ -32,7 +33,8 @@ export type MemberOpenBookSummary = {
 
 export type MemberOpenBook = {
   openCalls: MemberBookCallRow[];
-  recentClosed: MemberBookCallRow[];
+  needsClose: MemberBookCallRow[];
+  recentWrapped: MemberBookCallRow[];
   summary: MemberOpenBookSummary;
 };
 
@@ -132,13 +134,29 @@ export async function fetchMemberOpenBook(userId: string): Promise<MemberOpenBoo
   const memberCalls = all.filter((c) => !c.is_fueled);
 
   const openCalls = memberCalls.filter((c) => isOpenMemberCall(c));
-  const recentClosed = memberCalls
-    .filter((c) => !isOpenMemberCall(c))
+  const needsClose = memberCalls.filter((c) =>
+    isCallTargetHit({
+      closed_at: (c as { closed_at?: string | null }).closed_at ?? null,
+      target_price: c.target_price,
+      target_progress: c.target_progress,
+    })
+  );
+  const recentWrapped = memberCalls
+    .filter(
+      (c) =>
+        !isOpenMemberCall(c) &&
+        !isCallTargetHit({
+          closed_at: (c as { closed_at?: string | null }).closed_at ?? null,
+          target_price: c.target_price,
+          target_progress: c.target_progress,
+        })
+    )
     .slice(0, 8);
 
   return {
     openCalls,
-    recentClosed,
+    needsClose,
+    recentWrapped,
     summary: summarizeOpenBook(openCalls),
   };
 }

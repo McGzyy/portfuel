@@ -84,9 +84,9 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         title: "Open vs closed calls",
         body: [
-          "Open calls stay live on your book until you close them, hit target progress, or age past the open window.",
-          "Close a call when your thesis plays out or you want to lock in the outcome — peak return is captured at close.",
-          "If you set a stop, PortFuel alerts you when price crosses it and shows a Stop hit badge on the call. You choose when to close — calls are never auto-closed on a stop.",
+          "Open calls stay on your live book while you work toward target (or for up to 120 days). Close at market when your thesis plays out — that locks return, exit price, and rank score.",
+          "When price hits your target, you get a Target reached notice (like Stop hit). Return stays live until you close — most professional journals use explicit close, not auto-exit.",
+          "If you set a stop, PortFuel alerts you when price crosses it. You choose when to close — calls are never auto-closed.",
         ],
       },
       {

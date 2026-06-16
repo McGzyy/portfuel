@@ -74,10 +74,12 @@ export default async function DashboardBookPage() {
 
       <MemberOpenBookPanel
         openCalls={book.openCalls}
-        recentClosed={book.recentClosed}
+        needsClose={book.needsClose}
+        recentWrapped={book.recentWrapped}
         viewerUserId={session.userId}
         username={session.username}
         displayName={session.displayName}
+        avatarUrl={ownProfile.member?.avatar_url ?? null}
         isAdmin={session.role === "admin"}
         isPro={!proLocked}
         proLocked={proLocked}

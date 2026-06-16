@@ -15,11 +15,13 @@ import { CallTargetProgressBar } from "@/components/calls/CallTargetProgressBar"
 import { CallMarkedLabel } from "@/components/calls/CallMarkedLabel";
 import { MemberAvatar } from "@/components/member/MemberAvatar";
 import { CallStopHitNotice } from "@/components/calls/CallStopHitNotice";
+import { CallTargetHitNotice } from "@/components/calls/CallTargetHitNotice";
 import { CallCancelPendingButton } from "@/components/calls/CallCancelPendingButton";
 import { CallSpotlightPrompt } from "@/components/calls/CallSpotlightPrompt";
 import { CALL_CARD_INTERACTIVE } from "@/components/calls/call-card-link";
+import { canCloseMemberCall } from "@/lib/calls/close-eligibility";
 import { isCallStopHit } from "@/lib/calls/stop-cross";
-import { isOpenMemberCall } from "@/lib/calls/open-calls";
+import { isCallTargetHit } from "@/lib/calls/target-hit";
 import { pendingEntryExpiryLabel, isPendingEntryExpiringSoon } from "@/lib/calls/pending-entry-display";
 import { cn } from "@/lib/utils";
 import type { TeaserCallRow } from "@/lib/db/supabase";
@@ -82,6 +84,8 @@ type CallCardProps = {
   isAdmin?: boolean;
   /** Whole card navigates to the ticker page (default). Disable for publish preview. */
   linkToTicker?: boolean;
+  /** Flat layout inside workspace panels (no nested card chrome). */
+  embedded?: boolean;
 };
 
 export function CallCard({
@@ -98,6 +102,7 @@ export function CallCard({
   viewerUserId,
   isAdmin = false,
   linkToTicker = true,
+  embedded = false,
 }: CallCardProps) {
   const isOwnCall = Boolean(
     viewerUserId && call.user_id != null && call.user_id === viewerUserId
@@ -110,12 +115,8 @@ export function CallCard({
   const expirySoon = isPending && isPendingEntryExpiringSoon(call.expires_at);
   const canClose =
     (isAdmin || isOwnCall) &&
-    !call.is_fueled &&
-    !call.closed_at &&
-    !isPending &&
-    isOpenMemberCall({
-      called_at: call.called_at,
-      target_progress: call.target_progress,
+    canCloseMemberCall({
+      is_fueled: call.is_fueled,
       closed_at: call.closed_at,
       call_state: call.call_state,
     });
@@ -143,6 +144,14 @@ export function CallCard({
       closed_at: call.closed_at,
     });
 
+  const targetHit =
+    !stopHit &&
+    isCallTargetHit({
+      closed_at: call.closed_at,
+      target_price: call.target_price ?? null,
+      target_progress: call.target_progress ?? null,
+    });
+
   const progress =
     call.target_progress != null
       ? Math.min(100, Math.max(0, call.target_progress))
@@ -152,13 +161,18 @@ export function CallCard({
   return (
     <Card
       className={cn(
-        accent,
-        "pf-call-card-premium group overflow-hidden transition-all duration-200",
-        call.is_fueled && "ring-2 ring-[var(--pf-red)]/35 shadow-[0_0_0_1px_rgba(227,27,35,0.12)]",
-        isPending && "border-amber-200/70 bg-amber-50/25",
+        !embedded && accent,
+        embedded
+          ? "group relative border-0 bg-transparent shadow-none"
+          : "pf-call-card-premium group overflow-hidden transition-all duration-200",
+        !embedded && call.is_fueled && "ring-2 ring-[var(--pf-red)]/35 shadow-[0_0_0_1px_rgba(227,27,35,0.12)]",
+        isPending && !embedded && "border-amber-200/70 bg-amber-50/25",
+        embedded && isPending && "rounded-lg bg-amber-50/40 px-1",
         linkToTicker
-          ? "relative cursor-pointer hover:border-[var(--pf-gray-200)]"
-          : "hover:border-[var(--pf-gray-200)]"
+          ? "relative cursor-pointer"
+          : undefined,
+        !embedded && !linkToTicker && "hover:border-[var(--pf-gray-200)]",
+        !embedded && linkToTicker && "hover:border-[var(--pf-gray-200)]"
       )}
     >
       {linkToTicker ? (
@@ -170,7 +184,7 @@ export function CallCard({
       ) : null}
       <CardContent
         className={cn(
-          compact ? "px-3 py-3 sm:px-5 sm:py-4" : "px-4 py-4 sm:px-6 sm:py-5",
+          embedded ? "p-0" : compact ? "px-3 py-3 sm:px-5 sm:py-4" : "px-4 py-4 sm:px-6 sm:py-5",
           linkToTicker && "pointer-events-none"
         )}
       >
@@ -244,6 +258,7 @@ export function CallCard({
               expiryLabel ||
               (call.closed_at && call.call_state !== "pending_entry") ||
               stopHit ||
+              targetHit ||
               ("hype_score" in call && call.hype_score != null && call.hype_score >= 15)) && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {call.call_state === "pending_entry" ? (
@@ -277,6 +292,14 @@ export function CallCard({
                     className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
                   >
                     Stop hit
+                  </Badge>
+                ) : null}
+                {targetHit ? (
+                  <Badge
+                    variant="default"
+                    className="border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100"
+                  >
+                    Target reached
                   </Badge>
                 ) : null}
                 {"hype_score" in call && call.hype_score != null && call.hype_score >= 15 ? (
@@ -344,6 +367,13 @@ export function CallCard({
             className={cn("mt-3", linkToTicker && CALL_CARD_INTERACTIVE)}
           />
         ) : null}
+        {targetHit ? (
+          <CallTargetHitNotice
+            call={call}
+            showClose={canClose}
+            className={cn("mt-3", linkToTicker && CALL_CARD_INTERACTIVE)}
+          />
+        ) : null}
         {isOwnCall && !call.is_fueled && !call.closed_at && !isPending ? (
           <div className={cn("mt-3", linkToTicker && CALL_CARD_INTERACTIVE)}>
             <CallSpotlightPrompt
@@ -361,7 +391,12 @@ export function CallCard({
             )}
           >
             {canClose ? (
-              <CallCloseButton callId={call.id} symbol={call.symbol} stopHit={stopHit} />
+              <CallCloseButton
+                callId={call.id}
+                symbol={call.symbol}
+                stopHit={stopHit}
+                targetHit={targetHit}
+              />
             ) : null}
             {isOwnCall && isPending ? (
               <CallCancelPendingButton callId={call.id} symbol={call.symbol} />

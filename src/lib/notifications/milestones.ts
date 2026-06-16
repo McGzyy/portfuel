@@ -52,7 +52,7 @@ function copyForMilestone(
     case "target_reached":
       return {
         title: `${symbol} reached target`,
-        body: "Price has reached your stated target on this call.",
+        body: "Price hit your stated target. Close the call on your book or ticker page to lock your return.",
       };
   }
 }
