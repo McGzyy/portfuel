@@ -1,11 +1,17 @@
 import { DISCORD_COLORS, type DiscordEmbedPayload } from "@/lib/discord/embed-payloads";
+import {
+  appIconUrl,
+  hubFaq,
+  hubTierLine,
+} from "@/lib/discord/hub-embed-helpers";
 import { PLAN_BY_TIER } from "@/lib/marketing/plans";
 
-/** First embed title — bot uses this to find and refresh the pinned FAQ message. */
-export const FAQS_MARKER_TITLE = "PortFuel — FAQs";
+export const FAQS_MARKER_TITLE = "PortFuel — Quick answers";
+
+export const FAQS_LEGACY_MARKER_TITLES = ["PortFuel — FAQs"];
 
 export const FAQS_MESSAGE_CONTENT =
-  "**Quick answers** — for full docs and support tickets, use the workspace Help center. _Updated automatically by the PortFuel bot._";
+  "📌 **Quick answers** — common Discord & workspace questions. _Full docs in Help center · auto-updated by PortFuel._";
 
 export function buildFaqsEmbeds(appUrl: string): DiscordEmbedPayload[] {
   const base = appUrl.replace(/\/$/, "");
@@ -16,125 +22,84 @@ export function buildFaqsEmbeds(appUrl: string): DiscordEmbedPayload[] {
 
   return [
     {
-      author: { name: "PortFuel", url: base },
+      author: { name: "PortFuel Intelligence", url: base },
       title: FAQS_MARKER_TITLE,
       url: help,
       description:
-        "Answers to the most common Discord and workspace questions. " +
-        `[Open full Help center](${help}) for guides, billing, and tickets.`,
+        "> Top questions from members — billing, Discord, and calls.\n\n" +
+        `[**Open full Help center →**](${help}) _guides · tickets · search_`,
       color: DISCORD_COLORS.brand,
+      thumbnail: { url: appIconUrl(base) },
       footer: { text: "PortFuel · FAQs" },
     },
     {
-      title: "Discord setup",
+      title: "◆  Discord",
       color: DISCORD_COLORS.member,
       fields: [
-        {
-          name: "How do I unlock channels?",
-          value:
-            "**#verification** → **Verify** for basic channels. Subscribers → **Link PortFuel** while logged in on portfuel.pro.",
-          inline: false,
-        },
-        {
-          name: "When do Member / Pro roles apply?",
-          value:
-            "Within ~60 seconds after linking an active subscription. Re-link if you upgrade tiers.",
-          inline: false,
-        },
-        {
-          name: "What can I ask the bot in DMs?",
-          value:
-            "**Everyone:** 5 preview questions (features & pricing). **Linked Pro:** 40/month with full workspace answers.",
-          inline: false,
-        },
-        {
-          name: "Where is the channel map?",
-          value: "Pinned hub in **#official-links**.",
-          inline: false,
-        },
+        hubFaq(
+          "How do I unlock channels",
+          "**#verification** → **Verify**. Subscribers → **Link PortFuel** while logged in on portfuel.pro."
+        ),
+        hubFaq(
+          "When do Member / Pro roles apply",
+          "~60 seconds after linking an active subscription. Re-link after upgrading tiers."
+        ),
+        hubFaq(
+          "What can I ask the bot in DMs",
+          "**Everyone:** 5 preview Qs (features & pricing). **Linked Pro:** 40/month with full workspace context."
+        ),
+        hubFaq(
+          "Where is the server map",
+          "Pinned **Member hub** channel (onboarding + channel directory)."
+        ),
       ],
       footer: { text: "PortFuel · Discord" },
     },
     {
-      title: "Membership & billing",
+      title: "◆  Membership & calls",
       color: DISCORD_COLORS.pro,
       fields: [
         {
-          name: `${memberPlan.name} vs ${proPlan.name}`,
+          name: "Plans",
           value:
-            `**${memberPlan.name}** (${memberPlan.price}${memberPlan.period}) — ${memberPlan.features[2]}. ` +
-            `**${proPlan.name}** (${proPlan.price}${proPlan.period}) — research terminal, Help AI, SMS alerts, ${proPlan.features[1]}.`,
+            hubTierLine(memberPlan.name, memberPlan.price, memberPlan.period, memberPlan.features[2]) +
+            "\n\n" +
+            hubTierLine(proPlan.name, proPlan.price, proPlan.period, "Research terminal · Help AI · 6 calls/wk"),
           inline: false,
         },
-        {
-          name: "I paid but don't have access",
-          value:
-            `Dashboard → **Settings → Plan & billing** → **Refresh billing status**. Wait 2–3 minutes, then re-link Discord if needed. Still stuck? [Open a ticket](${help}).`,
-          inline: false,
-        },
-        {
-          name: "Compare plans",
-          value: `[portfuel.pro/join](${join})`,
-          inline: false,
-        },
+        hubFaq(
+          "I paid but don't have access",
+          "**Settings → Plan & billing → Refresh billing status**. Wait 2–3 min, re-link Discord. Still stuck? [Open a ticket]({help}).".replace(
+            "{help}",
+            help
+          )
+        ),
+        hubFaq(
+          "What is a call",
+          "A **timestamped thesis** — symbol, direction, entry, target, optional stop — on your public track record."
+        ),
+        hubFaq(
+          "What happens when target is hit",
+          "**Target reached** notice in the workspace. You **close** the call to lock return — not auto-exited."
+        ),
+        hubFaq(
+          "Where do new calls appear",
+          "**#member-calls** (members) · **#fueled-calls** (desk) · full detail on portfuel.pro"
+        ),
       ],
-      footer: { text: "PortFuel · Billing" },
+      footer: { text: "PortFuel · Plans & calls" },
     },
     {
-      title: "Calls & track record",
-      color: DISCORD_COLORS.long,
-      fields: [
-        {
-          name: "What is a call?",
-          value:
-            "A timestamped thesis: symbol, direction, entry, target, optional stop. Published on your public track record.",
-          inline: false,
-        },
-        {
-          name: "What happens when target is hit?",
-          value:
-            "You get a **Target reached** notice in the workspace. Return stays live until **you close** the call — same as a professional journal.",
-          inline: false,
-        },
-        {
-          name: "Where do new calls appear?",
-          value:
-            "**#member-calls** (members) · **#fueled-calls** (desk) · full detail on portfuel.pro",
-          inline: false,
-        },
-        {
-          name: "Weekly quota",
-          value: `**${memberPlan.name}:** 2 calls/week · **${proPlan.name}:** 6 calls/week`,
-          inline: false,
-        },
-      ],
-      footer: { text: "PortFuel · Calls" },
-    },
-    {
-      title: "Support",
+      title: "◆  Support",
       color: DISCORD_COLORS.milestone,
       fields: [
-        {
-          name: "Help center",
-          value: `[Docs, guides & tickets](${help})`,
-          inline: true,
-        },
-        {
-          name: "Email",
-          value: "support@portfuel.pro",
-          inline: true,
-        },
-        {
-          name: "Server rules",
-          value: "See **#rules**",
-          inline: true,
-        },
-        {
-          name: "Account issues",
-          value:
-            "Login, 2FA, username changes, and moderation status — use a support ticket with your account email.",
-          inline: false,
-        },
+        { name: "Help center", value: `[Docs & tickets](${help})`, inline: true },
+        { name: "Compare plans", value: `[portfuel.pro/join](${join})`, inline: true },
+        { name: "Email", value: "`support@portfuel.pro`", inline: true },
+        hubFaq(
+          "Account login or 2FA issues",
+          "Open a ticket from the Help center with the email on your PortFuel account."
+        ),
       ],
       footer: { text: "PortFuel · Support" },
     },

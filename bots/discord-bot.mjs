@@ -171,6 +171,9 @@ function applyEmbedPayload(builder, embed) {
   if (embed.author?.name) {
     builder.setAuthor({ name: embed.author.name, url: embed.author.url ?? undefined });
   }
+  if (embed.thumbnail?.url) {
+    builder.setThumbnail(embed.thumbnail.url);
+  }
   if (Array.isArray(embed.fields)) {
     for (const field of embed.fields) {
       if (!field?.name || !field?.value) continue;
@@ -278,7 +281,7 @@ function verificationEmbed() {
     .setTitle("Welcome to PortFuel")
     .setDescription(
       "**Step 1 — Verify**\n" +
-        "Click **Verify** below to unlock **#official-links**, **#rules**, **#announcements**, **#general-chat**, and **#fueled-calls**.\n\n" +
+        "Click **Verify** below to unlock the **Member hub**, **#rules**, **#announcements**, **#general-chat**, and **#fueled-calls**.\n\n" +
         "**Step 2 — Link PortFuel (subscribers)**\n" +
         "While logged in on [portfuel.pro](https://www.portfuel.pro) → click **Link PortFuel** and finish in your browser.\n\n" +
         "**Help AI:** DM this bot — **5 preview questions** for anyone; **40/month** for linked **Pro** members.\n\n" +
@@ -344,6 +347,9 @@ async function ensurePinnedHubFromApi(client, channelId, apiPath, label) {
     return null;
   });
   const markerTitle = data?.markerTitle ?? null;
+  const legacyMarkerTitles = Array.isArray(data?.legacyMarkerTitles)
+    ? data.legacyMarkerTitles.filter((t) => typeof t === "string" && t.trim())
+    : [];
   const content =
     typeof data?.content === "string" && data.content.trim() ? data.content.trim() : null;
   const rawEmbeds = Array.isArray(data?.embeds) ? data.embeds : [];
@@ -360,7 +366,7 @@ async function ensurePinnedHubFromApi(client, channelId, apiPath, label) {
     (m) =>
       m.author.id === client.user?.id &&
       m.embeds.length > 0 &&
-      m.embeds[0]?.title === markerTitle
+      (m.embeds[0]?.title === markerTitle || legacyMarkerTitles.includes(m.embeds[0]?.title))
   );
 
   if (existing) {
@@ -544,7 +550,7 @@ client.on("interactionCreate", async (interaction) => {
 
       await interaction.reply({
         content:
-          "Verified! You now have access to **#official-links**, **#rules**, **#announcements**, **#general-chat**, and **#fueled-calls**.\n\n" +
+          "Verified! You now have access to the **Member hub**, **#rules**, **#announcements**, **#general-chat**, and **#fueled-calls**.\n\n" +
           "PortFuel subscriber? Click **Link PortFuel** above to unlock **#member-calls** and member channels.",
         ephemeral: true,
       });

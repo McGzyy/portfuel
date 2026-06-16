@@ -8,6 +8,7 @@ export type DiscordEmbedPayload = {
   fields?: { name: string; value: string; inline?: boolean }[];
   footer?: { text: string };
   author?: { name: string; url?: string };
+  thumbnail?: { url: string };
 };
 
 export const DISCORD_COLORS = {

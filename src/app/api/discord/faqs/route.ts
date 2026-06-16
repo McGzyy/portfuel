@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireBotKey } from "@/lib/bot/require-bot";
 import {
+  FAQS_LEGACY_MARKER_TITLES,
   FAQS_MARKER_TITLE,
   FAQS_MESSAGE_CONTENT,
   buildFaqsEmbeds,
@@ -14,6 +15,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     ok: true,
     markerTitle: FAQS_MARKER_TITLE,
+    legacyMarkerTitles: FAQS_LEGACY_MARKER_TITLES,
     content: FAQS_MESSAGE_CONTENT,
     embeds: buildFaqsEmbeds(getAppUrl()),
   });

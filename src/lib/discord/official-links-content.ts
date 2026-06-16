@@ -1,15 +1,25 @@
 import { DISCORD_COLORS, type DiscordEmbedPayload } from "@/lib/discord/embed-payloads";
+import {
+  HUB_DISCLAIMER,
+  appIconUrl,
+  hubBullets,
+  hubChannel,
+  hubTierLine,
+} from "@/lib/discord/hub-embed-helpers";
 import { PLAN_BY_TIER } from "@/lib/marketing/plans";
 
-/** First embed title — bot uses this to find and refresh the pinned hub message. */
-export const OFFICIAL_LINKS_MARKER_TITLE = "PortFuel — Start here";
+/** Bot matches this title to refresh the pinned hub message. */
+export const OFFICIAL_LINKS_MARKER_TITLE = "PortFuel — Member hub";
 
-/** Short line above the embed stack in #official-links. */
+/** Previous title — bot still updates the old pinned message after rebrand. */
+export const OFFICIAL_LINKS_LEGACY_MARKER_TITLES = ["PortFuel — Start here"];
+
 export const OFFICIAL_LINKS_MESSAGE_CONTENT =
-  "**Official hub** — links, onboarding, and channel map. _Updated automatically by the PortFuel bot._";
+  "📌 **Member hub** — workspace entry, onboarding, and server map. _Pin this message · auto-updated by PortFuel._";
 
 export function buildOfficialLinksEmbeds(appUrl: string): DiscordEmbedPayload[] {
   const base = appUrl.replace(/\/$/, "");
+  const icon = appIconUrl(base);
   const join = `${base}/join`;
   const login = `${base}/login`;
   const dashboard = `${base}/dashboard`;
@@ -19,106 +29,93 @@ export function buildOfficialLinksEmbeds(appUrl: string): DiscordEmbedPayload[] 
 
   return [
     {
-      author: { name: "PortFuel", url: base },
+      author: { name: "PortFuel Intelligence", url: base },
       title: OFFICIAL_LINKS_MARKER_TITLE,
       url: join,
       description:
-        "Member intelligence workspace for **timestamped theses**, **live performance**, and **community rankings**.\n\n" +
-        "_Educational content only — not investment advice._",
+        "> **Timestamped theses · Live marks · Ranked callers**\n" +
+        "> The member workspace — plus this Discord for alerts and community.\n\n" +
+        HUB_DISCLAIMER,
       color: DISCORD_COLORS.brand,
+      thumbnail: { url: icon },
       fields: [
-        { name: "Join", value: `[portfuel.pro/join](${join})`, inline: true },
-        { name: "Log in", value: `[Dashboard](${login})`, inline: true },
-        { name: "Workspace", value: `[Open app](${dashboard})`, inline: true },
+        { name: "Join", value: `[**Get access →**](${join})`, inline: true },
+        { name: "Sign in", value: `[**Dashboard →**](${login})`, inline: true },
+        { name: "Workspace", value: `[**Open app →**](${dashboard})`, inline: true },
       ],
-      footer: { text: "PortFuel · Official links" },
+      footer: { text: "PortFuel · Member hub" },
     },
     {
-      title: "Discord setup",
-      description:
-        "Complete these steps once to unlock member channels and sync your PortFuel roles.",
+      title: "◆  Onboarding",
+      description: "Three steps — then roles sync automatically.",
       color: DISCORD_COLORS.member,
       fields: [
         {
-          name: "1 · Verify",
-          value: "Go to **#verification** → click **Verify**",
+          name: "Steps",
+          value: hubBullets([
+            "**Verify** in **#verification** → unlock public channels",
+            "**Link PortFuel** (logged in on portfuel.pro) → Member / Pro roles in ~60s",
+            "Browse **#member-calls**, **#fueled-calls**, **#member-chat**",
+            "**Help AI** — DM this bot · 5 preview Qs anyone · **40/mo** linked Pro",
+          ]),
           inline: false,
         },
         {
-          name: "2 · Link account",
-          value:
-            "While logged in on portfuel.pro → **#verification** → **Link PortFuel**",
-          inline: false,
+          name: "Member",
+          value: hubTierLine(
+            memberPlan.name,
+            memberPlan.price,
+            memberPlan.period,
+            "2 calls/wk · feed · desk · rankings"
+          ),
+          inline: true,
         },
         {
-          name: "3 · You're in",
-          value:
-            "Member + Pro roles apply within ~60 seconds. Browse **#member-calls**, **#fueled-calls**, and **#member-chat**.",
-          inline: false,
+          name: "Pro Intelligence",
+          value: hubTierLine(
+            proPlan.name,
+            proPlan.price,
+            proPlan.period,
+            "6 calls/wk · research terminal · Help AI"
+          ),
+          inline: true,
         },
         {
-          name: "Help AI",
-          value:
-            "DM this bot — preview Q&A for anyone; **40 questions/month** for linked **Pro** members.",
+          name: "Billing",
+          value: `[Compare plans](${join}) · **Settings → Plan & billing**`,
           inline: false,
         },
       ],
-      footer: { text: "PortFuel · Onboarding" },
+      footer: { text: "PortFuel · Onboarding & plans" },
     },
     {
-      title: "Membership",
-      description: "Compare tiers on the site before checkout.",
-      color: DISCORD_COLORS.pro,
-      fields: [
-        {
-          name: `${memberPlan.name} · ${memberPlan.price}${memberPlan.period}`,
-          value: memberPlan.tagline,
-          inline: false,
-        },
-        {
-          name: `${proPlan.name} · ${proPlan.price}${proPlan.period}`,
-          value: proPlan.tagline,
-          inline: false,
-        },
-        {
-          name: "Plans & billing",
-          value: `[Compare plans](${join}) · Manage in **Settings → Plan & billing**`,
-          inline: false,
-        },
-      ],
-      footer: { text: "PortFuel · Membership" },
-    },
-    {
-      title: "Channel guide",
-      description: "Where to look for updates vs. discussion.",
+      title: "◆  Server map",
+      description: "Bot feeds are read-only — discuss in lounges.",
       color: DISCORD_COLORS.digest,
       fields: [
-        { name: "Announcements", value: "**#announcements** · Weekly movers", inline: true },
-        { name: "Community", value: "**#general-chat** · Open chat", inline: true },
-        { name: "Rules", value: "**#rules** · Read first", inline: true },
-        { name: "Member calls", value: "**#member-calls** · New theses", inline: true },
-        { name: "Fueled desk", value: "**#fueled-calls** · House calls", inline: true },
-        { name: "Targets", value: "**#targets-hit** · Target reached", inline: true },
-        { name: "Member lounge", value: "**#member-chat** · Linked members", inline: true },
-        { name: "Pro lounge", value: "**#pro-member-chat** · Pro members", inline: true },
-        { name: "Pro forums", value: "**pro-member-forums** · Deep dives", inline: true },
+        { name: "#announcements", value: "Weekly movers", inline: true },
+        { name: "#general-chat", value: "Open community", inline: true },
+        { name: "#rules", value: "Standards", inline: true },
+        { name: "#member-calls", value: "Member theses", inline: true },
+        { name: "#fueled-calls", value: "Desk calls", inline: true },
+        { name: "#targets-hit", value: "Target reached", inline: true },
+        { name: "#member-chat", value: "Member lounge", inline: true },
+        { name: "#pro-member-chat", value: "Pro lounge", inline: true },
+        { name: "pro-member-forums", value: "Deep dives", inline: true },
       ],
-      footer: { text: "PortFuel · Server map" },
+      footer: { text: "PortFuel · Channels" },
     },
     {
-      title: "Help & support",
-      description:
-        "Account, billing, and technical issues are handled in the **workspace** — not in this channel.",
+      title: "◆  Help & support",
+      description: "Tickets and account issues live in the **workspace** — not in chat.",
       color: DISCORD_COLORS.milestone,
       fields: [
-        { name: "Help center", value: `[Docs & FAQs](${help})`, inline: true },
-        { name: "Support ticket", value: `[Open a ticket](${help})`, inline: true },
-        { name: "Email", value: "support@portfuel.pro", inline: true },
-        {
-          name: "Discord FAQs",
-          value: "Pinned answers in **#faqs**",
-          inline: false,
-        },
+        { name: "Help center", value: `[Docs & guides](${help})`, inline: true },
+        { name: "Open ticket", value: `[Support queue](${help})`, inline: true },
+        { name: "Email", value: "`support@portfuel.pro`", inline: true },
+        { name: "Quick answers", value: hubChannel("#faqs", "Discord & billing FAQs"), inline: true },
+        { name: "Standards", value: hubChannel("#rules", "Community rules"), inline: true },
+        { name: "Verify", value: hubChannel("#verification", "Unlock + link account"), inline: true },
       ],
       footer: { text: "PortFuel · Support" },
     },

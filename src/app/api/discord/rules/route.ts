@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireBotKey } from "@/lib/bot/require-bot";
 import {
+  RULES_LEGACY_MARKER_TITLES,
   RULES_MARKER_TITLE,
   buildRulesEmbeds,
   buildRulesMessageContent,
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     ok: true,
     markerTitle: RULES_MARKER_TITLE,
+    legacyMarkerTitles: RULES_LEGACY_MARKER_TITLES,
     content: buildRulesMessageContent(appUrl),
     embeds: buildRulesEmbeds(appUrl),
   });
