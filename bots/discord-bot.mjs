@@ -49,6 +49,8 @@ const ROLE_PRO = process.env.DISCORD_ROLE_PRO_ID ?? "1510805852154757190";
 
 const VERIFICATION_CHANNEL_ID =
   process.env.DISCORD_CHANNEL_VERIFICATION_ID ?? "1510828920487022652";
+const OFFICIAL_LINKS_CHANNEL_ID =
+  process.env.DISCORD_CHANNEL_OFFICIAL_LINKS_ID ?? "1510828840161771631";
 const CALLS_CHANNEL_ID = process.env.DISCORD_CHANNEL_CALLS_ID ?? "1510841810430197991";
 const TARGETS_CHANNEL_ID = process.env.DISCORD_CHANNEL_TARGETS_ID ?? "1510842222143340707";
 const MEMBER_CHAT_CHANNEL_ID =
@@ -322,6 +324,47 @@ async function ensureVerificationMessage(client) {
   console.log("[discord-bot] posted verification message");
 }
 
+async function ensureOfficialLinksMessage(client) {
+  const channel = await client.channels.fetch(OFFICIAL_LINKS_CHANNEL_ID).catch(() => null);
+  if (!channel || !("messages" in channel)) {
+    console.warn("[discord-bot] official-links channel not found");
+    return;
+  }
+
+  const data = await api("/api/discord/official-links").catch((e) => {
+    console.error("[discord-bot] official-links fetch", e);
+    return null;
+  });
+  const markerTitle = data?.markerTitle ?? "PortFuel — Start here";
+  const content =
+    typeof data?.content === "string" && data.content.trim() ? data.content.trim() : null;
+  const rawEmbeds = Array.isArray(data?.embeds) ? data.embeds : [];
+  if (rawEmbeds.length === 0) {
+    console.warn("[discord-bot] official-links: no embeds from API");
+    return;
+  }
+
+  const embeds = rawEmbeds.map((e) => applyEmbedPayload(new EmbedBuilder(), e));
+  const payload = content ? { content, embeds } : { embeds };
+
+  const recent = await channel.messages.fetch({ limit: 15 }).catch(() => null);
+  const existing = recent?.find(
+    (m) =>
+      m.author.id === client.user?.id &&
+      m.embeds.length > 0 &&
+      m.embeds[0]?.title === markerTitle
+  );
+
+  if (existing) {
+    await existing.edit(payload).catch(() => null);
+    console.log("[discord-bot] updated official-links hub");
+    return;
+  }
+
+  await channel.send(payload);
+  console.log("[discord-bot] posted official-links hub");
+}
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -336,6 +379,7 @@ const client = new Client({
 client.once("ready", async () => {
   console.log(`[discord-bot] ready as ${client.user?.tag}`);
   await ensureVerificationMessage(client);
+  await ensureOfficialLinksMessage(client);
   await registerSlashCommands(client).catch((e) =>
     console.error("[discord-bot] slash register failed", e)
   );
@@ -473,8 +517,8 @@ client.on("interactionCreate", async (interaction) => {
 
       await interaction.reply({
         content:
-          "Verified! You can now see **#official-links**, **#announcements**, **#general-chat**, and **#fire-calls**.\n\n" +
-          "PortFuel subscriber? Click **Link PortFuel** above to unlock member channels.",
+          "Verified! You now have access to **#official-links**, **#rules**, **#announcements**, **#general-chat**, and **#fueled-calls**.\n\n" +
+          "PortFuel subscriber? Click **Link PortFuel** above to unlock **#member-calls** and member channels.",
         ephemeral: true,
       });
       await api("/api/discord/verify/record", {
