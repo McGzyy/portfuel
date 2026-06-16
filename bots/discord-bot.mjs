@@ -7,11 +7,14 @@ import {
   Client,
   EmbedBuilder,
   GatewayIntentBits,
+  ModalBuilder,
   Partials,
   PermissionFlagsBits,
   REST,
   Routes,
   SlashCommandBuilder,
+  TextInputBuilder,
+  TextInputStyle,
 } from "discord.js";
 import dotenv from "dotenv";
 import fs from "node:fs";
@@ -70,9 +73,12 @@ const BOT_LOG_CHANNEL_ID =
   process.env.DISCORD_CHANNEL_BOT_LOG_ID?.trim() ||
   process.env.DISCORD_CHANNEL_BOT_LOG?.trim() ||
   "1516298968626364477";
+const MEMBER_SUPPORT_CHANNEL_ID =
+  process.env.DISCORD_CHANNEL_MEMBER_SUPPORT_ID?.trim() || "1516293166007849200";
 
 const VERIFY_BUTTON_ID = "pf:verify";
 const LINK_BUTTON_ID = "pf:link";
+const TICKET_OPEN_MODAL_PREFIX = "pf:ticket-open:";
 
 const verifyCooldownMs = 30_000;
 const verifyCooldown = new Map();
@@ -278,9 +284,34 @@ async function registerSlashCommands(client) {
           o.setName("member").setDescription("Discord member (defaults to you)")
         )
         .toJSON(),
+      new SlashCommandBuilder()
+        .setName("ticket")
+        .setDescription("Official PortFuel support tickets")
+        .addSubcommand((sub) =>
+          sub
+            .setName("open")
+            .setDescription("Open a support ticket (linked members)")
+            .addStringOption((o) =>
+              o
+                .setName("category")
+                .setDescription("What is this about?")
+                .setRequired(true)
+                .addChoices(
+                  { name: "Billing & membership", value: "billing" },
+                  { name: "Account & access", value: "account" },
+                  { name: "Calls & track record", value: "calls" },
+                  { name: "Technical issue", value: "technical" },
+                  { name: "Other", value: "other" }
+                )
+            )
+        )
+        .addSubcommand((sub) =>
+          sub.setName("list").setDescription("List your open support tickets")
+        )
+        .toJSON(),
     ],
   });
-  console.log("[discord-bot] registered /sync and /stats commands");
+  console.log("[discord-bot] registered /sync, /stats, and /ticket commands");
 }
 
 function verificationButtons() {
@@ -417,6 +448,100 @@ async function ensureForumsMessage(client) {
   );
 }
 
+async function ensureMemberSupportHub(client) {
+  await ensurePinnedHubFromApi(
+    client,
+    MEMBER_SUPPORT_CHANNEL_ID,
+    "/api/discord/member-support",
+    "member support hub"
+  );
+}
+
+async function handleSupportTicketCreateThread(payload) {
+  const channel = await client.channels.fetch(MEMBER_SUPPORT_CHANNEL_ID).catch(() => null);
+  if (!channel || !("send" in channel)) throw new Error("support_channel_unavailable");
+
+  const embed = applyEmbedPayload(new EmbedBuilder(), payload.embed);
+  const rootMsg = await channel.send({ embeds: [embed] });
+
+  const thread = await rootMsg.startThread({
+    name: String(payload.threadName ?? "support").slice(0, 100),
+    type: ChannelType.PrivateThread,
+    autoArchiveDuration: 10080,
+    reason: "PortFuel official support ticket",
+  });
+
+  const memberDiscordUserId = payload.memberDiscordUserId
+    ? String(payload.memberDiscordUserId)
+    : null;
+  if (memberDiscordUserId) {
+    await thread.members.add(memberDiscordUserId).catch(() => null);
+  }
+
+  if (typeof payload.initialMessage === "string" && payload.initialMessage.trim()) {
+    await thread.send({ content: payload.initialMessage.trim().slice(0, 2000) });
+  }
+
+  await api(`/api/discord/support/tickets/${payload.ticketId}/discord`, {
+    method: "POST",
+    body: {
+      guildId: String(payload.guildId ?? GUILD_ID),
+      threadId: thread.id,
+      rootMessageId: rootMsg.id,
+    },
+  });
+
+  console.log(`[discord-bot] support thread ${thread.id} for ticket ${payload.ticketId}`);
+}
+
+async function handleSupportTicketThreadMessage(payload) {
+  const threadId = String(payload.threadId ?? "");
+  if (!threadId) throw new Error("missing_thread_id");
+
+  const thread = await client.channels.fetch(threadId).catch(() => null);
+  if (!thread?.isThread?.()) throw new Error("thread_not_found");
+
+  const content =
+    typeof payload.content === "string" && payload.content.trim()
+      ? payload.content.trim().slice(0, 2000)
+      : null;
+
+  if (payload.embed && typeof payload.embed === "object") {
+    const embed = applyEmbedPayload(new EmbedBuilder(), payload.embed);
+    await thread.send({ content: content ?? undefined, embeds: [embed] });
+    return;
+  }
+
+  if (!content) throw new Error("empty_thread_message");
+  await thread.send({ content });
+}
+
+function ticketOpenModal(category) {
+  return new ModalBuilder()
+    .setCustomId(`${TICKET_OPEN_MODAL_PREFIX}${category}`)
+    .setTitle("Open support ticket")
+    .addComponents(
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId("subject")
+          .setLabel("Subject")
+          .setStyle(TextInputStyle.Short)
+          .setMinLength(3)
+          .setMaxLength(200)
+          .setRequired(true)
+      ),
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId("message")
+          .setLabel("Describe your issue")
+          .setStyle(TextInputStyle.Paragraph)
+          .setMinLength(10)
+          .setMaxLength(2000)
+          .setRequired(true)
+      )
+    );
+}
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -435,6 +560,7 @@ client.once("ready", async () => {
   await ensureRulesMessage(client);
   await ensureFaqsMessage(client);
   await ensureForumsMessage(client);
+  await ensureMemberSupportHub(client);
   await registerSlashCommands(client).catch((e) =>
     console.error("[discord-bot] slash register failed", e)
   );
@@ -494,6 +620,96 @@ client.on("interactionCreate", async (interaction) => {
     } catch (e) {
       console.error("[discord-bot] /stats error", e);
       const msg = e instanceof Error ? e.message : "Could not load stats.";
+      if (interaction.deferred) {
+        await interaction.editReply({ content: msg }).catch(() => null);
+      } else {
+        await interaction.reply({ content: msg, ephemeral: true }).catch(() => null);
+      }
+    }
+    return;
+  }
+
+  if (interaction.isChatInputCommand() && interaction.commandName === "ticket") {
+    const sub = interaction.options.getSubcommand();
+    try {
+      if (sub === "open") {
+        const category = interaction.options.getString("category", true);
+        await interaction.showModal(ticketOpenModal(category));
+        return;
+      }
+
+      if (sub === "list") {
+        await interaction.deferReply({ ephemeral: true });
+        const data = await api(
+          `/api/discord/support/tickets/mine?discordUserId=${encodeURIComponent(interaction.user.id)}`
+        );
+        const items = Array.isArray(data.tickets) ? data.tickets : [];
+        if (items.length === 0) {
+          await interaction.editReply({
+            content:
+              "No open tickets. Use `/ticket open` or open one at portfuel.pro → **Help** → **Tickets**.",
+          });
+          return;
+        }
+        const lines = items.map((t) => {
+          const thread =
+            t.discordThreadId && isRoleId(t.discordThreadId)
+              ? ` · <#${t.discordThreadId}>`
+              : "";
+          return `• **${t.ref}** — ${t.subject} _(${t.status})_${thread}\n  ${t.url}`;
+        });
+        await interaction.editReply({
+          content: `**Your open tickets**\n\n${lines.join("\n")}`,
+        });
+      }
+    } catch (e) {
+      console.error("[discord-bot] /ticket error", e);
+      const msg = e instanceof Error ? e.message : "Ticket command failed.";
+      if (interaction.deferred) {
+        await interaction.editReply({ content: msg }).catch(() => null);
+      } else if (interaction.replied || interaction.deferred) {
+        await interaction.followUp({ content: msg, ephemeral: true }).catch(() => null);
+      } else {
+        await interaction.reply({ content: msg, ephemeral: true }).catch(() => null);
+      }
+    }
+    return;
+  }
+
+  if (interaction.isModalSubmit() && interaction.customId.startsWith(TICKET_OPEN_MODAL_PREFIX)) {
+    try {
+      await interaction.deferReply({ ephemeral: true });
+      const category = interaction.customId.slice(TICKET_OPEN_MODAL_PREFIX.length);
+      const subject = interaction.fields.getTextInputValue("subject").trim();
+      const message = interaction.fields.getTextInputValue("message").trim();
+
+      const created = await api("/api/discord/support/tickets/create", {
+        method: "POST",
+        body: {
+          discordUserId: interaction.user.id,
+          category,
+          subject,
+          message,
+        },
+      });
+
+      const ref = created.ticketNumber ? `PF-${created.ticketNumber}` : "ticket";
+      await interaction.editReply({
+        content:
+          `**${ref}** opened — staff will reply in your ticket thread and on portfuel.pro.\n\n` +
+          `Track: ${APP_URL}/dashboard/help?view=tickets&ticket=${created.id}`,
+      });
+      await botLog(client, `Ticket ${ref} opened via /ticket by ${interaction.user.tag}`);
+    } catch (e) {
+      console.error("[discord-bot] ticket modal error", e);
+      const msg =
+        e instanceof Error && e.apiCode === "not_linked"
+          ? "Link your PortFuel account in #verification first."
+          : e instanceof Error && e.apiCode === "not_active"
+            ? "An active PortFuel membership is required for support tickets."
+            : e instanceof Error
+              ? e.message
+              : "Could not open ticket.";
       if (interaction.deferred) {
         await interaction.editReply({ content: msg }).catch(() => null);
       } else {
@@ -810,6 +1026,20 @@ async function runOutboxTick() {
         continue;
       }
 
+      if (eventType === "support.ticket.create_thread") {
+        await handleSupportTicketCreateThread(payload);
+        await api("/api/discord/outbox/ack", { method: "POST", body: { id, status: "sent" } });
+        console.log(`[discord-bot] created support thread for outbox ${id}`);
+        continue;
+      }
+
+      if (eventType === "support.ticket.thread_message") {
+        await handleSupportTicketThreadMessage(payload);
+        await api("/api/discord/outbox/ack", { method: "POST", body: { id, status: "sent" } });
+        console.log(`[discord-bot] thread message for outbox ${id}`);
+        continue;
+      }
+
       const resolvedChannel =
         channelId === "calls"
           ? CALLS_CHANNEL_ID
@@ -844,6 +1074,48 @@ async function runOutboxTick() {
     }
   }
 }
+
+const supportThreadReplyCooldown = new Map();
+
+client.on("messageCreate", async (message) => {
+  try {
+    if (message.author.bot) return;
+    if (!message.channel.isThread()) return;
+    if (String(message.channel.parentId) !== String(MEMBER_SUPPORT_CHANNEL_ID)) return;
+
+    const body = message.content?.trim() ?? "";
+    if (!body) return;
+
+    const last = supportThreadReplyCooldown.get(message.id) ?? 0;
+    if (last) return;
+    supportThreadReplyCooldown.set(message.id, Date.now());
+    setTimeout(() => supportThreadReplyCooldown.delete(message.id), 60_000);
+
+    const lookup = await api(
+      `/api/discord/support/tickets/by-thread?threadId=${encodeURIComponent(message.channel.id)}`
+    );
+    const ticketId = lookup?.ticket?.id;
+    if (!ticketId) return;
+
+    await api(`/api/discord/support/tickets/${ticketId}/reply`, {
+      method: "POST",
+      body: {
+        discordUserId: message.author.id,
+        body,
+      },
+    });
+
+    await message.react("✅").catch(() => null);
+    console.log(`[discord-bot] synced thread reply ${message.id} -> ticket ${ticketId}`);
+  } catch (e) {
+    if (e instanceof Error && (e.apiCode === "forbidden" || e.apiCode === "ticket_closed")) {
+      await message.react("⛔").catch(() => null);
+      return;
+    }
+    console.error("[discord-bot] support thread sync", e);
+    await message.react("⚠️").catch(() => null);
+  }
+});
 
 async function main() {
   await client.login(DISCORD_TOKEN);

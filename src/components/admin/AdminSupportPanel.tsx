@@ -91,6 +91,22 @@ function AdminTicketDetail({
             <p className="mt-1 text-xs text-[var(--pf-gray-500)]">
               {supportCategoryLabel(ticket.category)} · opened {timeAgo(ticket.created_at)}
             </p>
+            {ticket.discord_thread_id ? (
+              <p className="mt-2 text-xs">
+                <a
+                  href={
+                    ticket.discord_guild_id
+                      ? `https://discord.com/channels/${ticket.discord_guild_id}/${ticket.discord_thread_id}`
+                      : `#`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-[var(--pf-red)] hover:underline"
+                >
+                  Open Discord thread →
+                </a>
+              </p>
+            ) : null}
           </div>
           <StatusBadge status={ticket.status} />
         </div>

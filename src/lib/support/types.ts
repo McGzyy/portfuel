@@ -30,6 +30,9 @@ export type SupportTicketRow = {
   updated_at: string;
   last_message_at: string;
   resolved_at: string | null;
+  discord_guild_id?: string | null;
+  discord_thread_id?: string | null;
+  discord_root_message_id?: string | null;
 };
 
 export type SupportTicketMessageRow = {

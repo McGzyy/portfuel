@@ -1,5 +1,9 @@
 import { createServiceClient } from "@/lib/db/supabase";
-import { notifyDiscordAdminSupportTicket } from "@/lib/discord/admin-events";
+import {
+  notifyDiscordSupportTicketCreated,
+  notifyDiscordSupportTicketThreadMessage,
+  ticketStatusDiscordLabel,
+} from "@/lib/discord/support-tickets";
 import { listTicketAttachments, type SupportAttachmentView } from "@/lib/support/attachments";
 import { sendPortfuelEmail } from "@/lib/email/client";
 import { isEmailConfigured, getAppUrl } from "@/lib/email/config";
@@ -30,6 +34,8 @@ export type PostSupportMessageInput = {
   authorUserId: string;
   authorRole: "member" | "admin";
   body: string;
+  /** Set when the message already exists in the Discord thread (bot sync). */
+  skipDiscordThreadSync?: boolean;
 };
 
 async function fetchAdminNotifyEmails(): Promise<string[]> {
@@ -102,7 +108,8 @@ async function fetchTicketWithUser(
 async function notifyAdminsNewTicket(
   ticket: SupportTicketWithUser,
   preview: string,
-  kind: "new" | "member_reply" = "new"
+  kind: "new" | "member_reply" = "new",
+  syncDiscord = true
 ) {
   const db = createServiceClient();
   const { data: admins } = await db.from("users").select("id").eq("role", "admin");
@@ -148,9 +155,19 @@ async function notifyAdminsNewTicket(
     .update({ admin_notified_at: new Date().toISOString() } as never)
     .eq("id", ticket.id);
 
-  void notifyDiscordAdminSupportTicket({ ticket, preview, kind }).catch((e) =>
-    console.error("[support/discord-admin]", e)
-  );
+  void (syncDiscord
+    ? kind === "new"
+      ? notifyDiscordSupportTicketCreated(ticket, preview)
+      : notifyDiscordSupportTicketThreadMessage({
+          ticketId: ticket.id,
+          ticketNumber: ticket.ticket_number,
+          authorLabel: ticket.display_name?.trim() || ticket.username,
+          authorRole: "member",
+          body: preview,
+          status: ticketStatusDiscordLabel(ticket.status),
+        })
+    : Promise.resolve()
+  ).catch((e) => console.error("[support/discord]", e));
 }
 
 async function notifyMemberReply(
@@ -405,8 +422,23 @@ export async function postSupportTicketMessage(
 
   if (input.authorRole === "admin") {
     await notifyMemberReply(ticket, body);
+    if (!input.skipDiscordThreadSync) {
+      const { data: author } = await db
+        .from("users")
+        .select("username, display_name")
+        .eq("id", input.authorUserId)
+        .maybeSingle();
+      void notifyDiscordSupportTicketThreadMessage({
+        ticketId: ticket.id,
+        ticketNumber: ticket.ticket_number,
+        authorLabel: author?.display_name?.trim() || author?.username || "Staff",
+        authorRole: "admin",
+        body,
+        status: ticketStatusDiscordLabel(nextStatus),
+      }).catch((e) => console.error("[support/discord-thread]", e));
+    }
   } else {
-    await notifyAdminsNewTicket(ticket, body, "member_reply");
+    await notifyAdminsNewTicket(ticket, body, "member_reply", !input.skipDiscordThreadSync);
   }
 
   return { messageId: (inserted as { id: string }).id };
@@ -433,6 +465,18 @@ export async function updateSupportTicketStatus(
   if (error) {
     console.error("[support/status]", error);
     throw new Error("update_failed");
+  }
+
+  const ticket = await fetchTicketWithUser(ticketId);
+  if (ticket) {
+    void notifyDiscordSupportTicketThreadMessage({
+      ticketId: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      authorLabel: "PortFuel",
+      authorRole: "system",
+      body: `Status → **${ticketStatusDiscordLabel(status)}**`,
+      status: ticketStatusDiscordLabel(status),
+    }).catch((e) => console.error("[support/discord-status]", e));
   }
 }
 

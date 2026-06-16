@@ -1,0 +1,243 @@
+import { DISCORD_COLORS, type DiscordEmbedPayload } from "@/lib/discord/embed-payloads";
+import { getDiscordConfig } from "@/lib/discord/config";
+import { enqueueDiscordOutbox } from "@/lib/discord/outbox";
+import { enqueueDiscordDm } from "@/lib/discord/dm";
+import { createServiceClient } from "@/lib/db/supabase";
+import { adminSupportPanelUrl, memberTicketUrl } from "@/lib/support/tickets";
+import type { SupportTicketWithUser } from "@/lib/support/types";
+import {
+  formatTicketRef,
+  supportCategoryLabel,
+  supportStatusLabel,
+} from "@/lib/support/types";
+import { getAppUrl } from "@/lib/stripe/config";
+import { buildSupportTicketEmbed } from "@/lib/discord/admin-events";
+
+function previewText(text: string, max = 280): string {
+  const t = text.trim();
+  if (t.length <= max) return t;
+  return `${t.slice(0, max - 1)}…`;
+}
+
+function threadName(ticket: SupportTicketWithUser): string {
+  const ref = formatTicketRef(ticket.ticket_number);
+  const who = ticket.username.slice(0, 16);
+  const subject = ticket.subject.slice(0, 48);
+  return `${ref} · ${who} · ${subject}`.slice(0, 100);
+}
+
+async function linkedDiscordUserId(userId: string): Promise<string | null> {
+  const cfg = getDiscordConfig();
+  const db = createServiceClient();
+  const { data } = await db
+    .from("discord_accounts")
+    .select("discord_user_id")
+    .eq("user_id", userId)
+    .eq("guild_id", cfg.guildId)
+    .maybeSingle();
+  return data?.discord_user_id ? String(data.discord_user_id) : null;
+}
+
+export async function notifyDiscordSupportTicketCreated(
+  ticket: SupportTicketWithUser,
+  preview: string
+): Promise<void> {
+  const { channels, guildId } = getDiscordConfig();
+  if (!channels.memberSupport || !guildId) return;
+
+  const memberLabel = ticket.display_name?.trim() || ticket.username;
+  const embed = buildSupportTicketEmbed({ ticket, preview, kind: "new" });
+  const discordUserId = await linkedDiscordUserId(ticket.user_id);
+
+  await enqueueDiscordOutbox({
+    channelId: channels.memberSupport,
+    eventType: "support.ticket.create_thread",
+    dedupeKey: `support:thread:${ticket.id}`,
+    payload: {
+      ticketId: ticket.id,
+      threadName: threadName(ticket),
+      guildId,
+      memberDiscordUserId: discordUserId,
+      embed,
+      initialMessage: `**Member** · ${memberLabel}\n${previewText(preview, 1800)}`,
+    },
+  });
+
+  if (discordUserId) {
+    const ref = formatTicketRef(ticket.ticket_number);
+    const url = `${getAppUrl()}${memberTicketUrl(ticket.id)}`;
+    await enqueueDiscordDm(
+      discordUserId,
+      `**Support ticket opened** — **${ref}**\n` +
+        `*${ticket.subject}*\n\n` +
+        `${previewText(preview, 400)}\n\n` +
+        `Track replies: ${url}\n` +
+        `_Staff will respond here and in your workspace thread._`
+    );
+  }
+}
+
+export async function notifyDiscordSupportTicketThreadMessage(input: {
+  ticketId: string;
+  ticketNumber: number;
+  authorLabel: string;
+  authorRole: "member" | "admin" | "system";
+  body: string;
+  status?: string;
+}): Promise<void> {
+  const { channels } = getDiscordConfig();
+  if (!channels.memberSupport) return;
+
+  const db = createServiceClient();
+  const { data: row } = await db
+    .from("support_tickets")
+    .select("discord_thread_id")
+    .eq("id", input.ticketId)
+    .maybeSingle();
+  const threadId = row?.discord_thread_id ? String(row.discord_thread_id) : null;
+  if (!threadId) return;
+
+  const ref = formatTicketRef(input.ticketNumber);
+  const roleTag =
+    input.authorRole === "admin"
+      ? "**Staff**"
+      : input.authorRole === "member"
+        ? "**Member**"
+        : "**System**";
+
+  await enqueueDiscordOutbox({
+    channelId: channels.memberSupport,
+    eventType: "support.ticket.thread_message",
+    payload: {
+      ticketId: input.ticketId,
+      threadId,
+      content:
+        `${roleTag} · ${input.authorLabel}\n` +
+        `${previewText(input.body, 1800)}` +
+        (input.status ? `\n\n_Status: ${input.status}_` : ""),
+      embed:
+        input.authorRole === "system"
+          ? ({
+              title: `${ref} · Status update`,
+              description: input.body,
+              color: DISCORD_COLORS.digest,
+              footer: { text: "PortFuel · Support" },
+            } satisfies DiscordEmbedPayload)
+          : undefined,
+    },
+  });
+}
+
+export async function saveSupportTicketDiscordThread(input: {
+  ticketId: string;
+  guildId: string;
+  threadId: string;
+  rootMessageId: string;
+}): Promise<void> {
+  const db = createServiceClient();
+  await db
+    .from("support_tickets")
+    .update({
+      discord_guild_id: input.guildId,
+      discord_thread_id: input.threadId,
+      discord_root_message_id: input.rootMessageId,
+    } as never)
+    .eq("id", input.ticketId);
+}
+
+export async function getSupportTicketByDiscordThread(
+  threadId: string
+): Promise<SupportTicketWithUser | null> {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("support_tickets")
+    .select("*")
+    .eq("discord_thread_id", threadId)
+    .maybeSingle();
+  if (!data) return null;
+
+  const { data: user } = await db
+    .from("users")
+    .select("username, display_name, email")
+    .eq("id", (data as { user_id: string }).user_id)
+    .maybeSingle();
+
+  return {
+    ...(data as SupportTicketWithUser),
+    username: user?.username ?? "unknown",
+    display_name: user?.display_name ?? null,
+    email: user?.email ?? null,
+  };
+}
+
+export async function resolveDiscordTicketAuthor(input: {
+  discordUserId: string;
+  ticketUserId: string;
+}): Promise<
+  | { ok: true; userId: string; role: "admin" | "member"; label: string }
+  | { ok: false; reason: string }
+> {
+  const cfg = getDiscordConfig();
+  const db = createServiceClient();
+  const { data: link } = await db
+    .from("discord_accounts")
+    .select("user_id, users!inner(username, display_name, role)")
+    .eq("discord_user_id", input.discordUserId)
+    .eq("guild_id", cfg.guildId)
+    .maybeSingle();
+
+  if (!link) {
+    return { ok: false, reason: "Link your PortFuel account in #verification to reply on tickets." };
+  }
+
+  const usersRaw = (link as { users: unknown }).users;
+  const user = (Array.isArray(usersRaw) ? usersRaw[0] : usersRaw) as {
+    username: string;
+    display_name: string | null;
+    role: string;
+  };
+
+  const userId = String((link as { user_id: string }).user_id);
+  const label = user.display_name?.trim() || user.username;
+
+  if (user.role === "admin") {
+    return { ok: true, userId, role: "admin", label };
+  }
+
+  if (userId === input.ticketUserId) {
+    return { ok: true, userId, role: "member", label };
+  }
+
+  return { ok: false, reason: "You can only reply on your own support tickets." };
+}
+
+export function buildMemberSupportHubEmbeds(appUrl: string): DiscordEmbedPayload[] {
+  const help = `${appUrl.replace(/\/$/, "")}/dashboard/help?view=tickets`;
+  return [
+    {
+      title: "PortFuel — Official support",
+      url: help,
+      description:
+        "> **Workspace tickets** are the source of truth.\n" +
+        "> Each request opens a **staff thread** in this channel.\n\n" +
+        "**Members** — open tickets on portfuel.pro or use `/ticket` (linked account).\n" +
+        "**Staff** — reply in the ticket thread; syncs to the member workspace.",
+      color: DISCORD_COLORS.brand,
+      footer: { text: "PortFuel · Member support" },
+    },
+  ];
+}
+
+export const MEMBER_SUPPORT_HUB_MARKER = "PortFuel — Official support";
+export const MEMBER_SUPPORT_HUB_CONTENT =
+  "📌 **Official support queue** — one thread per ticket. _Staff channel · auto-updated by PortFuel._";
+
+export function ticketStatusDiscordLabel(status: string): string {
+  return supportStatusLabel(status as SupportTicketWithUser["status"]);
+}
+
+export function ticketCategoryDiscordLabel(category: string): string {
+  return supportCategoryLabel(category as SupportTicketWithUser["category"]);
+}
+
+export { adminSupportPanelUrl, formatTicketRef };
