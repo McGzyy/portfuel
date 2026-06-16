@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireBotKey } from "@/lib/bot/require-bot";
-import { saveSupportTicketDiscordThread } from "@/lib/discord/support-tickets";
+import { saveSupportTicketDiscordChannel } from "@/lib/discord/support-tickets";
 
 const schema = z.object({
   guildId: z.string().min(1),
-  threadId: z.string().min(1),
+  channelId: z.string().min(1),
   rootMessageId: z.string().min(1),
 });
 
@@ -19,10 +19,10 @@ export async function POST(
   try {
     const { id } = await params;
     const body = schema.parse(await request.json());
-    await saveSupportTicketDiscordThread({
+    await saveSupportTicketDiscordChannel({
       ticketId: id,
       guildId: body.guildId,
-      threadId: body.threadId,
+      channelId: body.channelId,
       rootMessageId: body.rootMessageId,
     });
     return NextResponse.json({ ok: true });

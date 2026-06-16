@@ -35,7 +35,9 @@ export type PostSupportMessageInput = {
   authorUserId: string;
   authorRole: "member" | "admin";
   body: string;
-  /** Set when the message already exists in the Discord thread (bot sync). */
+  /** Set when the message already exists in the Discord ticket channel (bot sync). */
+  skipDiscordChannelSync?: boolean;
+  /** @deprecated Use skipDiscordChannelSync */
   skipDiscordThreadSync?: boolean;
 };
 
@@ -421,9 +423,12 @@ export async function postSupportTicketMessage(
     } as never)
     .eq("id", input.ticketId);
 
+  const skipDiscord =
+    input.skipDiscordChannelSync ?? input.skipDiscordThreadSync ?? false;
+
   if (input.authorRole === "admin") {
     await notifyMemberReply(ticket, body);
-    if (!input.skipDiscordThreadSync) {
+    if (!skipDiscord) {
       const { data: author } = await db
         .from("users")
         .select("username, display_name")
@@ -439,7 +444,7 @@ export async function postSupportTicketMessage(
       }).catch((e) => console.error("[support/discord-thread]", e));
     }
   } else {
-    await notifyAdminsNewTicket(ticket, body, "member_reply", !input.skipDiscordThreadSync);
+    await notifyAdminsNewTicket(ticket, body, "member_reply", !skipDiscord);
   }
 
   return { messageId: (inserted as { id: string }).id };

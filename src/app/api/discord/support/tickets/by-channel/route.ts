@@ -2,13 +2,11 @@ import { NextResponse } from "next/server";
 import { requireBotKey } from "@/lib/bot/require-bot";
 import { getSupportTicketByDiscordChannel } from "@/lib/discord/support-tickets";
 
-/** @deprecated Use /api/discord/support/tickets/by-channel */
 export async function GET(request: Request) {
   const unauthorized = requireBotKey(request);
   if (unauthorized) return unauthorized;
 
-  const params = new URL(request.url).searchParams;
-  const channelId = params.get("channelId")?.trim() ?? params.get("threadId")?.trim();
+  const channelId = new URL(request.url).searchParams.get("channelId")?.trim();
   if (!channelId) {
     return NextResponse.json({ error: "channel_id_required" }, { status: 400 });
   }

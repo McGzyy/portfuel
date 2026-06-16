@@ -7,6 +7,7 @@ import { getSupportTicketAdmin, postSupportTicketMessage } from "@/lib/support/t
 const schema = z.object({
   discordUserId: z.string().min(1),
   body: z.string().trim().min(1).max(8000),
+  discordStaff: z.boolean().optional(),
 });
 
 export async function POST(
@@ -28,6 +29,7 @@ export async function POST(
     const author = await resolveDiscordTicketAuthor({
       discordUserId: body.discordUserId,
       ticketUserId: detail.ticket.user_id,
+      discordStaff: body.discordStaff,
     });
     if (!author.ok) {
       return NextResponse.json({ error: "forbidden", message: author.reason }, { status: 403 });
@@ -38,7 +40,7 @@ export async function POST(
       authorUserId: author.userId,
       authorRole: author.role,
       body: body.body,
-      skipDiscordThreadSync: true,
+      skipDiscordChannelSync: true,
     });
 
     return NextResponse.json({ ok: true, messageId, authorRole: author.role });

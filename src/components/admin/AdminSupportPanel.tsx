@@ -20,7 +20,7 @@ import {
   type SupportTicketWithUser,
 } from "@/lib/support/types";
 import { statusTone } from "@/lib/support/tickets";
-import { discordTicketThreadUrl } from "@/lib/discord/support-tickets";
+import { discordTicketChannelUrl } from "@/lib/discord/support-tickets";
 import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { cn, timeAgo } from "@/lib/utils";
 
@@ -59,7 +59,7 @@ function AdminTicketDetail({
   const [replyFiles, setReplyFiles] = useState<File[]>([]);
   const [status, setStatus] = useState(ticket.status);
   const memberLabel = ticket.display_name?.trim() || ticket.username;
-  const discordUrl = discordTicketThreadUrl(ticket);
+  const discordUrl = discordTicketChannelUrl(ticket);
 
   async function submitReply(e: React.FormEvent) {
     e.preventDefault();

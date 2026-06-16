@@ -12,6 +12,7 @@ import { AdminMarketingPanel } from "@/components/admin/AdminMarketingPanel";
 import { AdminAnnouncementsPanel } from "@/components/admin/AdminAnnouncementsPanel";
 import { AdminCancellationFeedbackPanel } from "@/components/admin/AdminCancellationFeedbackPanel";
 import { AdminSupportPanel } from "@/components/admin/AdminSupportPanel";
+import { AdminDiscordPanel } from "@/components/admin/AdminDiscordPanel";
 import { parseAdminTab } from "@/lib/admin/nav";
 
 export function AdminShell() {
@@ -36,6 +37,8 @@ export function AdminShell() {
           <AdminSupportPanel />
         ) : tab === "social" ? (
           <AdminSocialPanel />
+        ) : tab === "discord" ? (
+          <AdminDiscordPanel />
         ) : tab === "marketing" ? (
           <AdminMarketingPanel />
         ) : tab === "vouchers" ? (

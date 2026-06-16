@@ -40,7 +40,7 @@ export async function GET(request: Request) {
       subject: t.subject,
       status: supportStatusLabel(t.status),
       url: `${appUrl}/dashboard/help?view=tickets&ticket=${t.id}`,
-      discordThreadId: t.discord_thread_id ?? null,
+      discordChannelId: t.discord_channel_id ?? null,
     })),
   });
 }

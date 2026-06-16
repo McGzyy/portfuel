@@ -20,7 +20,7 @@ import {
   type SupportTicketWithUser,
 } from "@/lib/support/types";
 import { statusTone } from "@/lib/support/tickets";
-import { discordTicketThreadUrl } from "@/lib/discord/support-tickets";
+import { discordTicketChannelUrl } from "@/lib/discord/support-tickets";
 import { helpSectionHref, type HelpSectionId } from "@/lib/help/content";
 import { cn, timeAgo } from "@/lib/utils";
 
@@ -70,7 +70,7 @@ function TicketThread({
   const [replyFiles, setReplyFiles] = useState<File[]>([]);
   const [error, setError] = useState("");
   const closed = ticket.status === "closed" || ticket.status === "resolved";
-  const discordUrl = discordTicketThreadUrl(ticket);
+  const discordUrl = discordTicketChannelUrl(ticket);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

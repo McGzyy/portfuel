@@ -10,6 +10,8 @@ export function getDiscordConfig() {
       verified: process.env.DISCORD_ROLE_VERIFIED_ID ?? "1510805030666506311",
       member: process.env.DISCORD_ROLE_MEMBER_ID ?? "1510805558569992272",
       pro: process.env.DISCORD_ROLE_PRO_ID ?? "1510805852154757190",
+      admin: process.env.DISCORD_ROLE_ADMIN_ID?.trim() || "1510805262280298576",
+      moderator: process.env.DISCORD_ROLE_MODERATOR_ID?.trim() || "1510805348120793138",
     },
     channels: {
       verification: process.env.DISCORD_CHANNEL_VERIFICATION_ID ?? "1510828920487022652",
@@ -27,6 +29,8 @@ export function getDiscordConfig() {
         process.env.DISCORD_CHANNEL_MEMBER_SUPPORT_ID?.trim() ||
         process.env.DISCORD_CHANNEL_ADMIN_CHAT_ID?.trim() ||
         "1516293166007849200",
+      openTicket: process.env.DISCORD_CHANNEL_OPEN_TICKET_ID?.trim() || "",
+      categorySupport: process.env.DISCORD_CATEGORY_SUPPORT_ID?.trim() || "",
       billing: process.env.DISCORD_CHANNEL_BILLING_ID?.trim() || "1516296694839377930",
       churn: process.env.DISCORD_CHANNEL_CHURN_ID?.trim() || "1516296758664232971",
       growth: process.env.DISCORD_CHANNEL_GROWTH_ID?.trim() || "1516296841627570279",

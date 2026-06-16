@@ -3,22 +3,16 @@ import { requireAdmin } from "@/lib/auth/session";
 import { buildAdminDiscordPreviews } from "@/lib/discord/admin-previews";
 import { getAppUrl } from "@/lib/stripe/config";
 
-/** @deprecated Use GET /api/admin/discord/previews */
 export async function GET() {
   try {
     await requireAdmin();
-    const { sections } = buildAdminDiscordPreviews(getAppUrl());
-    const callSection = sections.find((s) => s.id === "calls");
-    return NextResponse.json({
-      ok: true,
-      note: "Use /api/admin/discord/previews for the full gallery.",
-      previews: callSection?.items ?? [],
-    });
+    const data = buildAdminDiscordPreviews(getAppUrl());
+    return NextResponse.json({ ok: true, ...data });
   } catch (e) {
     if (e instanceof Error && e.message === "unauthorized") {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
-    console.error("[admin/discord/call-previews]", e);
+    console.error("[admin/discord/previews]", e);
     return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
 }
