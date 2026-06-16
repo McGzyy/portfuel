@@ -19,6 +19,16 @@ import {
 import { setStripeCheckoutEmail } from "@/lib/member-lifecycle/email-verify";
 import { finalizeCheckoutRedemption } from "@/lib/vouchers/service";
 
+/** Stripe Basil+ moved subscription off Invoice; read via parent.subscription_details. */
+function subscriptionIdFromInvoice(invoice: Stripe.Invoice): string | null {
+  const parent = invoice.parent;
+  if (parent?.type !== "subscription_details" || !parent.subscription_details) {
+    return null;
+  }
+  const sub = parent.subscription_details.subscription;
+  return typeof sub === "string" ? sub : sub?.id ?? null;
+}
+
 export async function handleStripeWebhookEvent(event: Stripe.Event) {
   switch (event.type) {
     case "checkout.session.completed":
@@ -179,10 +189,7 @@ async function onSubscriptionDeleted(sub: Stripe.Subscription) {
 async function onInvoicePaid(invoice: Stripe.Invoice) {
   if (invoice.billing_reason !== "subscription_cycle") return;
 
-  const subscriptionId =
-    typeof invoice.subscription === "string"
-      ? invoice.subscription
-      : invoice.subscription?.id;
+  const subscriptionId = subscriptionIdFromInvoice(invoice);
   if (!subscriptionId) return;
 
   const user = await findUserByStripeSubscriptionId(subscriptionId);
@@ -199,10 +206,7 @@ async function onInvoicePaid(invoice: Stripe.Invoice) {
 }
 
 async function onInvoicePaymentFailed(invoice: Stripe.Invoice) {
-  const subscriptionId =
-    typeof invoice.subscription === "string"
-      ? invoice.subscription
-      : invoice.subscription?.id;
+  const subscriptionId = subscriptionIdFromInvoice(invoice);
   if (!subscriptionId) return;
 
   const user = await findUserByStripeSubscriptionId(subscriptionId);
