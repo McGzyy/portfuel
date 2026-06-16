@@ -29,6 +29,7 @@ export type TrackRecordCardPayload = {
   equityCurve: number[];
   profileUrl: string;
   siteHost: string;
+  avatarUrl?: string | null;
 };
 
 export async function loadTrackRecordCardPayload(
@@ -77,6 +78,9 @@ export async function loadTrackRecordCardPayload(
   }
 
   const origin = getAppOrigin();
+  const avatarDataUrl = member.avatar_url
+    ? await fetchLogoAsDataUrl(member.avatar_url)
+    : null;
 
   return {
     payload: {
@@ -94,6 +98,7 @@ export async function loadTrackRecordCardPayload(
       equityCurve,
       profileUrl: `${origin}/member/${member.username}`,
       siteHost: getPublicSiteHost(),
+      avatarUrl: avatarDataUrl,
     },
   };
 }

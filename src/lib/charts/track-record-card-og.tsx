@@ -161,7 +161,22 @@ export async function renderTrackRecordCardOgPng(
               marginTop: 20,
             }}
           >
-            <div style={{ display: "flex", flexDirection: "column", maxWidth: 640 }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 18, maxWidth: 640 }}>
+              {payload.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={payload.avatarUrl}
+                  alt=""
+                  width={56}
+                  height={56}
+                  style={{
+                    borderRadius: 999,
+                    border: "2px solid rgba(227,27,35,0.45)",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : null}
+              <div style={{ display: "flex", flexDirection: "column" }}>
               <div
                 style={{
                   display: "flex",
@@ -197,6 +212,7 @@ export async function renderTrackRecordCardOgPng(
                 }}
               >
                 {subtitle}
+              </div>
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>

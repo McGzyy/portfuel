@@ -6,6 +6,7 @@ import { DemoLockedSection } from "@/components/demo/DemoLockedSection";
 import { DemoShortcutBar } from "@/components/demo/DemoShortcutBar";
 import { OpenCallsPanel } from "@/components/dashboard/OpenCallsPanel";
 import { OverviewReturnHero } from "@/components/dashboard/OverviewReturnHero";
+import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard";
 import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import { WorkspaceOverviewStats } from "@/components/dashboard/WorkspaceOverviewStats";
 import { WorkspacePanel } from "@/components/dashboard/WorkspacePanel";
@@ -85,6 +86,15 @@ export default async function DemoOverviewPage() {
           username={profile.username}
           isPro={isPro}
           proLocked={proLocked}
+        />
+      ) : null}
+
+      {memberStats.calls_count > 0 ? (
+        <ShareTrackRecordCard
+          username={profile.username}
+          callCount={memberStats.calls_count}
+          winRatePct={memberStats.win_rate}
+          avgReturnPct={memberStats.avg_return_pct}
         />
       ) : null}
 

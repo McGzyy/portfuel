@@ -398,6 +398,32 @@ body {
   box-shadow: var(--pf-shadow-sm);
 }
 
+.pf-chart-frame-terminal {
+  border-color: #2a2a2a;
+  background: linear-gradient(180deg, #0a0a0a 0%, #111111 55%, #0f0f0f 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.pf-chart-frame-terminal .pf-chart-frame-header {
+  background: #111111;
+  border-color: #2a2a2a;
+}
+
+.pf-chart-frame-terminal .pf-chart-frame-header p:first-child {
+  color: #e2e8f0;
+}
+
+.pf-chart-frame-terminal .pf-chart-frame-header p:last-child {
+  color: #94a3b8;
+}
+
+.pf-chart-frame-terminal .pf-chart-frame-legend {
+  background: #0f0f0f;
+  border-color: #2a2a2a;
+}
+
 .pf-chart-frame-header {
   border-bottom: 1px solid var(--pf-border);
   padding: 0.75rem 1rem;

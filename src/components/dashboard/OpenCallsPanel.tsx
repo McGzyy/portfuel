@@ -46,12 +46,14 @@ export function OpenCallsPanel({
       <SparklineProvider symbols={symbols}>
         <div className="divide-y divide-[var(--pf-border)]">
           {calls.slice(0, 4).map((call) => (
-            <div key={call.id} className="p-3 first:pt-3 last:pb-3 sm:p-5 sm:first:pt-5 sm:last:pb-5">
+            <div key={call.id} className="px-4 py-3 sm:px-5 sm:py-4">
               <CallCard
                 call={call}
                 compact
+                embedded
                 interactive
                 showSparkline
+                showSummary={!proLocked}
                 viewerUserId={viewerUserId}
                 isAdmin={isAdmin}
                 isPro={isPro}

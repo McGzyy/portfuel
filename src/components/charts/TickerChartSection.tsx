@@ -30,6 +30,7 @@ import {
   setThesisHash,
 } from "@/lib/charts/thesis-hash";
 import { sameDayCallIds as getSameDayCallIds } from "@/lib/charts/marker-hit";
+import { cn } from "@/lib/utils";
 
 const TickerChart = dynamic(
   () => import("@/components/charts/TickerChart").then((m) => m.TickerChart),
@@ -230,7 +231,7 @@ export function TickerChartSection({
 
   return (
     <ChartFrame
-      className={className}
+      className={cn(className, proUnlocked && "pf-chart-frame-terminal")}
       title={title}
       subtitle={
         subtitle ??
