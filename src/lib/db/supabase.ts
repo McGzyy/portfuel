@@ -155,6 +155,18 @@ export type Database = {
         };
         Update: Partial<Database["public"]["Tables"]["discord_link_tokens"]["Row"]>;
       };
+      discord_guest_help_usage: {
+        Row: {
+          discord_user_id: string;
+          questions_used: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["discord_guest_help_usage"]["Row"]> & {
+          discord_user_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["discord_guest_help_usage"]["Row"]>;
+      };
       discord_outbox: {
         Row: {
           id: string;

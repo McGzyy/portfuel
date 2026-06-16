@@ -67,9 +67,10 @@ const helpDmCooldownMs = 8_000;
 const helpDmCooldown = new Map();
 
 const HELP_DM_INTRO =
-  "I'm **PortFuel Help** — ask me anything about the workspace, billing, calls, watchlist, journal, or Pro features.\n\n" +
-  "**Pro members** with a linked PortFuel account get **40 questions/month** (same quota as Help on portfuel.pro).\n\n" +
-  `Link first in <#${VERIFICATION_CHANNEL_ID}> → **Link PortFuel**, then DM your question here.\n\n` +
+  "I'm **PortFuel Help** — ask about **features, plans, and pricing** even before you join.\n\n" +
+  "**Everyone** gets **5 preview questions** in this DM (features & pricing only).\n\n" +
+  "**Pro Intelligence** members with a linked account get **40 questions/month** with full account and workspace answers.\n\n" +
+  `Link in <#${VERIFICATION_CHANNEL_ID}> → **Link PortFuel** after joining, or start at portfuel.pro/join.\n\n` +
   "_Product questions only — not investment advice._";
 
 /** 0 = disabled. Default 1 day. */
@@ -147,28 +148,65 @@ async function fetchChartAttachment(callId, milestone, symbol) {
   return new AttachmentBuilder(buf, { name: `${safeSym || "chart"}-${milestone}.png` });
 }
 
-async function postToChannel(client, channelId, content, chartOpts) {
+async function postToChannel(client, channelId, payload, chartOpts) {
   const channel = await client.channels.fetch(channelId).catch(() => null);
   if (!channel || !("send" in channel)) throw new Error("channel_unavailable");
 
+  const message = await buildOutboxDiscordMessage(payload, chartOpts);
+  await channel.send(message);
+}
+
+function applyEmbedPayload(builder, embed) {
+  if (embed.title) builder.setTitle(embed.title);
+  if (embed.url) builder.setURL(embed.url);
+  if (embed.description) builder.setDescription(embed.description);
+  if (embed.color != null) builder.setColor(embed.color);
+  if (embed.footer?.text) builder.setFooter({ text: embed.footer.text });
+  if (embed.author?.name) {
+    builder.setAuthor({ name: embed.author.name, url: embed.author.url ?? undefined });
+  }
+  if (Array.isArray(embed.fields)) {
+    for (const field of embed.fields) {
+      if (!field?.name || !field?.value) continue;
+      builder.addFields({
+        name: String(field.name).slice(0, 256),
+        value: String(field.value).slice(0, 1024),
+        inline: Boolean(field.inline),
+      });
+    }
+  }
+  return builder;
+}
+
+async function buildOutboxDiscordMessage(payload, chartOpts) {
+  const files = [];
   if (chartOpts?.attachChart && chartOpts.callId && chartOpts.milestone) {
     const file = await fetchChartAttachment(
       chartOpts.callId,
       chartOpts.milestone,
       chartOpts.symbol
     );
-    if (file) {
-      await channel.send({ content, files: [file] });
-      return;
-    }
+    if (file) files.push(file);
   }
 
-  await channel.send({ content });
+  if (payload?.embed && typeof payload.embed === "object") {
+    const embed = applyEmbedPayload(new EmbedBuilder(), payload.embed);
+    return {
+      content: typeof payload.content === "string" ? payload.content : undefined,
+      embeds: [embed],
+      files,
+    };
+  }
+
+  const content =
+    typeof payload?.text === "string" && payload.text.trim() ? payload.text.trim() : null;
+  if (!content) throw new Error("empty_outbox_content");
+  return { content, files };
 }
 
 async function botLog(client, message) {
   if (!isRoleId(BOT_LOG_CHANNEL_ID)) return;
-  await postToChannel(client, BOT_LOG_CHANNEL_ID, message).catch(() => null);
+  await postToChannel(client, BOT_LOG_CHANNEL_ID, { text: message }).catch(() => null);
 }
 
 async function applyEntitlementsToMember(member, entitlements) {
@@ -238,7 +276,7 @@ function verificationEmbed() {
         "**Step 2 — Link PortFuel (members only)**\n" +
         "Already subscribed on [portfuel.pro](https://www.portfuel.pro)? Click **Link PortFuel** " +
         "while logged into your dashboard, then complete the link in your browser.\n\n" +
-        "**Pro members:** DM this bot any time for PortFuel Help (product FAQs — same AI as portfuel.pro/help).\n\n" +
+        "**Pro members:** DM this bot for PortFuel Help — **5 preview questions** on features/pricing for anyone, or **40/month** with a linked Pro account.\n\n" +
         "Member and Pro channels unlock after your PortFuel subscription is linked."
     )
     .setColor(0xe11d48)
@@ -547,7 +585,9 @@ client.on("messageCreate", async (message) => {
     const reply =
       `${answer}\n\n—\n_${disclaimer}_` +
       (typeof result.remaining === "number"
-        ? `\n_Questions left this month: ${result.remaining}_`
+        ? result.mode === "guest"
+          ? `\n_Preview questions left: ${result.remaining}_`
+          : `\n_Questions left this month: ${result.remaining}_`
         : "");
 
     await sendDmChunks(message.channel, reply);
@@ -597,8 +637,9 @@ async function runRoleSyncTick() {
 }
 
 function formatOutboxEvent(eventType, payload) {
+  if (payload?.embed) return null;
   if (typeof payload?.text === "string" && payload.text.trim()) return payload.text.trim();
-  if (eventType === "call.created") {
+  if (eventType === "call.created" || eventType === "call.created.fueled") {
     const sym = payload?.symbol ?? "—";
     const dir = payload?.direction ?? "";
     const fueled = payload?.isFueled ? " 🔥 **FUELED**" : "";
@@ -681,8 +722,12 @@ async function runOutboxTick() {
                 ? PRO_MEMBER_CHAT_CHANNEL_ID
                 : channelId;
 
-      const content = formatOutboxEvent(eventType, payload);
-      await postToChannel(client, resolvedChannel, content, {
+      const messagePayload = payload?.embed ? payload : { text: formatOutboxEvent(eventType, payload) };
+      if (!messagePayload.embed && !messagePayload.text) {
+        throw new Error("empty_outbox_payload");
+      }
+
+      await postToChannel(client, resolvedChannel, messagePayload, {
         attachChart: Boolean(payload.attachChart),
         callId: payload.callId ? String(payload.callId) : undefined,
         milestone: payload.milestone ? String(payload.milestone) : undefined,

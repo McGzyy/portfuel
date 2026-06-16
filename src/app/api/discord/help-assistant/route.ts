@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     }
     if (e instanceof DiscordHelpAssistantError) {
       const status =
-        e.code === "limit_reached"
+        e.code === "limit_reached" || e.code === "guest_limit_reached"
           ? 429
           : e.code === "not_configured"
             ? 503

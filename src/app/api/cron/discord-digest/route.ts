@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/db/supabase";
 import { getDiscordConfig } from "@/lib/discord/config";
+import { buildWeeklyDigestEmbed } from "@/lib/discord/embed-payloads";
 import { enqueueDiscordOutbox } from "@/lib/discord/outbox";
 import { getAppUrl } from "@/lib/stripe/config";
 
@@ -33,29 +34,34 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "fetch_failed" }, { status: 500 });
     }
 
-    const lines = (calls ?? []).map((c, i) => {
+    const movers = (calls ?? []).map((c) => {
       const uRaw = (c as unknown as { users: unknown }).users;
       const u = (Array.isArray(uRaw) ? uRaw[0] : uRaw) as
         | { display_name: string | null; username: string }
         | undefined;
       const who = u?.display_name?.trim() || u?.username || "Member";
-      const ret = c.return_pct != null ? `${c.return_pct >= 0 ? "+" : ""}${Number(c.return_pct).toFixed(1)}%` : "—";
-      const fueled = c.is_fueled ? " 🔥" : "";
-      return `${i + 1}. **${c.symbol}** ${String(c.direction).toUpperCase()} ${ret}${fueled} — ${who}`;
+      return {
+        symbol: c.symbol,
+        direction: String(c.direction),
+        returnPct: Number(c.return_pct),
+        isFueled: Boolean(c.is_fueled),
+        who,
+      };
     });
 
-    const body =
-      lines.length > 0
-        ? `**PortFuel weekly movers** (last 7 days)\n\n${lines.join("\n")}\n\n${getAppUrl()}/dashboard/feed`
-        : `**PortFuel weekly digest**\n\nNo standout movers this week — check the feed for new calls.\n\n${getAppUrl()}/dashboard/feed`;
+    const feedUrl = `${getAppUrl()}/dashboard/feed`;
+    const weekKey = new Date().toISOString().slice(0, 10);
 
     await enqueueDiscordOutbox({
       channelId: cfg.channels.announcements,
       eventType: "digest.weekly",
-      payload: { text: body },
+      dedupeKey: `digest:${weekKey}`,
+      payload: {
+        embed: buildWeeklyDigestEmbed({ movers, feedUrl }),
+      },
     });
 
-    return NextResponse.json({ ok: true, count: lines.length });
+    return NextResponse.json({ ok: true, count: movers.length });
   } catch (e) {
     console.error("[cron/discord-digest]", e);
     return NextResponse.json({ error: "server_error" }, { status: 500 });

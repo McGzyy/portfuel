@@ -196,7 +196,9 @@ export async function POST(request: Request) {
     let { data: call, error } = await db
       .from("calls")
       .insert(insertPayload as never)
-      .select("id, symbol")
+      .select(
+        "id, symbol, entry_price, target_price, stop_price, thesis, return_pct, direction, is_fueled"
+      )
       .single();
 
     if (error && isMissingColumnDbError(error) && insertPayload.peak_return_pct != null) {
@@ -204,7 +206,9 @@ export async function POST(request: Request) {
       ({ data: call, error } = await db
         .from("calls")
         .insert(legacyInsert as never)
-        .select("id, symbol")
+        .select(
+          "id, symbol, entry_price, target_price, stop_price, thesis, return_pct, direction, is_fueled"
+        )
         .single());
     }
 
@@ -262,6 +266,11 @@ export async function POST(request: Request) {
       isFueled,
       displayName: session.displayName,
       username: session.username,
+      thesis: createdCall.thesis,
+      entryPrice: createdCall.entry_price,
+      targetPrice: createdCall.target_price,
+      stopPrice: createdCall.stop_price,
+      returnPct: createdCall.return_pct,
     }).catch((e) => console.error("[discord/new-call]", e));
 
     void refreshQuotesForSymbols([resolvedSymbol]).catch((e) =>

@@ -60,6 +60,12 @@ export const AI_HELP_ASSISTANT_MONTHLY_LIMIT: Record<MembershipTier | "admin", n
 export const AI_HELP_ASSISTANT_DISCLAIMER =
   "Answers PortFuel product questions only — not investment advice. AI can be wrong; open a support ticket for account-specific issues.";
 
+/** Discord DM preview for unlinked / non–Pro users — lifetime cap per Discord account. */
+export const DISCORD_GUEST_HELP_LIMIT = 5;
+
+export const AI_GUEST_HELP_DISCLAIMER =
+  "Preview answers cover features and pricing only — not investment advice. Join Pro for full Help with account and workspace data.";
+
 export function isAiCoachConfigured(): boolean {
   const key = process.env.OPENAI_API_KEY?.trim();
   return Boolean(key?.startsWith("sk-"));
