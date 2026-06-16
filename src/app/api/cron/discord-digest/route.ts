@@ -49,7 +49,8 @@ export async function GET(request: Request) {
       };
     });
 
-    const feedUrl = `${getAppUrl()}/dashboard/feed`;
+    const appUrl = getAppUrl();
+    const feedUrl = `${appUrl}/dashboard/feed`;
     const weekKey = new Date().toISOString().slice(0, 10);
 
     await enqueueDiscordOutbox({
@@ -57,7 +58,8 @@ export async function GET(request: Request) {
       eventType: "digest.weekly",
       dedupeKey: `digest:${weekKey}`,
       payload: {
-        embed: buildWeeklyDigestEmbed({ movers, feedUrl }),
+        content: "📊 **Weekly digest** · Top member movers",
+        embed: buildWeeklyDigestEmbed({ movers, feedUrl, appUrl }),
       },
     });
 

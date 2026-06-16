@@ -1,5 +1,18 @@
 /** JSON-safe embed shape — rendered by discord-bot.mjs via EmbedBuilder. */
 
+import type { CallMilestoneKey } from "@/lib/notifications/milestones";
+import {
+  CALL_POST_DISCLAIMER,
+  callDirectionLabel,
+  callLevelsLine,
+  callThesisQuote,
+  formatReturnPct,
+  formatUsd,
+  milestoneDisplayLabel,
+  profileUrl,
+} from "@/lib/discord/call-embed-helpers";
+import { appIconUrl } from "@/lib/discord/hub-embed-helpers";
+
 export type DiscordEmbedPayload = {
   title?: string;
   description?: string;
@@ -23,29 +36,17 @@ export const DISCORD_COLORS = {
   digest: 0x0f172a,
 } as const;
 
-function formatUsd(value: number | null | undefined): string {
-  if (value == null || !Number.isFinite(Number(value))) return "—";
-  return `$${Number(value).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+/** Text above the embed in the channel (optional). */
+export function memberNewCallPostContent(): string {
+  return "📣 **New member call** · _Timestamped on PortFuel_";
 }
 
-function formatReturnPct(value: number | null | undefined): string {
-  if (value == null || !Number.isFinite(Number(value))) return "—";
-  const n = Number(value);
-  return `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
+export function fueledCallPostContent(): string {
+  return "🔥 **Official desk call** · _Fueled thesis_";
 }
 
-function thesisPreview(thesis: string | null | undefined, max = 220): string {
-  const t = thesis?.trim();
-  if (!t) return "_Thesis on PortFuel._";
-  if (t.length <= max) return t;
-  return `${t.slice(0, max - 1)}…`;
-}
-
-function profileUrl(appUrl: string, username: string): string {
-  return `${appUrl}/member/${encodeURIComponent(username)}`;
+export function targetHitPostContent(symbol: string): string {
+  return `🎯 **Target reached** · **${symbol}**`;
 }
 
 export function buildMemberNewCallEmbed(input: {
@@ -61,34 +62,40 @@ export function buildMemberNewCallEmbed(input: {
   stopPrice?: number | null;
   returnPct?: number | null;
 }): DiscordEmbedPayload {
-  const dir = input.direction === "long" ? "LONG" : "SHORT";
+  const dir = callDirectionLabel(input.direction);
   const who = input.displayName?.trim() || input.username;
+  const profile = profileUrl(input.appUrl, input.username);
+
   return {
+    author: { name: who, url: profile },
     title: `${input.symbol} · ${dir}`,
     url: input.url,
-    description: thesisPreview(input.thesis),
+    description: `${callThesisQuote(input.thesis)}\n\n${CALL_POST_DISCLAIMER}`,
     color: input.direction === "long" ? DISCORD_COLORS.long : DISCORD_COLORS.short,
+    thumbnail: { url: appIconUrl(input.appUrl) },
     fields: [
-      { name: "Entry", value: formatUsd(input.entryPrice), inline: true },
-      { name: "Target", value: formatUsd(input.targetPrice), inline: true },
-      { name: "Stop", value: formatUsd(input.stopPrice), inline: true },
       {
-        name: "Live",
+        name: "◆  Levels",
+        value: callLevelsLine(input),
+        inline: false,
+      },
+      {
+        name: "Live mark",
         value: formatReturnPct(input.returnPct),
         inline: true,
       },
       {
         name: "Caller",
-        value: `[${who}](${profileUrl(input.appUrl, input.username)})`,
+        value: `[@${input.username}](${profile})`,
         inline: true,
       },
       {
-        name: "Chart",
-        value: `[Open thesis →](${input.url})`,
+        name: "Thesis",
+        value: `[Open chart & thesis →](${input.url})`,
         inline: true,
       },
     ],
-    footer: { text: "PortFuel · New member call" },
+    footer: { text: "PortFuel · Member call" },
   };
 }
 
@@ -96,6 +103,7 @@ export function buildFueledCallEmbed(input: {
   symbol: string;
   direction: "long" | "short";
   url: string;
+  appUrl: string;
   displayName: string | null;
   thesis?: string | null;
   entryPrice?: number | null;
@@ -103,23 +111,39 @@ export function buildFueledCallEmbed(input: {
   stopPrice?: number | null;
   returnPct?: number | null;
 }): DiscordEmbedPayload {
-  const dir = input.direction === "long" ? "LONG" : "SHORT";
-  const who = input.displayName?.trim() || "PortFuel Desk";
+  const dir = callDirectionLabel(input.direction);
+  const desk = input.displayName?.trim() || "PortFuel Desk";
+
   return {
-    author: { name: "Fueled Desk" },
-    title: `🔥 ${input.symbol} · ${dir}`,
+    author: { name: "Fueled Desk", url: input.appUrl.replace(/\/$/, "") },
+    title: `${input.symbol} · ${dir}`,
     url: input.url,
-    description: thesisPreview(input.thesis),
+    description: `${callThesisQuote(input.thesis)}\n\n${CALL_POST_DISCLAIMER}`,
     color: DISCORD_COLORS.fueled,
+    thumbnail: { url: appIconUrl(input.appUrl) },
     fields: [
-      { name: "Entry", value: formatUsd(input.entryPrice), inline: true },
-      { name: "Target", value: formatUsd(input.targetPrice), inline: true },
-      { name: "Stop", value: formatUsd(input.stopPrice), inline: true },
-      { name: "Live", value: formatReturnPct(input.returnPct), inline: true },
-      { name: "Desk", value: who, inline: true },
-      { name: "Research", value: `[Read thesis →](${input.url})`, inline: true },
+      {
+        name: "◆  Levels",
+        value: callLevelsLine(input),
+        inline: false,
+      },
+      {
+        name: "Live mark",
+        value: formatReturnPct(input.returnPct),
+        inline: true,
+      },
+      {
+        name: "Desk",
+        value: desk,
+        inline: true,
+      },
+      {
+        name: "Research",
+        value: `[Read full thesis →](${input.url})`,
+        inline: true,
+      },
     ],
-    footer: { text: "PortFuel · Official desk call" },
+    footer: { text: "PortFuel · Fueled desk call" },
   };
 }
 
@@ -133,32 +157,100 @@ export function buildTargetHitChannelEmbed(input: {
   entryPrice?: number | null;
   targetPrice?: number | null;
   appUrl: string;
+  isFueled?: boolean;
 }): DiscordEmbedPayload {
   const who = input.displayName?.trim() || input.username;
+  const profile = profileUrl(input.appUrl, input.username);
+  const dir = callDirectionLabel(input.direction);
+  const fueledTag = input.isFueled ? " · Fueled desk" : "";
+
   return {
-    title: `🎯 ${input.symbol} · Target reached`,
+    author: { name: who, url: profile },
+    title: `${input.symbol} · ${dir} · Target hit`,
     url: input.url,
-    description: `**${who}**'s ${input.direction.toUpperCase()} thesis hit its stated target. Close on PortFuel to lock the return.`,
+    description:
+      `> **${formatReturnPct(input.returnPct)}** at target — ` +
+      `${who}'s thesis reached its stated price.\n` +
+      `> Close on PortFuel to lock the return.\n\n` +
+      CALL_POST_DISCLAIMER,
     color: DISCORD_COLORS.target,
+    thumbnail: { url: appIconUrl(input.appUrl) },
     fields: [
-      { name: "Return", value: formatReturnPct(input.returnPct), inline: true },
-      { name: "Entry", value: formatUsd(input.entryPrice), inline: true },
-      { name: "Target", value: formatUsd(input.targetPrice), inline: true },
       {
-        name: "Profile",
-        value: `[${who}](${profileUrl(input.appUrl, input.username)})`,
+        name: "◆  Result",
+        value: `**Return** ${formatReturnPct(input.returnPct)} · **Entry** ${formatUsd(input.entryPrice)} → **Target** ${formatUsd(input.targetPrice)}`,
+        inline: false,
+      },
+      {
+        name: "Caller",
+        value: `[@${input.username}](${profile})`,
         inline: true,
       },
       {
         name: "Action",
         value: `[View chart & close →](${input.url})`,
-        inline: false,
+        inline: true,
       },
     ],
-    footer: { text: "PortFuel · Target hit" },
+    footer: { text: `PortFuel · Target reached${fueledTag}` },
   };
 }
 
+export function buildMilestoneChatEmbed(input: {
+  symbol: string;
+  direction: "long" | "short";
+  url: string;
+  milestone: CallMilestoneKey;
+  returnPct: number | null;
+  username: string;
+  displayName: string | null;
+  appUrl: string;
+  isFueled?: boolean;
+  entryPrice?: number | null;
+  targetPrice?: number | null;
+}): DiscordEmbedPayload {
+  const who = input.displayName?.trim() || input.username;
+  const profile = profileUrl(input.appUrl, input.username);
+  const label = milestoneDisplayLabel(input.milestone);
+  const dir = callDirectionLabel(input.direction);
+  const isTarget = input.milestone === "target_reached";
+  const fueled = input.isFueled ? " · Fueled" : "";
+
+  return {
+    author: { name: who, url: profile },
+    title: `${input.symbol} · ${dir} · ${label}`,
+    url: input.url,
+    description:
+      `> **${formatReturnPct(input.returnPct)}** since entry` +
+      (isTarget ? " — price at stated target." : ".") +
+      `\n\n[View on PortFuel →](${input.url})`,
+    color: isTarget ? DISCORD_COLORS.target : DISCORD_COLORS.milestone,
+    fields: [
+      {
+        name: "◆  Snapshot",
+        value: callLevelsLine({
+          entryPrice: input.entryPrice,
+          targetPrice: input.targetPrice,
+          stopPrice: null,
+        }),
+        inline: false,
+      },
+      {
+        name: "Caller",
+        value: `[@${input.username}](${profile})`,
+        inline: true,
+      },
+      {
+        name: "Return",
+        value: formatReturnPct(input.returnPct),
+        inline: true,
+      },
+    ],
+    footer: { text: `PortFuel · Live update${fueled}` },
+  };
+}
+
+/** @deprecated Use buildMilestoneChatEmbed — kept for type compatibility during migration */
 export function buildMilestoneChatSnippetEmbed(input: {
   symbol: string;
   url: string;
@@ -170,11 +262,11 @@ export function buildMilestoneChatSnippetEmbed(input: {
 }): DiscordEmbedPayload {
   const who = input.displayName?.trim() || `@${input.username}`;
   const ret =
-    input.returnPct != null
-      ? ` (${formatReturnPct(input.returnPct)})`
-      : "";
+    input.returnPct != null ? ` · **${formatReturnPct(input.returnPct)}**` : "";
   return {
-    description: `**${input.symbol}** — ${input.milestoneLabel}${ret} — ${who}\n[View on PortFuel](${input.url})`,
+    title: `${input.symbol} · ${input.milestoneLabel}`,
+    url: input.url,
+    description: `**${who}**${ret}\n\n[View on PortFuel →](${input.url})`,
     color: input.isTargetHit ? DISCORD_COLORS.target : DISCORD_COLORS.milestone,
     footer: { text: "PortFuel · Live update" },
   };
@@ -188,20 +280,23 @@ export function buildLinkWelcomeEmbed(input: {
 }): DiscordEmbedPayload {
   const who = input.displayName?.trim() || input.username;
   const tier = input.isPro ? "Pro Intelligence" : "Member";
+  const profile = profileUrl(input.appUrl, input.username);
+
   return {
-    title: "Workspace linked",
-    description: `**${who}** connected their PortFuel account.`,
+    title: "◆  Workspace linked",
+    description: `**${who}** connected their PortFuel account.\n\nRoles sync within ~60 seconds.`,
     color: input.isPro ? DISCORD_COLORS.pro : DISCORD_COLORS.member,
+    thumbnail: { url: appIconUrl(input.appUrl) },
     fields: [
       { name: "Tier", value: tier, inline: true },
       { name: "Handle", value: `@${input.username}`, inline: true },
       {
         name: "Profile",
-        value: `[portfuel.pro/member/${input.username}](${profileUrl(input.appUrl, input.username)})`,
+        value: `[portfuel.pro/member/${input.username}](${profile})`,
         inline: false,
       },
     ],
-    footer: { text: "PortFuel · Roles sync within 60 seconds" },
+    footer: { text: "PortFuel · Member connected" },
   };
 }
 
@@ -214,14 +309,14 @@ export function buildWeeklyDigestEmbed(input: {
     who: string;
   }[];
   feedUrl: string;
+  appUrl?: string;
 }): DiscordEmbedPayload {
   if (input.movers.length === 0) {
     return {
-      title: "Weekly digest",
+      title: "◆  Weekly digest",
       description:
-        "No standout movers in the member feed this week.\n\n[Browse latest calls →](" +
-        input.feedUrl +
-        ")",
+        "> No standout movers in the member feed this week.\n\n" +
+        `[Browse latest calls →](${input.feedUrl})`,
       color: DISCORD_COLORS.digest,
       footer: { text: "PortFuel · Weekly digest" },
     };
@@ -230,14 +325,15 @@ export function buildWeeklyDigestEmbed(input: {
   const lines = input.movers.map((m, i) => {
     const fueled = m.isFueled ? " 🔥" : "";
     const ret = formatReturnPct(m.returnPct);
-    return `**${i + 1}.** ${m.symbol} ${m.direction.toUpperCase()} **${ret}**${fueled} — ${m.who}`;
+    return `**${i + 1}.** **${m.symbol}** ${m.direction.toUpperCase()} **${ret}**${fueled} — ${m.who}`;
   });
 
   return {
-    title: "Weekly movers",
-    description: lines.join("\n"),
+    title: "◆  Weekly movers",
+    description: `> Top member calls · last 7 days\n\n${lines.join("\n")}`,
     url: input.feedUrl,
     color: DISCORD_COLORS.digest,
-    footer: { text: "PortFuel · Last 7 days · Top member calls" },
+    thumbnail: input.appUrl ? { url: appIconUrl(input.appUrl) } : undefined,
+    footer: { text: "PortFuel · Weekly digest" },
   };
 }

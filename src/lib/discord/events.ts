@@ -1,10 +1,14 @@
 import { createServiceClient } from "@/lib/db/supabase";
+import { milestonePostContent } from "@/lib/discord/call-embed-helpers";
 import {
   buildFueledCallEmbed,
   buildLinkWelcomeEmbed,
   buildMemberNewCallEmbed,
-  buildMilestoneChatSnippetEmbed,
+  buildMilestoneChatEmbed,
   buildTargetHitChannelEmbed,
+  fueledCallPostContent,
+  memberNewCallPostContent,
+  targetHitPostContent,
 } from "@/lib/discord/embed-payloads";
 import { getAppUrl } from "@/lib/stripe/config";
 import { getDiscordConfig } from "@/lib/discord/config";
@@ -15,6 +19,7 @@ import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 type CallDiscordContext = {
   symbol: string;
   direction: "long" | "short";
+  is_fueled: boolean;
   entry_price: number | null;
   target_price: number | null;
   stop_price: number | null;
@@ -28,7 +33,7 @@ async function fetchCallDiscordContext(callId: string): Promise<CallDiscordConte
   const { data, error } = await db
     .from("calls")
     .select(
-      "symbol, direction, entry_price, target_price, stop_price, return_pct, thesis, users!inner(username, display_name)"
+      "symbol, direction, is_fueled, entry_price, target_price, stop_price, return_pct, thesis, users!inner(username, display_name)"
     )
     .eq("id", callId)
     .maybeSingle();
@@ -44,6 +49,7 @@ async function fetchCallDiscordContext(callId: string): Promise<CallDiscordConte
   return {
     symbol: (data as { symbol: string }).symbol,
     direction: (data as { direction: "long" | "short" }).direction,
+    is_fueled: Boolean((data as { is_fueled?: boolean }).is_fueled),
     entry_price: (data as { entry_price: number | null }).entry_price,
     target_price: (data as { target_price: number | null }).target_price,
     stop_price: (data as { stop_price: number | null }).stop_price,
@@ -51,6 +57,12 @@ async function fetchCallDiscordContext(callId: string): Promise<CallDiscordConte
     thesis: (data as { thesis: string }).thesis,
     users,
   };
+}
+
+function milestoneAttachChart(key: CallMilestoneKey, isFueled: boolean): boolean {
+  if (key === "target_reached") return true;
+  if (isFueled && (key === "return_25" || key === "return_50")) return true;
+  return false;
 }
 
 export async function notifyDiscordNewCall(input: {
@@ -78,10 +90,12 @@ export async function notifyDiscordNewCall(input: {
       payload: {
         callId: input.callId,
         symbol: input.symbol,
+        content: fueledCallPostContent(),
         embed: buildFueledCallEmbed({
           symbol: input.symbol,
           direction: input.direction,
           url,
+          appUrl,
           displayName: input.displayName,
           thesis: input.thesis,
           entryPrice: input.entryPrice,
@@ -101,6 +115,7 @@ export async function notifyDiscordNewCall(input: {
     payload: {
       callId: input.callId,
       symbol: input.symbol,
+      content: memberNewCallPostContent(),
       embed: buildMemberNewCallEmbed({
         symbol: input.symbol,
         direction: input.direction,
@@ -132,25 +147,21 @@ export async function notifyDiscordCallMilestone(input: {
   const username = ctx?.users.username ?? "member";
   const displayName = ctx?.users.display_name ?? null;
   const direction = ctx?.direction ?? "long";
-
-  const milestoneLabel =
-    input.key === "target_reached"
-      ? "Target hit"
-      : input.key === "return_10"
-        ? "+10%"
-        : input.key === "return_25"
-          ? "+25%"
-          : "+50%";
+  const isFueled = ctx?.is_fueled ?? false;
 
   const chatChannelId = await resolveTierChatChannelId(input.userId);
-  const snippetEmbed = buildMilestoneChatSnippetEmbed({
+  const chatEmbed = buildMilestoneChatEmbed({
     symbol: input.symbol,
+    direction,
     url,
-    milestoneLabel,
+    milestone: input.key,
     returnPct: input.returnPct,
     username,
     displayName,
-    isTargetHit: input.key === "target_reached",
+    appUrl,
+    isFueled,
+    entryPrice: ctx?.entry_price,
+    targetPrice: ctx?.target_price,
   });
 
   await enqueueDiscordOutbox({
@@ -161,7 +172,9 @@ export async function notifyDiscordCallMilestone(input: {
       callId: input.callId,
       symbol: input.symbol,
       milestone: input.key,
-      embed: snippetEmbed,
+      content: milestonePostContent(input.key, input.symbol),
+      attachChart: milestoneAttachChart(input.key, isFueled),
+      embed: chatEmbed,
     },
   });
 
@@ -174,6 +187,7 @@ export async function notifyDiscordCallMilestone(input: {
         callId: input.callId,
         symbol: input.symbol,
         milestone: input.key,
+        content: targetHitPostContent(input.symbol),
         attachChart: true,
         embed: buildTargetHitChannelEmbed({
           symbol: input.symbol,
@@ -185,6 +199,7 @@ export async function notifyDiscordCallMilestone(input: {
           entryPrice: ctx?.entry_price,
           targetPrice: ctx?.target_price,
           appUrl,
+          isFueled,
         }),
       },
     });
@@ -208,6 +223,7 @@ export async function notifyDiscordAccountLinked(input: {
     eventType: "member.linked",
     dedupeKey: `linked:${input.username}`,
     payload: {
+      content: "✅ **Member connected**",
       embed: buildLinkWelcomeEmbed({
         username: input.username,
         displayName: input.displayName,
