@@ -4,15 +4,29 @@ import { enqueueDiscordOutbox } from "@/lib/discord/outbox";
 import { getAppUrl } from "@/lib/stripe/config";
 import type { MembershipTier } from "@/lib/stripe/config";
 
+/** Wraps a URL so Discord won't attach an Open Graph preview card. */
+export function discordUrlNoPreview(url: string): string {
+  const clean = url.trim().replace(/^<|>$/g, "");
+  return `<${clean}>`;
+}
+
 /** Bot delivers these via outbox (channel_id = "dm"). */
-export async function enqueueDiscordDm(discordUserId: string, text: string): Promise<void> {
+export async function enqueueDiscordDm(
+  discordUserId: string,
+  text: string,
+  options?: { suppressEmbeds?: boolean }
+): Promise<void> {
   const cfg = getDiscordConfig();
   if (!cfg.enabled) return;
 
   await enqueueDiscordOutbox({
     channelId: "dm",
     eventType: "member.dm",
-    payload: { discordUserId, text },
+    payload: {
+      discordUserId,
+      text,
+      suppressEmbeds: options?.suppressEmbeds ?? false,
+    },
   });
 }
 
@@ -77,6 +91,7 @@ export async function notifyDiscordMemberSupportReply(input: {
     discordUserId,
     `**Support replied** on **${ref}** — *${input.subject.slice(0, 120)}*\n\n` +
       `${input.preview.trim().slice(0, 400)}\n\n` +
-      `[View ticket](${url})`
+      `[View ticket](${url})`,
+    { suppressEmbeds: true }
   );
 }

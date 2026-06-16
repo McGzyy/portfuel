@@ -101,7 +101,7 @@ function AdminTicketDetail({
                   rel="noopener noreferrer"
                   className="font-semibold text-[var(--pf-red)] hover:underline"
                 >
-                  Open Discord thread →
+                  Open Discord channel →
                 </a>
               </p>
             ) : null}

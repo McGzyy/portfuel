@@ -420,6 +420,7 @@ export async function postSupportTicketMessage(
       last_message_at: now,
       updated_at: now,
       resolved_at: null,
+      ...(input.authorRole === "member" ? { member_idle_warned_at: null } : {}),
     } as never)
     .eq("id", input.ticketId);
 

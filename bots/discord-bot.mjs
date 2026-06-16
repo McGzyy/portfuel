@@ -7,6 +7,7 @@ import {
   Client,
   EmbedBuilder,
   GatewayIntentBits,
+  MessageFlags,
   ModalBuilder,
   Partials,
   PermissionFlagsBits,
@@ -84,6 +85,7 @@ const ROLE_MODERATOR = process.env.DISCORD_ROLE_MODERATOR_ID?.trim() || "1510805
 const VERIFY_BUTTON_ID = "pf:verify";
 const LINK_BUTTON_ID = "pf:link";
 const TICKET_CATEGORY_SELECT_ID = "pf:ticket-pick-category";
+const TICKET_CLOSE_BUTTON_ID = "pf:ticket-close";
 const TICKET_OPEN_MODAL_PREFIX = "pf:ticket-open:";
 
 const verifyCooldownMs = 30_000;
@@ -295,6 +297,11 @@ async function registerSlashCommands(client) {
         .setDescription("Official PortFuel support tickets")
         .addSubcommand((sub) =>
           sub.setName("list").setDescription("List your open support tickets")
+        )
+        .addSubcommand((sub) =>
+          sub
+            .setName("close")
+            .setDescription("Close this support ticket (staff — use in ticket channel)")
         )
         .toJSON(),
     ],
@@ -577,7 +584,10 @@ async function handleSupportTicketCreateChannel(payload) {
   });
 
   const embed = applyEmbedPayload(new EmbedBuilder(), payload.embed);
-  const rootMsg = await ticketChannel.send({ embeds: [embed] });
+  const rootMsg = await ticketChannel.send({
+    embeds: [embed],
+    components: [ticketCloseButtonRow()],
+  });
 
   if (typeof payload.initialMessage === "string" && payload.initialMessage.trim()) {
     await ticketChannel.send({ content: payload.initialMessage.trim().slice(0, 2000) });
@@ -628,7 +638,13 @@ async function handleSupportTicketSyncStatus(payload) {
   const rootMsg = await channel.messages.fetch(rootMessageId).catch(() => null);
   if (rootMsg && payload.embed && typeof payload.embed === "object") {
     const embed = applyEmbedPayload(new EmbedBuilder(), payload.embed);
-    await rootMsg.edit({ embeds: [embed] }).catch(() => null);
+    const deleting = Boolean(payload.deleteChannel || payload.archive);
+    await rootMsg
+      .edit({
+        embeds: [embed],
+        components: deleting ? [] : [ticketCloseButtonRow()],
+      })
+      .catch(() => null);
   }
 
   if (payload.deleteChannel || payload.archive) {
@@ -666,6 +682,46 @@ function isLikelyTicketChannel(channel) {
   if (channel.name?.startsWith("pf-")) return true;
   if (SUPPORT_CATEGORY_ID && channel.parentId === SUPPORT_CATEGORY_ID) return true;
   return false;
+}
+
+function ticketCloseButtonRow() {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(TICKET_CLOSE_BUTTON_ID)
+      .setLabel("Close ticket")
+      .setStyle(ButtonStyle.Danger)
+  );
+}
+
+async function resolveTicketIdFromChannel(channelId) {
+  const lookup = await api(
+    `/api/discord/support/tickets/by-channel?channelId=${encodeURIComponent(channelId)}`
+  );
+  return lookup?.ticket?.id ?? null;
+}
+
+async function closeTicketFromInteraction(interaction, ticketId) {
+  const member =
+    interaction.member ??
+    (await interaction.guild?.members.fetch(interaction.user.id).catch(() => null));
+  if (!isDiscordSupportStaff(member)) {
+    await interaction.reply({
+      content: "Only staff can close support tickets.",
+      ephemeral: true,
+    });
+    return;
+  }
+
+  await interaction.deferReply({ ephemeral: true });
+  const result = await api(`/api/discord/support/tickets/${ticketId}/close`, {
+    method: "POST",
+    body: { discordUserId: interaction.user.id },
+  });
+  const ref = result.ticketNumber ? `PF-${result.ticketNumber}` : "Ticket";
+  await interaction.editReply({
+    content: `**${ref}** closed. This channel will be removed shortly.`,
+  });
+  await botLog(client, `${ref} closed by ${interaction.user.tag}`);
 }
 
 function ticketOpenModal(category) {
@@ -785,6 +841,26 @@ client.on("interactionCreate", async (interaction) => {
   if (interaction.isChatInputCommand() && interaction.commandName === "ticket") {
     const sub = interaction.options.getSubcommand();
     try {
+      if (sub === "close") {
+        if (!isLikelyTicketChannel(interaction.channel)) {
+          await interaction.reply({
+            content: "Run `/ticket close` inside a support ticket channel.",
+            ephemeral: true,
+          });
+          return;
+        }
+        const ticketId = await resolveTicketIdFromChannel(interaction.channelId);
+        if (!ticketId) {
+          await interaction.reply({
+            content: "Could not find a ticket for this channel.",
+            ephemeral: true,
+          });
+          return;
+        }
+        await closeTicketFromInteraction(interaction, ticketId);
+        return;
+      }
+
       if (sub === "list") {
         await interaction.deferReply({ ephemeral: true });
         const data = await api(
@@ -815,6 +891,31 @@ client.on("interactionCreate", async (interaction) => {
       if (interaction.deferred) {
         await interaction.editReply({ content: msg }).catch(() => null);
       } else if (interaction.replied || interaction.deferred) {
+        await interaction.followUp({ content: msg, ephemeral: true }).catch(() => null);
+      } else {
+        await interaction.reply({ content: msg, ephemeral: true }).catch(() => null);
+      }
+    }
+    return;
+  }
+
+  if (interaction.isButton() && interaction.customId === TICKET_CLOSE_BUTTON_ID) {
+    try {
+      const ticketId = await resolveTicketIdFromChannel(interaction.channelId);
+      if (!ticketId) {
+        await interaction.reply({
+          content: "Could not find a ticket for this channel.",
+          ephemeral: true,
+        });
+        return;
+      }
+      await closeTicketFromInteraction(interaction, ticketId);
+    } catch (e) {
+      console.error("[discord-bot] ticket close button", e);
+      const msg = e instanceof Error ? e.message : "Could not close ticket.";
+      if (interaction.deferred) {
+        await interaction.editReply({ content: msg }).catch(() => null);
+      } else if (interaction.replied) {
         await interaction.followUp({ content: msg, ephemeral: true }).catch(() => null);
       } else {
         await interaction.reply({ content: msg, ephemeral: true }).catch(() => null);
@@ -857,10 +958,12 @@ client.on("interactionCreate", async (interaction) => {
       });
 
       const ref = created.ticketNumber ? `PF-${created.ticketNumber}` : "ticket";
+      const ticketUrl = `<${APP_URL}/dashboard/help?view=tickets&ticket=${created.id}>`;
       await interaction.editReply({
         content:
           `**${ref}** opened — check your private support channel in Discord and on portfuel.pro.\n\n` +
-          `Track: ${APP_URL}/dashboard/help?view=tickets&ticket=${created.id}`,
+          `Track: ${ticketUrl}`,
+        flags: MessageFlags.SuppressEmbeds,
       });
       await botLog(client, `Ticket ${ref} opened via #open-ticket by ${interaction.user.tag}`);
     } catch (e) {
@@ -1183,7 +1286,11 @@ async function runOutboxTick() {
         if (!discordUserId || !text) throw new Error("invalid_dm_payload");
         const user = await client.users.fetch(discordUserId).catch(() => null);
         if (!user) throw new Error("user_not_found");
-        await user.send({ content: text });
+        const suppressEmbeds = Boolean(payload.suppressEmbeds);
+        await user.send({
+          content: text,
+          ...(suppressEmbeds ? { flags: MessageFlags.SuppressEmbeds } : {}),
+        });
         await api("/api/discord/outbox/ack", { method: "POST", body: { id, status: "sent" } });
         console.log(`[discord-bot] sent DM to ${discordUserId}`);
         continue;

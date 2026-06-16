@@ -107,7 +107,7 @@ function TicketThread({
                   rel="noopener noreferrer"
                   className="font-semibold text-[var(--pf-red)] hover:underline"
                 >
-                  Open Discord thread →
+                  Open Discord channel →
                 </a>
                 <span className="text-[var(--pf-gray-400)]"> · replies sync both ways</span>
               </p>
@@ -514,9 +514,8 @@ export function SupportTicketsPanel({ sectionId }: { sectionId: HelpSectionId })
         <div className="px-4 py-4 sm:px-5">
           <p className="text-sm leading-relaxed text-[var(--pf-gray-600)]">
             Open a ticket for billing disputes, access issues, or bugs. Typical response within one
-            business day. Linked Discord members also get a private thread in{" "}
-            <span className="font-semibold">#member-support</span> — use{" "}
-            <span className="font-mono text-xs">/ticket open</span> there too.
+            business day. Linked Discord members get a private support channel — open one in{" "}
+            <span className="font-semibold">#open-ticket</span>.
           </p>
         </div>
       </section>

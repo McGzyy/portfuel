@@ -33,6 +33,7 @@ export type SupportTicketRow = {
   discord_guild_id?: string | null;
   discord_channel_id?: string | null;
   discord_root_message_id?: string | null;
+  member_idle_warned_at?: string | null;
 };
 
 export type SupportTicketMessageRow = {

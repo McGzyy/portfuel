@@ -1,7 +1,7 @@
 import { DISCORD_COLORS, type DiscordEmbedPayload } from "@/lib/discord/embed-payloads";
 import { getDiscordConfig } from "@/lib/discord/config";
 import { enqueueDiscordOutbox } from "@/lib/discord/outbox";
-import { enqueueDiscordDm } from "@/lib/discord/dm";
+import { enqueueDiscordDm, discordUrlNoPreview } from "@/lib/discord/dm";
 import { createServiceClient } from "@/lib/db/supabase";
 import { adminSupportPanelUrl, memberTicketUrl } from "@/lib/support/tickets";
 import type { SupportCategory, SupportTicketRow, SupportTicketWithUser } from "@/lib/support/types";
@@ -78,7 +78,8 @@ export async function notifyDiscordSupportTicketCreated(
       `*${ticket.subject}*\n\n` +
       `${previewText(preview, 400)}\n\n` +
       `Your private support channel is ready in Discord.\n` +
-      `Track replies: ${url}`
+      `Track replies: ${discordUrlNoPreview(url)}`,
+    { suppressEmbeds: true }
   );
 }
 
@@ -311,6 +312,29 @@ export async function notifyDiscordSupportTicketStatusChange(
       deleteChannel: status === "resolved" || status === "closed",
     },
   });
+}
+
+export const TICKET_CLOSE_BUTTON_ID = "pf:ticket-close";
+
+export async function notifyDiscordSupportTicketIdleWarningDm(
+  ticket: SupportTicketWithUser,
+  closesInDays: number
+): Promise<void> {
+  const discordUserId = await linkedDiscordUserId(ticket.user_id);
+  if (!discordUserId) return;
+
+  const ref = formatTicketRef(ticket.ticket_number);
+  const url = `${getAppUrl()}${memberTicketUrl(ticket.id)}`;
+  const dayLabel = closesInDays === 1 ? "day" : "days";
+
+  await enqueueDiscordDm(
+    discordUserId,
+    `**${ref}** is waiting on your reply.\n\n` +
+      `*${ticket.subject}*\n\n` +
+      `Reply in Discord or on portfuel.pro within **${closesInDays} ${dayLabel}** or the ticket will close automatically.\n\n` +
+      `View: ${discordUrlNoPreview(url)}`,
+    { suppressEmbeds: true }
+  );
 }
 
 export function buildMemberSupportHubEmbeds(appUrl: string): DiscordEmbedPayload[] {
