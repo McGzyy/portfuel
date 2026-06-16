@@ -14,6 +14,8 @@ export function getDiscordConfig() {
     channels: {
       verification: process.env.DISCORD_CHANNEL_VERIFICATION_ID ?? "1510828920487022652",
       officialLinks: process.env.DISCORD_CHANNEL_OFFICIAL_LINKS_ID ?? "1510828840161771631",
+      rules: process.env.DISCORD_CHANNEL_RULES_ID?.trim() || "",
+      faqs: process.env.DISCORD_CHANNEL_FAQS_ID?.trim() || "",
       announcements: process.env.DISCORD_CHANNEL_ANNOUNCEMENTS_ID ?? "1510841366777823352",
       generalChat: process.env.DISCORD_CHANNEL_GENERAL_CHAT_ID ?? "1508150608106881026",
       fireCalls: process.env.DISCORD_CHANNEL_FIRE_CALLS_ID ?? "1510860334628602027",

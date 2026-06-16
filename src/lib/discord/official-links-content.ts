@@ -116,7 +116,7 @@ export function buildOfficialLinksEmbeds(appUrl: string): DiscordEmbedPayload[] 
         { name: "Email", value: "support@portfuel.pro", inline: true },
         {
           name: "Discord FAQs",
-          value: "Pinned answers in **#faqs** (coming soon)",
+          value: "Pinned answers in **#faqs**",
           inline: false,
         },
       ],

@@ -51,6 +51,8 @@ const VERIFICATION_CHANNEL_ID =
   process.env.DISCORD_CHANNEL_VERIFICATION_ID ?? "1510828920487022652";
 const OFFICIAL_LINKS_CHANNEL_ID =
   process.env.DISCORD_CHANNEL_OFFICIAL_LINKS_ID?.trim() || "1510828840161771631";
+const RULES_CHANNEL_ID = process.env.DISCORD_CHANNEL_RULES_ID?.trim() || "";
+const FAQS_CHANNEL_ID = process.env.DISCORD_CHANNEL_FAQS_ID?.trim() || "";
 const CALLS_CHANNEL_ID = process.env.DISCORD_CHANNEL_CALLS_ID ?? "1510841810430197991";
 const TARGETS_CHANNEL_ID = process.env.DISCORD_CHANNEL_TARGETS_ID ?? "1510842222143340707";
 const MEMBER_CHAT_CHANNEL_ID =
@@ -274,15 +276,14 @@ function verificationEmbed() {
     .setTitle("Welcome to PortFuel")
     .setDescription(
       "**Step 1 — Verify**\n" +
-        "Click **Verify** below to confirm you're human and unlock basic channels.\n\n" +
-        "**Step 2 — Link PortFuel (members only)**\n" +
-        "Already subscribed on [portfuel.pro](https://www.portfuel.pro)? Click **Link PortFuel** " +
-        "while logged into your dashboard, then complete the link in your browser.\n\n" +
-        "**Pro members:** DM this bot for PortFuel Help — **5 preview questions** on features/pricing for anyone, or **40/month** with a linked Pro account.\n\n" +
-        "Member and Pro channels unlock after your PortFuel subscription is linked."
+        "Click **Verify** below to unlock **#official-links**, **#rules**, **#announcements**, **#general-chat**, and **#fueled-calls**.\n\n" +
+        "**Step 2 — Link PortFuel (subscribers)**\n" +
+        "While logged in on [portfuel.pro](https://www.portfuel.pro) → click **Link PortFuel** and finish in your browser.\n\n" +
+        "**Help AI:** DM this bot — **5 preview questions** for anyone; **40/month** for linked **Pro** members.\n\n" +
+        "Member + Pro channels unlock after your subscription is linked (~60 seconds)."
     )
-    .setColor(0xe11d48)
-    .setFooter({ text: "PortFuel Verification" });
+    .setColor(0xe31b23)
+    .setFooter({ text: "PortFuel · Verification" });
 }
 
 function verificationButtons() {
@@ -324,23 +325,28 @@ async function ensureVerificationMessage(client) {
   console.log("[discord-bot] posted verification message");
 }
 
-async function ensureOfficialLinksMessage(client) {
-  const channel = await client.channels.fetch(OFFICIAL_LINKS_CHANNEL_ID).catch(() => null);
-  if (!channel || !("messages" in channel)) {
-    console.warn("[discord-bot] official-links channel not found");
+async function ensurePinnedHubFromApi(client, channelId, apiPath, label) {
+  if (!channelId) {
+    console.log(`[discord-bot] ${label}: channel id not configured, skipping`);
     return;
   }
 
-  const data = await api("/api/discord/official-links").catch((e) => {
-    console.error("[discord-bot] official-links fetch", e);
+  const channel = await client.channels.fetch(channelId).catch(() => null);
+  if (!channel || !("messages" in channel)) {
+    console.warn(`[discord-bot] ${label}: channel not found`);
+    return;
+  }
+
+  const data = await api(apiPath).catch((e) => {
+    console.error(`[discord-bot] ${label} fetch`, e);
     return null;
   });
-  const markerTitle = data?.markerTitle ?? "PortFuel — Start here";
+  const markerTitle = data?.markerTitle ?? null;
   const content =
     typeof data?.content === "string" && data.content.trim() ? data.content.trim() : null;
   const rawEmbeds = Array.isArray(data?.embeds) ? data.embeds : [];
-  if (rawEmbeds.length === 0) {
-    console.warn("[discord-bot] official-links: no embeds from API");
+  if (!markerTitle || rawEmbeds.length === 0) {
+    console.warn(`[discord-bot] ${label}: no hub payload from API`);
     return;
   }
 
@@ -357,12 +363,29 @@ async function ensureOfficialLinksMessage(client) {
 
   if (existing) {
     await existing.edit(payload).catch(() => null);
-    console.log("[discord-bot] updated official-links hub");
+    console.log(`[discord-bot] updated ${label}`);
     return;
   }
 
   await channel.send(payload);
-  console.log("[discord-bot] posted official-links hub");
+  console.log(`[discord-bot] posted ${label}`);
+}
+
+async function ensureOfficialLinksMessage(client) {
+  await ensurePinnedHubFromApi(
+    client,
+    OFFICIAL_LINKS_CHANNEL_ID,
+    "/api/discord/official-links",
+    "official-links hub"
+  );
+}
+
+async function ensureRulesMessage(client) {
+  await ensurePinnedHubFromApi(client, RULES_CHANNEL_ID, "/api/discord/rules", "rules hub");
+}
+
+async function ensureFaqsMessage(client) {
+  await ensurePinnedHubFromApi(client, FAQS_CHANNEL_ID, "/api/discord/faqs", "faqs hub");
 }
 
 const client = new Client({
@@ -380,6 +403,8 @@ client.once("ready", async () => {
   console.log(`[discord-bot] ready as ${client.user?.tag}`);
   await ensureVerificationMessage(client);
   await ensureOfficialLinksMessage(client);
+  await ensureRulesMessage(client);
+  await ensureFaqsMessage(client);
   await registerSlashCommands(client).catch((e) =>
     console.error("[discord-bot] slash register failed", e)
   );
