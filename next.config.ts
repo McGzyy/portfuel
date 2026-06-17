@@ -25,7 +25,7 @@ const pwaIconSources = [
 const noCache = [{ key: "Cache-Control", value: "public, max-age=0, must-revalidate" }];
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@resvg/resvg-js", "dejavu-fonts-ttf"],
+  serverExternalPackages: ["@resvg/resvg-js", "dejavu-fonts-ttf", "web-push"],
   async headers() {
     return [
       ...pwaIconSources.map((source) => ({ source, headers: noCache })),

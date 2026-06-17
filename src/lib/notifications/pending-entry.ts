@@ -1,6 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
-import { createNotification } from "@/lib/notifications/service";
+import { createNotification } from "@/lib/notifications/create-notification";
 import { formatPrice } from "@/lib/utils";
 
 export const PENDING_ENTRY_ACTIVATED_KEY = "pending_entry_activated";

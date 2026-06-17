@@ -19,7 +19,7 @@ import {
   type SupportTicketMessageWithAuthor,
   type SupportTicketWithUser,
 } from "@/lib/support/types";
-import { statusTone } from "@/lib/support/tickets";
+import { statusTone } from "@/lib/support/display";
 import { discordTicketChannelUrl } from "@/lib/discord/support-tickets";
 import { helpSectionHref, type HelpSectionId } from "@/lib/help/content";
 import { cn, timeAgo } from "@/lib/utils";

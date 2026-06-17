@@ -3,7 +3,7 @@ import { getDiscordConfig } from "@/lib/discord/config";
 import { enqueueDiscordOutbox } from "@/lib/discord/outbox";
 import { enqueueDiscordDm, discordUrlNoPreview } from "@/lib/discord/dm";
 import { createServiceClient } from "@/lib/db/supabase";
-import { adminSupportPanelUrl, memberTicketUrl } from "@/lib/support/tickets";
+import { adminSupportPanelUrl, memberTicketUrl } from "@/lib/support/display";
 import type { SupportCategory, SupportTicketRow, SupportTicketWithUser } from "@/lib/support/types";
 import {
   formatTicketRef,

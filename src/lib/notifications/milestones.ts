@@ -4,7 +4,7 @@ import { notifyDiscordCallMilestone } from "@/lib/discord/events";
 import { tryAutopostFueledMilestone } from "@/lib/social/x-milestone-autopost";
 import { tryAutopostMemberStillRunning } from "@/lib/social/x-member-win-still-running";
 import { tryAutopostMemberWinUpdate } from "@/lib/social/x-member-win-update";
-import { createNotification } from "@/lib/notifications/service";
+import { createNotification } from "@/lib/notifications/create-notification";
 import {
   callMilestoneKeysForCall,
   type CallMilestoneKey,

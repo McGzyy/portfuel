@@ -14,6 +14,10 @@ import {
   notifySupportTicketReply,
   notifySupportTicketStatus,
 } from "@/lib/notifications/service";
+import {
+  adminSupportPanelUrl,
+  memberTicketUrl,
+} from "@/lib/support/display";
 import type {
   SupportCategory,
   SupportTicketMessageRow,
@@ -481,23 +485,6 @@ export async function updateSupportTicketStatus(
       }).catch((e) => console.error("[support/status-notify]", e));
     }
   }
-}
-
-export function adminSupportPanelUrl(ticketId?: string): string {
-  const base = `${getAppUrl()}/admin?tab=support`;
-  return ticketId ? `${base}&ticket=${ticketId}` : base;
-}
-
-export function memberTicketUrl(ticketId: string): string {
-  return `/dashboard/help?view=tickets&ticket=${ticketId}`;
-}
-
-export function statusTone(
-  status: SupportTicketStatus
-): "open" | "waiting" | "done" {
-  if (status === "resolved" || status === "closed") return "done";
-  if (status === "waiting_on_member") return "waiting";
-  return "open";
 }
 
 export { supportStatusLabel };

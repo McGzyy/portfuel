@@ -1,7 +1,7 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { shouldNotifyStopCross } from "@/lib/calls/stop-cross";
 import { isDemoMode } from "@/lib/demo/config";
-import { createNotification } from "@/lib/notifications/service";
+import { createNotification } from "@/lib/notifications/create-notification";
 import { formatPrice } from "@/lib/utils";
 
 const STOP_CROSS_KEY = "stop_crossed";

@@ -2,18 +2,18 @@ import {
   fetchUserAlertPrefs,
   isWatchlistAlertTypeEnabled,
 } from "@/lib/alerts/preferences";
-import { isPushConfigured } from "@/lib/push/config";
 import {
-  fetchUserPushSubscriptions,
+  getVapidPrivateKey,
+  getVapidPublicKey,
+  getVapidSubject,
+  isPushConfigured,
+} from "@/lib/push/config";
+import {
   deletePushSubscriptionById,
+  fetchUserPushSubscriptions,
   isPushAlertsEnabled,
 } from "@/lib/push/subscriptions";
-import {
-  WATCHLIST_ALERT_NOTIFICATION_TYPES,
-  type NotificationType,
-} from "@/lib/notifications/types";
-import webpush from "web-push";
-import { getVapidPrivateKey, getVapidPublicKey, getVapidSubject } from "@/lib/push/config";
+import { isWatchlistPushType, type NotificationType } from "@/lib/notifications/types";
 
 function prefKindForType(
   type: NotificationType
@@ -23,13 +23,6 @@ function prefKindForType(
   if (type === "watchlist_plan_level") return "plan_levels";
   if (type === "watchlist_call") return "community_calls";
   return null;
-}
-
-export function isWatchlistPushType(type: NotificationType): boolean {
-  return (
-    type === "watchlist_call" ||
-    (WATCHLIST_ALERT_NOTIFICATION_TYPES as readonly string[]).includes(type)
-  );
 }
 
 export async function maybeSendWatchlistPush(opts: {
@@ -54,6 +47,7 @@ export async function maybeSendWatchlistPush(opts: {
   const privateKey = getVapidPrivateKey();
   if (!publicKey || !privateKey) return;
 
+  const webpush = (await import("web-push")).default;
   webpush.setVapidDetails(getVapidSubject(), publicKey, privateKey);
 
   const subs = await fetchUserPushSubscriptions(opts.userId);

@@ -5,7 +5,7 @@ import { adminChurnPanelUrl } from "@/lib/billing/cancellation-feedback";
 import { cancellationReasonLabel } from "@/lib/billing/cancellation-feedback-types";
 import type { CancellationFeedbackWithUser } from "@/lib/billing/cancellation-feedback-types";
 import { formatTierPrice } from "@/lib/marketing/plans";
-import { adminSupportPanelUrl } from "@/lib/support/tickets";
+import { adminSupportPanelUrl } from "@/lib/support/display";
 import type { SupportCategory, SupportTicketWithUser } from "@/lib/support/types";
 import {
   formatTicketRef,

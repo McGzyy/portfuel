@@ -24,6 +24,13 @@ export const WATCHLIST_ALERT_NOTIFICATION_TYPES: NotificationType[] = [
   "watchlist_plan_level",
 ];
 
+export function isWatchlistPushType(type: NotificationType): boolean {
+  return (
+    type === "watchlist_call" ||
+    WATCHLIST_ALERT_NOTIFICATION_TYPES.includes(type)
+  );
+}
+
 export type UserNotification = {
   id: string;
   type: NotificationType;
