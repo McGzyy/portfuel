@@ -1,10 +1,10 @@
 import { createServiceClient } from "@/lib/db/supabase";
-import { milestonePostContent } from "@/lib/discord/call-embed-helpers";
 import {
   fueledCallDiscordContent,
   getDiscordDisclaimerMarkdown,
   memberNewCallDiscordContent,
   memberSpotlightDiscordContent,
+  milestoneDiscordContent,
   targetHitDiscordContent,
 } from "@/lib/discord/discord-copy";
 import {
@@ -233,7 +233,7 @@ export async function notifyDiscordCallMilestone(input: {
       callId: input.callId,
       symbol: input.symbol,
       milestone: input.key,
-      content: milestonePostContent(input.key, input.symbol),
+      content: await milestoneDiscordContent(input.key, input.symbol),
       attachChart: milestoneAttachChart(input.key, isFueled),
       embed: chatEmbed,
     },
@@ -248,7 +248,7 @@ export async function notifyDiscordCallMilestone(input: {
         callId: input.callId,
         symbol: input.symbol,
         milestone: input.key,
-        content: targetHitDiscordContent(input.symbol),
+        content: await targetHitDiscordContent(input.symbol),
         attachChart: true,
         embed: buildTargetHitChannelEmbed({
           symbol: input.symbol,

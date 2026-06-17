@@ -12,6 +12,8 @@ import {
   profileUrl,
 } from "@/lib/discord/call-embed-helpers";
 import { appIconUrl } from "@/lib/discord/hub-embed-helpers";
+import { discordLineFromCopy } from "@/lib/discord/discord-copy";
+import { DEFAULT_SOCIAL_POST_COPY } from "@/lib/social/copy-templates";
 import type { WeeklyDigestRow } from "@/lib/social/weekly-digest-format";
 import { formatWeeklyDigestLineDiscord } from "@/lib/social/weekly-digest-format";
 
@@ -40,19 +42,19 @@ export const DISCORD_COLORS = {
 
 /** Text above the embed in the channel (optional). */
 export function memberNewCallPostContent(): string {
-  return "📣 **New member call** · _Timestamped on PortFuel_";
+  return discordLineFromCopy(DEFAULT_SOCIAL_POST_COPY, "memberNew");
 }
 
 export function fueledCallPostContent(): string {
-  return "🔥 **Official desk call** · _Fueled thesis_";
+  return discordLineFromCopy(DEFAULT_SOCIAL_POST_COPY, "fueled");
 }
 
 export function memberSpotlightPostContent(symbol: string): string {
-  return `⭐ **Member spotlight** · **${symbol}** on record`;
+  return discordLineFromCopy(DEFAULT_SOCIAL_POST_COPY, "memberSpotlight", { symbol });
 }
 
 export function targetHitPostContent(symbol: string): string {
-  return `🎯 **Target reached** · **${symbol}**`;
+  return discordLineFromCopy(DEFAULT_SOCIAL_POST_COPY, "targetHit", { symbol });
 }
 
 export function buildMemberNewCallEmbed(input: {

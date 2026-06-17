@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
+import { AdminDiscordCopyPanel } from "@/components/admin/AdminDiscordCopyPanel";
 import { DiscordMessagePreview } from "@/components/admin/DiscordMessagePreview";
 import type { DiscordPreviewItem } from "@/lib/discord/admin-previews";
 import { cn } from "@/lib/utils";
@@ -72,6 +73,8 @@ export function AdminDiscordPanel() {
           </p>
         }
       />
+
+      <AdminDiscordCopyPanel />
 
       {loading ? (
         <div className="flex justify-center py-16">

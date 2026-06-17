@@ -1,7 +1,11 @@
 /** Shared formatting for call alert embeds (member, fueled, milestones, targets). */
 
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
-import { milestoneDiscordContent } from "@/lib/social/milestone-headlines";
+import {
+  discordLineFromCopy,
+  discordMilestoneLineFromCopy,
+} from "@/lib/discord/discord-copy";
+import { DEFAULT_SOCIAL_POST_COPY } from "@/lib/social/copy-templates";
 import { HUB_DISCLAIMER } from "@/lib/discord/hub-embed-helpers";
 
 export function formatUsd(value: number | null | undefined): string {
@@ -63,7 +67,7 @@ export function milestoneDisplayLabel(key: CallMilestoneKey): string {
 }
 
 export function milestonePostContent(key: CallMilestoneKey, symbol: string): string {
-  return milestoneDiscordContent(key, symbol);
+  return discordMilestoneLineFromCopy(DEFAULT_SOCIAL_POST_COPY, key, symbol);
 }
 
 export const CALL_POST_DISCLAIMER = HUB_DISCLAIMER;

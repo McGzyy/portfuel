@@ -14,6 +14,12 @@ export type SocialPostCopy = {
   memberWinUpdateTemplate: string;
   weeklyDigestTemplate: string;
   disclaimer: string;
+  discordFueledLine: string;
+  discordMemberNewLine: string;
+  discordMemberSpotlightLine: string;
+  discordTargetHitLine: string;
+  discordWeeklyDigestLine: string;
+  discordMilestoneLine: string;
   updatedAt: string | null;
 };
 
@@ -45,6 +51,12 @@ export const DEFAULT_SOCIAL_POST_COPY: SocialPostCopy = {
 {{link}}
 {{disclaimer}}`,
   disclaimer: "Not investment advice.",
+  discordFueledLine: "🔥 **Official desk call** · _Fueled thesis_",
+  discordMemberNewLine: "📣 **New member call** · _Timestamped on PortFuel_",
+  discordMemberSpotlightLine: "⭐ **Member spotlight** · **{{symbol}}** on record",
+  discordTargetHitLine: "🎯 **Target reached** · **{{symbol}}**",
+  discordWeeklyDigestLine: "📊 **Weekly digest** · PortFuel · Community performance this week",
+  discordMilestoneLine: "📈 **{{pct}} milestone** · **{{symbol}}**",
   updatedAt: null,
 };
 
@@ -64,6 +76,12 @@ export const COPY_PLACEHOLDER_HELP = [
   "{{thesis_block}} — thesis excerpt or empty (member wins)",
   "{{referral_line}} — member join link when referral code set (member wins)",
   "{{digest_lines}} — numbered weekly wins (weekly digest)",
+] as const;
+
+export const DISCORD_COPY_PLACEHOLDER_HELP = [
+  "{{symbol}} — ticker",
+  "{{headline}} — milestone headline (target hit)",
+  "{{pct}} — milestone percent label (e.g. +25%)",
 ] as const;
 
 function trimTweet(text: string, max = 280): string {
@@ -123,7 +141,7 @@ export async function fetchSocialPostCopy(
     const { data, error } = await db
       .from("social_post_copy")
       .select(
-        "milestone_lead_template, milestone_tail_template, fueled_template, leaderboard_template, member_win_template, member_win_update_template, weekly_digest_template, disclaimer, updated_at"
+        "milestone_lead_template, milestone_tail_template, fueled_template, leaderboard_template, member_win_template, member_win_update_template, weekly_digest_template, disclaimer, discord_fueled_line, discord_member_new_line, discord_member_spotlight_line, discord_target_hit_line, discord_weekly_digest_line, discord_milestone_line, updated_at"
       )
       .eq("id", variantId)
       .maybeSingle();
@@ -139,6 +157,12 @@ export async function fetchSocialPostCopy(
       member_win_update_template: string | null;
       weekly_digest_template: string | null;
       disclaimer: string;
+      discord_fueled_line: string | null;
+      discord_member_new_line: string | null;
+      discord_member_spotlight_line: string | null;
+      discord_target_hit_line: string | null;
+      discord_weekly_digest_line: string | null;
+      discord_milestone_line: string | null;
       updated_at: string;
     };
 
@@ -156,6 +180,20 @@ export async function fetchSocialPostCopy(
         row.weekly_digest_template?.trim() ||
         DEFAULT_SOCIAL_POST_COPY.weeklyDigestTemplate,
       disclaimer: row.disclaimer,
+      discordFueledLine:
+        row.discord_fueled_line?.trim() || DEFAULT_SOCIAL_POST_COPY.discordFueledLine,
+      discordMemberNewLine:
+        row.discord_member_new_line?.trim() || DEFAULT_SOCIAL_POST_COPY.discordMemberNewLine,
+      discordMemberSpotlightLine:
+        row.discord_member_spotlight_line?.trim() ||
+        DEFAULT_SOCIAL_POST_COPY.discordMemberSpotlightLine,
+      discordTargetHitLine:
+        row.discord_target_hit_line?.trim() || DEFAULT_SOCIAL_POST_COPY.discordTargetHitLine,
+      discordWeeklyDigestLine:
+        row.discord_weekly_digest_line?.trim() ||
+        DEFAULT_SOCIAL_POST_COPY.discordWeeklyDigestLine,
+      discordMilestoneLine:
+        row.discord_milestone_line?.trim() || DEFAULT_SOCIAL_POST_COPY.discordMilestoneLine,
       updatedAt: row.updated_at,
     };
   } catch {
@@ -184,6 +222,12 @@ export async function updateSocialPostCopy(
   memberWinUpdateTemplate?: string;
   weeklyDigestTemplate?: string;
   disclaimer?: string;
+  discordFueledLine?: string;
+  discordMemberNewLine?: string;
+  discordMemberSpotlightLine?: string;
+  discordTargetHitLine?: string;
+  discordWeeklyDigestLine?: string;
+  discordMilestoneLine?: string;
 }): Promise<{ ok: true; copy: SocialPostCopy } | { error: string }> {
   const db = createServiceClient();
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
@@ -227,6 +271,45 @@ export async function updateSocialPostCopy(
     const v = input.disclaimer.trim();
     if (v.length < 4 || v.length > 120) return { error: "invalid_disclaimer" };
     update.disclaimer = v;
+  }
+  const discordLine = (
+    v: string,
+    max: number,
+    code: string
+  ): { ok: true; value: string } | { error: string } => {
+    const t = v.trim();
+    if (t.length < 4 || t.length > max) return { error: code };
+    return { ok: true, value: t };
+  };
+  if (input.discordFueledLine !== undefined) {
+    const r = discordLine(input.discordFueledLine, 200, "invalid_discord_fueled");
+    if ("error" in r) return { error: r.error };
+    update.discord_fueled_line = r.value;
+  }
+  if (input.discordMemberNewLine !== undefined) {
+    const r = discordLine(input.discordMemberNewLine, 200, "invalid_discord_member_new");
+    if ("error" in r) return { error: r.error };
+    update.discord_member_new_line = r.value;
+  }
+  if (input.discordMemberSpotlightLine !== undefined) {
+    const r = discordLine(input.discordMemberSpotlightLine, 200, "invalid_discord_spotlight");
+    if ("error" in r) return { error: r.error };
+    update.discord_member_spotlight_line = r.value;
+  }
+  if (input.discordTargetHitLine !== undefined) {
+    const r = discordLine(input.discordTargetHitLine, 200, "invalid_discord_target");
+    if ("error" in r) return { error: r.error };
+    update.discord_target_hit_line = r.value;
+  }
+  if (input.discordWeeklyDigestLine !== undefined) {
+    const r = discordLine(input.discordWeeklyDigestLine, 240, "invalid_discord_digest");
+    if ("error" in r) return { error: r.error };
+    update.discord_weekly_digest_line = r.value;
+  }
+  if (input.discordMilestoneLine !== undefined) {
+    const r = discordLine(input.discordMilestoneLine, 200, "invalid_discord_milestone");
+    if ("error" in r) return { error: r.error };
+    update.discord_milestone_line = r.value;
   }
 
   const { error } = await db

@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth/session";
 import {
   COPY_PLACEHOLDER_HELP,
   DEFAULT_SOCIAL_POST_COPY,
+  DISCORD_COPY_PLACEHOLDER_HELP,
   composeMilestonePostText,
   fetchAllSocialPostCopy,
   fetchSocialPostCopy,
@@ -23,6 +24,7 @@ export async function GET() {
       copies,
       defaults: DEFAULT_SOCIAL_POST_COPY,
       placeholders: COPY_PLACEHOLDER_HELP,
+      discordPlaceholders: DISCORD_COPY_PLACEHOLDER_HELP,
       demoPreview: composeMilestonePostText(copy, demo),
       abHelp: {
         enabled: process.env.X_COPY_AB_ENABLED === "true",
@@ -52,6 +54,12 @@ const patchSchema = z.object({
   memberWinUpdateTemplate: z.string().min(4).max(500).optional(),
   weeklyDigestTemplate: z.string().min(4).max(600).optional(),
   disclaimer: z.string().min(4).max(120).optional(),
+  discordFueledLine: z.string().min(4).max(200).optional(),
+  discordMemberNewLine: z.string().min(4).max(200).optional(),
+  discordMemberSpotlightLine: z.string().min(4).max(200).optional(),
+  discordTargetHitLine: z.string().min(4).max(200).optional(),
+  discordWeeklyDigestLine: z.string().min(4).max(240).optional(),
+  discordMilestoneLine: z.string().min(4).max(200).optional(),
 });
 
 export async function PATCH(request: Request) {

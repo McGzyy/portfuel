@@ -1,5 +1,8 @@
 import { buildSupportTicketEmbed } from "@/lib/discord/admin-events";
-import { milestonePostContent } from "@/lib/discord/call-embed-helpers";
+import {
+  discordLineFromCopy,
+  discordMilestoneLineFromCopy,
+} from "@/lib/discord/discord-copy";
 import {
   buildFueledCallEmbed,
   buildLinkWelcomeEmbed,
@@ -9,10 +12,6 @@ import {
   buildTargetHitChannelEmbed,
   buildWeeklyDigestEmbed,
   DISCORD_COLORS,
-  fueledCallPostContent,
-  memberNewCallPostContent,
-  memberSpotlightPostContent,
-  targetHitPostContent,
   type DiscordEmbedPayload,
 } from "@/lib/discord/embed-payloads";
 import { buildFaqsEmbeds, FAQS_MESSAGE_CONTENT, FAQS_MARKER_TITLE } from "@/lib/discord/faqs-content";
@@ -36,6 +35,10 @@ import {
 import { buildVerificationEmbed, VERIFICATION_MARKER_TITLE } from "@/lib/discord/verification-content";
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 import type { SupportTicketWithUser } from "@/lib/support/types";
+import {
+  DEFAULT_SOCIAL_POST_COPY,
+  type SocialPostCopy,
+} from "@/lib/social/copy-templates";
 
 export type DiscordPreviewChartMilestone = CallMilestoneKey;
 
@@ -101,7 +104,10 @@ function staffEmbed(
   };
 }
 
-export function buildAdminDiscordPreviews(appUrl: string): {
+export function buildAdminDiscordPreviews(
+  appUrl: string,
+  copy: SocialPostCopy = DEFAULT_SOCIAL_POST_COPY
+): {
   sections: { id: string; title: string; description: string; items: DiscordPreviewItem[] }[];
 } {
   const base = appUrl.replace(/\/$/, "");
@@ -114,7 +120,7 @@ export function buildAdminDiscordPreviews(appUrl: string): {
       channel: "#member-calls",
       eventType: "call.created",
       group: "calls",
-      content: memberNewCallPostContent(),
+      content: discordLineFromCopy(copy, "memberNew"),
       embeds: [
         buildMemberNewCallEmbed({
           ...DEMO_CALL,
@@ -129,7 +135,7 @@ export function buildAdminDiscordPreviews(appUrl: string): {
       channel: "#fueled-calls",
       eventType: "call.created.fueled",
       group: "calls",
-      content: fueledCallPostContent(),
+      content: discordLineFromCopy(copy, "fueled"),
       embeds: [
         buildFueledCallEmbed({
           symbol: DEMO_CALL.symbol,
@@ -152,7 +158,7 @@ export function buildAdminDiscordPreviews(appUrl: string): {
       channel: "#targets-hit",
       eventType: "call.target_hit",
       group: "calls",
-      content: targetHitPostContent(DEMO_CALL.symbol),
+      content: discordLineFromCopy(copy, "targetHit", { symbol: DEMO_CALL.symbol }),
       attachChart: true,
       chartMilestone: "target_reached",
       embeds: [
@@ -176,7 +182,7 @@ export function buildAdminDiscordPreviews(appUrl: string): {
       channel: "#member-chat",
       eventType: "call.milestone.snippet",
       group: "calls",
-      content: milestonePostContent("return_25", DEMO_CALL.symbol),
+      content: discordMilestoneLineFromCopy(copy, "return_25", DEMO_CALL.symbol),
       embeds: [
         buildMilestoneChatEmbed({
           symbol: DEMO_CALL.symbol,
@@ -199,7 +205,7 @@ export function buildAdminDiscordPreviews(appUrl: string): {
       channel: "#member-chat",
       eventType: "call.milestone.snippet",
       group: "calls",
-      content: milestonePostContent("return_25", DEMO_CALL.symbol),
+      content: discordMilestoneLineFromCopy(copy, "return_25", DEMO_CALL.symbol),
       attachChart: true,
       chartMilestone: "return_25",
       embeds: [
@@ -224,7 +230,7 @@ export function buildAdminDiscordPreviews(appUrl: string): {
       channel: "#member-chat",
       eventType: "call.milestone.snippet",
       group: "calls",
-      content: milestonePostContent("return_50", DEMO_CALL.symbol),
+      content: discordMilestoneLineFromCopy(copy, "return_50", DEMO_CALL.symbol),
       attachChart: true,
       chartMilestone: "return_50",
       embeds: [
@@ -249,7 +255,7 @@ export function buildAdminDiscordPreviews(appUrl: string): {
       channel: "#member-calls",
       eventType: "member.spotlight",
       group: "calls",
-      content: memberSpotlightPostContent(DEMO_CALL.symbol),
+      content: discordLineFromCopy(copy, "memberSpotlight", { symbol: DEMO_CALL.symbol }),
       attachChart: true,
       chartMemberWin: true,
       note: "Uses memberWin chart variant",
@@ -354,7 +360,7 @@ export function buildAdminDiscordPreviews(appUrl: string): {
       channel: "#announcements",
       eventType: "digest.weekly",
       group: "community",
-      content: "📊 **Weekly digest** · Top member movers",
+      content: discordLineFromCopy(copy, "weeklyDigest"),
       attachChart: true,
       chartWeeklyDigest: true,
       note: "Uses weekly digest composite chart",
