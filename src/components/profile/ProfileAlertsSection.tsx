@@ -71,9 +71,17 @@ export function ProfileAlertsSection() {
 
     setSaving(false);
     if (!res.ok) {
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      const body = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        message?: string;
+      };
       if (body.error === "pro_required") {
         setError("SMS alerts require Pro Intelligence.");
+      } else if (body.error === "migration_required") {
+        setError(
+          body.message ??
+            "Engagement alert settings are not available yet — database migration pending."
+        );
       } else {
         setError("Could not save alert settings.");
       }

@@ -139,15 +139,16 @@ export default async function DashboardFeedPage({
 
       {proLocked ? <ProIntelDiscoverStrip watchlistSymbols={watchlistSymbols} /> : null}
 
-      <div className="pf-feed-sticky-scope space-y-4 sm:space-y-6">
-        <FeedToolbar
-          mode={mode}
-          feedFilter={feedFilter}
-          searchQuery={searchQuery}
-          newCount={newCount}
-          showNewOnly={showNewOnly}
-          fueledCount={fueledCalls.length}
-        />
+      <FeedToolbar
+        mode={mode}
+        feedFilter={feedFilter}
+        searchQuery={searchQuery}
+        newCount={newCount}
+        showNewOnly={showNewOnly}
+        fueledCount={fueledCalls.length}
+      />
+
+      <div className="pf-feed-body space-y-4 sm:space-y-6">
         <FeedVisitTracker />
 
         {fueledMapped.length > 0 && feedFilter !== "fueled" ? (

@@ -11,6 +11,7 @@ import {
 import {
   DEFAULT_ENGAGEMENT_ALERT_PREFS,
   fetchEngagementAlertPrefs,
+  isMissingEngagementPrefsColumn,
   normalizeEngagementAlertPrefs,
 } from "@/lib/alerts/engagement-preferences";
 import { fetchJournalAlertAiUsage } from "@/lib/ai/journal-alert-usage";
@@ -146,6 +147,16 @@ export async function PATCH(request: Request) {
       .eq("id", session.userId);
 
     if (error) {
+      if (isMissingEngagementPrefsColumn(error)) {
+        return NextResponse.json(
+          {
+            error: "migration_required",
+            message:
+              "Apply supabase/migrations/20260707100000_engagement_alert_prefs.sql before saving engagement alert prefs.",
+          },
+          { status: 503 }
+        );
+      }
       return NextResponse.json({ error: "update_failed" }, { status: 500 });
     }
 

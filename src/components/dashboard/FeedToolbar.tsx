@@ -87,7 +87,7 @@ export function FeedToolbar({
         </div>
       </div>
 
-      <div className="pf-feed-toolbar-extras space-y-2.5 rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white/80 px-3 py-2.5 sm:space-y-3 sm:px-4 sm:py-3">
+      <div className="pf-feed-toolbar-extras space-y-2.5 rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white/80 px-3.5 py-3 sm:space-y-3 sm:px-4 sm:py-3">
         <div className="hidden flex-wrap items-center justify-between gap-3 sm:flex">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
             Browse & filter

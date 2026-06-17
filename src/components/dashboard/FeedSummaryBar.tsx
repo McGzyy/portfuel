@@ -72,7 +72,7 @@ export function FeedSummaryBar({
 
   return (
     <div className="pf-workspace-panel overflow-hidden">
-      <div className="border-b border-[var(--pf-border)] px-4 py-3 sm:px-5">
+      <div className="pf-panel-inset-x border-b border-[var(--pf-border)] py-4">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
           Feed pulse
         </p>
@@ -84,7 +84,14 @@ export function FeedSummaryBar({
               : "Community stats for your current filters"}
         </p>
       </div>
-      <MetricsStrip variant="embedded" items={[...baseItems, ...proItems]} />
+      <div className="pf-panel-inset">
+        <MetricsStrip
+          variant="embedded"
+          showEyebrow={false}
+          className="!border-0 !bg-transparent !p-0 !shadow-none"
+          items={[...baseItems, ...proItems]}
+        />
+      </div>
       {proLocked ? (
         <ProIntelligenceGate
           locked={proLocked}

@@ -55,6 +55,18 @@ export function normalizeEngagementAlertPrefs(raw: unknown): EngagementAlertPref
   };
 }
 
+export function isMissingEngagementPrefsColumn(error: {
+  code?: string;
+  message?: string;
+} | null): boolean {
+  if (!error) return false;
+  return (
+    error.code === "42703" ||
+    error.code === "PGRST204" ||
+    /engagement_alert_prefs/i.test(error.message ?? "")
+  );
+}
+
 export async function fetchEngagementAlertPrefs(
   userId: string
 ): Promise<EngagementAlertPrefs> {
@@ -65,7 +77,14 @@ export async function fetchEngagementAlertPrefs(
     .eq("id", userId)
     .maybeSingle();
 
-  if (error || !data) return { ...DEFAULT_ENGAGEMENT_ALERT_PREFS };
+  if (error || !data) {
+    if (isMissingEngagementPrefsColumn(error)) {
+      console.warn(
+        "[alerts] engagement_alert_prefs column missing — apply migration 20260707100000_engagement_alert_prefs.sql"
+      );
+    }
+    return { ...DEFAULT_ENGAGEMENT_ALERT_PREFS };
+  }
 
   return normalizeEngagementAlertPrefs(
     (data as { engagement_alert_prefs: unknown }).engagement_alert_prefs

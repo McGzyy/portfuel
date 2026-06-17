@@ -35,6 +35,7 @@ const CRITICAL_MIGRATIONS = [
   "20260603110000_billing_interval.sql",
   "20260604130000_last_active_at.sql",
   "20260604133000_ai_draft_requests.sql",
+  "20260707100000_engagement_alert_prefs.sql",
 ];
 
 function ok(msg) {
