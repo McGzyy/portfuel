@@ -28,18 +28,19 @@ export function FeedCommandHeader({
   return (
     <header
       className={cn(
-        "pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6"
+        "pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] shadow-[var(--pf-shadow-sm)]",
+        "px-4 py-4 sm:px-6 sm:py-6"
       )}
     >
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
         <div className="max-w-2xl">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
+          <p className="hidden text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)] sm:block">
             Community · Feed
           </p>
-          <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
+          <h1 className="text-xl font-bold tracking-tight text-[var(--pf-black)] sm:mt-1.5 sm:text-[1.75rem]">
             Member feed
           </h1>
-          <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
+          <p className="mt-1.5 text-sm leading-relaxed text-[var(--pf-gray-600)] sm:mt-2 sm:text-[var(--pf-gray-500)]">
             {resultCount} call{resultCount === 1 ? "" : "s"} in this view · {modeLabel(mode)}
             {newCount > 0 ? (
               <span className="font-semibold text-emerald-700">
@@ -50,7 +51,7 @@ export function FeedCommandHeader({
           </p>
           <Link
             href="/dashboard"
-            className="mt-3 inline-block text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] hover:underline"
+            className="mt-2 hidden text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] hover:underline sm:mt-3 sm:inline-block"
           >
             ← Workspace overview
           </Link>

@@ -9,6 +9,11 @@ import { listTicketAttachments, type SupportAttachmentView } from "@/lib/support
 import { sendPortfuelEmail } from "@/lib/email/client";
 import { isEmailConfigured, getAppUrl } from "@/lib/email/config";
 import { notifyDiscordMemberSupportReply } from "@/lib/discord/dm";
+import {
+  notifySupportTicketOpened,
+  notifySupportTicketReply,
+  notifySupportTicketStatus,
+} from "@/lib/notifications/service";
 import type {
   SupportCategory,
   SupportTicketMessageRow,
@@ -177,30 +182,12 @@ async function notifyMemberReply(
   ticket: SupportTicketWithUser,
   preview: string
 ): Promise<void> {
-  const db = createServiceClient();
-  const ref = formatTicketRef(ticket.ticket_number);
-  const title = `Reply on ${ref}`;
-  const body = preview.slice(0, 200);
-
-  const { error } = await db.from("user_notifications").insert({
-    user_id: ticket.user_id,
-    type: "support_ticket_reply",
-    title,
-    body,
-    href: `/dashboard/help?view=tickets&ticket=${ticket.id}`,
-  } as never);
-
-  if (error) console.error("[support/member-in-app]", error);
-
-  if (ticket.email && isEmailConfigured()) {
-    const url = `${getAppUrl()}/dashboard/help?view=tickets&ticket=${ticket.id}`;
-    await sendPortfuelEmail({
-      to: ticket.email,
-      subject: `[PortFuel] ${title}`,
-      html: `<p>Support replied on <strong>${ticket.subject}</strong>.</p><p>${preview.slice(0, 500)}</p><p><a href="${url}">View ticket</a></p>`,
-      text: `Support replied on ${ticket.subject}.\n\n${preview}\n\nView: ${url}`,
-    }).catch((e) => console.error("[support/member-email]", e));
-  }
+  await notifySupportTicketReply({
+    userId: ticket.user_id,
+    ticketId: ticket.id,
+    ticketNumber: ticket.ticket_number,
+    preview,
+  });
 
   void notifyDiscordMemberSupportReply({
     userId: ticket.user_id,
@@ -292,6 +279,12 @@ export async function createSupportTicket(
   const full = await fetchTicketWithUser(ticket.id);
   if (full) {
     await notifyAdminsNewTicket(full, message);
+    await notifySupportTicketOpened({
+      userId: input.userId,
+      ticketId: full.id,
+      ticketNumber: full.ticket_number,
+      subject: full.subject,
+    });
   }
 
   return {
@@ -479,6 +472,14 @@ export async function updateSupportTicketStatus(
     void notifyDiscordSupportTicketStatusChange(ticket, status).catch((e) =>
       console.error("[support/discord-status]", e)
     );
+    if (status === "resolved" || status === "closed") {
+      void notifySupportTicketStatus({
+        userId: ticket.user_id,
+        ticketId: ticket.id,
+        ticketNumber: ticket.ticket_number,
+        status,
+      }).catch((e) => console.error("[support/status-notify]", e));
+    }
   }
 }
 

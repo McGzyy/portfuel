@@ -50,7 +50,7 @@ export function ProIntelDiscoverStrip({
           </span>
           <div>
             <p className="text-sm font-bold text-[var(--pf-black)]">Pro Intelligence research layer</p>
-            <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
+            <p className="mt-0.5 text-xs text-[var(--pf-gray-600)]">
               {personalizedHook ??
                 (assetClass === "crypto"
                   ? `Crypto headlines, price action & community conviction — ${formatTierPrice("pro")}/mo.`

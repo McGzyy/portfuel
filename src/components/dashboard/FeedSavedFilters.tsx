@@ -207,7 +207,7 @@ export function FeedSavedFilters({
   }
 
   return (
-    <div className="space-y-2 border-t border-[var(--pf-border)] pt-3">
+    <div className="space-y-2 sm:space-y-2">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
@@ -284,7 +284,7 @@ export function FeedSavedFilters({
           })}
         </div>
       ) : (
-        <p className="text-[11px] text-[var(--pf-gray-500)]">
+        <p className="hidden text-[11px] text-[var(--pf-gray-500)] sm:block">
           {isDefaultFeedView(view)
             ? "Change tab, filter, or search — then save a combo for one-click access on any device."
             : atLimit

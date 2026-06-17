@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import { notifyNewFollower } from "@/lib/notifications/service";
 import type { FollowedMember } from "@/lib/follows/types";
 
 const MAX_FOLLOWS = 50;
@@ -111,6 +112,21 @@ export async function followMember(
     if (error.code === "23505") return { ok: true };
     console.error("[follows/follow]", error);
     return { error: "db_error" };
+  }
+
+  const { data: follower } = await db
+    .from("users")
+    .select("username, display_name")
+    .eq("id", followerId)
+    .maybeSingle();
+
+  if (follower?.username) {
+    void notifyNewFollower({
+      followingId,
+      followerId,
+      followerUsername: follower.username,
+      followerDisplayName: follower.display_name,
+    }).catch((e) => console.error("[follows/notify]", e));
   }
 
   return { ok: true };

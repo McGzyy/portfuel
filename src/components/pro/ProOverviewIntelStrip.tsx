@@ -271,7 +271,7 @@ function PulseLink({
         <span
           className={cn(
             "mt-0.5 block text-xs leading-relaxed",
-            embedded ? "text-slate-300" : "text-[var(--pf-gray-600)]"
+            embedded ? "text-slate-200" : "text-[var(--pf-gray-600)]"
           )}
         >
           {detail}

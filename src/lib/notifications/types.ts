@@ -9,7 +9,14 @@ export type NotificationType =
   | "watchlist_price_move"
   | "watchlist_earnings"
   | "watchlist_plan_level"
-  | "admin_churn_feedback";
+  | "admin_churn_feedback"
+  | "admin_support_ticket"
+  | "support_ticket_reply"
+  | "support_ticket_opened"
+  | "support_ticket_idle_warning"
+  | "support_ticket_status"
+  | "billing_payment_failed"
+  | "new_follower";
 
 export const WATCHLIST_ALERT_NOTIFICATION_TYPES: NotificationType[] = [
   "watchlist_price_move",

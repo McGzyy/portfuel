@@ -73,10 +73,10 @@ export function FeedSummaryBar({
   return (
     <div className="pf-workspace-panel overflow-hidden">
       <div className="border-b border-[var(--pf-border)] px-4 py-3 sm:px-5">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
           Feed pulse
         </p>
-        <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
+        <p className="mt-0.5 text-xs leading-relaxed text-[var(--pf-gray-600)]">
           {mode === "performing"
             ? "Snapshot of top performers in this view"
             : mode === "progress"

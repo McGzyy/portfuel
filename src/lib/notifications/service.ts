@@ -1,7 +1,13 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import {
+  engagementKindForType,
+  fetchEngagementAlertPrefs,
+  isEngagementAlertEnabled,
+} from "@/lib/alerts/engagement-preferences";
 import { fetchUserAlertPrefs, isWatchlistAlertTypeEnabled } from "@/lib/alerts/preferences";
 import { maybeSendInstantNotificationEmail } from "@/lib/email/instant";
+import { isPermanentNotificationType } from "@/lib/notifications/catalog";
 import { maybeSendWatchlistPush, isWatchlistPushType } from "@/lib/push/watchlist-push";
 import { getDemoNotifications } from "@/lib/notifications/demo";
 import type { NotificationType, UserNotification } from "@/lib/notifications/types";
@@ -41,6 +47,14 @@ function mapRow(row: {
 export async function createNotification(input: CreateNotificationInput): Promise<void> {
   if (input.userId === input.actorUserId) return;
   if (isDemoMode()) return;
+
+  if (!isPermanentNotificationType(input.type)) {
+    const engagementKind = engagementKindForType(input.type);
+    if (engagementKind) {
+      const engagementPrefs = await fetchEngagementAlertPrefs(input.userId);
+      if (!isEngagementAlertEnabled(engagementPrefs, engagementKind)) return;
+    }
+  }
 
   const db = createServiceClient();
 
@@ -360,5 +374,104 @@ export async function notifyDirectMessage(opts: {
     body: opts.preview,
     href: `/dashboard/messages?thread=${opts.threadId}`,
     actorUserId: opts.senderId,
+  });
+}
+
+export async function notifyNewFollower(opts: {
+  followingId: string;
+  followerId: string;
+  followerUsername: string;
+  followerDisplayName: string | null;
+}) {
+  const name = opts.followerDisplayName ?? opts.followerUsername;
+  await createNotification({
+    userId: opts.followingId,
+    type: "new_follower",
+    title: `${name} followed you`,
+    body: `@${opts.followerUsername} is now following your calls and profile.`,
+    href: `/member/${opts.followerUsername}`,
+    actorUserId: opts.followerId,
+  });
+}
+
+export async function notifySupportTicketOpened(opts: {
+  userId: string;
+  ticketId: string;
+  ticketNumber: number;
+  subject: string;
+}) {
+  const ref = `PF-${opts.ticketNumber}`;
+  await createNotification({
+    userId: opts.userId,
+    type: "support_ticket_opened",
+    title: `Support ticket ${ref} opened`,
+    body: opts.subject,
+    href: `/dashboard/help?view=tickets&ticket=${opts.ticketId}`,
+  });
+}
+
+export async function notifySupportTicketReply(opts: {
+  userId: string;
+  ticketId: string;
+  ticketNumber: number;
+  preview: string;
+}) {
+  const ref = `PF-${opts.ticketNumber}`;
+  await createNotification({
+    userId: opts.userId,
+    type: "support_ticket_reply",
+    title: `Reply on ${ref}`,
+    body: opts.preview.slice(0, 200),
+    href: `/dashboard/help?view=tickets&ticket=${opts.ticketId}`,
+  });
+}
+
+export async function notifySupportTicketIdleWarning(opts: {
+  userId: string;
+  ticketId: string;
+  ticketNumber: number;
+  closeInDays: number;
+}) {
+  const ref = `PF-${opts.ticketNumber}`;
+  const dayLabel = opts.closeInDays === 1 ? "1 day" : `${opts.closeInDays} days`;
+  await createNotification({
+    userId: opts.userId,
+    type: "support_ticket_idle_warning",
+    title: `${ref} closes in ${dayLabel}`,
+    body: "Reply to your support ticket to keep it open.",
+    href: `/dashboard/help?view=tickets&ticket=${opts.ticketId}`,
+  });
+}
+
+export async function notifySupportTicketStatus(opts: {
+  userId: string;
+  ticketId: string;
+  ticketNumber: number;
+  status: "resolved" | "closed";
+}) {
+  const ref = `PF-${opts.ticketNumber}`;
+  const label = opts.status === "resolved" ? "resolved" : "closed";
+  await createNotification({
+    userId: opts.userId,
+    type: "support_ticket_status",
+    title: `Support ticket ${ref} ${label}`,
+    body:
+      opts.status === "resolved"
+        ? "Your ticket was marked resolved. Reopen it from Help if you still need assistance."
+        : "This support ticket is now closed.",
+    href: `/dashboard/help?view=tickets&ticket=${opts.ticketId}`,
+  });
+}
+
+export async function notifyBillingPaymentFailed(opts: {
+  userId: string;
+  amountLabel: string;
+}) {
+  await createNotification({
+    userId: opts.userId,
+    type: "billing_payment_failed",
+    title: "Payment failed",
+    body: `We could not process your ${opts.amountLabel} subscription renewal. Update billing to keep access.`,
+    href: "/dashboard/settings?section=billing",
   });
 }

@@ -21,7 +21,7 @@ export function FeedCallList({
 
   return (
     <SparklineProvider symbols={symbols} lazy>
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {calls.map((call) => (
           <CallCard
             key={call.id}

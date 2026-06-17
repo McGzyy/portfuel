@@ -8,6 +8,11 @@ import {
   normalizeSmsPhoneE164,
   normalizeWatchlistAlertPrefs,
 } from "@/lib/alerts/preferences";
+import {
+  DEFAULT_ENGAGEMENT_ALERT_PREFS,
+  fetchEngagementAlertPrefs,
+  normalizeEngagementAlertPrefs,
+} from "@/lib/alerts/engagement-preferences";
 import { fetchJournalAlertAiUsage } from "@/lib/ai/journal-alert-usage";
 import { isAiCoachConfigured } from "@/lib/ai/config";
 import { isSmsConfigured } from "@/lib/sms/config";
@@ -26,8 +31,19 @@ const watchlistPrefsSchema = z.object({
   ai_insights: z.boolean().optional(),
 });
 
+const engagementPrefsSchema = z.object({
+  comments_on_my_calls: z.boolean().optional(),
+  votes_on_my_calls: z.boolean().optional(),
+  direct_messages: z.boolean().optional(),
+  followed_member_calls: z.boolean().optional(),
+  call_milestones: z.boolean().optional(),
+  desk_portfolio_updates: z.boolean().optional(),
+  new_followers: z.boolean().optional(),
+});
+
 const patchSchema = z.object({
   watchlist: watchlistPrefsSchema.optional(),
+  engagement: engagementPrefsSchema.optional(),
   smsPhoneE164: z.union([z.string().max(20), z.literal("")]).optional(),
   smsAlertsEnabled: z.boolean().optional(),
 });
@@ -40,6 +56,7 @@ export async function GET() {
       return NextResponse.json({ error: "not_found" }, { status: 404 });
     }
 
+    const engagement = await fetchEngagementAlertPrefs(session.userId);
     const emailPrefs = await fetchEmailPrefs(session.userId);
     const proContext = sessionToProContext(session);
     const isPro = canAccessProIntelligence(proContext);
@@ -51,6 +68,7 @@ export async function GET() {
 
     return NextResponse.json({
       watchlist: prefs.watchlist,
+      engagement,
       smsPhoneE164: prefs.smsPhoneE164,
       smsAlertsEnabled: prefs.smsAlertsEnabled,
       pushAlertsEnabled: prefs.pushAlertsEnabled,
@@ -63,6 +81,7 @@ export async function GET() {
       aiConfigured: isAiCoachConfigured(),
       aiUsage,
       defaults: DEFAULT_WATCHLIST_ALERT_PREFS,
+      engagementDefaults: DEFAULT_ENGAGEMENT_ALERT_PREFS,
     });
   } catch (e) {
     if (e instanceof Error && e.message === "unauthorized") {
@@ -85,12 +104,21 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "not_found" }, { status: 404 });
     }
 
+    const existingEngagement = await fetchEngagementAlertPrefs(session.userId);
+
     const update: Record<string, unknown> = {};
 
     if (body.watchlist) {
       update.watchlist_alert_prefs = normalizeWatchlistAlertPrefs({
         ...existing.watchlist,
         ...body.watchlist,
+      });
+    }
+
+    if (body.engagement) {
+      update.engagement_alert_prefs = normalizeEngagementAlertPrefs({
+        ...existingEngagement,
+        ...body.engagement,
       });
     }
 
@@ -122,6 +150,7 @@ export async function PATCH(request: Request) {
     }
 
     const prefs = await fetchUserAlertPrefs(session.userId);
+    const engagement = await fetchEngagementAlertPrefs(session.userId);
     const emailPrefs = await fetchEmailPrefs(session.userId);
     const aiUsage = await fetchJournalAlertAiUsage({
       userId: session.userId,
@@ -131,6 +160,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({
       watchlist: prefs?.watchlist ?? DEFAULT_WATCHLIST_ALERT_PREFS,
+      engagement,
       smsPhoneE164: prefs?.smsPhoneE164 ?? null,
       smsAlertsEnabled: prefs?.smsAlertsEnabled ?? false,
       pushAlertsEnabled: prefs?.pushAlertsEnabled ?? false,
@@ -143,6 +173,7 @@ export async function PATCH(request: Request) {
       aiConfigured: isAiCoachConfigured(),
       aiUsage,
       defaults: DEFAULT_WATCHLIST_ALERT_PREFS,
+      engagementDefaults: DEFAULT_ENGAGEMENT_ALERT_PREFS,
     });
   } catch (e) {
     if (e instanceof z.ZodError) {

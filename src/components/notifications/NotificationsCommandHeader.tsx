@@ -28,7 +28,7 @@ export function NotificationsCommandHeader({
           <span className="text-[var(--pf-gray-400)]"> · all caught up</span>
         )}
         {" "}
-        — watchlist alerts, calls, votes, comments, desk updates, and DMs.
+        — watchlist alerts, social engagement, support, billing, desk updates, and DMs.
       </p>
       <Link
         href="/dashboard"

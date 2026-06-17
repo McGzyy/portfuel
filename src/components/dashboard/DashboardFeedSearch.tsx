@@ -23,7 +23,7 @@ export function DashboardFeedSearch() {
   }
 
   return (
-    <div className="relative max-w-md">
+    <div className="relative max-w-md w-full lg:max-w-md">
       <Search
         className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--pf-gray-400)]"
         strokeWidth={2}

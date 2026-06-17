@@ -53,8 +53,8 @@ export function MetricsStrip({
               <p
                 className={cn(
                   "pf-metrics-strip-value",
-                  item.accent === "positive" && "text-emerald-500",
-                  item.accent === "negative" && "text-rose-500",
+                  item.accent === "positive" && "text-emerald-600",
+                  item.accent === "negative" && "text-rose-600",
                   dark && item.accent == null && "text-white"
                 )}
               >

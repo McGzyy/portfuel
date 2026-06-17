@@ -6,6 +6,7 @@ import {
 import { updateSupportTicketStatus } from "@/lib/support/tickets";
 import type { SupportTicketRow, SupportTicketWithUser } from "@/lib/support/types";
 import { formatTicketRef } from "@/lib/support/types";
+import { notifySupportTicketIdleWarning } from "@/lib/notifications/service";
 
 function idleWarnDays(): number {
   const n = Number(process.env.SUPPORT_TICKET_IDLE_WARN_DAYS ?? 5);
@@ -77,6 +78,13 @@ export async function runSupportTicketExpiryCron(): Promise<{
     void notifyDiscordSupportTicketIdleWarningDm(ticket, closeIn).catch((e) =>
       console.error("[support/expiry/warn-dm]", e)
     );
+
+    void notifySupportTicketIdleWarning({
+      userId: ticket.user_id,
+      ticketId: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      closeInDays: closeIn,
+    }).catch((e) => console.error("[support/expiry/warn-in-app]", e));
 
     warned += 1;
   }

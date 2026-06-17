@@ -18,6 +18,7 @@ import {
 } from "@/lib/stripe/subscription";
 import { setStripeCheckoutEmail } from "@/lib/member-lifecycle/email-verify";
 import { finalizeCheckoutRedemption } from "@/lib/vouchers/service";
+import { notifyBillingPaymentFailed } from "@/lib/notifications/service";
 
 /** Stripe Basil+ moved subscription off Invoice; read via parent.subscription_details. */
 function subscriptionIdFromInvoice(invoice: Stripe.Invoice): string | null {
@@ -220,6 +221,13 @@ async function onInvoicePaymentFailed(invoice: Stripe.Invoice) {
     currency: invoice.currency ?? "usd",
     invoiceId: invoice.id,
   }).catch((e) => console.error("[discord/billing-failed]", e));
+
+  const currency = (invoice.currency ?? "usd").toUpperCase();
+  const amount = ((invoice.amount_due ?? 0) / 100).toFixed(2);
+  void notifyBillingPaymentFailed({
+    userId: user.id,
+    amountLabel: `${currency} ${amount}`,
+  }).catch((e) => console.error("[billing/payment-failed-notify]", e));
 }
 
 function resolveBillingInterval(

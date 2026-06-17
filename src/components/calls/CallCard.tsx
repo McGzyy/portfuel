@@ -184,7 +184,7 @@ export function CallCard({
       ) : null}
       <CardContent
         className={cn(
-          embedded ? "p-0" : compact ? "px-3 py-3 sm:px-5 sm:py-4" : "px-4 py-4 sm:px-6 sm:py-5",
+          embedded ? "p-0" : compact ? "px-4 py-3 sm:px-5 sm:py-4" : "px-5 py-4 sm:px-6 sm:py-5",
           linkToTicker && "pointer-events-none"
         )}
       >

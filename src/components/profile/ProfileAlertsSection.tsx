@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { WatchlistAlertPrefs } from "@/lib/alerts/preferences";
+import type { EngagementAlertPrefs } from "@/lib/alerts/engagement-preferences";
 import { PushAlertsControl } from "@/components/pwa/PushAlertsControl";
 import {
   SettingsPanelActions,
@@ -12,6 +13,7 @@ import {
 
 type AlertPrefsResponse = {
   watchlist: WatchlistAlertPrefs;
+  engagement: EngagementAlertPrefs;
   smsPhoneE164: string | null;
   smsAlertsEnabled: boolean;
   pushAlertsEnabled: boolean;
@@ -28,6 +30,7 @@ type AlertPrefsResponse = {
 export function ProfileAlertsSection() {
   const [data, setData] = useState<AlertPrefsResponse | null>(null);
   const [watchlist, setWatchlist] = useState<WatchlistAlertPrefs | null>(null);
+  const [engagement, setEngagement] = useState<EngagementAlertPrefs | null>(null);
   const [smsPhone, setSmsPhone] = useState("");
   const [smsEnabled, setSmsEnabled] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -40,6 +43,7 @@ export function ProfileAlertsSection() {
     const json = (await res.json()) as AlertPrefsResponse;
     setData(json);
     setWatchlist(json.watchlist);
+    setEngagement(json.engagement);
     setSmsPhone(json.smsPhoneE164 ?? "");
     setSmsEnabled(json.smsAlertsEnabled);
   }, []);
@@ -49,7 +53,7 @@ export function ProfileAlertsSection() {
   }, [load]);
 
   async function save() {
-    if (!watchlist) return;
+    if (!watchlist || !engagement) return;
     setSaving(true);
     setMessage(null);
     setError(null);
@@ -59,6 +63,7 @@ export function ProfileAlertsSection() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         watchlist,
+        engagement,
         smsPhoneE164: smsPhone.trim(),
         smsAlertsEnabled: smsEnabled,
       }),
@@ -78,12 +83,13 @@ export function ProfileAlertsSection() {
     const json = (await res.json()) as AlertPrefsResponse;
     setData(json);
     setWatchlist(json.watchlist);
+    setEngagement(json.engagement);
     setSmsPhone(json.smsPhoneE164 ?? "");
     setSmsEnabled(json.smsAlertsEnabled);
     setMessage("Alert preferences saved.");
   }
 
-  if (!data || !watchlist) return null;
+  if (!data || !watchlist || !engagement) return null;
 
   return (
     <section className="pf-workspace-panel p-4 sm:p-6">
@@ -91,12 +97,12 @@ export function ProfileAlertsSection() {
         Alert types
       </p>
       <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
-        What triggers notifications on symbols you follow. In-app alerts are always on.
+        Choose what triggers in-app alerts and optional email, SMS, or push delivery.
       </p>
 
       <div className="mt-4 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2.5 text-sm text-[var(--pf-gray-600)]">
         <span className="font-medium text-[var(--pf-black)]">Delivery: </span>
-        In-app (always on)
+        In-app bell (toggleable types below)
         {data.emailInstantEnabled && data.notifyEmail ? (
           <span> · Email to {data.notifyEmail}</span>
         ) : (
@@ -112,13 +118,93 @@ export function ProfileAlertsSection() {
         {data.pushAlertsEnabled ? <span> · Browser push</span> : null}
       </div>
 
+      <div className="mt-4 rounded-lg border border-dashed border-[var(--pf-border)] bg-white px-3 py-2.5 text-xs leading-relaxed text-[var(--pf-gray-600)]">
+        <p className="font-semibold text-[var(--pf-black)]">Always on (cannot disable)</p>
+        <p className="mt-1">
+          Support ticket updates, billing payment failures, and staff-only admin alerts. These still
+          respect your email toggle when instant email is enabled.
+        </p>
+      </div>
+
       {!data.emailConfigured ? (
         <p className="mt-3 rounded-lg border border-amber-200/80 bg-amber-50 px-3 py-2 text-sm text-amber-900">
           Email delivery is not configured in this environment yet.
         </p>
       ) : null}
 
-      <div className="mt-5">
+      <div className="mt-6">
+        <p className="text-sm font-semibold text-[var(--pf-black)]">Social & your calls</p>
+        <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
+          Engagement on your theses, DMs, follows, milestones, and desk updates.
+        </p>
+        <div className="mt-3">
+          <SettingsToggleRow
+            label="Comments on your calls"
+            description="When someone comments on a thesis you published."
+            checked={engagement.comments_on_my_calls}
+            onCheckedChange={(checked) =>
+              setEngagement({ ...engagement, comments_on_my_calls: checked })
+            }
+          />
+          <SettingsToggleRow
+            label="Votes on your calls"
+            description="Upvotes and downvotes on your published calls."
+            checked={engagement.votes_on_my_calls}
+            onCheckedChange={(checked) =>
+              setEngagement({ ...engagement, votes_on_my_calls: checked })
+            }
+          />
+          <SettingsToggleRow
+            label="Direct messages"
+            description="New private messages in your inbox."
+            checked={engagement.direct_messages}
+            onCheckedChange={(checked) =>
+              setEngagement({ ...engagement, direct_messages: checked })
+            }
+          />
+          <SettingsToggleRow
+            label="Calls from people you follow"
+            description="When a followed member publishes a new thesis."
+            checked={engagement.followed_member_calls}
+            onCheckedChange={(checked) =>
+              setEngagement({ ...engagement, followed_member_calls: checked })
+            }
+          />
+          <SettingsToggleRow
+            label="New followers"
+            description="When a member starts following your profile."
+            checked={engagement.new_followers}
+            onCheckedChange={(checked) =>
+              setEngagement({ ...engagement, new_followers: checked })
+            }
+          />
+          <SettingsToggleRow
+            label="Your call milestones"
+            description="Return targets, stops, and pending-entry events on your own calls."
+            checked={engagement.call_milestones}
+            onCheckedChange={(checked) =>
+              setEngagement({ ...engagement, call_milestones: checked })
+            }
+          />
+          <SettingsToggleRow
+            label="Fueled desk portfolio"
+            description="House desk opens, updates, and closes on the model portfolio."
+            checked={engagement.desk_portfolio_updates}
+            onCheckedChange={(checked) =>
+              setEngagement({ ...engagement, desk_portfolio_updates: checked })
+            }
+          />
+        </div>
+      </div>
+
+      <div className="mt-6 border-t border-[var(--pf-border)] pt-5">
+        <p className="text-sm font-semibold text-[var(--pf-black)]">Watchlist symbols</p>
+        <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
+          Price, earnings, journal levels, and community calls for symbols you track.
+        </p>
+      </div>
+
+      <div className="mt-3">
         <SettingsToggleRow
           label="Price move since add"
           description="When a watchlist symbol moves beyond your threshold since you added it."

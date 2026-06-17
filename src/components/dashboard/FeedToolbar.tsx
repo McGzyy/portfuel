@@ -34,62 +34,77 @@ export function FeedToolbar({
   };
 
   return (
-    <div className="pf-feed-toolbar pf-feed-toolbar-premium pf-feed-toolbar-sticky space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-          Browse & filter
-        </p>
-        <FeedRefreshButton />
-      </div>
-      <FeedNewBanner
-        newCount={newCount}
-        mode={mode}
-        feedFilter={feedFilter}
-        searchQuery={searchQuery}
-        showNewOnly={showNewOnly}
-      />
-      <TabNav
-        tabs={[
-          {
-            href: buildFeedHref(tabBase),
-            label: "Latest",
-            active: mode === "latest",
-          },
-          {
-            href: buildFeedHref({ ...tabBase, tab: "performing" }),
-            label: "Performing",
-            active: mode === "performing",
-          },
-          {
-            href: buildFeedHref({ ...tabBase, tab: "progress" }),
-            label: "Near target",
-            active: mode === "progress",
-          },
-        ]}
-      />
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <Suspense fallback={<div className="h-10 flex-1 max-w-md rounded-lg bg-[var(--pf-gray-100)]" />}>
-          <DashboardFeedSearch />
-        </Suspense>
-        <DashboardFeedFilters
-          active={feedFilter}
-          tab={mode}
-          searchQuery={searchQuery || undefined}
+    <div className="space-y-3">
+      <div className="pf-feed-toolbar pf-feed-toolbar-premium pf-feed-toolbar-sticky pf-feed-toolbar-sticky-core">
+        <div className="flex items-center justify-between gap-2 sm:hidden">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            Feed
+          </p>
+          <FeedRefreshButton className="!w-auto shrink-0" />
+        </div>
+
+        <FeedNewBanner
           newCount={newCount}
+          mode={mode}
+          feedFilter={feedFilter}
+          searchQuery={searchQuery}
           showNewOnly={showNewOnly}
-          fueledCount={fueledCount}
         />
+
+        <TabNav
+          className="pf-feed-tab-nav w-full max-w-full"
+          tabs={[
+            {
+              href: buildFeedHref(tabBase),
+              label: "Latest",
+              active: mode === "latest",
+            },
+            {
+              href: buildFeedHref({ ...tabBase, tab: "performing" }),
+              label: "Performing",
+              active: mode === "performing",
+            },
+            {
+              href: buildFeedHref({ ...tabBase, tab: "progress" }),
+              label: "Near target",
+              active: mode === "progress",
+            },
+          ]}
+        />
+
+        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between lg:gap-3">
+          <Suspense fallback={<div className="h-10 w-full rounded-lg bg-[var(--pf-gray-100)] lg:max-w-md" />}>
+            <DashboardFeedSearch />
+          </Suspense>
+          <DashboardFeedFilters
+            active={feedFilter}
+            tab={mode}
+            searchQuery={searchQuery || undefined}
+            newCount={newCount}
+            showNewOnly={showNewOnly}
+            fueledCount={fueledCount}
+          />
+        </div>
       </div>
-      <FeedSavedFilters
-        feedFilter={feedFilter}
-        tab={mode}
-        searchQuery={searchQuery}
-        showNewOnly={showNewOnly}
-      />
-      <p className="text-xs text-[var(--pf-gray-500)]">
-        {quotesRefreshLabel()} · Use <span className="font-medium">Update prices</span> for
-        immediate marks
-      </p>
+
+      <div className="pf-feed-toolbar-extras space-y-2.5 rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white/80 px-3 py-2.5 sm:space-y-3 sm:px-4 sm:py-3">
+        <div className="hidden flex-wrap items-center justify-between gap-3 sm:flex">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            Browse & filter
+          </p>
+          <FeedRefreshButton />
+        </div>
+        <FeedSavedFilters
+          feedFilter={feedFilter}
+          tab={mode}
+          searchQuery={searchQuery}
+          showNewOnly={showNewOnly}
+        />
+        <p className="hidden text-xs text-[var(--pf-gray-500)] sm:block">
+          {quotesRefreshLabel()} · Use <span className="font-medium">Update prices</span> for
+          immediate marks
+        </p>
+      </div>
     </div>
   );
 }

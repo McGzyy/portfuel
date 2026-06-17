@@ -3,39 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Bell,
-  Flame,
-  MessageCircle,
-  MessageSquare,
-  Target,
-  ThumbsUp,
-  TrendingUp,
-  UserPlus,
-} from "lucide-react";
+import { Bell } from "lucide-react";
 import { cn, timeAgo } from "@/lib/utils";
-import type { NotificationType, UserNotification } from "@/lib/notifications/types";
-
-function iconForType(type: NotificationType) {
-  switch (type) {
-    case "watchlist_call":
-      return TrendingUp;
-    case "vote_on_call":
-      return ThumbsUp;
-    case "comment_on_call":
-      return MessageSquare;
-    case "followed_member_call":
-      return UserPlus;
-    case "desk_portfolio_update":
-      return Flame;
-    case "call_milestone":
-      return Target;
-    case "direct_message":
-      return MessageCircle;
-    default:
-      return Bell;
-  }
-}
+import type { UserNotification } from "@/lib/notifications/types";
+import { iconForNotificationType } from "@/components/notifications/notification-icons";
+import {
+  applyLocalNotificationRead,
+  markNotificationsReadByIds,
+} from "@/components/notifications/mark-notifications-read";
+import { useNotificationReadOnView } from "@/components/notifications/useNotificationReadOnView";
 
 export function NotificationBell() {
   const router = useRouter();
@@ -44,6 +20,8 @@ export function NotificationBell() {
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<Map<string, HTMLElement>>(new Map());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -77,6 +55,26 @@ export function NotificationBell() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [open]);
 
+  const handleMarkReadOnView = useCallback(async (ids: string[]) => {
+    if (ids.length === 0) return;
+    setItems((prev) => applyLocalNotificationRead(prev, ids));
+    setUnread((c) => Math.max(0, c - ids.length));
+
+    const serverCount = await markNotificationsReadByIds(ids);
+    if (serverCount != null) setUnread(serverCount);
+    else if (ids.every((id) => id.startsWith("demo-"))) {
+      window.dispatchEvent(new Event("portfuel:notifications-unread-changed"));
+    }
+  }, []);
+
+  useNotificationReadOnView({
+    active: open && !loading,
+    items: items.slice(0, 12),
+    scrollRef,
+    itemRefs,
+    onMarkRead: handleMarkReadOnView,
+  });
+
   async function markAllRead() {
     await fetch("/api/notifications", {
       method: "POST",
@@ -84,28 +82,25 @@ export function NotificationBell() {
       body: JSON.stringify({ all: true }),
     });
     setUnread(0);
-    setItems((prev) => prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })));
+    setItems((prev) => applyLocalNotificationRead(prev, prev.map((n) => n.id)));
     window.dispatchEvent(new Event("portfuel:notifications-unread-changed"));
   }
 
   async function openNotification(n: UserNotification) {
     if (!n.read_at && !n.id.startsWith("demo-")) {
-      await fetch("/api/notifications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: [n.id] }),
-      });
+      await markNotificationsReadByIds([n.id]);
       setUnread((c) => Math.max(0, c - 1));
+      setItems((prev) => applyLocalNotificationRead(prev, [n.id]));
+    } else if (!n.read_at) {
+      setUnread((c) => Math.max(0, c - 1));
+      setItems((prev) => applyLocalNotificationRead(prev, [n.id]));
       window.dispatchEvent(new Event("portfuel:notifications-unread-changed"));
-      setItems((prev) =>
-        prev.map((x) =>
-          x.id === n.id ? { ...x, read_at: new Date().toISOString() } : x
-        )
-      );
     }
     setOpen(false);
     router.push(n.href);
   }
+
+  const visibleItems = items.slice(0, 12);
 
   return (
     <div className="relative" ref={panelRef}>
@@ -128,7 +123,7 @@ export function NotificationBell() {
 
       {open ? (
         <div className="pf-popover-panel absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] shadow-[var(--pf-shadow-lg)]">
-          <div className="flex items-center justify-between border-b border-[var(--pf-border)] px-4 py-3">
+          <div className="flex items-center justify-between border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)]/60 px-4 py-3">
             <p className="text-sm font-bold text-[var(--pf-black)]">Notifications</p>
             {unread > 0 ? (
               <button
@@ -141,7 +136,7 @@ export function NotificationBell() {
             ) : null}
           </div>
 
-          <div className="max-h-[min(24rem,60vh)] overflow-y-auto">
+          <div ref={scrollRef} className="max-h-[min(24rem,60vh)] overflow-y-auto">
             {loading && items.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-[var(--pf-gray-500)]">Loading…</p>
             ) : items.length === 0 ? (
@@ -149,33 +144,52 @@ export function NotificationBell() {
                 You&apos;re all caught up.
               </p>
             ) : (
-              <ul>
-                {items.slice(0, 12).map((n) => {
-                  const Icon = iconForType(n.type);
+              <ul className="divide-y divide-[var(--pf-border)]">
+                {visibleItems.map((n) => {
+                  const Icon = iconForNotificationType(n.type);
                   const unreadItem = !n.read_at;
                   return (
-                    <li key={n.id}>
+                    <li
+                      key={n.id}
+                      ref={(el) => {
+                        if (el) itemRefs.current.set(n.id, el);
+                        else itemRefs.current.delete(n.id);
+                      }}
+                    >
                       <button
                         type="button"
                         onClick={() => openNotification(n)}
                         className={cn(
-                          "flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--pf-gray-50)]",
-                          unreadItem && "bg-[var(--pf-red-muted)]/40"
+                          "relative flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--pf-gray-50)]",
+                          unreadItem && "bg-[var(--pf-red-muted)]/70"
                         )}
                       >
+                        {unreadItem ? (
+                          <span
+                            className="absolute bottom-2 left-0 top-2 w-[3px] rounded-r-full bg-[var(--pf-red)]"
+                            aria-hidden
+                          />
+                        ) : null}
                         <span
                           className={cn(
                             "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
                             unreadItem
-                              ? "bg-[var(--pf-red-muted)] text-[var(--pf-red)]"
+                              ? "bg-white text-[var(--pf-red)] shadow-[var(--pf-shadow-sm)]"
                               : "bg-[var(--pf-gray-100)] text-[var(--pf-gray-500)]"
                           )}
                         >
                           <Icon className="h-4 w-4" strokeWidth={2.25} />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block text-sm font-semibold text-[var(--pf-black)]">
-                            {n.title}
+                          <span className="flex items-start gap-2">
+                            <span className="block flex-1 text-sm font-semibold text-[var(--pf-black)]">
+                              {n.title}
+                            </span>
+                            {unreadItem ? (
+                              <span className="shrink-0 rounded-full bg-[var(--pf-red)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+                                New
+                              </span>
+                            ) : null}
                           </span>
                           <span className="mt-0.5 block text-xs leading-relaxed text-[var(--pf-gray-600)]">
                             {n.body}
@@ -192,13 +206,13 @@ export function NotificationBell() {
             )}
           </div>
 
-          <div className="border-t border-[var(--pf-border)] px-4 py-2.5 text-center">
+          <div className="border-t border-[var(--pf-border)] bg-[var(--pf-gray-50)]/60 px-4 py-2.5 text-center">
             <Link
               href="/dashboard/notifications"
               onClick={() => setOpen(false)}
               className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
             >
-              View all
+              View all alerts
             </Link>
           </div>
         </div>

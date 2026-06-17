@@ -44,10 +44,17 @@ const INSTANT_EMAIL_TYPES: NotificationType[] = [
   "watchlist_earnings",
   "watchlist_plan_level",
   "comment_on_call",
+  "vote_on_call",
   "followed_member_call",
+  "new_follower",
   "desk_portfolio_update",
   "call_milestone",
   "direct_message",
+  "support_ticket_opened",
+  "support_ticket_reply",
+  "support_ticket_idle_warning",
+  "support_ticket_status",
+  "billing_payment_failed",
 ];
 
 export function shouldSendInstantEmail(

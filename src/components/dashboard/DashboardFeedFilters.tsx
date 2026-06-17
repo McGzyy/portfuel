@@ -29,7 +29,11 @@ export function DashboardFeedFilters({
   const filterArg = active === "all" ? undefined : active;
 
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Filter feed">
+    <div
+      className="pf-feed-filter-scroll flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      role="group"
+      aria-label="Filter feed"
+    >
       {newCount > 0 ? (
         <Link
           href={
@@ -43,7 +47,7 @@ export function DashboardFeedFilters({
                 })
           }
           className={cn(
-            "rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+            "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
             showNewOnly
               ? "border-emerald-700 bg-emerald-700 text-white"
               : "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
@@ -67,7 +71,7 @@ export function DashboardFeedFilters({
             key={f.key}
             href={href}
             className={cn(
-              "rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+              "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
               isActive && f.key === "fueled"
                 ? "border-[var(--pf-red)] bg-[var(--pf-red-muted)] text-[var(--pf-red)]"
                 : isActive

@@ -136,7 +136,7 @@ export function ProfileEmailSection() {
       <div className="mt-6">
         <SettingsToggleRow
           label="Instant email alerts"
-          description="Comments on your calls, desk updates, DMs, and watchlist alerts (when enabled below)."
+          description="Instant email for comments, votes, DMs, follows, milestones, desk updates, watchlist alerts, and support/billing (when enabled below)."
           checked={instant}
           onCheckedChange={setInstant}
           disabled={!prefs.emailConfigured}
