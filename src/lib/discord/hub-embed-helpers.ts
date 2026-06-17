@@ -1,7 +1,18 @@
 /** Shared formatting for pinned Discord hub embeds (official-links, rules, faqs). */
 
+import { resolveSymbolLogoUrl } from "@/lib/market/symbol-logo";
+
 export function appIconUrl(appUrl: string): string {
   return `${appUrl.replace(/\/$/, "")}/icon`;
+}
+
+/** Ticker logo for call embeds when available; otherwise PortFuel app icon. */
+export async function resolveCallEmbedThumbnail(
+  symbol: string,
+  appUrl: string
+): Promise<string> {
+  const logo = await resolveSymbolLogoUrl(symbol);
+  return logo ?? appIconUrl(appUrl);
 }
 
 /** Short bullets — scannable on mobile. */

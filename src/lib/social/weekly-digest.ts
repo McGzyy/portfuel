@@ -4,6 +4,7 @@ import { getDemoCallsFeed } from "@/lib/demo/fixtures";
 import { getMemberWinGateConfig } from "@/lib/social/member-win-config";
 import { isSymbolBlockedForMemberWin } from "@/lib/social/member-win-blocklist";
 import { meetsMemberWinReturnAgeGate } from "@/lib/social/member-win-eligibility";
+import { renderWeeklyDigestOgPng } from "@/lib/charts/weekly-digest-og";
 import { appPath } from "@/lib/social/app-url";
 import { applyCopyTemplate, fetchSocialPostCopy } from "@/lib/social/copy-templates";
 
@@ -13,6 +14,23 @@ export type WeeklyDigestRow = {
   returnPct: number;
   handle: string;
 };
+
+export function formatWeeklyDigestLineX(row: WeeklyDigestRow, index: number): string {
+  const ret = `${row.returnPct >= 0 ? "+" : ""}${row.returnPct.toFixed(1)}%`;
+  return `${index + 1}. $${row.symbol} ${row.direction} · ${ret} · ${row.handle}`;
+}
+
+export function formatWeeklyDigestLineDiscord(row: WeeklyDigestRow, index: number): string {
+  const ret = `${row.returnPct >= 0 ? "+" : ""}${row.returnPct.toFixed(1)}%`;
+  const dir = row.direction.toUpperCase();
+  return `**${index + 1}.** **${row.symbol}** ${dir} **${ret}** — ${row.handle}`;
+}
+
+export async function renderWeeklyDigestChartPng(limit = 3): Promise<Buffer | null> {
+  const rows = await fetchWeeklyDigestRows(limit);
+  if (rows.length === 0) return null;
+  return renderWeeklyDigestOgPng(rows);
+}
 
 function trimTweet(text: string, max = 280): string {
   if (text.length <= max) return text;
@@ -91,10 +109,7 @@ export async function composeWeeklyDigestPost(
   if (wins.length === 0) return { ok: false, error: "no_content" };
 
   const copy = await fetchSocialPostCopy();
-  const lines = wins.map((w, i) => {
-    const ret = `${w.returnPct >= 0 ? "+" : ""}${w.returnPct.toFixed(1)}%`;
-    return `${i + 1}. $${w.symbol} ${w.direction} · ${ret} · ${w.handle}`;
-  });
+  const lines = wins.map((w, i) => formatWeeklyDigestLineX(w, i));
   const week = new Date().toISOString().slice(0, 10);
   const link = appPath("/", {
     source: "x",

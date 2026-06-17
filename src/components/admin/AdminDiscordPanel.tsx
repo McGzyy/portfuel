@@ -14,9 +14,13 @@ type PreviewSection = {
   items: DiscordPreviewItem[];
 };
 
-function chartPreviewUrl(milestone?: string): string | undefined {
-  if (!milestone) return undefined;
-  return `/api/admin/social/demo-chart?milestone=${encodeURIComponent(milestone)}&k=${Date.now()}`;
+function chartPreviewUrl(item: DiscordPreviewItem): string | undefined {
+  if (!item.attachChart) return undefined;
+  const params = new URLSearchParams({ k: String(Date.now()) });
+  if (item.chartWeeklyDigest) return `/api/admin/social/weekly-digest/chart?${params.toString()}`;
+  if (item.chartMemberWin) params.set("memberWin", "1");
+  else if (item.chartMilestone) params.set("milestone", item.chartMilestone);
+  return `/api/admin/social/demo-chart?${params.toString()}`;
 }
 
 export function AdminDiscordPanel() {
@@ -113,7 +117,7 @@ export function AdminDiscordPanel() {
                       content={item.content}
                       embeds={item.embeds}
                       attachChart={item.attachChart}
-                      chartUrl={chartPreviewUrl(item.chartMilestone)}
+                      chartUrl={chartPreviewUrl(item)}
                       note={item.note}
                     />
                   </article>

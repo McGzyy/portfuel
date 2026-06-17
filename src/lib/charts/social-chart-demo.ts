@@ -108,7 +108,19 @@ export async function loadDemoSocialChartPayload(
     markers,
     priceLines,
     logoBase64: loadSocialChartLogoBase64(),
+    tickerLogoBase64: null,
     siteHost: getPublicSiteHost(),
+  };
+}
+
+/** Desk call at publish — chart card without milestone badge. */
+export async function loadDemoFueledNewCallChartPayload(): Promise<SocialChartPayload> {
+  const base = await loadDemoSocialChartPayload("return_10");
+  return {
+    ...base,
+    returnPct: 4.2,
+    milestone: null,
+    milestoneLabel: null,
   };
 }
 
@@ -211,6 +223,7 @@ export async function loadDemoMemberWinChartPayload(
     markers,
     priceLines: buildFeaturedCallPriceLines(call, "Member"),
     logoBase64: loadSocialChartLogoBase64(),
+    tickerLogoBase64: null,
     siteHost: getPublicSiteHost(),
   };
 }

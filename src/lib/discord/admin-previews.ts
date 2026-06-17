@@ -4,12 +4,14 @@ import {
   buildFueledCallEmbed,
   buildLinkWelcomeEmbed,
   buildMemberNewCallEmbed,
+  buildMemberSpotlightEmbed,
   buildMilestoneChatEmbed,
   buildTargetHitChannelEmbed,
   buildWeeklyDigestEmbed,
   DISCORD_COLORS,
   fueledCallPostContent,
   memberNewCallPostContent,
+  memberSpotlightPostContent,
   targetHitPostContent,
   type DiscordEmbedPayload,
 } from "@/lib/discord/embed-payloads";
@@ -47,6 +49,8 @@ export type DiscordPreviewItem = {
   embeds: DiscordEmbedPayload[];
   attachChart?: boolean;
   chartMilestone?: DiscordPreviewChartMilestone;
+  chartMemberWin?: boolean;
+  chartWeeklyDigest?: boolean;
   note?: string;
 };
 
@@ -140,6 +144,7 @@ export function buildAdminDiscordPreviews(appUrl: string): {
           returnPct: 4.2,
         }),
       ],
+      attachChart: true,
     },
     {
       id: "target_hit_channel",
@@ -210,6 +215,50 @@ export function buildAdminDiscordPreviews(appUrl: string): {
           isFueled: true,
           entryPrice: DEMO_CALL.entryPrice,
           targetPrice: DEMO_CALL.targetPrice,
+        }),
+      ],
+    },
+    {
+      id: "fueled_milestone_50_chat",
+      label: "+50% milestone (fueled · chart)",
+      channel: "#member-chat",
+      eventType: "call.milestone.snippet",
+      group: "calls",
+      content: milestonePostContent("return_50", DEMO_CALL.symbol),
+      attachChart: true,
+      chartMilestone: "return_50",
+      embeds: [
+        buildMilestoneChatEmbed({
+          symbol: DEMO_CALL.symbol,
+          direction: DEMO_CALL.direction,
+          url: tickerUrl,
+          milestone: "return_50",
+          returnPct: 52.4,
+          username: "PortFuel Desk",
+          displayName: "PortFuel Desk",
+          appUrl: base,
+          isFueled: true,
+          entryPrice: DEMO_CALL.entryPrice,
+          targetPrice: DEMO_CALL.targetPrice,
+        }),
+      ],
+    },
+    {
+      id: "member_spotlight",
+      label: "Member spotlight (chart)",
+      channel: "#member-calls",
+      eventType: "member.spotlight",
+      group: "calls",
+      content: memberSpotlightPostContent(DEMO_CALL.symbol),
+      attachChart: true,
+      chartMemberWin: true,
+      note: "Uses memberWin chart variant",
+      embeds: [
+        buildMemberSpotlightEmbed({
+          ...DEMO_CALL,
+          url: tickerUrl,
+          appUrl: base,
+          returnPct: 31.2,
         }),
       ],
     },
@@ -306,24 +355,25 @@ export function buildAdminDiscordPreviews(appUrl: string): {
       eventType: "digest.weekly",
       group: "community",
       content: "📊 **Weekly digest** · Top member movers",
+      attachChart: true,
+      chartWeeklyDigest: true,
+      note: "Uses weekly digest composite chart",
       embeds: [
         buildWeeklyDigestEmbed({
           appUrl: base,
           feedUrl: `${base}/dashboard/feed`,
-          movers: [
+          rows: [
             {
               symbol: "NVDA",
               direction: "long",
               returnPct: 22.4,
-              isFueled: true,
-              who: "PortFuel Desk",
+              handle: "@deskalpha",
             },
             {
               symbol: "AMD",
               direction: "long",
               returnPct: 14.1,
-              isFueled: false,
-              who: DEMO_CALL.displayName!,
+              handle: `@${DEMO_CALL.username}`,
             },
           ],
         }),

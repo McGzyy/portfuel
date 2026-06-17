@@ -34,7 +34,7 @@ export function FeedToolbar({
   };
 
   return (
-    <div className="space-y-3">
+    <>
       <div className="pf-feed-toolbar pf-feed-toolbar-premium pf-feed-toolbar-sticky pf-feed-toolbar-sticky-core">
         <div className="flex items-center justify-between gap-2 sm:hidden">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
@@ -105,6 +105,6 @@ export function FeedToolbar({
           immediate marks
         </p>
       </div>
-    </div>
+    </>
   );
 }

@@ -1,15 +1,21 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { milestonePostContent } from "@/lib/discord/call-embed-helpers";
 import {
+  fueledCallDiscordContent,
+  getDiscordDisclaimerMarkdown,
+  memberNewCallDiscordContent,
+  memberSpotlightDiscordContent,
+  targetHitDiscordContent,
+} from "@/lib/discord/discord-copy";
+import {
   buildFueledCallEmbed,
   buildLinkWelcomeEmbed,
   buildMemberNewCallEmbed,
+  buildMemberSpotlightEmbed,
   buildMilestoneChatEmbed,
   buildTargetHitChannelEmbed,
-  fueledCallPostContent,
-  memberNewCallPostContent,
-  targetHitPostContent,
 } from "@/lib/discord/embed-payloads";
+import { resolveCallEmbedThumbnail } from "@/lib/discord/hub-embed-helpers";
 import { getAppUrl } from "@/lib/stripe/config";
 import { getDiscordConfig } from "@/lib/discord/config";
 import { resolveTierChatChannelId } from "@/lib/discord/milestone-channel";
@@ -81,6 +87,10 @@ export async function notifyDiscordNewCall(input: {
   const { channels } = getDiscordConfig();
   const appUrl = getAppUrl();
   const url = `${appUrl}/ticker/${encodeURIComponent(input.symbol)}`;
+  const [thumbnailUrl, disclaimer] = await Promise.all([
+    resolveCallEmbedThumbnail(input.symbol, appUrl),
+    getDiscordDisclaimerMarkdown(),
+  ]);
 
   if (input.isFueled && channels.fireCalls) {
     await enqueueDiscordOutbox({
@@ -90,7 +100,8 @@ export async function notifyDiscordNewCall(input: {
       payload: {
         callId: input.callId,
         symbol: input.symbol,
-        content: fueledCallPostContent(),
+        content: await fueledCallDiscordContent(),
+        attachChart: true,
         embed: buildFueledCallEmbed({
           symbol: input.symbol,
           direction: input.direction,
@@ -102,6 +113,8 @@ export async function notifyDiscordNewCall(input: {
           targetPrice: input.targetPrice,
           stopPrice: input.stopPrice,
           returnPct: input.returnPct,
+          thumbnailUrl,
+          disclaimer,
         }),
       },
     });
@@ -115,7 +128,7 @@ export async function notifyDiscordNewCall(input: {
     payload: {
       callId: input.callId,
       symbol: input.symbol,
-      content: memberNewCallPostContent(),
+      content: await memberNewCallDiscordContent(),
       embed: buildMemberNewCallEmbed({
         symbol: input.symbol,
         direction: input.direction,
@@ -128,6 +141,49 @@ export async function notifyDiscordNewCall(input: {
         targetPrice: input.targetPrice,
         stopPrice: input.stopPrice,
         returnPct: input.returnPct,
+        thumbnailUrl,
+        disclaimer,
+      }),
+    },
+  });
+}
+
+export async function notifyDiscordMemberSpotlight(input: { callId: string }): Promise<void> {
+  const ctx = await fetchCallDiscordContext(input.callId);
+  if (!ctx || ctx.is_fueled) return;
+
+  const { channels } = getDiscordConfig();
+  const appUrl = getAppUrl();
+  const url = `${appUrl}/ticker/${encodeURIComponent(ctx.symbol)}`;
+  const [thumbnailUrl, disclaimer] = await Promise.all([
+    resolveCallEmbedThumbnail(ctx.symbol, appUrl),
+    getDiscordDisclaimerMarkdown(),
+  ]);
+
+  await enqueueDiscordOutbox({
+    channelId: channels.calls,
+    eventType: "member.spotlight",
+    dedupeKey: `member-spotlight:${input.callId}`,
+    payload: {
+      callId: input.callId,
+      symbol: ctx.symbol,
+      content: await memberSpotlightDiscordContent(ctx.symbol),
+      attachChart: true,
+      memberWin: true,
+      embed: buildMemberSpotlightEmbed({
+        symbol: ctx.symbol,
+        direction: ctx.direction,
+        url,
+        appUrl,
+        username: ctx.users.username,
+        displayName: ctx.users.display_name,
+        returnPct: ctx.return_pct,
+        thesis: ctx.thesis,
+        entryPrice: ctx.entry_price,
+        targetPrice: ctx.target_price,
+        stopPrice: ctx.stop_price,
+        thumbnailUrl,
+        disclaimer,
       }),
     },
   });
@@ -148,6 +204,10 @@ export async function notifyDiscordCallMilestone(input: {
   const displayName = ctx?.users.display_name ?? null;
   const direction = ctx?.direction ?? "long";
   const isFueled = ctx?.is_fueled ?? false;
+  const [thumbnailUrl, disclaimer] = await Promise.all([
+    resolveCallEmbedThumbnail(input.symbol, appUrl),
+    getDiscordDisclaimerMarkdown(),
+  ]);
 
   const chatChannelId = await resolveTierChatChannelId(input.userId);
   const chatEmbed = buildMilestoneChatEmbed({
@@ -162,6 +222,7 @@ export async function notifyDiscordCallMilestone(input: {
     isFueled,
     entryPrice: ctx?.entry_price,
     targetPrice: ctx?.target_price,
+    thumbnailUrl,
   });
 
   await enqueueDiscordOutbox({
@@ -187,7 +248,7 @@ export async function notifyDiscordCallMilestone(input: {
         callId: input.callId,
         symbol: input.symbol,
         milestone: input.key,
-        content: targetHitPostContent(input.symbol),
+        content: targetHitDiscordContent(input.symbol),
         attachChart: true,
         embed: buildTargetHitChannelEmbed({
           symbol: input.symbol,
@@ -200,6 +261,8 @@ export async function notifyDiscordCallMilestone(input: {
           targetPrice: ctx?.target_price,
           appUrl,
           isFueled,
+          thumbnailUrl,
+          disclaimer,
         }),
       },
     });

@@ -26,6 +26,7 @@ export type SocialChartPayload = {
   markers: ChartMarker[];
   priceLines: PriceLine[];
   logoBase64: string | null;
+  tickerLogoBase64: string | null;
   siteHost: string;
 };
 
@@ -37,8 +38,19 @@ const MILESTONE_LABELS: Record<CallMilestoneKey, string> = {
 };
 
 import { loadSocialChartLogoBase64 } from "@/lib/charts/social-chart-logo";
+import { fetchLogoAsDataUrl, resolveSymbolLogoUrl } from "@/lib/market/symbol-logo";
 import { getPublicSiteHost } from "@/lib/social/app-url";
 export { loadSocialChartLogoBase64 };
+
+async function loadTickerLogoBase64(symbol: string): Promise<string | null> {
+  try {
+    const logoUrl = await resolveSymbolLogoUrl(symbol);
+    if (!logoUrl) return null;
+    return fetchLogoAsDataUrl(logoUrl);
+  } catch {
+    return null;
+  }
+}
 
 function inferMilestone(call: {
   return_pct: number | null;
@@ -48,6 +60,7 @@ function inferMilestone(call: {
 }): CallMilestoneKey | null {
   if (call.target_progress != null && call.target_progress >= 100) return "target_reached";
   const ret = call.return_pct;
+  if (ret != null && ret >= 50) return "return_50";
   if (ret != null && ret >= 25) return "return_25";
   if (ret != null && ret >= 10) return "return_10";
   return null;
@@ -145,6 +158,8 @@ export async function loadSocialChartPayload(
         : `${call.return_pct >= 0 ? "+" : ""}${call.return_pct.toFixed(1)}% since call`
       : null;
 
+  const tickerLogoBase64 = await loadTickerLogoBase64(call.symbol);
+
   return {
     symbol: call.symbol,
     companyName: intel.companyName,
@@ -163,6 +178,7 @@ export async function loadSocialChartPayload(
     markers,
     priceLines,
     logoBase64: loadSocialChartLogoBase64(),
+    tickerLogoBase64,
     siteHost: getPublicSiteHost(),
   };
 }

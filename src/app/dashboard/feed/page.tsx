@@ -139,68 +139,70 @@ export default async function DashboardFeedPage({
 
       {proLocked ? <ProIntelDiscoverStrip watchlistSymbols={watchlistSymbols} /> : null}
 
-      <FeedToolbar
-        mode={mode}
-        feedFilter={feedFilter}
-        searchQuery={searchQuery}
-        newCount={newCount}
-        showNewOnly={showNewOnly}
-        fueledCount={fueledCalls.length}
-      />
-      <FeedVisitTracker />
-
-      {fueledMapped.length > 0 && feedFilter !== "fueled" ? (
-        <FueledDeskSection
-          calls={fueledMapped}
-          viewerUserId={session.userId}
-          isAdmin={session.role === "admin"}
-        />
-      ) : null}
-
-      {feedSummary.count > 0 ? (
-        <FeedSummaryBar
-          summary={feedSummary}
+      <div className="pf-feed-sticky-scope space-y-4 sm:space-y-6">
+        <FeedToolbar
           mode={mode}
-          proLocked={proLocked}
-          proGateCta={proGateCta}
+          feedFilter={feedFilter}
+          searchQuery={searchQuery}
+          newCount={newCount}
+          showNewOnly={showNewOnly}
+          fueledCount={fueledCalls.length}
         />
-      ) : null}
+        <FeedVisitTracker />
 
-      {showLeadersPanel ? (
-        <ProFeedLeadersPanel calls={mapped} locked={proLocked} proGateCta={proGateCta} />
-      ) : null}
-
-      <section aria-label="Community calls">
-        {mapped.length === 0 ? (
-          <CallsEmptyState
-            title="No calls match this view"
-            description={
-              showNewOnly
-                ? "No new calls match this filter — clear “new only” or check back after members publish."
-                : feedFilter === "following"
-                  ? "Follow members from rankings or their profile to personalize this feed."
-                  : feedFilter === "fueled"
-                    ? "No Fueled desk calls in this window yet — house theses appear here when published."
-                    : "Try a different tab, filter, or search — or publish a new thesis."
-            }
-            showPublishCta={feedFilter !== "following"}
-            secondaryHref={
-              feedFilter === "following" ? "/dashboard/rankings" : "/dashboard/watchlist"
-            }
-            secondaryLabel={
-              feedFilter === "following" ? "Browse rankings" : "Open watchlist"
-            }
-          />
-        ) : (
-          <FeedCallList
-            calls={mapped}
-            feedSeenAt={feedSeenAt}
-            proLocked={proLocked}
+        {fueledMapped.length > 0 && feedFilter !== "fueled" ? (
+          <FueledDeskSection
+            calls={fueledMapped}
             viewerUserId={session.userId}
             isAdmin={session.role === "admin"}
           />
-        )}
-      </section>
+        ) : null}
+
+        {feedSummary.count > 0 ? (
+          <FeedSummaryBar
+            summary={feedSummary}
+            mode={mode}
+            proLocked={proLocked}
+            proGateCta={proGateCta}
+          />
+        ) : null}
+
+        {showLeadersPanel ? (
+          <ProFeedLeadersPanel calls={mapped} locked={proLocked} proGateCta={proGateCta} />
+        ) : null}
+
+        <section aria-label="Community calls">
+          {mapped.length === 0 ? (
+            <CallsEmptyState
+              title="No calls match this view"
+              description={
+                showNewOnly
+                  ? "No new calls match this filter — clear “new only” or check back after members publish."
+                  : feedFilter === "following"
+                    ? "Follow members from rankings or their profile to personalize this feed."
+                    : feedFilter === "fueled"
+                      ? "No Fueled desk calls in this window yet — house theses appear here when published."
+                      : "Try a different tab, filter, or search — or publish a new thesis."
+              }
+              showPublishCta={feedFilter !== "following"}
+              secondaryHref={
+                feedFilter === "following" ? "/dashboard/rankings" : "/dashboard/watchlist"
+              }
+              secondaryLabel={
+                feedFilter === "following" ? "Browse rankings" : "Open watchlist"
+              }
+            />
+          ) : (
+            <FeedCallList
+              calls={mapped}
+              feedSeenAt={feedSeenAt}
+              proLocked={proLocked}
+              viewerUserId={session.userId}
+              isAdmin={session.role === "admin"}
+            />
+          )}
+        </section>
+      </div>
     </div>
   );
 }

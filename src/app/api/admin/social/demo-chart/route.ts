@@ -2,26 +2,38 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
 import {
+  DEMO_MEMBER_WIN_CALL_ID,
   demoMilestoneTweetCopy,
+  loadDemoFueledNewCallChartPayload,
+  loadDemoMemberWinChartPayload,
   loadDemoSocialChartPayload,
 } from "@/lib/charts/social-chart-demo";
 import { renderSocialChartPng } from "@/lib/charts/social-chart-render";
 import { renderSocialChartSvg } from "@/lib/charts/social-chart";
 
-const milestoneSchema = z.enum(["return_10", "return_25", "target_reached"]);
+const milestoneSchema = z.enum(["return_10", "return_25", "return_50", "target_reached"]);
 
 export async function GET(request: Request) {
   try {
     await requireAdmin();
     const url = new URL(request.url);
     const format = url.searchParams.get("format") ?? "png";
-    const milestoneRaw = url.searchParams.get("milestone") ?? "return_25";
-    const parsed = milestoneSchema.safeParse(milestoneRaw);
-    if (!parsed.success) {
+    const memberWin = url.searchParams.get("memberWin") === "1";
+    const milestoneRaw = url.searchParams.get("milestone");
+    const parsed = milestoneRaw ? milestoneSchema.safeParse(milestoneRaw) : null;
+    if (milestoneRaw && !parsed?.success) {
       return NextResponse.json({ error: "invalid_milestone" }, { status: 400 });
     }
 
-    const payload = await loadDemoSocialChartPayload(parsed.data);
+    const payload = memberWin
+      ? await loadDemoMemberWinChartPayload(DEMO_MEMBER_WIN_CALL_ID)
+      : milestoneRaw
+        ? await loadDemoSocialChartPayload(parsed!.data)
+        : await loadDemoFueledNewCallChartPayload();
+
+    if ("error" in payload) {
+      return NextResponse.json({ error: payload.error }, { status: 404 });
+    }
 
     if (format === "svg") {
       const svg = renderSocialChartSvg(payload);
@@ -41,7 +53,7 @@ export async function GET(request: Request) {
         "Cache-Control": "no-store",
         ...(download
           ? {
-              "Content-Disposition": `attachment; filename="portfuel-${payload.symbol}-demo-${parsed.data}.png"`,
+              "Content-Disposition": `attachment; filename="portfuel-${payload.symbol}-demo${parsed?.data ? `-${parsed.data}` : memberWin ? "-member" : ""}.png"`,
             }
           : {}),
       },

@@ -1,6 +1,7 @@
 /** Shared formatting for call alert embeds (member, fueled, milestones, targets). */
 
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
+import { milestoneDiscordContent } from "@/lib/discord/discord-copy";
 import { HUB_DISCLAIMER } from "@/lib/discord/hub-embed-helpers";
 
 export function formatUsd(value: number | null | undefined): string {
@@ -62,16 +63,7 @@ export function milestoneDisplayLabel(key: CallMilestoneKey): string {
 }
 
 export function milestonePostContent(key: CallMilestoneKey, symbol: string): string {
-  switch (key) {
-    case "target_reached":
-      return `🎯 **Target reached** · **${symbol}**`;
-    case "return_50":
-      return `📈 **+50% milestone** · **${symbol}**`;
-    case "return_25":
-      return `📈 **+25% milestone** · **${symbol}**`;
-    case "return_10":
-      return `📈 **+10% milestone** · **${symbol}**`;
-  }
+  return milestoneDiscordContent(key, symbol);
 }
 
 export const CALL_POST_DISCLAIMER = HUB_DISCLAIMER;

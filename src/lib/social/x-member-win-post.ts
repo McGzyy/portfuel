@@ -1,5 +1,6 @@
 import { loadSocialChartPayload } from "@/lib/charts/social-chart-data";
 import { renderSocialChartPng } from "@/lib/charts/social-chart-render";
+import { notifyDiscordMemberSpotlight } from "@/lib/discord/events";
 import { composeMemberWinPost } from "@/lib/social/x-compose";
 import { getXConfig } from "@/lib/social/x-config";
 import { postToX } from "@/lib/social/x-client";
@@ -101,6 +102,10 @@ export async function postMemberWin(opts?: {
       tweetId: posted.tweetId,
       copyVariant: composed.copyVariant,
     });
+
+    void notifyDiscordMemberSpotlight({ callId }).catch((e) =>
+      console.error("[x-member-win-post] discord spotlight", e)
+    );
   }
 
   return {

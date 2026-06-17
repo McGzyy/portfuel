@@ -63,92 +63,109 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
             height: 208,
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", maxWidth: 680 }}>
-            <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-              {mile ? (
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 20, maxWidth: 680 }}>
+            {payload.tickerLogoBase64 ? (
+              <img
+                src={payload.tickerLogoBase64}
+                width={56}
+                height={56}
+                alt=""
+                style={{
+                  display: "flex",
+                  borderRadius: 14,
+                  border: `1px solid ${T.rule}`,
+                  background: "#fff",
+                  flexShrink: 0,
+                }}
+              />
+            ) : null}
+            <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+                {mile ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: T.accent,
+                      background: T.accentFill,
+                      border: `1px solid ${T.accentBorder}`,
+                      borderRadius: 999,
+                      padding: "5px 12px",
+                      letterSpacing: 0.5,
+                      marginRight: 12,
+                    }}
+                  >
+                    {mile.toUpperCase()}
+                  </div>
+                ) : null}
                 <div
                   style={{
                     display: "flex",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: T.accent,
-                    background: T.accentFill,
-                    border: `1px solid ${T.accentBorder}`,
-                    borderRadius: 999,
-                    padding: "5px 12px",
-                    letterSpacing: 0.5,
-                    marginRight: 12,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: T.textDim,
+                    letterSpacing: 1.2,
                   }}
                 >
-                  {mile.toUpperCase()}
+                  {eyebrow}
                 </div>
-              ) : null}
+              </div>
+
               <div
                 style={{
                   display: "flex",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: T.textDim,
-                  letterSpacing: 1.2,
+                  fontSize: 58,
+                  fontWeight: 700,
+                  color: T.textBright,
+                  letterSpacing: -2.5,
+                  lineHeight: 1,
                 }}
               >
-                {eyebrow}
+                {payload.symbol}
               </div>
-            </div>
 
-            <div
-              style={{
-                display: "flex",
-                fontSize: 58,
-                fontWeight: 700,
-                color: T.textBright,
-                letterSpacing: -2.5,
-                lineHeight: 1,
-              }}
-            >
-              {payload.symbol}
-            </div>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 22,
+                  fontWeight: 500,
+                  color: T.text,
+                  marginTop: 6,
+                  letterSpacing: -0.3,
+                }}
+              >
+                {payload.companyName}
+              </div>
 
-            <div
-              style={{
-                display: "flex",
-                fontSize: 22,
-                fontWeight: 500,
-                color: T.text,
-                marginTop: 6,
-                letterSpacing: -0.3,
-              }}
-            >
-              {payload.companyName}
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                fontSize: 13,
-                fontWeight: 600,
-                color: T.text,
-                marginTop: 8,
-              }}
-            >
-              <span style={{ display: "flex", color: dir.color }}>{dir.label}</span>
-              <span style={{ display: "flex", color: T.textDim, marginLeft: 8 }}>·</span>
-              <span style={{ display: "flex", color: T.textDim, marginLeft: 8 }}>{callType}</span>
-            </div>
-
-            {date ? (
               <div
                 style={{
                   display: "flex",
                   fontSize: 13,
-                  fontWeight: 500,
-                  color: T.textDim,
-                  marginTop: 6,
+                  fontWeight: 600,
+                  color: T.text,
+                  marginTop: 8,
                 }}
               >
-                {`Called ${date}`}
+                <span style={{ display: "flex", color: dir.color }}>{dir.label}</span>
+                <span style={{ display: "flex", color: T.textDim, marginLeft: 8 }}>·</span>
+                <span style={{ display: "flex", color: T.textDim, marginLeft: 8 }}>{callType}</span>
               </div>
-            ) : null}
+
+              {date ? (
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: T.textDim,
+                    marginTop: 6,
+                  }}
+                >
+                  {`Called ${date}`}
+                </div>
+              ) : null}
+            </div>
           </div>
 
           {retStr ? (

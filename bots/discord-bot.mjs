@@ -163,16 +163,29 @@ async function ensureRole(member, roleId, enabled) {
   if (!enabled && has) await member.roles.remove(roleId);
 }
 
-async function fetchChartAttachment(callId, milestone, symbol) {
-  if (!callId || !milestone) return null;
-  const chartUrl = `${APP_URL}/api/social/chart/${callId}?milestone=${encodeURIComponent(milestone)}`;
+async function fetchWeeklyDigestAttachment() {
+  const chartUrl = `${APP_URL}/api/social/weekly-digest/chart?limit=3`;
+  const res = await fetch(chartUrl);
+  if (!res.ok) return null;
+  const buf = Buffer.from(await res.arrayBuffer());
+  return new AttachmentBuilder(buf, { name: "portfuel-weekly-digest.png" });
+}
+
+async function fetchChartAttachment({ callId, milestone, memberWin, symbol }) {
+  if (!callId) return null;
+  const params = new URLSearchParams();
+  if (milestone) params.set("milestone", milestone);
+  if (memberWin) params.set("memberWin", "1");
+  const qs = params.toString();
+  const chartUrl = `${APP_URL}/api/social/chart/${callId}${qs ? `?${qs}` : ""}`;
   const res = await fetch(chartUrl);
   if (!res.ok) return null;
   const buf = Buffer.from(await res.arrayBuffer());
   const safeSym = String(symbol ?? "chart")
     .replace(/[^a-z0-9_-]/gi, "")
     .slice(0, 12);
-  return new AttachmentBuilder(buf, { name: `${safeSym || "chart"}-${milestone}.png` });
+  const suffix = milestone ? `-${milestone}` : memberWin ? "-member" : "-chart";
+  return new AttachmentBuilder(buf, { name: `${safeSym || "chart"}${suffix}.png` });
 }
 
 async function postToChannel(client, channelId, payload, chartOpts) {
@@ -210,12 +223,16 @@ function applyEmbedPayload(builder, embed) {
 
 async function buildOutboxDiscordMessage(payload, chartOpts) {
   const files = [];
-  if (chartOpts?.attachChart && chartOpts.callId && chartOpts.milestone) {
-    const file = await fetchChartAttachment(
-      chartOpts.callId,
-      chartOpts.milestone,
-      chartOpts.symbol
-    );
+  if (chartOpts?.weeklyDigestChart) {
+    const file = await fetchWeeklyDigestAttachment();
+    if (file) files.push(file);
+  } else if (chartOpts?.attachChart && chartOpts.callId) {
+    const file = await fetchChartAttachment({
+      callId: chartOpts.callId,
+      milestone: chartOpts.milestone,
+      memberWin: chartOpts.memberWin,
+      symbol: chartOpts.symbol,
+    });
     if (file) files.push(file);
   }
 
@@ -1351,8 +1368,10 @@ async function runOutboxTick() {
 
       await postToChannel(client, resolvedChannel, messagePayload, {
         attachChart: Boolean(payload.attachChart),
+        weeklyDigestChart: Boolean(payload.weeklyDigestChart),
         callId: payload.callId ? String(payload.callId) : undefined,
         milestone: payload.milestone ? String(payload.milestone) : undefined,
+        memberWin: Boolean(payload.memberWin),
         symbol: payload.symbol ? String(payload.symbol) : undefined,
       });
       await api("/api/discord/outbox/ack", { method: "POST", body: { id, status: "sent" } });

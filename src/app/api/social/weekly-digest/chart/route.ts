@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth/session";
 import { renderWeeklyDigestChartPng } from "@/lib/social/weekly-digest";
 
 export async function GET(request: Request) {
   try {
-    await requireAdmin();
-    const png = await renderWeeklyDigestChartPng(3);
+    const url = new URL(request.url);
+    const limit = Math.min(5, Math.max(1, Number(url.searchParams.get("limit") ?? "3")));
+    const png = await renderWeeklyDigestChartPng(limit);
     if (!png) {
       return NextResponse.json({ error: "no_content" }, { status: 404 });
     }
-    const download = new URL(request.url).searchParams.get("download") === "1";
+
+    const download = url.searchParams.get("download") === "1";
     return new NextResponse(new Uint8Array(png), {
       headers: {
         "Content-Type": "image/png",
@@ -20,13 +21,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (e) {
-    if (e instanceof Error && e.message === "unauthorized") {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-    }
-    if (e instanceof Error && e.message === "forbidden") {
-      return NextResponse.json({ error: "forbidden" }, { status: 403 });
-    }
-    console.error("[admin/social/weekly-digest/chart]", e);
+    console.error("[social/weekly-digest/chart]", e);
     return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
 }
