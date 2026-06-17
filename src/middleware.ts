@@ -198,20 +198,8 @@ export async function middleware(request: NextRequest) {
       session.emailVerified &&
       pathname === emailVerifyPath
     ) {
-      const dest = !totpVerified ? twoFactorSetupPath : memberHomePath(session);
-      return withFreshCookie(NextResponse.redirect(new URL(dest, request.url)), freshToken);
-    }
-
-    if (
-      isActive &&
-      session.emailVerified &&
-      !totpVerified &&
-      pathname !== twoFactorSetupPath &&
-      !pathname.startsWith("/api/") &&
-      (isProtected || pathname.startsWith("/join/success"))
-    ) {
       return withFreshCookie(
-        NextResponse.redirect(new URL(twoFactorSetupPath, request.url)),
+        NextResponse.redirect(new URL(memberHomePath(session), request.url)),
         freshToken
       );
     }
@@ -226,7 +214,6 @@ export async function middleware(request: NextRequest) {
 
     if (
       isActive &&
-      totpVerified &&
       session.emailVerified &&
       !session.canAccessWorkspace &&
       role !== "admin" &&
@@ -244,7 +231,6 @@ export async function middleware(request: NextRequest) {
 
     if (
       isActive &&
-      totpVerified &&
       role !== "admin" &&
       !session.onboardingCompleted &&
       !pathname.startsWith("/onboarding") &&
@@ -299,13 +285,6 @@ export async function middleware(request: NextRequest) {
       if (isActive && needsEmailGate(session)) {
         return withFreshCookie(
           NextResponse.redirect(new URL(emailVerifyPath, request.url)),
-          freshToken
-        );
-      }
-
-      if (isActive && !session.totpVerified) {
-        return withFreshCookie(
-          NextResponse.redirect(new URL(twoFactorSetupPath, request.url)),
           freshToken
         );
       }

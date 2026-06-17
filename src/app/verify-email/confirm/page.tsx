@@ -49,7 +49,7 @@ function ConfirmEmailInner() {
 
   useEffect(() => {
     if (status !== "ok") return;
-    const t = window.setTimeout(() => router.push("/security/2fa"), 3500);
+    const t = window.setTimeout(() => router.push("/onboarding"), 3500);
     return () => window.clearTimeout(t);
   }, [status, router]);
 
@@ -64,12 +64,12 @@ function ConfirmEmailInner() {
       }
       subtitle={
         status === "ok"
-          ? "Your email is verified. Set up 2FA next — then the workspace opens."
+          ? "Your email is verified. We recommend setting up 2FA next — you can also continue straight to the workspace."
           : undefined
       }
     >
       <div className="space-y-6">
-        {status === "ok" ? <EmailUnlockSteps current="2fa" /> : null}
+        {status === "ok" ? <EmailUnlockSteps current="workspace" /> : null}
 
         <div className="space-y-6 text-center">
           {status === "loading" ? (
@@ -83,11 +83,21 @@ function ConfirmEmailInner() {
               </div>
               <p className="text-sm font-medium text-[var(--pf-gray-700)]">
                 <Sparkles className="mr-1 inline h-4 w-4 text-emerald-600" aria-hidden />
-                Email unlocked — securing your account with 2FA…
+                Email unlocked — opening your workspace…
               </p>
-              <Button className="w-full" size="lg" onClick={() => router.push("/security/2fa")}>
-                Continue to 2FA
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button className="w-full" size="lg" onClick={() => router.push("/security/2fa")}>
+                  Set up 2FA (recommended)
+                </Button>
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  size="lg"
+                  onClick={() => router.push("/onboarding")}
+                >
+                  Continue to workspace
+                </Button>
+              </div>
             </>
           ) : null}
 

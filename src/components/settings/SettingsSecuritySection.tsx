@@ -105,7 +105,7 @@ export function SettingsSecuritySection() {
             <p className="mt-1 text-sm leading-relaxed text-[var(--pf-gray-600)]">
               {data?.totpVerified
                 ? "Your account uses an authenticator app at sign-in."
-                : "Add an authenticator app for an extra layer of protection."}
+                : "Add an authenticator app — strongly recommended for protecting calls, messages, and billing."}
             </p>
             {!data?.totpVerified ? (
               <Link

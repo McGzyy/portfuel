@@ -103,8 +103,6 @@ export default function LoginPage() {
       }
       if (data.needsEmailVerification) {
         router.push("/verify-email?welcome=1");
-      } else if (data.needsTwoFactorSetup) {
-        router.push("/security/2fa");
       } else if (data.needsOnboarding) {
         router.push("/onboarding");
       } else if (data.subscriptionStatus === "pending" && data.role !== "admin") {

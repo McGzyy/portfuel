@@ -51,7 +51,7 @@ function VerifyEmailInner() {
     setStatus(data);
     setEmail(data.email ?? data.stripeCheckoutEmail ?? "");
     if (data.emailVerified) {
-      router.replace("/security/2fa");
+      router.replace("/onboarding");
     }
     return data as VerifyStatus;
   }, [router]);
@@ -124,7 +124,7 @@ function VerifyEmailInner() {
   return (
     <AuthShell
       title="Unlock your workspace"
-      subtitle="Membership is active. Confirm your email once — then 2FA opens the dashboard."
+      subtitle="Membership is active. Confirm your email once — then your workspace opens. We strongly recommend 2FA after that."
     >
       <div className="space-y-6">
         <EmailUnlockSteps current="email" />

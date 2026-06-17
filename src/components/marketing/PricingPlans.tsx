@@ -30,7 +30,7 @@ export function PricingPlans() {
         <SectionHeader
           eyebrow="Plans"
           title="Choose your edge"
-          description="Secure checkout with Stripe. Member is the full workspace; Pro adds the research terminal. Two-factor required after activation."
+          description="Secure checkout with Stripe. Member is the full workspace; Pro adds the research terminal. Two-factor authentication is strongly recommended after activation."
         />
         <div className="mt-8 flex justify-center">
           <BillingIntervalPicker

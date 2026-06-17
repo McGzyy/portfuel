@@ -75,7 +75,7 @@ function buildVerificationEmailContent(link: string) {
   <p style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#E31B23;margin:0 0 12px">PortFuel</p>
   <h1 style="font-size:22px;font-weight:700;margin:0 0 8px">Confirm your email to unlock the workspace</h1>
   <p style="font-size:15px;line-height:1.5;color:#525252;margin:0 0 20px">
-    Payment is complete. Tap the button below once — then you&apos;ll set up 2FA and open your member dashboard.
+    Payment is complete. Tap the button below once to open your member dashboard. We strongly recommend enabling 2FA after you sign in.
   </p>
   <p style="margin:0 0 24px">
     <a href="${link}" style="display:inline-block;background:#E31B23;color:#fff;font-weight:600;text-decoration:none;padding:12px 20px;border-radius:8px">Unlock my workspace</a>
@@ -85,7 +85,7 @@ function buildVerificationEmailContent(link: string) {
 
   const text = `Confirm your email to unlock the PortFuel workspace.
 
-Payment is complete. Open this link once, then set up 2FA:
+Payment is complete. Open this link once to unlock your workspace. We strongly recommend enabling 2FA after sign-in:
 
 ${link}
 

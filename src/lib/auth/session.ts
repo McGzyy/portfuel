@@ -163,9 +163,6 @@ export async function requireActiveMember(): Promise<SessionPayload> {
   if (session.subscriptionStatus !== "active" && session.role !== "admin") {
     throw new Error("subscription_inactive");
   }
-  if (!session.totpVerified && session.role !== "admin") {
-    throw new Error("totp_required");
-  }
   return session;
 }
 

@@ -5,7 +5,6 @@ export function memberHomePath(session: SessionPayload): string {
   if (session.role === "admin") return "/dashboard";
   if (session.subscriptionStatus === "cancelled") return "/dashboard/settings";
   if (session.subscriptionStatus !== "active") return "/join?pending=1";
-  if (!session.totpVerified) return "/security/2fa";
   if (!session.onboardingCompleted) return "/onboarding";
   return "/dashboard";
 }

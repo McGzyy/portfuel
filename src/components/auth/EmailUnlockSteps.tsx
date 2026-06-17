@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 const STEPS = [
   { id: "membership", label: "Membership" },
   { id: "email", label: "Confirm email" },
-  { id: "2fa", label: "2FA" },
+  { id: "2fa", label: "2FA (recommended)" },
   { id: "workspace", label: "Workspace" },
 ] as const;
 

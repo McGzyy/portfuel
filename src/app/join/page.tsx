@@ -229,11 +229,11 @@ export default function JoinPage() {
         <h1 className="pf-display mt-3 text-2xl sm:text-3xl">Join PortFuel</h1>
         <p className="pf-lead mx-auto mt-3 max-w-xl text-sm">
           {inviteMode
-            ? "Create your account below — no payment step. After you register, we activate your access and you set up 2FA before the workspace."
+            ? "Create your account below — no payment step. After you register, we activate your access and you can open the workspace (2FA strongly recommended)."
             : stripeEnabled === null
               ? "Loading checkout options…"
               : stripeEnabled
-                ? `Choose Member (${formatTierPrice("member")}) or Pro Intelligence (${formatTierPrice("pro")}), create your account, and checkout with Stripe. Member includes the full workspace — desk, feed, charts, and DMs. Upgrade anytime from profile; 2FA required after activation.`
+                ? `Choose Member (${formatTierPrice("member")}) or Pro Intelligence (${formatTierPrice("pro")}), create your account, and checkout with Stripe. Member includes the full workspace — desk, feed, charts, and DMs. Upgrade anytime from profile; 2FA is strongly recommended after activation.`
                 : "Create your account — billing activates manually until Stripe is configured on this environment."}
         </p>
         {stripeEnabled ? (
@@ -283,7 +283,7 @@ export default function JoinPage() {
                   {invitedPending ? (
                     <>
                       You&apos;re signed in. Invited members do not pay through Stripe — wait for
-                      access activation, then set up 2FA at{" "}
+                      access activation, then sign in to the workspace. We recommend enabling 2FA at{" "}
                       <Link href="/security/2fa" className="font-semibold text-[var(--pf-red)] hover:underline">
                         /security/2fa
                       </Link>

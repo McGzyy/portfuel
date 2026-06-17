@@ -103,8 +103,7 @@ export async function POST(request: Request) {
       }
     );
 
-    const needsOnboardingWizard =
-      isActive && user.totp_verified && needsOnboarding(user);
+    const needsOnboardingWizard = isActive && needsOnboarding(user);
 
     const extended = user as UserRow & { email_verified_at?: string | null };
     const needsEmailVerification =

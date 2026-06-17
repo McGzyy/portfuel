@@ -1,6 +1,8 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { MemberNav } from "@/components/dashboard/MemberNav";
 import { ModerationBanner } from "@/components/member/ModerationBanner";
+import { TwoFactorRecommendationBanner } from "@/components/auth/TwoFactorRecommendationBanner";
+import { TwoFactorSecurityPrompt } from "@/components/auth/TwoFactorSecurityPrompt";
 import { WorkspaceAnnouncementStack } from "@/components/announcements/WorkspaceAnnouncementStack";
 import { fetchActiveAnnouncementsForUser } from "@/lib/announcements/service";
 import { countUnreadWhatsNew, fetchChangelogForUser } from "@/lib/announcements/changelog";
@@ -76,6 +78,11 @@ export async function DashboardWorkspaceFrame({
               canDm={session.canDm}
               canComment={session.canComment}
             />
+            <TwoFactorRecommendationBanner
+              userId={session.userId}
+              totpVerified={session.totpVerified}
+              isAdmin={session.role === "admin"}
+            />
             {announcements.length > 0 ? (
               <WorkspaceAnnouncementStack announcements={announcements} />
             ) : null}
@@ -86,6 +93,11 @@ export async function DashboardWorkspaceFrame({
           username={session.username}
           userId={session.userId}
           autoShow={showWorkspaceGuide}
+        />
+        <TwoFactorSecurityPrompt
+          userId={session.userId}
+          totpVerified={session.totpVerified}
+          isAdmin={session.role === "admin"}
         />
       </AppShell>
     </WorkspaceSearchShell>

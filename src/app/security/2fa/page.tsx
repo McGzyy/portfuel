@@ -64,7 +64,7 @@ export default function TwoFactorSetupPage() {
   return (
     <AuthShell
       title="Secure your account"
-      subtitle="Email confirmed. Set up 2FA once — then your workspace opens."
+      subtitle="Two-factor authentication is strongly recommended. Set it up now or continue to your workspace."
     >
       <div className="space-y-6">
         <EmailUnlockSteps current="2fa" />
@@ -90,7 +90,16 @@ export default function TwoFactorSetupPage() {
           disabled={loading || token.length !== 6 || !totpSecret}
           onClick={handleComplete}
         >
-          {loading ? "Verifying…" : "Unlock workspace with 2FA"}
+          {loading ? "Verifying…" : "Enable 2FA"}
+        </Button>
+        <Button
+          type="button"
+          className="w-full"
+          variant="ghost"
+          size="lg"
+          onClick={() => router.push("/dashboard")}
+        >
+          Continue without 2FA
         </Button>
       </div>
     </AuthShell>

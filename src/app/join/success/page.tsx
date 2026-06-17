@@ -15,7 +15,6 @@ export default function JoinSuccessPage() {
   const sessionId = searchParams.get("session_id");
 
   const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
-  const [needs2fa, setNeeds2fa] = useState(false);
   const [needsEmail, setNeedsEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -44,12 +43,11 @@ export default function JoinSuccessPage() {
           setErrorMsg(
             data.error === "payment_incomplete"
               ? "Payment is still processing. Refresh in a minute or sign in once it clears."
-              : "Could not confirm membership. Sign in — if your plan is active, continue to 2FA."
+              : "Could not confirm membership. Sign in — if your plan is active, continue to the workspace."
           );
           return;
         }
 
-        setNeeds2fa(Boolean(data.needsTwoFactorSetup));
         setNeedsEmail(Boolean(data.needsEmailVerification));
         setEmailSent(Boolean(data.verificationEmailSent));
         setStatus("ok");
@@ -68,7 +66,6 @@ export default function JoinSuccessPage() {
 
   function continueNext() {
     if (needsEmail) router.push("/verify-email?welcome=1");
-    else if (needs2fa) router.push("/security/2fa");
     else router.push("/dashboard");
   }
 
@@ -97,12 +94,12 @@ export default function JoinSuccessPage() {
             </div>
             <h1 className="mt-6 text-2xl font-bold">Payment received</h1>
             <p className="mt-2 text-sm text-[var(--pf-gray-600)]">
-              Your membership is active. Confirm your email to unlock the workspace, then set up
-              2FA.
+              Your membership is active. Confirm your email to unlock the workspace — we strongly
+              recommend setting up 2FA from settings once you&apos;re in.
             </p>
 
             <div className="mt-8">
-              <EmailUnlockSteps current={needsEmail ? "email" : needs2fa ? "2fa" : "workspace"} />
+              <EmailUnlockSteps current={needsEmail ? "email" : "workspace"} />
             </div>
 
             {needsEmail && emailSent ? (
@@ -113,13 +110,13 @@ export default function JoinSuccessPage() {
                 </p>
                 <p className="mt-1 text-emerald-800">
                   Check the inbox you used at signup. Tap{" "}
-                  <strong>Unlock my workspace</strong> in the email, then continue to 2FA.
+                  <strong>Unlock my workspace</strong> in the email to continue.
                 </p>
               </div>
             ) : null}
 
             <Button className="mt-8 w-full sm:w-auto" size="lg" onClick={continueNext}>
-              {needsEmail ? "Confirm email" : needs2fa ? "Set up 2FA" : "Open workspace"}
+              {needsEmail ? "Confirm email" : "Continue to workspace"}
             </Button>
           </>
         ) : null}
