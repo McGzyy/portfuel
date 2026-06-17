@@ -63,11 +63,14 @@ export type ReturnOutcome = "win" | "loss" | "flat";
 export type ReturnChartPoint = LinePoint & {
   callId?: string;
   symbol?: string;
+  assetClass?: "equity" | "crypto";
   outcome?: ReturnOutcome;
   label?: string;
   avatarUrl?: string | null;
   username?: string;
   displayName?: string | null;
+  /** When true, show a pin on the track-record chart (call open). */
+  isCallMarker?: boolean;
 };
 
 export type ChartRangeKey = "1m" | "3m" | "6m" | "1y" | "all";

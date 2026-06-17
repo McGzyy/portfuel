@@ -19,7 +19,7 @@ import { fetchWeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { OverviewReturnHero } from "@/components/dashboard/OverviewReturnHero";
 import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
-import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
+import { buildPerformanceSeries } from "@/lib/charts/cumulative-return-mtm";
 import { toChartMemberAvatar } from "@/lib/charts/member-avatar";
 import { FueledDeskPreview } from "@/components/dashboard/FueledDeskPreview";
 import { FueledTrackRecordPanel } from "@/components/dashboard/FueledTrackRecordPanel";
@@ -163,7 +163,7 @@ export default async function DashboardOverviewPage({
     8
   );
 
-  const performanceSeries = buildCumulativeReturnSeries(ownCalls);
+  const performanceSeries = await buildPerformanceSeries(ownCalls);
   const chartMemberAvatar = toChartMemberAvatar(ownProfile.member);
   const followingPreviews = filterCallsByFollowing(latestRaw, followingIds)
     .slice(0, 4)

@@ -17,7 +17,7 @@ import { fetchMemberPublicCalls } from "@/lib/users/public-profile";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { computeMemberProAnalytics } from "@/lib/users/member-analytics";
-import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
+import { buildPerformanceSeries } from "@/lib/charts/cumulative-return-mtm";
 import { toChartMemberAvatar } from "@/lib/charts/member-avatar";
 import { buildReturnDistribution } from "@/lib/charts/return-distribution";
 import { fetchAiCoachUsage } from "@/lib/ai/usage";
@@ -74,7 +74,7 @@ export default async function MemberProfilePage({
     !isSelf && (await isFollowing(session.userId, member.id));
   const trackRecord = summarizeMemberTrackRecord(calls);
   const proAnalytics = computeMemberProAnalytics(calls);
-  const returnSeries = buildCumulativeReturnSeries(calls);
+  const returnSeries = await buildPerformanceSeries(calls);
   const chartMemberAvatar = toChartMemberAvatar(member);
   const returnBuckets = buildReturnDistribution(calls);
   const proContext = sessionToProContext(session);

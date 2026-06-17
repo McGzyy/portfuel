@@ -22,17 +22,17 @@ export function TickerActionBar({
   const feedHref = buildFeedHref({ q: symbol });
 
   return (
-    <div className="space-y-3 pt-1">
-      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+    <div className="space-y-2 border-t border-[var(--pf-border)] pt-3 sm:space-y-3 sm:pt-4">
+      <div className="pf-ticker-action-scroll">
         {hasOwnOpenCall ? (
-          <Link href="#calls" className="col-span-2 sm:col-span-1">
-            <Button size="sm" variant="secondary" className="w-full gap-1.5 sm:w-auto">
+          <Link href="#calls" className="shrink-0">
+            <Button size="sm" variant="secondary" className="gap-1.5 whitespace-nowrap">
               Your open call
             </Button>
           </Link>
         ) : (
-          <Link href={newCallHref} className="col-span-2 sm:col-span-1">
-            <Button size="sm" className="w-full gap-1.5 sm:w-auto">
+          <Link href={newCallHref} className="shrink-0">
+            <Button size="sm" className="gap-1.5 whitespace-nowrap">
               <Plus className="h-4 w-4" strokeWidth={2.25} />
               {COPY.publishCallCta}
             </Button>
@@ -40,7 +40,7 @@ export function TickerActionBar({
         )}
         <Link
           href={feedHref}
-          className="pf-chip-action inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-[var(--pf-radius)] px-3.5 text-xs sm:w-auto"
+          className="pf-chip-action inline-flex h-9 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[var(--pf-radius)] px-3.5 text-xs"
         >
           <Rows3 className="h-3.5 w-3.5" strokeWidth={2.25} />
           Feed · {symbol}
@@ -48,15 +48,13 @@ export function TickerActionBar({
         {!proLocked ? (
           <Link
             href={buildCompareHref([symbol])}
-            className="pf-chip-action inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-[var(--pf-radius)] px-3.5 text-xs sm:w-auto"
+            className="pf-chip-action inline-flex h-9 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[var(--pf-radius)] px-3.5 text-xs"
           >
             <GitCompare className="h-3.5 w-3.5" strokeWidth={2.25} />
             Compare
           </Link>
         ) : null}
-      </div>
-      <div className="flex justify-stretch sm:justify-end">
-        <FeedRefreshButton />
+        <FeedRefreshButton className="w-auto shrink-0 whitespace-nowrap" />
       </div>
     </div>
   );

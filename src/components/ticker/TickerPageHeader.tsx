@@ -7,6 +7,7 @@ import { SymbolAvatar } from "@/components/market/SymbolAvatar";
 import { journalSymbolPath } from "@/lib/journal/paths";
 import { cn, formatPct, formatPrice } from "@/lib/utils";
 import { TickerWatchlistChip } from "@/components/ticker/TickerWatchlistChip";
+import { AddToWatchlistButton } from "@/components/watchlist/AddToWatchlistButton";
 import type { loadTickerIntel } from "@/lib/market/ticker-intel";
 
 export function TickerPageHeader({
@@ -76,16 +77,23 @@ export function TickerPageHeader({
           </div>
         </div>
 
-        {onWatchlist ? (
-          <div className="mt-3 space-y-2">
+        {session && onWatchlist ? (
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
             <TickerWatchlistChip symbol={symbol} />
             <Link
               href={journalSymbolPath(symbol)}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-700 transition-colors hover:text-indigo-900 hover:underline sm:hidden"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-700 transition-colors hover:text-indigo-900 hover:underline"
             >
               <BookOpen className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
               Open journal
             </Link>
+          </div>
+        ) : session ? (
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <AddToWatchlistButton symbol={symbol} assetClass={intel?.assetClass} />
+            <p className="text-xs leading-relaxed text-[var(--pf-gray-500)]">
+              Track {symbol} privately — journal, alerts, and publish from one place.
+            </p>
           </div>
         ) : null}
       </div>

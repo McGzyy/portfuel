@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { ChartRangeToolbar } from "@/components/charts/ChartRangeToolbar";
 import { ReturnLineChart } from "@/components/charts/ReturnLineChart";
 import type { ChartRangeKey, ReturnChartPoint, ChartMemberAvatar } from "@/lib/charts/types";
-import { ChartAvatarEmblem } from "@/components/charts/ChartAvatarEmblem";
 import { filterLineByRange } from "@/lib/charts/range";
 import { computeMaxDrawdown } from "@/lib/charts/cumulative-return";
 import { COPY } from "@/lib/copy";
@@ -67,8 +66,10 @@ export function OverviewReturnHero({
   const last = points[points.length - 1]?.value;
   const lastAccent =
     last == null ? "neutral" : last >= 0 ? ("up" as const) : ("down" as const);
-  const wins = points.filter((p) => p.outcome === "win").length;
-  const losses = points.filter((p) => p.outcome === "loss").length;
+  const callMarkers = points.filter((p) => p.isCallMarker);
+  const callCount = publishedCallCount > 0 ? publishedCallCount : callMarkers.length;
+  const wins = callMarkers.filter((p) => p.outcome === "win").length;
+  const losses = callMarkers.filter((p) => p.outcome === "loss").length;
 
   if (points.length === 0) {
     const hasCalls = publishedCallCount > 0;
@@ -148,8 +149,8 @@ export function OverviewReturnHero({
               {last != null ? formatPct(last) : "—"}
             </p>
           </div>
-          <div className="pf-track-record-stats grid w-full grid-cols-5 gap-1 sm:w-auto sm:max-w-[28rem] sm:gap-2">
-            <HeroStat label="Calls" value={String(points.length)} />
+          <div className="pf-track-record-stats grid w-full grid-cols-3 gap-2 sm:w-auto sm:max-w-[28rem] sm:grid-cols-5 sm:gap-2">
+            <HeroStat label="Calls" value={String(callCount)} />
             <HeroStat label="Wins" value={String(wins)} accent="up" />
             <HeroStat label="Losses" value={String(losses)} accent={losses > 0 ? "down" : "neutral"} />
             <HeroStat label="Win rate" value={winRate != null ? `${winRate}%` : "—"} />
@@ -159,7 +160,7 @@ export function OverviewReturnHero({
       </div>
 
       <div className="space-y-3 px-3 pb-2 pt-4 sm:px-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+        <div className="flex flex-col gap-3 px-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <ChartRangeToolbar value={range} onChange={setRange} />
           <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--pf-gray-500)]">
             {drawdown ? (
@@ -171,23 +172,11 @@ export function OverviewReturnHero({
               </span>
             ) : null}
             <span className="inline-flex items-center gap-1.5">
-              <ChartAvatarEmblem
-                username={memberAvatar?.username ?? "you"}
-                displayName={memberAvatar?.displayName}
-                avatarUrl={memberAvatar?.avatarUrl}
-                kind="win"
-                size="sm"
-              />
+              <span className="h-3 w-3 rounded-full ring-2 ring-emerald-500" aria-hidden />
               Win
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <ChartAvatarEmblem
-                username={memberAvatar?.username ?? "you"}
-                displayName={memberAvatar?.displayName}
-                avatarUrl={memberAvatar?.avatarUrl}
-                kind="loss"
-                size="sm"
-              />
+              <span className="h-3 w-3 rounded-full ring-2 ring-rose-500" aria-hidden />
               Loss
             </span>
           </div>
@@ -211,7 +200,7 @@ export function OverviewReturnHero({
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--pf-border)] bg-[var(--pf-gray-50)]/50 px-5 py-3 sm:px-6">
         <p className="text-xs text-[var(--pf-gray-500)]">
-          Marked to market on each refresh · click an avatar to open the ticker
+          Marked to market daily · ticker logos mark each call · click to open symbol
         </p>
         <Link
           href={profileHref}

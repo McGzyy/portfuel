@@ -7,7 +7,6 @@ import { ReturnLineChart } from "@/components/charts/ReturnLineChart";
 import type { ChartRangeKey, ReturnChartPoint, ChartMemberAvatar } from "@/lib/charts/types";
 import { filterLineByRange } from "@/lib/charts/range";
 import { computeMaxDrawdown } from "@/lib/charts/cumulative-return";
-import { ChartAvatarEmblem } from "@/components/charts/ChartAvatarEmblem";
 import { formatPct } from "@/lib/utils";
 
 export function MemberReturnChart({
@@ -44,8 +43,9 @@ export function MemberReturnChart({
 
   const last = filtered[filtered.length - 1]?.value ?? points[points.length - 1]?.value;
   const lastAccent = last == null ? "" : last >= 0 ? "text-emerald-600" : "text-rose-600";
-  const wins = points.filter((p) => p.outcome === "win").length;
-  const losses = points.filter((p) => p.outcome === "loss").length;
+  const callMarkers = points.filter((p) => p.isCallMarker);
+  const wins = callMarkers.filter((p) => p.outcome === "win").length;
+  const losses = callMarkers.filter((p) => p.outcome === "loss").length;
 
   return (
     <ChartFrame
@@ -53,30 +53,18 @@ export function MemberReturnChart({
       title="Cumulative return"
       subtitle={
         interactive
-          ? "Your avatar marks each call · click to open the ticker"
+          ? "Ticker logos mark each call · click to open symbol"
           : "Running sum of marked-to-market returns on published calls"
       }
       legend={
         wins + losses > 0 ? (
           <div className="flex flex-wrap items-center gap-4 px-4 py-2 text-xs text-[var(--pf-gray-500)]">
             <span className="inline-flex items-center gap-1.5">
-              <ChartAvatarEmblem
-                username={memberAvatar?.username ?? "you"}
-                displayName={memberAvatar?.displayName}
-                avatarUrl={memberAvatar?.avatarUrl}
-                kind="win"
-                size="sm"
-              />
+              <span className="h-3 w-3 rounded-full ring-2 ring-emerald-500" aria-hidden />
               Win ({wins})
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <ChartAvatarEmblem
-                username={memberAvatar?.username ?? "you"}
-                displayName={memberAvatar?.displayName}
-                avatarUrl={memberAvatar?.avatarUrl}
-                kind="loss"
-                size="sm"
-              />
+              <span className="h-3 w-3 rounded-full ring-2 ring-rose-500" aria-hidden />
               Loss ({losses})
             </span>
           </div>

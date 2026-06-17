@@ -34,19 +34,24 @@ export function tickerMarkersToAvatarPins(markers: ChartMarker[]): ChartAvatarPi
   }));
 }
 
-/** Track-record points with optional per-call or member-level avatar. */
+/** Track-record points — symbol logos by default (all calls are from one member). */
 export function returnPointsToAvatarPins(
   points: ReturnChartPoint[],
-  member?: ChartMemberAvatar | null
+  member?: ChartMemberAvatar | null,
+  options?: { emblem?: "member" | "symbol" }
 ): ChartAvatarPin[] {
+  const emblem = options?.emblem ?? "symbol";
   return points
-    .filter((p) => p.outcome != null)
+    .filter((p) => p.isCallMarker && p.outcome != null)
     .map((p) => ({
       time: p.time,
       price: p.value,
       username: p.username ?? member?.username ?? "member",
       displayName: p.displayName ?? member?.displayName,
       avatarUrl: p.avatarUrl ?? member?.avatarUrl ?? null,
+      symbol: p.symbol,
+      assetClass: p.assetClass,
+      emblem,
       kind: outcomeToEmblem(p.outcome),
       callId: p.callId,
       placement: "on" as const,

@@ -6,7 +6,9 @@ import {
   ChartAvatarEmblem,
   type ChartAvatarEmblemKind,
 } from "@/components/charts/ChartAvatarEmblem";
+import { ChartSymbolEmblem } from "@/components/charts/ChartSymbolEmblem";
 import { cn } from "@/lib/utils";
+import type { AssetClass } from "@/lib/market/validate-symbol";
 
 export type ChartAvatarPin = {
   time: number;
@@ -14,6 +16,9 @@ export type ChartAvatarPin = {
   username: string;
   displayName?: string | null;
   avatarUrl?: string | null;
+  symbol?: string;
+  assetClass?: AssetClass;
+  emblem?: "member" | "symbol";
   kind?: ChartAvatarEmblemKind;
   clusterCount?: number;
   callId?: string;
@@ -109,7 +114,11 @@ export function ChartAvatarOverlay({
             onPinClick ? "cursor-pointer" : "cursor-default"
           )}
           style={{ left: pin.x, top: pin.y }}
-          title={pin.displayName?.trim() || `@${pin.username}`}
+          title={
+            pin.emblem === "symbol" && pin.symbol
+              ? pin.symbol
+              : pin.displayName?.trim() || `@${pin.username}`
+          }
           onClick={
             onPinClick
               ? (e) => {
@@ -120,14 +129,23 @@ export function ChartAvatarOverlay({
           }
           tabIndex={onPinClick ? 0 : -1}
         >
-          <ChartAvatarEmblem
-            username={pin.username}
-            displayName={pin.displayName}
-            avatarUrl={pin.avatarUrl}
-            kind={pin.kind ?? "long"}
-            size={size}
-            clusterCount={pin.clusterCount}
-          />
+          {pin.emblem === "symbol" && pin.symbol ? (
+            <ChartSymbolEmblem
+              symbol={pin.symbol}
+              assetClass={pin.assetClass}
+              kind={pin.kind ?? "long"}
+              size={size}
+            />
+          ) : (
+            <ChartAvatarEmblem
+              username={pin.username}
+              displayName={pin.displayName}
+              avatarUrl={pin.avatarUrl}
+              kind={pin.kind ?? "long"}
+              size={size}
+              clusterCount={pin.clusterCount}
+            />
+          )}
         </button>
       ))}
     </div>

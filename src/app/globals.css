@@ -602,6 +602,38 @@ body {
   padding-bottom: 0;
 }
 
+.pf-ticker-section-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.pf-ticker-section-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.pf-ticker-action-scroll {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.pf-ticker-action-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.pf-ticker-action-scroll > * {
+  flex-shrink: 0;
+}
+
 @media (min-width: 1024px) {
   .pf-workspace-content {
     padding: 2rem 2.5rem 3rem;
@@ -1016,16 +1048,21 @@ body {
 
 @media (max-width: 639px) {
   .pf-metrics-strip--embedded .pf-metrics-strip-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.875rem 1rem;
-    overflow-x: visible;
-    flex-wrap: wrap;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem 1.25rem;
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .pf-metrics-strip--embedded .pf-metrics-strip-grid::-webkit-scrollbar {
+    display: none;
   }
 
   .pf-metrics-strip--embedded .pf-metrics-strip-cell {
-    flex: none;
-    min-width: 0;
+    flex: 0 0 auto;
+    min-width: 4.5rem;
   }
 }
 

@@ -6,7 +6,7 @@ import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard"
 import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerformanceChart";
 import { ProQuoteRefreshMount } from "@/components/market/ProQuoteRefreshMount";
 import { fetchMemberOpenBook } from "@/lib/calls/member-book";
-import { buildCumulativeReturnSeries } from "@/lib/charts/cumulative-return";
+import { buildPerformanceSeries } from "@/lib/charts/cumulative-return-mtm";
 import { toChartMemberAvatar } from "@/lib/charts/member-avatar";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
@@ -33,7 +33,7 @@ export default async function DashboardBookPage() {
   const trackRecord = summarizeMemberTrackRecord(ownProfile.calls);
   const proAnalytics = computeMemberProAnalytics(ownProfile.calls);
   const proGateCta = getProGateCta(sessionToProContext(session));
-  const performanceSeries = buildCumulativeReturnSeries(book.openCalls);
+  const performanceSeries = await buildPerformanceSeries(book.openCalls);
   const chartMemberAvatar = toChartMemberAvatar(ownProfile.member);
 
   return (

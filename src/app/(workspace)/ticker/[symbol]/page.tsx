@@ -118,7 +118,7 @@ export default async function TickerPage({
   }
 
   const body = (
-    <div className="mx-auto max-w-5xl space-y-8">
+    <div className="mx-auto max-w-5xl space-y-5 sm:space-y-8">
       {session ? (
         <Suspense fallback={null}>
           <PublishSuccessBanner symbol={symbol} username={session.username} />

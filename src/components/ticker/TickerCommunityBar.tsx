@@ -14,10 +14,13 @@ export function TickerCommunityBar({ stats }: { stats: TickerCommunityStats }) {
 
   return (
     <div className="pf-workspace-panel overflow-hidden">
-    <MetricsStrip
-      variant="embedded"
-      eyebrow="Community on this ticker"
-      items={[
+      <p className="px-4 pt-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
+        Community on this ticker
+      </p>
+      <MetricsStrip
+        variant="embedded"
+        eyebrow="Community on this ticker"
+        items={[
         { label: "Member calls", value: String(stats.callCount) },
         { label: "Long / short", value: `${stats.longCount} / ${stats.shortCount}` },
         { label: "Fueled", value: String(stats.fueledCount) },
@@ -36,7 +39,10 @@ export function TickerCommunityBar({ stats }: { stats: TickerCommunityStats }) {
           value: String(stats.trustedCallers),
         },
       ]}
-    />
+      />
+      <p className="border-t border-[var(--pf-border)] px-4 py-2 text-[10px] text-[var(--pf-gray-400)] sm:hidden">
+        Swipe for more stats →
+      </p>
     </div>
   );
 }

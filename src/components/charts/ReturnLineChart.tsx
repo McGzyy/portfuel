@@ -69,6 +69,7 @@ export function ReturnLineChart({
   showMarkers = false,
   showAvatars = false,
   memberAvatar,
+  pinEmblem = "symbol",
   filled = false,
 }: {
   points: ReturnChartPoint[];
@@ -77,9 +78,10 @@ export function ReturnLineChart({
   /** Navigate to ticker on click when symbol is set. */
   interactive?: boolean;
   showMarkers?: boolean;
-  /** Circular member emblems at each call point (replaces arrow markers). */
+  /** Circular emblems at each call point (symbol logos or member avatars). */
   showAvatars?: boolean;
   memberAvatar?: ChartMemberAvatar | null;
+  pinEmblem?: "member" | "symbol";
   /** Baseline fill above/below zero — hero performance charts. */
   filled?: boolean;
 }) {
@@ -98,8 +100,11 @@ export function ReturnLineChart({
   const isDark = useIsDarkMode();
   const chartTheme = activeChartTheme(isDark);
   const avatarPins = useMemo(
-    () => (showAvatars ? returnPointsToAvatarPins(points, memberAvatar) : []),
-    [showAvatars, points, memberAvatar]
+    () =>
+      showAvatars
+        ? returnPointsToAvatarPins(points, memberAvatar, { emblem: pinEmblem })
+        : [],
+    [showAvatars, points, memberAvatar, pinEmblem]
   );
   const useAvatarOverlay = showAvatars && avatarPins.length > 0;
 

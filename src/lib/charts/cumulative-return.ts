@@ -10,6 +10,7 @@ export type CumulativeCallInput = {
   closed_at?: string | null;
   id?: string;
   symbol?: string;
+  asset_class?: "equity" | "crypto" | null;
   avatar_url?: string | null;
   username?: string;
   display_name?: string | null;
@@ -48,11 +49,13 @@ export function buildCumulativeReturnSeries(calls: CumulativeCallInput[]): Retur
       value: Math.round(cumulative * 100) / 100,
       callId: call.id,
       symbol: call.symbol?.toUpperCase(),
+      assetClass: call.asset_class ?? undefined,
       outcome,
       label: call.symbol ? `${call.symbol} ${outcome}` : outcome,
       avatarUrl: call.avatar_url ?? null,
       username: call.username,
       displayName: call.display_name ?? null,
+      isCallMarker: true,
     });
   }
 
