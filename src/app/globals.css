@@ -692,37 +692,37 @@ body {
 }
 
 .pf-panel-inset-x {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
 }
 
 @media (min-width: 640px) {
   .pf-panel-inset-x {
-    padding-left: 2rem;
-    padding-right: 2rem;
+    padding-left: 2.25rem;
+    padding-right: 2.25rem;
   }
 }
 
 @media (min-width: 1024px) {
   .pf-panel-inset-x {
-    padding-left: 2.5rem;
-    padding-right: 2.5rem;
+    padding-left: 3rem;
+    padding-right: 3rem;
   }
 }
 
 .pf-panel-inset {
-  padding: 1rem 1.5rem;
+  padding: 1.125rem 1.75rem;
 }
 
 @media (min-width: 640px) {
   .pf-panel-inset {
-    padding: 1.25rem 2rem;
+    padding: 1.375rem 2.25rem;
   }
 }
 
 @media (min-width: 1024px) {
   .pf-panel-inset {
-    padding: 1.375rem 2.5rem;
+    padding: 1.5rem 3rem;
   }
 }
 
@@ -1391,6 +1391,13 @@ body {
   border: 1px solid var(--pf-border);
   background: var(--pf-surface);
   box-shadow: var(--pf-shadow-sm);
+}
+
+/* Inside workspace panels — .pf-card border beats Tailwind border-0, so strip it explicitly */
+.pf-card-embedded {
+  border: none;
+  box-shadow: none;
+  background: transparent;
 }
 
 .pf-card-elevated {

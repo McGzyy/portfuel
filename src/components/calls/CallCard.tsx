@@ -163,7 +163,7 @@ export function CallCard({
       className={cn(
         !embedded && accent,
         embedded
-          ? "group relative border-0 bg-transparent shadow-none"
+          ? "group relative pf-card-embedded"
           : "pf-call-card-premium group overflow-hidden transition-all duration-200",
         !embedded && call.is_fueled && "ring-2 ring-[var(--pf-red)]/35 shadow-[0_0_0_1px_rgba(227,27,35,0.12)]",
         isPending && !embedded && "border-amber-200/70 bg-amber-50/25",
