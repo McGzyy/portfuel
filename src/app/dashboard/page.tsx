@@ -307,6 +307,8 @@ export default async function DashboardOverviewPage({
         watchlistThesisCount={journalThesisCount}
       />
 
+      <OverviewActivityPanels hotTickers={hotTickers} />
+
       {openCallCards.length > 0 ? (
         <OpenCallsPanel
           calls={openCallCards}
@@ -330,8 +332,6 @@ export default async function DashboardOverviewPage({
       ) : null}
 
       {workspacePulse ? <WorkspaceLiveBar initial={workspacePulse} compact /> : null}
-
-      <OverviewActivityPanels hotTickers={hotTickers} />
 
       {journalReadyItems.length > 0 ? (
         <JournalReadyToPublishBanner

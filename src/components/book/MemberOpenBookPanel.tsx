@@ -44,7 +44,7 @@ function CallList({
   const content = (
     <div className="divide-y divide-[var(--pf-border)]">
       {calls.map((call) => (
-        <div key={call.id} className="px-4 py-3 sm:px-5 sm:py-4">
+        <div key={call.id} className="pf-panel-inset-x py-3 sm:py-4">
           <CallCard
             call={call}
             compact
@@ -125,7 +125,7 @@ export function MemberOpenBookPanel({
     <div className="space-y-6">
       {needsCloseCards.length > 0 ? (
         <section className="pf-workspace-panel overflow-hidden" aria-label="Target reached">
-          <div className="border-b border-emerald-200/80 bg-emerald-50/60 px-5 py-4 dark:border-emerald-900/50 dark:bg-emerald-950/20">
+          <div className="pf-panel-inset-x border-b border-emerald-200/80 bg-emerald-50/60 py-4 dark:border-emerald-900/50 dark:bg-emerald-950/20">
             <h2 className="text-sm font-bold tracking-tight text-emerald-900 dark:text-emerald-100">
               Target reached — lock your return
             </h2>
@@ -150,7 +150,7 @@ export function MemberOpenBookPanel({
 
       {openCards.length > 0 ? (
         <section className="pf-workspace-panel overflow-hidden" aria-label="Open calls">
-          <div className="border-b border-[var(--pf-border)] px-5 py-4">
+          <div className="pf-panel-inset-x border-b border-[var(--pf-border)] py-4">
             <h2 className="text-sm font-bold tracking-tight text-[var(--pf-black)]">
               Live positions
             </h2>
@@ -175,7 +175,7 @@ export function MemberOpenBookPanel({
 
       {wrappedCards.length > 0 ? (
         <section className="pf-workspace-panel overflow-hidden" aria-label="Closed and archived">
-          <div className="border-b border-[var(--pf-border)] px-5 py-4">
+          <div className="pf-panel-inset-x border-b border-[var(--pf-border)] py-4">
             <h2 className="text-sm font-bold tracking-tight text-[var(--pf-black)]">
               Closed & archived
             </h2>
@@ -183,7 +183,7 @@ export function MemberOpenBookPanel({
               Locked returns and older positions off your live book
             </p>
           </div>
-          <div className="space-y-4 p-4 sm:p-5">
+          <div className="pf-panel-inset-x space-y-4 py-4 sm:py-5">
             {wrappedCards.map((call) => (
               <CallCard
                 key={call.id}
