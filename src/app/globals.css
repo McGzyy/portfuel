@@ -1174,6 +1174,18 @@ body {
   color: #94a3b8;
 }
 
+.pf-metrics-strip-dark .pf-metrics-strip-value {
+  color: #f8fafc;
+}
+
+.pf-metrics-strip-dark .pf-metrics-strip-value.is-positive {
+  color: #34d399;
+}
+
+.pf-metrics-strip-dark .pf-metrics-strip-value.is-negative {
+  color: #fb7185;
+}
+
 .pf-metrics-strip-value {
   margin-top: 0.25rem;
   font-size: 1.125rem;
@@ -1182,6 +1194,14 @@ body {
   letter-spacing: -0.02em;
   color: var(--pf-black);
   white-space: nowrap;
+}
+
+.pf-metrics-strip-value.is-positive {
+  color: #059669;
+}
+
+.pf-metrics-strip-value.is-negative {
+  color: #e11d48;
 }
 
 .pf-metrics-strip-hint {
@@ -2575,6 +2595,27 @@ body {
 [data-theme="dark"] .pf-pulse-card:hover {
   border-color: var(--pf-gray-200);
   background-color: var(--pf-gray-50);
+}
+
+.pf-pro-command-center .pf-metrics-strip {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.pf-pro-command-center .pf-metrics-strip-dark {
+  background: transparent;
+}
+
+.pf-pro-command-center .pf-metrics-strip--embedded .pf-metrics-strip-label,
+.pf-pro-command-center .pf-metrics-strip--embedded .pf-metrics-strip-hint {
+  color: #94a3b8;
+}
+
+.pf-pro-command-center .pf-pulse-card {
+  border-color: rgba(255, 255, 255, 0.12);
+  padding: 1rem 1.125rem;
 }
 
 .pf-pro-discover-strip {

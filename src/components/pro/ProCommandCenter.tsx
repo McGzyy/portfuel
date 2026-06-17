@@ -106,11 +106,11 @@ export function ProCommandCenter({
 
       <ProTodayBriefCard brief={brief} interactive showHeader={false} />
 
-      <div className="border-t border-white/10 bg-black/20 px-4 py-4 sm:px-5">
+      <div className="border-t border-white/10 bg-black/20 px-5 py-5 sm:px-6">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-300/80">
           Research pulse
         </p>
-        <div className="mt-3">
+        <div className="mt-4">
           <ResearchPulseCards
             battleboard={battleboard}
             screener={screener}
@@ -121,8 +121,8 @@ export function ProCommandCenter({
       </div>
 
       {analyticsItems.length > 0 ? (
-        <div className="border-t border-white/10 bg-black/25 px-4 py-4 sm:px-5">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="border-t border-white/10 bg-black/25 px-5 py-5 sm:px-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-300/80">
               Your book analytics
             </p>
@@ -135,8 +135,9 @@ export function ProCommandCenter({
           </div>
           <MetricsStrip
             items={analyticsItems}
-            variant="dark"
-            className="!border-0 !bg-transparent !p-0 !shadow-none"
+            variant="embedded"
+            showEyebrow={false}
+            className="pf-metrics-strip-dark !border-0 !bg-transparent !p-0 !shadow-none"
           />
         </div>
       ) : null}

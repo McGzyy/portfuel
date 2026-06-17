@@ -13,11 +13,13 @@ export function MetricsStrip({
   eyebrow = "Pulse",
   items,
   variant = "light",
+  showEyebrow = true,
   className,
 }: {
   eyebrow?: string;
   items: MetricItem[];
   variant?: "light" | "dark" | "embedded";
+  showEyebrow?: boolean;
   className?: string;
 }) {
   if (items.length === 0) return null;
@@ -35,7 +37,7 @@ export function MetricsStrip({
       )}
       aria-label={eyebrow}
     >
-      {embedded ? null : (
+      {embedded || !showEyebrow ? null : (
         <p
           className={cn(
             "pf-metrics-strip-eyebrow",
@@ -45,7 +47,7 @@ export function MetricsStrip({
           {eyebrow}
         </p>
       )}
-      <div className="pf-metrics-strip-grid">
+      <div className={cn("pf-metrics-strip-grid", !showEyebrow && "mt-0")}>
         {items.map((item) => {
           const cell = (
             <>
@@ -53,9 +55,8 @@ export function MetricsStrip({
               <p
                 className={cn(
                   "pf-metrics-strip-value",
-                  item.accent === "positive" && "text-emerald-600",
-                  item.accent === "negative" && "text-rose-600",
-                  dark && item.accent == null && "text-white"
+                  item.accent === "positive" && "is-positive",
+                  item.accent === "negative" && "is-negative"
                 )}
               >
                 {item.value}
