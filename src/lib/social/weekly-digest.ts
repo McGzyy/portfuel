@@ -7,24 +7,13 @@ import { meetsMemberWinReturnAgeGate } from "@/lib/social/member-win-eligibility
 import { renderWeeklyDigestOgPng } from "@/lib/charts/weekly-digest-og";
 import { appPath } from "@/lib/social/app-url";
 import { applyCopyTemplate, fetchSocialPostCopy } from "@/lib/social/copy-templates";
+import {
+  formatWeeklyDigestLineX,
+  type WeeklyDigestRow,
+} from "@/lib/social/weekly-digest-format";
 
-export type WeeklyDigestRow = {
-  symbol: string;
-  direction: string;
-  returnPct: number;
-  handle: string;
-};
-
-export function formatWeeklyDigestLineX(row: WeeklyDigestRow, index: number): string {
-  const ret = `${row.returnPct >= 0 ? "+" : ""}${row.returnPct.toFixed(1)}%`;
-  return `${index + 1}. $${row.symbol} ${row.direction} · ${ret} · ${row.handle}`;
-}
-
-export function formatWeeklyDigestLineDiscord(row: WeeklyDigestRow, index: number): string {
-  const ret = `${row.returnPct >= 0 ? "+" : ""}${row.returnPct.toFixed(1)}%`;
-  const dir = row.direction.toUpperCase();
-  return `**${index + 1}.** **${row.symbol}** ${dir} **${ret}** — ${row.handle}`;
-}
+export type { WeeklyDigestRow } from "@/lib/social/weekly-digest-format";
+export { formatWeeklyDigestLineDiscord, formatWeeklyDigestLineX } from "@/lib/social/weekly-digest-format";
 
 export async function renderWeeklyDigestChartPng(limit = 3): Promise<Buffer | null> {
   const rows = await fetchWeeklyDigestRows(limit);

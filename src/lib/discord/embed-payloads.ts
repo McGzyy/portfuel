@@ -12,8 +12,8 @@ import {
   profileUrl,
 } from "@/lib/discord/call-embed-helpers";
 import { appIconUrl } from "@/lib/discord/hub-embed-helpers";
-import type { WeeklyDigestRow } from "@/lib/social/weekly-digest";
-import { formatWeeklyDigestLineDiscord } from "@/lib/social/weekly-digest";
+import type { WeeklyDigestRow } from "@/lib/social/weekly-digest-format";
+import { formatWeeklyDigestLineDiscord } from "@/lib/social/weekly-digest-format";
 
 export type DiscordEmbedPayload = {
   title?: string;

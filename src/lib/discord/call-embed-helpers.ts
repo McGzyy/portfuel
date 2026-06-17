@@ -1,7 +1,7 @@
 /** Shared formatting for call alert embeds (member, fueled, milestones, targets). */
 
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
-import { milestoneDiscordContent } from "@/lib/discord/discord-copy";
+import { milestoneDiscordContent } from "@/lib/social/milestone-headlines";
 import { HUB_DISCLAIMER } from "@/lib/discord/hub-embed-helpers";
 
 export function formatUsd(value: number | null | undefined): string {

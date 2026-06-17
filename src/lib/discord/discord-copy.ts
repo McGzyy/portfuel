@@ -1,8 +1,6 @@
-import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 import {
   applyCopyTemplate,
   fetchSocialPostCopy,
-  MILESTONE_HEADLINE,
 } from "@/lib/social/copy-templates";
 
 /** Discord markdown wrapper for the shared disclaimer line. */
@@ -16,15 +14,6 @@ export function formatDiscordDisclaimer(disclaimer: string): string {
 export async function getDiscordDisclaimerMarkdown(): Promise<string> {
   const copy = await fetchSocialPostCopy();
   return formatDiscordDisclaimer(copy.disclaimer);
-}
-
-export function milestoneDiscordContent(key: CallMilestoneKey, symbol: string): string {
-  const headline = MILESTONE_HEADLINE[key];
-  if (key === "target_reached") {
-    return `🎯 **${headline}** · **${symbol}**`;
-  }
-  const pct = headline.replace("Fueled desk hit ", "");
-  return `📈 **${pct} milestone** · **${symbol}**`;
 }
 
 export async function fueledCallDiscordContent(): Promise<string> {

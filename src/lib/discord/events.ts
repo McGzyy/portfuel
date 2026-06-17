@@ -15,7 +15,7 @@ import {
   buildMilestoneChatEmbed,
   buildTargetHitChannelEmbed,
 } from "@/lib/discord/embed-payloads";
-import { resolveCallEmbedThumbnail } from "@/lib/discord/hub-embed-helpers";
+import { resolveCallEmbedThumbnail } from "@/lib/discord/embed-thumbnail";
 import { getAppUrl } from "@/lib/stripe/config";
 import { getDiscordConfig } from "@/lib/discord/config";
 import { resolveTierChatChannelId } from "@/lib/discord/milestone-channel";

@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
+import { MILESTONE_HEADLINE } from "@/lib/social/milestone-headlines";
 import type { SocialPostCopyVariantId } from "@/lib/social/copy-variant";
 
 export type { SocialPostCopyVariantId } from "@/lib/social/copy-variant";
@@ -47,12 +48,7 @@ export const DEFAULT_SOCIAL_POST_COPY: SocialPostCopy = {
   updatedAt: null,
 };
 
-export const MILESTONE_HEADLINE: Record<CallMilestoneKey, string> = {
-  return_10: "Fueled desk hit +10%",
-  return_25: "Fueled desk hit +25%",
-  return_50: "Fueled desk hit +50%",
-  target_reached: "Fueled desk — target reached",
-};
+export { MILESTONE_HEADLINE } from "@/lib/social/milestone-headlines";
 
 export const COPY_PLACEHOLDER_HELP = [
   "{{headline}} — milestone headline (+10%, +25%, target)",
