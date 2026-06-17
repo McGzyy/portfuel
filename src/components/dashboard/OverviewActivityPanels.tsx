@@ -39,7 +39,7 @@ export function OverviewActivityPanels({
       subtitle="Symbols getting attention in recent member calls"
       href={feedHref ?? buildFeedHref({})}
     >
-      <div className="px-3 py-3">
+      <div className="pf-panel-inset">
         <HotTickersStrip tickers={hotTickers} embedded />
       </div>
     </WorkspacePanel>

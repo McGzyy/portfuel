@@ -21,7 +21,7 @@ export function WorkspacePanel({
     <section className={cn("pf-workspace-panel flex flex-col", className)}>
       <div
         className={cn(
-          "flex items-start justify-between gap-3 border-b border-[var(--pf-border)] px-5 py-4",
+          "flex items-start justify-between gap-3 border-b border-[var(--pf-border)] pf-panel-inset-x py-4 sm:py-5",
           headerClassName
         )}
       >

@@ -27,7 +27,7 @@ export function OpenCallsPanel({
 
   return (
     <section className="pf-workspace-panel" aria-label="Your open calls">
-      <div className="pf-panel-inset-x flex flex-col gap-2 border-b border-[var(--pf-border)] py-3 sm:flex-row sm:items-end sm:justify-between sm:py-4">
+      <div className="pf-panel-inset-x flex flex-col gap-2 border-b border-[var(--pf-border)] py-4 sm:flex-row sm:items-end sm:justify-between sm:py-5">
         <div>
           <h2 className="text-sm font-bold tracking-tight text-[var(--pf-black)]">
             Your open calls
@@ -46,7 +46,7 @@ export function OpenCallsPanel({
       <SparklineProvider symbols={symbols}>
         <div className="divide-y divide-[var(--pf-border)]">
           {calls.slice(0, 4).map((call) => (
-            <div key={call.id} className="pf-panel-inset-x py-3 sm:py-4">
+            <div key={call.id} className="pf-panel-inset">
               <CallCard
                 call={call}
                 compact
@@ -65,7 +65,7 @@ export function OpenCallsPanel({
         </div>
       </SparklineProvider>
       {calls.length > 4 ? (
-        <div className="pf-panel-inset-x border-t border-[var(--pf-border)] py-3 text-center">
+        <div className="pf-panel-inset-x border-t border-[var(--pf-border)] py-4 text-center">
           <Link href="/dashboard/book">
             <Button variant="secondary" size="sm">
               View all positions ({calls.length})
@@ -73,7 +73,7 @@ export function OpenCallsPanel({
           </Link>
         </div>
       ) : (
-        <div className="pf-panel-inset-x border-t border-[var(--pf-border)] py-3">
+        <div className="pf-panel-inset-x border-t border-[var(--pf-border)] py-4">
           <Link href={COPY.newCallHref}>
             <Button variant="outline" size="sm" className="w-full sm:w-auto">
               {COPY.publishCallCta}
