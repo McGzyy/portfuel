@@ -1,5 +1,6 @@
 import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 import { postFueledMilestone } from "@/lib/social/x-milestone-post";
+import { getEffectiveXAutomation } from "@/lib/social/x-automation-prefs";
 import { getXConfig } from "@/lib/social/x-config";
 
 /** Auto-post Fueled call milestones to X with chart image (same as admin social post). */
@@ -8,7 +9,8 @@ export async function tryAutopostFueledMilestone(
   milestone: CallMilestoneKey
 ): Promise<void> {
   const config = getXConfig();
-  if (!config.enabled || !config.autopostMilestones) return;
+  const automation = await getEffectiveXAutomation();
+  if (!config.enabled || !automation.autopostMilestones) return;
 
   const result = await postFueledMilestone({ callId, milestone });
   if (!result.ok) {

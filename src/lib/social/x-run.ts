@@ -1,4 +1,5 @@
 import { composeXPost } from "@/lib/social/x-compose";
+import { getEffectiveXAutomation } from "@/lib/social/x-automation-prefs";
 import { getXConfig, type XPostType } from "@/lib/social/x-config";
 import { postToX } from "@/lib/social/x-client";
 import { postMemberWin } from "@/lib/social/x-member-win-post";
@@ -24,6 +25,7 @@ export async function runXSocialBatch(opts?: {
   }>;
 }> {
   const config = getXConfig();
+  const automation = await getEffectiveXAutomation();
   const types = opts?.types ?? (["fueled", "leaderboard"] as XPostType[]);
   const results: Array<{
     type: XPostType;
@@ -41,19 +43,19 @@ export async function runXSocialBatch(opts?: {
   }
 
   for (const type of types) {
-    if (type === "fueled" && !config.fueledPosts) {
+    if (type === "fueled" && !automation.cronFueledPosts) {
       results.push({ type, status: "skipped", error: "type_disabled" });
       continue;
     }
-    if (type === "leaderboard" && !config.leaderboardPosts) {
+    if (type === "leaderboard" && !automation.cronLeaderboardPosts) {
       results.push({ type, status: "skipped", error: "type_disabled" });
       continue;
     }
-    if (type === "member_win" && !config.memberWinPosts) {
+    if (type === "member_win" && !automation.cronMemberWinPosts) {
       results.push({ type, status: "skipped", error: "type_disabled" });
       continue;
     }
-    if (type === "weekly_digest" && !config.weeklyDigestPosts) {
+    if (type === "weekly_digest" && !automation.cronWeeklyDigestPosts) {
       results.push({ type, status: "skipped", error: "type_disabled" });
       continue;
     }

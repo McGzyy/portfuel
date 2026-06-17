@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
 import { composeXPost } from "@/lib/social/x-compose";
+import { getEffectiveXAutomation } from "@/lib/social/x-automation-prefs";
 import { xConfigSummary } from "@/lib/social/x-config";
 import { fueledMilestoneChartUrl } from "@/lib/social/x-milestone-post";
 import { socialCallIdSchema } from "@/lib/social/social-call-id";
@@ -9,7 +10,19 @@ import { socialCallIdSchema } from "@/lib/social/social-call-id";
 export async function GET() {
   try {
     await requireAdmin();
-    return NextResponse.json({ config: xConfigSummary() });
+    const env = xConfigSummary();
+    const automation = await getEffectiveXAutomation();
+    return NextResponse.json({
+      config: {
+        ...env,
+        fueledPosts: automation.cronFueledPosts,
+        leaderboardPosts: automation.cronLeaderboardPosts,
+        memberWinPosts: automation.cronMemberWinPosts,
+        weeklyDigestPosts: automation.cronWeeklyDigestPosts,
+        autopostFueledOnPublish: automation.autopostFueledOnPublish,
+        autopostMilestones: automation.autopostMilestones,
+      },
+    });
   } catch (e) {
     if (e instanceof Error && e.message === "unauthorized") {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });

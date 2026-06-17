@@ -1,6 +1,7 @@
 import { loadSocialChartPayload } from "@/lib/charts/social-chart-data";
 import { renderSocialChartPng } from "@/lib/charts/social-chart-render";
 import { composeFueledPostByCallId } from "@/lib/social/x-compose";
+import { getEffectiveXAutomation } from "@/lib/social/x-automation-prefs";
 import { getXConfig } from "@/lib/social/x-config";
 import { postToX } from "@/lib/social/x-client";
 import { uploadXMedia } from "@/lib/social/x-media";
@@ -13,7 +14,8 @@ export function fueledPublishChartUrl(callId: string): string {
 /** Auto-post a new Fueled desk call to X when X_AUTOPOST_FUELED_ON_PUBLISH is enabled. */
 export async function tryAutopostFueledOnPublish(callId: string): Promise<void> {
   const config = getXConfig();
-  if (!config.enabled || !config.autopostFueledOnPublish) return;
+  const automation = await getEffectiveXAutomation();
+  if (!config.enabled || !automation.autopostFueledOnPublish) return;
 
   const composed = await composeFueledPostByCallId(callId);
   if (!composed.ok) return;

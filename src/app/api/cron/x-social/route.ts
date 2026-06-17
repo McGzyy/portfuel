@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runXSocialBatch } from "@/lib/social/x-run";
+import { getEffectiveXAutomation } from "@/lib/social/x-automation-prefs";
 import { getXConfig } from "@/lib/social/x-config";
 
 /** Weekly leaderboard + optional Fueled highlight. See docs/X-SOCIAL.md */
@@ -16,11 +17,12 @@ export async function GET(request: Request) {
   }
 
   try {
+    const automation = await getEffectiveXAutomation();
     const types: Array<"leaderboard" | "fueled" | "member_win" | "weekly_digest"> = [];
-    if (config.leaderboardPosts) types.push("leaderboard");
-    if (config.fueledPosts) types.push("fueled");
-    if (config.memberWinPosts) types.push("member_win");
-    if (config.weeklyDigestPosts) types.push("weekly_digest");
+    if (automation.cronLeaderboardPosts) types.push("leaderboard");
+    if (automation.cronFueledPosts) types.push("fueled");
+    if (automation.cronMemberWinPosts) types.push("member_win");
+    if (automation.cronWeeklyDigestPosts) types.push("weekly_digest");
 
     const { results } = await runXSocialBatch({ types });
     return NextResponse.json({ ok: true, results });

@@ -37,6 +37,7 @@ const CRITICAL_MIGRATIONS = [
   "20260604133000_ai_draft_requests.sql",
   "20260707100000_engagement_alert_prefs.sql",
   "20260708100000_discord_post_copy.sql",
+  "20260709100000_x_automation_prefs.sql",
 ];
 
 function ok(msg) {

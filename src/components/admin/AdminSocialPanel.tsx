@@ -9,6 +9,7 @@ import { AdminMemberWinsPanel } from "@/components/admin/AdminMemberWinsPanel";
 import { AdminSocialCopyPanel } from "@/components/admin/AdminSocialCopyPanel";
 import { AdminWeeklyDigestPanel } from "@/components/admin/AdminWeeklyDigestPanel";
 import { AdminSocialActivityPanel } from "@/components/admin/AdminSocialActivityPanel";
+import { AdminXAutomationPanel } from "@/components/admin/AdminXAutomationPanel";
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 
 type XConfigSummary = {
@@ -171,6 +172,8 @@ export function AdminSocialPanel() {
           </>
         }
       />
+
+      <AdminXAutomationPanel onSaved={() => void loadConfig()} />
 
       <AdminSocialMilestonePanel />
 
