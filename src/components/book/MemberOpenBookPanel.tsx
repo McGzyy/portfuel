@@ -6,6 +6,7 @@ import { SparklineProvider } from "@/components/charts/SparklineProvider";
 import { Button } from "@/components/ui/button";
 import type { MemberBookCallRow } from "@/lib/calls/member-book";
 import { mapUserCallRowToCard } from "@/lib/calls/map-user-call-card";
+import { useMergedCalls } from "@/components/market/LiveBookProvider";
 import { COPY } from "@/lib/copy";
 
 function toCard(
@@ -100,8 +101,8 @@ export function MemberOpenBookPanel({
   const mapCards = (rows: MemberBookCallRow[]) =>
     rows.map((c) => toCard(c, viewerUserId, username, displayName, avatarUrl));
 
-  const openCards = mapCards(openCalls);
-  const needsCloseCards = mapCards(needsClose);
+  const openCards = useMergedCalls(mapCards(openCalls));
+  const needsCloseCards = useMergedCalls(mapCards(needsClose));
   const wrappedCards = mapCards(recentWrapped);
 
   const hasAny = openCards.length > 0 || needsCloseCards.length > 0 || wrappedCards.length > 0;

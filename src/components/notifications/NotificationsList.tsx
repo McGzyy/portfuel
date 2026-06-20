@@ -1,34 +1,53 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Settings2 } from "lucide-react";
 import { NotificationsCommandHeader } from "@/components/notifications/NotificationsCommandHeader";
+import { NotificationsFilterBar } from "@/components/notifications/NotificationsFilterBar";
+import { NotificationInboxItem } from "@/components/notifications/NotificationInboxItem";
 import { Button } from "@/components/ui/button";
-import { cn, timeAgo } from "@/lib/utils";
-import type { UserNotification } from "@/lib/notifications/types";
-import { iconForNotificationType } from "@/components/notifications/notification-icons";
+import { PanelErrorState } from "@/components/errors/PanelErrorState";
 import {
   applyLocalNotificationRead,
   markNotificationsReadByIds,
 } from "@/components/notifications/mark-notifications-read";
+import {
+  countByFilter,
+  groupNotificationsByDate,
+  matchesNotificationFilter,
+  NOTIFICATION_FILTER_OPTIONS,
+  type NotificationFilterKey,
+  type SnoozeDuration,
+} from "@/lib/notifications/inbox-filters";
+import { WORKSPACE_ACTIVITY_EVENT } from "@/lib/workspace/activity-snapshot";
+import type { UserNotification } from "@/lib/notifications/types";
 
 export function NotificationsList({ proUnlocked: _proUnlocked = false }: { proUnlocked?: boolean }) {
   const router = useRouter();
   const [items, setItems] = useState<UserNotification[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<NotificationFilterKey>("all");
+  const [snoozeDisabled, setSnoozeDisabled] = useState(false);
+  const [demoSnoozedIds, setDemoSnoozedIds] = useState<Set<string>>(new Set());
+  const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const res = await fetch("/api/notifications");
       const data = await res.json();
       if (res.ok) {
         setItems(data.notifications ?? []);
         setUnread(data.unreadCount ?? 0);
+      } else {
+        setLoadError(true);
       }
+    } catch {
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -38,14 +57,50 @@ export function NotificationsList({ proUnlocked: _proUnlocked = false }: { proUn
     load();
   }, [load]);
 
+  useEffect(() => {
+    const onActivity = () => void load();
+    window.addEventListener(WORKSPACE_ACTIVITY_EVENT, onActivity);
+    return () => window.removeEventListener(WORKSPACE_ACTIVITY_EVENT, onActivity);
+  }, [load]);
+
+  const visibleItems = useMemo(() => {
+    const base = items.filter((n) => !demoSnoozedIds.has(n.id));
+    return base.filter((n) => matchesNotificationFilter(n, filter));
+  }, [items, filter, demoSnoozedIds]);
+
+  const filterCounts = useMemo(() => countByFilter(items), [items]);
+
+  const grouped = useMemo(() => groupNotificationsByDate(visibleItems), [visibleItems]);
+
+  const filterUnread = useMemo(
+    () => visibleItems.filter((n) => !n.read_at).length,
+    [visibleItems]
+  );
+
+  const activeFilterLabel =
+    NOTIFICATION_FILTER_OPTIONS.find((o) => o.key === filter)?.label ?? "All";
+
   async function markAllRead() {
+    const body =
+      filter === "all"
+        ? { all: true }
+        : filter === "unread"
+          ? { all: true }
+          : { filter };
+
     await fetch("/api/notifications", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ all: true }),
+      body: JSON.stringify(body),
     });
-    setUnread(0);
-    setItems((prev) => applyLocalNotificationRead(prev, prev.map((n) => n.id)));
+
+    const idsToMark =
+      filter === "all" || filter === "unread"
+        ? items.filter((n) => !n.read_at).map((n) => n.id)
+        : visibleItems.filter((n) => !n.read_at).map((n) => n.id);
+
+    setUnread((c) => Math.max(0, c - idsToMark.length));
+    setItems((prev) => applyLocalNotificationRead(prev, idsToMark));
     window.dispatchEvent(new Event("portfuel:notifications-unread-changed"));
   }
 
@@ -56,11 +111,37 @@ export function NotificationsList({ proUnlocked: _proUnlocked = false }: { proUn
       }
       setUnread((c) => Math.max(0, c - 1));
       setItems((prev) => applyLocalNotificationRead(prev, [n.id]));
-      if (n.id.startsWith("demo-")) {
-        window.dispatchEvent(new Event("portfuel:notifications-unread-changed"));
-      }
+      window.dispatchEvent(new Event("portfuel:notifications-unread-changed"));
     }
     router.push(n.href);
+  }
+
+  async function snoozeItem(id: string, duration: SnoozeDuration) {
+    if (id.startsWith("demo-")) {
+      setDemoSnoozedIds((prev) => new Set(prev).add(id));
+      if (!items.find((n) => n.id === id)?.read_at) {
+        setUnread((c) => Math.max(0, c - 1));
+        window.dispatchEvent(new Event("portfuel:notifications-unread-changed"));
+      }
+      return;
+    }
+
+    const res = await fetch("/api/notifications/snooze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, duration }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (data.error === "migration_required") setSnoozeDisabled(true);
+      return;
+    }
+
+    const data = await res.json();
+    setItems((prev) => prev.filter((n) => n.id !== id));
+    setUnread(data.unreadCount ?? 0);
+    window.dispatchEvent(new Event("portfuel:notifications-unread-changed"));
   }
 
   return (
@@ -76,18 +157,30 @@ export function NotificationsList({ proUnlocked: _proUnlocked = false }: { proUn
               <Settings2 className="h-3.5 w-3.5" strokeWidth={2.25} />
               Alert settings
             </Link>
-            {unread > 0 ? (
+            {filterUnread > 0 ? (
               <Button size="sm" variant="secondary" onClick={markAllRead}>
-                Mark all read
+                {filter === "all" ? "Mark all read" : `Mark ${activeFilterLabel.toLowerCase()} read`}
               </Button>
             ) : null}
           </div>
         </div>
       </header>
 
+      {!loading && items.length > 0 ? (
+        <NotificationsFilterBar active={filter} counts={filterCounts} onChange={setFilter} />
+      ) : null}
+
+      {snoozeDisabled ? (
+        <p className="rounded-[var(--pf-radius)] border border-amber-200/80 bg-amber-50/80 px-4 py-2.5 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100">
+          Snooze requires a database migration — apply{" "}
+          <code className="font-mono text-[11px]">20260710100000_notification_snooze.sql</code> in
+          Supabase.
+        </p>
+      ) : null}
+
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--pf-radius-lg)] border border-dashed border-[var(--pf-border)] bg-[var(--pf-gray-50)]/50 px-4 py-3 sm:px-5">
         <p className="text-sm text-[var(--pf-gray-600)]">
-          Configure watchlist moves, earnings reminders, email, and Pro SMS delivery.
+          Filter by category, snooze noisy alerts, or tune delivery in settings.
         </p>
         <Link
           href="/dashboard/settings?section=notifications"
@@ -97,7 +190,13 @@ export function NotificationsList({ proUnlocked: _proUnlocked = false }: { proUn
         </Link>
       </div>
 
-      {loading ? (
+      {loadError ? (
+        <PanelErrorState
+          title="Alerts couldn\u2019t load"
+          message="We couldn\u2019t fetch your notification inbox. Check your connection and try again."
+          onRetry={() => void load()}
+        />
+      ) : loading ? (
         <div className="pf-workspace-panel px-6 py-12 text-center text-sm text-[var(--pf-gray-500)]">
           Loading alerts…
         </div>
@@ -112,71 +211,41 @@ export function NotificationsList({ proUnlocked: _proUnlocked = false }: { proUn
             and publish calls — engagement shows up here.
           </p>
         </div>
+      ) : visibleItems.length === 0 ? (
+        <div className="pf-workspace-panel px-6 py-14 text-center">
+          <p className="text-sm font-semibold text-[var(--pf-black)]">No alerts in this filter</p>
+          <p className="mx-auto mt-2 max-w-md text-sm text-[var(--pf-gray-500)]">
+            Try another category or mark items read to clear your inbox.
+          </p>
+          <Button size="sm" variant="secondary" className="mt-4" onClick={() => setFilter("all")}>
+            Show all alerts
+          </Button>
+        </div>
       ) : (
-        <div className="pf-workspace-panel overflow-hidden">
-          <ul className="divide-y divide-[var(--pf-border)]">
-            {items.map((n) => {
-              const Icon = iconForNotificationType(n.type);
-              const unreadItem = !n.read_at;
-              return (
-                <li key={n.id}>
-                  <button
-                    type="button"
-                    onClick={() => openItem(n)}
-                    className={cn(
-                      "group relative flex w-full gap-4 px-4 py-4 text-left transition-colors sm:px-5 sm:py-4",
-                      unreadItem
-                        ? "bg-[var(--pf-red-muted)]/50 hover:bg-[var(--pf-red-muted)]/70"
-                        : "hover:bg-[var(--pf-gray-50)]"
-                    )}
-                  >
-                    {unreadItem ? (
-                      <span
-                        className="absolute bottom-3 left-0 top-3 w-[3px] rounded-r-full bg-[var(--pf-red)]"
-                        aria-hidden
-                      />
-                    ) : null}
-                    <span
-                      className={cn(
-                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-                        unreadItem
-                          ? "bg-white text-[var(--pf-red)] shadow-[var(--pf-shadow-sm)]"
-                          : "bg-[var(--pf-gray-100)] text-[var(--pf-gray-500)] group-hover:bg-[var(--pf-gray-200)]"
-                      )}
-                    >
-                      <Icon className="h-5 w-5" strokeWidth={2.25} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span
-                          className={cn(
-                            "font-semibold",
-                            unreadItem ? "text-[var(--pf-black)]" : "text-[var(--pf-gray-800)]"
-                          )}
-                        >
-                          {n.title}
-                        </span>
-                        {unreadItem ? (
-                          <span className="rounded-full bg-[var(--pf-red)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                            New
-                          </span>
-                        ) : null}
-                        <span className="text-xs text-[var(--pf-gray-400)]">{timeAgo(n.created_at)}</span>
-                      </span>
-                      <p
-                        className={cn(
-                          "mt-1 text-sm leading-relaxed",
-                          unreadItem ? "text-[var(--pf-gray-700)]" : "text-[var(--pf-gray-500)]"
-                        )}
-                      >
-                        {n.body}
-                      </p>
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+        <div className="space-y-4">
+          {grouped.map((section) => (
+            <section key={section.group} className="pf-workspace-panel overflow-hidden">
+              <div className="border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)]/80 px-4 py-2.5 sm:px-5">
+                <h2 className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--pf-gray-500)]">
+                  {section.label}
+                  <span className="ml-2 font-semibold tabular-nums text-[var(--pf-gray-400)]">
+                    {section.items.length}
+                  </span>
+                </h2>
+              </div>
+              <ul className="divide-y divide-[var(--pf-border)]">
+                {section.items.map((n) => (
+                  <NotificationInboxItem
+                    key={n.id}
+                    notification={n}
+                    onOpen={openItem}
+                    onSnooze={snoozeItem}
+                    snoozeEnabled={!snoozeDisabled}
+                  />
+                ))}
+              </ul>
+            </section>
+          ))}
         </div>
       )}
     </div>

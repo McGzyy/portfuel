@@ -11,6 +11,7 @@ import { SymbolAvatar } from "@/components/market/SymbolAvatar";
 import { CallDeleteButton } from "@/components/calls/CallDeleteButton";
 import { CallCloseButton } from "@/components/calls/CallCloseButton";
 import { CallReturnDisplay } from "@/components/calls/CallReturnDisplay";
+import { LiveCallReturnDisplay } from "@/components/calls/LiveCallReturnDisplay";
 import { CallTargetProgressBar } from "@/components/calls/CallTargetProgressBar";
 import { CallMarkedLabel } from "@/components/calls/CallMarkedLabel";
 import { MemberAvatar } from "@/components/member/MemberAvatar";
@@ -157,6 +158,7 @@ export function CallCard({
       ? Math.min(100, Math.max(0, call.target_progress))
       : null;
   const showProgress = progress != null && !isPending && !call.closed_at;
+  const ReturnDisplay = !call.closed_at && !isPending ? LiveCallReturnDisplay : CallReturnDisplay;
 
   return (
     <Card
@@ -308,7 +310,7 @@ export function CallCard({
               </div>
             )}
           </div>
-          <CallReturnDisplay
+          <ReturnDisplay
             returnPct={call.return_pct}
             peakReturnPct={call.peak_return_pct}
             closedAt={call.closed_at}

@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { MemberOpenBookHeader } from "@/components/book/MemberOpenBookHeader";
 import { MemberOpenBookPanel } from "@/components/book/MemberOpenBookPanel";
-import { MemberOpenBookSymbols } from "@/components/book/MemberOpenBookSymbols";
 import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard";
-import { OverviewPerformanceChart } from "@/components/dashboard/OverviewPerformanceChart";
-import { ProQuoteRefreshMount } from "@/components/market/ProQuoteRefreshMount";
+import { MemberBookAnalyticsSection } from "@/components/book/MemberBookAnalyticsSection";
 import { fetchMemberOpenBook } from "@/lib/calls/member-book";
 import { buildPerformanceSeries } from "@/lib/charts/cumulative-return-mtm";
+import { buildBookAnalyticsSnapshot, emptyBookAnalyticsSnapshot, exposureFromBookSummary } from "@/lib/charts/book-analytics";
 import { toChartMemberAvatar } from "@/lib/charts/member-avatar";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
@@ -33,12 +32,34 @@ export default async function DashboardBookPage() {
   const trackRecord = summarizeMemberTrackRecord(ownProfile.calls);
   const proAnalytics = computeMemberProAnalytics(ownProfile.calls);
   const proGateCta = getProGateCta(sessionToProContext(session));
-  const performanceSeries = await buildPerformanceSeries(book.openCalls);
+  const memberCalls = ownProfile.calls.filter((c) => !c.is_fueled);
+  let performanceSeries: Awaited<ReturnType<typeof buildPerformanceSeries>> = [];
+  try {
+    performanceSeries =
+      memberCalls.length > 0 ? await buildPerformanceSeries(memberCalls) : [];
+  } catch (e) {
+    console.error("[book/performance]", e);
+  }
+
+  let bookAnalytics = emptyBookAnalyticsSnapshot(performanceSeries);
+  try {
+    bookAnalytics = await buildBookAnalyticsSnapshot({
+      performancePoints: performanceSeries,
+      exposureSummary: book.summary.openCount > 0 ? book.summary : null,
+      benchmarkCalls: book.openCalls.length > 0 ? book.openCalls : memberCalls,
+      includeBenchmark: true,
+    });
+  } catch (e) {
+    console.error("[book/analytics]", e);
+    bookAnalytics = {
+      ...emptyBookAnalyticsSnapshot(performanceSeries),
+      exposure: exposureFromBookSummary(book.summary.openCount > 0 ? book.summary : null),
+    };
+  }
   const chartMemberAvatar = toChartMemberAvatar(ownProfile.member);
 
   return (
     <div className="space-y-6">
-      {!proLocked ? <ProQuoteRefreshMount enabled /> : null}
       <MemberOpenBookHeader
         summary={book.summary}
         username={session.username}
@@ -61,16 +82,15 @@ export default async function DashboardBookPage() {
         proGateCta={proGateCta}
       />
 
-      {book.summary.openCount > 0 ? (
-        <>
-          <OverviewPerformanceChart
-            points={performanceSeries}
-            profileHref={`/member/${session.username}`}
-            memberAvatar={chartMemberAvatar}
-          />
-          <MemberOpenBookSymbols rows={book.summary.bySymbol} />
-        </>
-      ) : null}
+      <MemberBookAnalyticsSection
+        analytics={bookAnalytics}
+        performancePoints={performanceSeries}
+        memberAvatar={chartMemberAvatar}
+        profileHref={`/member/${session.username}`}
+        username={session.username}
+        proLocked={proLocked}
+        proGateCta={proGateCta}
+      />
 
       <MemberOpenBookPanel
         openCalls={book.openCalls}

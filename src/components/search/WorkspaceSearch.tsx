@@ -25,9 +25,17 @@ import {
   Search,
   UserRound,
   X,
-  Keyboard,
 } from "lucide-react";
 import { WORKSPACE_SHORTCUTS_OPEN_EVENT } from "@/lib/workspace/shortcuts";
+import {
+  buildPaletteActionItems,
+  paletteActionHref,
+  parseTickerFromQuery,
+  runPaletteAction,
+  type PaletteActionItem,
+} from "@/lib/workspace/palette-actions";
+import { PaletteActionRow } from "@/components/search/PaletteActionRow";
+import { useAppearance } from "@/components/appearance/AppearanceProvider";
 import { cn, formatPrice } from "@/lib/utils";
 import { splitByQuery } from "@/lib/search/highlight";
 import { searchHelpDocs, helpSearchResultToPage } from "@/lib/help/search";
@@ -55,7 +63,7 @@ type PaletteItem =
   | { kind: "journal"; data: SearchJournalEntryResult }
   | { kind: "call"; data: SearchCallResult }
   | { kind: "helpDoc"; data: SearchPageResult }
-  | { kind: "action"; data: { id: "report" | "shortcuts"; label: string; description: string } };
+  | { kind: "action"; data: PaletteActionItem };
 
 type WorkspaceSearchContextValue = {
   open: boolean;
@@ -136,7 +144,7 @@ export function WorkspaceSearchTrigger({ className }: { className?: string }) {
         )}
       >
         <Search className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" strokeWidth={2.25} />
-        <span className="flex-1 truncate text-left">Search symbols, journal, news…</span>
+        <span className="flex-1 truncate text-left">Search symbols, run actions…</span>
         <kbd className="pf-kbd hidden shrink-0 sm:inline-flex">⌘K</kbd>
       </button>
     </>
@@ -152,12 +160,16 @@ function WorkspaceCommandPalette({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { isDark, setThemeMode } = useAppearance();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<WorkspaceSearchResults | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [actionRunning, setActionRunning] = useState(false);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [searchError, setSearchError] = useState(false);
 
   const [recentSeed, setRecentSeed] = useState<string[]>([]);
 
@@ -166,7 +178,36 @@ function WorkspaceCommandPalette({
     setQuery("");
     setResults(null);
     setActiveIndex(0);
+    setActionMessage(null);
+    setSearchError(false);
   }, [onOpenChange]);
+
+  const resolvedActionSymbol = useMemo(() => {
+    const fromQuery = parseTickerFromQuery(query);
+    if (fromQuery) return fromQuery;
+    const exact = results?.symbols.find(
+      (s) => s.symbol.toUpperCase() === query.trim().toUpperCase()
+    );
+    return exact?.symbol ?? null;
+  }, [query, results?.symbols]);
+
+  const symbolOnWatchlist = useMemo(() => {
+    if (!resolvedActionSymbol || !results?.symbols) return false;
+    return results.symbols.some(
+      (s) => s.symbol === resolvedActionSymbol && s.onWatchlist
+    );
+  }, [resolvedActionSymbol, results?.symbols]);
+
+  const paletteActions = useMemo(
+    () =>
+      buildPaletteActionItems({
+        query,
+        symbol: resolvedActionSymbol,
+        onWatchlist: symbolOnWatchlist,
+        isDark,
+      }),
+    [query, resolvedActionSymbol, symbolOnWatchlist, isDark]
+  );
 
   const helpDocs = useMemo(() => {
     const q = query.trim();
@@ -175,9 +216,16 @@ function WorkspaceCommandPalette({
   }, [query]);
 
   const resultSections = useMemo(() => {
-    if (!results) return [] as { title: string; items: PaletteItem[] }[];
-
     const sections: { title: string; items: PaletteItem[] }[] = [];
+
+    if (paletteActions.length > 0) {
+      sections.push({
+        title: "Actions",
+        items: paletteActions.map((data) => ({ kind: "action" as const, data })),
+      });
+    }
+
+    if (!results) return sections;
 
     if (results.recent.length > 0) {
       sections.push({
@@ -228,32 +276,8 @@ function WorkspaceCommandPalette({
       });
     }
 
-    if (!query.trim()) {
-      sections.push({
-        title: "Actions",
-        items: [
-          {
-            kind: "action" as const,
-            data: {
-              id: "report" as const,
-              label: "Report an issue",
-              description: "Open a support ticket about this page",
-            },
-          },
-          {
-            kind: "action" as const,
-            data: {
-              id: "shortcuts" as const,
-              label: "Keyboard shortcuts",
-              description: "View all workspace shortcuts",
-            },
-          },
-        ],
-      });
-    }
-
     return sections;
-  }, [results, query, helpDocs]);
+  }, [results, query, helpDocs, paletteActions]);
 
   const items = useMemo(
     () => resultSections.flatMap((section) => section.items),
@@ -297,6 +321,7 @@ function WorkspaceCommandPalette({
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
       setLoading(true);
+      setSearchError(false);
       const params = new URLSearchParams({ q: query });
       if (!query.trim() && recentSeed.length > 0) {
         params.set("recent", recentSeed.join(","));
@@ -312,6 +337,7 @@ function WorkspaceCommandPalette({
         })
         .catch((err) => {
           if (err instanceof DOMException && err.name === "AbortError") return;
+          setSearchError(true);
           setResults({
             query,
             recent: [],
@@ -366,19 +392,53 @@ function WorkspaceCommandPalette({
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
-  function activateItem(item: PaletteItem) {
-    if (item.kind === "symbol") navigateSymbol(item.data);
-    else if (item.kind === "headline") openHeadline(item.data.url);
-    else if (item.kind === "action") {
-      close();
-      if (item.data.id === "report") {
-        router.push(
-          `/dashboard/help?view=tickets&new=1&from=${encodeURIComponent(pathname)}`
-        );
-      } else {
+  async function activateItem(item: PaletteItem) {
+    if (item.kind === "symbol") {
+      navigateSymbol(item.data);
+      return;
+    }
+    if (item.kind === "headline") {
+      openHeadline(item.data.url);
+      return;
+    }
+    if (item.kind === "action") {
+      if (actionRunning) return;
+      if (item.data.id === "shortcuts") {
+        close();
         window.dispatchEvent(new Event(WORKSPACE_SHORTCUTS_OPEN_EVENT));
+        return;
       }
-    } else navigate(item.data.href);
+
+      setActionRunning(true);
+      setActionMessage(null);
+      try {
+        const result = await runPaletteAction(item.data, {
+          pathname,
+          isDark,
+          setThemeMode,
+        });
+        if (!result.ok) {
+          setActionMessage(result.error ?? "Action failed");
+          return;
+        }
+        const href = paletteActionHref(item.data, pathname);
+        if (href) {
+          close();
+          router.push(href);
+          return;
+        }
+        if (result.message) {
+          setActionMessage(result.message);
+          window.setTimeout(() => close(), 900);
+          return;
+        }
+        close();
+      } finally {
+        setActionRunning(false);
+      }
+      return;
+    }
+    navigate(item.data.href);
   }
 
   function onInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -425,7 +485,7 @@ function WorkspaceCommandPalette({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onInputKeyDown}
-            placeholder="Search…"
+            placeholder="Search or run an action…"
             className="min-w-0 flex-1 bg-transparent text-base text-[var(--pf-black)] outline-none placeholder:text-[var(--pf-gray-400)] sm:text-sm"
             autoComplete="off"
             autoCorrect="off"
@@ -451,15 +511,21 @@ function WorkspaceCommandPalette({
             </div>
           ) : null}
 
-          {!hasResults && !loading && results ? (
+          {!hasResults && !loading && results !== null ? (
             <div className="px-3 py-8 text-center">
               <p className="text-sm font-medium text-[var(--pf-gray-700)]">
-                {emptyQuery ? "Jump anywhere in your workspace" : "No matches"}
+                {searchError
+                  ? "Search unavailable"
+                  : emptyQuery
+                    ? "Jump anywhere in your workspace"
+                    : "No matches"}
               </p>
               <p className="mt-1 text-xs leading-relaxed text-[var(--pf-gray-500)]">
-                {emptyQuery
-                  ? "Try NVDA, @username, or earnings in your journal."
-                  : "Check the symbol, try @ before a username, or search journal notes and theses (2+ letters)."}
+                {searchError
+                  ? "We couldn\u2019t reach search. Actions below may still work \u2014 try again in a moment."
+                  : emptyQuery
+                    ? "Try NVDA, @username, or earnings in your journal."
+                    : "Check the symbol, try @ before a username, or search journal notes and theses (2+ letters)."}
               </p>
             </div>
           ) : null}
@@ -579,34 +645,18 @@ function WorkspaceCommandPalette({
                     );
                   }
                   if (item.kind === "action") {
-                    const Icon = item.data.id === "report" ? LifeBuoy : Keyboard;
                     return (
-                      <button
-                        key={`action-${item.data.id}`}
-                        type="button"
-                        data-index={index}
-                        onMouseEnter={() => setActiveIndex(index)}
-                        onClick={() => activateItem(item)}
-                        className={cn(
-                          "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
-                          activeIndex === index
-                            ? "bg-[var(--pf-gray-100)]"
-                            : "hover:bg-[var(--pf-gray-50)]"
-                        )}
-                      >
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--pf-red-muted)] text-[var(--pf-red)]">
-                          <Icon className="h-4 w-4" />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-semibold text-[var(--pf-black)]">
-                            {item.data.label}
-                          </span>
-                          <span className="block truncate text-xs text-[var(--pf-gray-500)]">
-                            {item.data.description}
-                          </span>
-                        </span>
-                        <ArrowRight className="h-4 w-4 shrink-0 text-[var(--pf-gray-400)]" />
-                      </button>
+                      <PaletteActionRow
+                        key={`action-${item.data.id}-${item.data.symbol ?? ""}`}
+                        id={item.data.id}
+                        label={item.data.label}
+                        description={item.data.description}
+                        isDark={isDark}
+                        dataIndex={index}
+                        active={activeIndex === index}
+                        onHover={() => setActiveIndex(index)}
+                        onPick={() => void activateItem(item)}
+                      />
                     );
                   }
                   if (item.kind === "helpDoc") {
@@ -674,11 +724,17 @@ function WorkspaceCommandPalette({
         </div>
 
         <div className="border-t border-[var(--pf-border)] px-4 py-2.5 text-[11px] text-[var(--pf-gray-500)]">
-          <span className="hidden sm:inline">
-            ↑↓ navigate · Enter open · Esc close
-            {results?.symbols.some((s) => s.onWatchlist) ? " · Watchlist opens Journal" : ""}
-          </span>
-          <span className="sm:hidden">Tap a result to open</span>
+          {actionMessage ? (
+            <span className="font-semibold text-emerald-700 dark:text-emerald-300">{actionMessage}</span>
+          ) : (
+            <>
+              <span className="hidden sm:inline">
+                ↑↓ navigate · Enter run · Esc close
+                {paletteActions.length > 0 ? " · try publish, dark, mark read" : ""}
+              </span>
+              <span className="sm:hidden">Tap a result to open</span>
+            </>
+          )}
         </div>
       </div>
     </div>

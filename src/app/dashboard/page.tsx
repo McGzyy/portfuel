@@ -77,6 +77,10 @@ import {
 } from "@/lib/referrals/prompt";
 import { ReferralOverviewStrip } from "@/components/referrals/ReferralInviteStrip";
 import { OverviewShortcutBar } from "@/components/dashboard/OverviewShortcutBar";
+import { OverviewLayoutProvider } from "@/components/dashboard/OverviewLayoutProvider";
+import { OverviewLayoutBar } from "@/components/dashboard/OverviewLayoutBar";
+import { OverviewLayoutBody } from "@/components/dashboard/OverviewLayoutBody";
+import { OverviewPanelGate } from "@/components/dashboard/OverviewPanelGate";
 
 export const metadata: Metadata = {
   title: "Overview",
@@ -274,7 +278,8 @@ export default async function DashboardOverviewPage({
   }
 
   return (
-    <div className="space-y-6">
+    <OverviewLayoutProvider userId={session.userId}>
+      <OverviewLayoutBody>
       <WorkspaceCommandHeader
         displayName={displayLabel}
         username={session.username}
@@ -284,10 +289,13 @@ export default async function DashboardOverviewPage({
         isPro={isPro}
       />
 
+      <OverviewLayoutBar />
+
       <div className="lg:hidden">
         <OverviewShortcutBar />
       </div>
 
+      <OverviewPanelGate panelId="hero">
       <OverviewReturnHero
         points={performanceSeries}
         profileHref={`/member/${session.username}`}
@@ -296,7 +304,9 @@ export default async function DashboardOverviewPage({
         publishedCallCount={Math.max(ownCalls.length, memberStats?.calls_count ?? 0)}
         memberAvatar={chartMemberAvatar}
       />
+      </OverviewPanelGate>
 
+      <OverviewPanelGate panelId="stats">
       <WorkspaceOverviewStats
         username={session.username}
         winRate={memberStats?.win_rate}
@@ -306,9 +316,13 @@ export default async function DashboardOverviewPage({
         watchlistCount={watchlistCount}
         watchlistThesisCount={journalThesisCount}
       />
+      </OverviewPanelGate>
 
+      <OverviewPanelGate panelId="activity">
       <OverviewActivityPanels hotTickers={hotTickers} />
+      </OverviewPanelGate>
 
+      <OverviewPanelGate panelId="open_calls">
       {openCallCards.length > 0 ? (
         <OpenCallsPanel
           calls={openCallCards}
@@ -319,7 +333,9 @@ export default async function DashboardOverviewPage({
           proLocked={proLocked}
         />
       ) : null}
+      </OverviewPanelGate>
 
+      <OverviewPanelGate panelId="track_record">
       {ownCalls.length > 0 ? (
         <ShareTrackRecordCard
           username={session.username}
@@ -330,9 +346,13 @@ export default async function DashboardOverviewPage({
           }
         />
       ) : null}
+      </OverviewPanelGate>
 
+      <OverviewPanelGate panelId="live_bar">
       {workspacePulse ? <WorkspaceLiveBar initial={workspacePulse} compact /> : null}
+      </OverviewPanelGate>
 
+      <OverviewPanelGate panelId="journal_nudge">
       {journalReadyItems.length > 0 ? (
         <JournalReadyToPublishBanner
           readyItems={journalReadyItems}
@@ -341,9 +361,13 @@ export default async function DashboardOverviewPage({
       ) : journalNextUp ? (
         <JournalContinueCard nextUp={journalNextUp} />
       ) : null}
+      </OverviewPanelGate>
 
+      <OverviewPanelGate panelId="book_posture">
       {watchlistCount > 0 ? <BookPostureStrip items={watchlistItems} /> : null}
+      </OverviewPanelGate>
 
+      <OverviewPanelGate panelId="pro_command">
       {isPro && proTodayBrief && proOverviewIntel ? (
         <ProCommandCenter
           brief={proTodayBrief}
@@ -352,9 +376,11 @@ export default async function DashboardOverviewPage({
           bookAnalytics={proBookAnalytics}
         />
       ) : null}
+      </OverviewPanelGate>
 
       <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
         <div className="space-y-6 lg:col-span-7 xl:col-span-8">
+          <OverviewPanelGate panelId="fueled_desk">
           <section className="pf-fueled-desk p-5 sm:p-6" aria-label="PortFuel Fueled desk">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
@@ -377,7 +403,9 @@ export default async function DashboardOverviewPage({
               weeklyNote={deskBrief.weeklyNote}
             />
           </section>
+          </OverviewPanelGate>
 
+          <OverviewPanelGate panelId="member_feed">
           <WorkspacePanel
             title="Member feed"
             subtitle="Latest community theses"
@@ -391,11 +419,15 @@ export default async function DashboardOverviewPage({
               <FeedPreviewList previews={latestPreviews} />
             )}
           </WorkspacePanel>
+          </OverviewPanelGate>
         </div>
 
         <div className="space-y-6 lg:col-span-5 xl:col-span-4">
+          <OverviewPanelGate panelId="following">
           <FollowingFeedPanel following={followingMembers} previews={followingPreviews} />
+          </OverviewPanelGate>
 
+          <OverviewPanelGate panelId="watchlist">
           <WorkspacePanel
             title="Watchlist"
             subtitle="Symbols you follow"
@@ -432,7 +464,9 @@ export default async function DashboardOverviewPage({
               </ul>
             )}
           </WorkspacePanel>
+          </OverviewPanelGate>
 
+          <OverviewPanelGate panelId="fueled_portfolio">
           {portfolio.length > 0 ? (
             <WorkspacePanel
               title="Fueled portfolio"
@@ -473,20 +507,28 @@ export default async function DashboardOverviewPage({
               </div>
             </WorkspacePanel>
           ) : null}
+          </OverviewPanelGate>
         </div>
       </div>
 
+      <OverviewPanelGate panelId="fueled_track_record">
       <FueledTrackRecordPanel record={fueledTrackRecord} />
+      </OverviewPanelGate>
 
+      <OverviewPanelGate panelId="journal_pulse">
       {journalIdeas.length > 0 ? <WatchlistJournalPulse ideas={journalIdeas} /> : null}
+      </OverviewPanelGate>
 
+      <OverviewPanelGate panelId="alerts_email">
       <AlertsEmailSetupStrip
         watchlistCount={watchlistCount}
         emailInstantEnabled={emailPrefs?.emailInstantEnabled ?? false}
         notifyEmail={emailPrefs?.notifyEmail ?? null}
         emailVerified={session.emailVerified}
       />
+      </OverviewPanelGate>
 
+      <OverviewPanelGate panelId="onboarding">
       {session.role !== "admin" ? (
         <>
           <WorkspaceOnboardingChecklist
@@ -504,15 +546,20 @@ export default async function DashboardOverviewPage({
           />
         </>
       ) : null}
+      </OverviewPanelGate>
 
+      <OverviewPanelGate panelId="referral">
       {referralPrompt ? <ReferralOverviewStrip prompt={referralPrompt} /> : null}
+      </OverviewPanelGate>
 
+      <OverviewPanelGate panelId="pro_strip">
       {proLocked ? (
         <ProMembershipStrip
           locked
           watchlistSymbols={watchlistItems.map((w) => w.symbol)}
         />
       ) : null}
+      </OverviewPanelGate>
 
       {session.role === "admin" && communityPulse.count === 0 && latestPreviews.length === 0 ? (
         <AdminCommunityHint />
@@ -528,6 +575,7 @@ export default async function DashboardOverviewPage({
           </Link>
         </p>
       ) : null}
-    </div>
+      </OverviewLayoutBody>
+    </OverviewLayoutProvider>
   );
 }

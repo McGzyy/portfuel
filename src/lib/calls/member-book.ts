@@ -40,7 +40,7 @@ export type MemberOpenBook = {
 
 const BOOK_CALL_LIMIT = 80;
 
-function summarizeOpenBook(calls: MemberBookCallRow[]): MemberOpenBookSummary {
+export function summarizeOpenBook(calls: MemberBookCallRow[]): MemberOpenBookSummary {
   const withReturn = calls.filter((c) => c.return_pct != null);
   const avgReturnPct =
     withReturn.length > 0

@@ -135,21 +135,23 @@ export function CompareMultiLineChart({
     chart.timeScale().fitContent();
   }, [series]);
 
-  if (series.length < 2) return null;
+  if (series.length === 0) return null;
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap gap-3 px-1">
-        {series.map((s, i) => (
-          <span key={s.symbol} className="inline-flex items-center gap-1.5 text-xs font-semibold">
-            <span
-              className="h-0.5 w-4 rounded-full"
-              style={{ backgroundColor: SERIES_COLORS[i % SERIES_COLORS.length] }}
-            />
-            <span className="font-mono text-[var(--pf-black)]">{s.symbol}</span>
-          </span>
-        ))}
-      </div>
+      {series.length > 1 ? (
+        <div className="flex flex-wrap gap-3 px-1">
+          {series.map((s, i) => (
+            <span key={s.symbol} className="inline-flex items-center gap-1.5 text-xs font-semibold">
+              <span
+                className="h-0.5 w-4 rounded-full"
+                style={{ backgroundColor: SERIES_COLORS[i % SERIES_COLORS.length] }}
+              />
+              <span className="font-mono text-[var(--pf-black)]">{s.symbol}</span>
+            </span>
+          ))}
+        </div>
+      ) : null}
       <div ref={containerRef} className="w-full" style={{ height }} />
     </div>
   );

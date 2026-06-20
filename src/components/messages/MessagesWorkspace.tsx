@@ -9,6 +9,11 @@ import { MessagesCommandHeader } from "@/components/messages/MessagesCommandHead
 import { cn, timeAgo } from "@/lib/utils";
 import { DmTypingIndicator } from "@/components/messages/DmTypingIndicator";
 import { useDmTyping } from "@/components/messages/useDmTyping";
+import { useWorkspaceActivityStreamLive } from "@/components/workspace/WorkspaceActivityProvider";
+import {
+  WORKSPACE_ACTIVITY_EVENT,
+  type WorkspaceActivitySnapshot,
+} from "@/lib/workspace/activity-snapshot";
 import type { DmMessage, DmThreadDetail, DmThreadSummary } from "@/lib/messages/types";
 
 export function MessagesWorkspace({ proUnlocked = false }: { proUnlocked?: boolean }) {
@@ -25,7 +30,9 @@ export function MessagesWorkspace({ proUnlocked = false }: { proUnlocked?: boole
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const dmUnreadRef = useRef<number | null>(null);
   const { otherTyping } = useDmTyping(activeId, draft);
+  const streamLive = useWorkspaceActivityStreamLive();
 
   const loadThreads = useCallback(async () => {
     const res = await fetch("/api/messages");
@@ -92,10 +99,24 @@ export function MessagesWorkspace({ proUnlocked = false }: { proUnlocked?: boole
   }, [activeThread?.messages.length, otherTyping]);
 
   useEffect(() => {
+    const onActivity = (e: Event) => {
+      const detail = (e as CustomEvent<WorkspaceActivitySnapshot>).detail;
+      if (detail?.dmUnread == null) return;
+      if (dmUnreadRef.current != null && detail.dmUnread === dmUnreadRef.current) return;
+      dmUnreadRef.current = detail.dmUnread;
+      void loadThreads();
+      if (activeId) void loadThread(activeId, true);
+    };
+    window.addEventListener(WORKSPACE_ACTIVITY_EVENT, onActivity);
+    return () => window.removeEventListener(WORKSPACE_ACTIVITY_EVENT, onActivity);
+  }, [activeId, loadThread, loadThreads]);
+
+  useEffect(() => {
     if (!activeId) return;
-    const id = setInterval(() => void loadThread(activeId, true), 20_000);
+    const ms = streamLive ? 60_000 : 20_000;
+    const id = setInterval(() => void loadThread(activeId, true), ms);
     return () => clearInterval(id);
-  }, [activeId, loadThread]);
+  }, [activeId, loadThread, streamLive]);
 
   async function send() {
     if (!activeId || draft.trim().length < 1) return;

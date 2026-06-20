@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { TabNav } from "@/components/layout/TabNav";
 import { DashboardFeedFilters } from "@/components/dashboard/DashboardFeedFilters";
 import { DashboardFeedSearch } from "@/components/dashboard/DashboardFeedSearch";
-import { FeedNewBanner } from "@/components/dashboard/FeedNewBanner";
+import { FeedNewBannerLive } from "@/components/dashboard/FeedNewBannerLive";
 import { buildFeedHref, type FeedTab } from "@/lib/dashboard/nav";
 import type { FeedFilter } from "@/lib/calls/filter-feed";
 import { FeedRefreshButton } from "@/components/dashboard/FeedRefreshButton";
@@ -43,8 +43,8 @@ export function FeedToolbar({
           <FeedRefreshButton className="!w-auto shrink-0" />
         </div>
 
-        <FeedNewBanner
-          newCount={newCount}
+        <FeedNewBannerLive
+          initialCount={newCount}
           mode={mode}
           feedFilter={feedFilter}
           searchQuery={searchQuery}

@@ -10,6 +10,7 @@ import { EarningsCalendarPanel } from "@/components/pro/EarningsCalendarPanel";
 import { MarketHeadlinesWidget } from "@/components/pro/MarketHeadlinesWidget";
 import { WatchlistAiDigestPanel } from "@/components/pro/WatchlistAiDigestPanel";
 import { ResearchPipeline } from "@/components/journal/ResearchPipeline";
+import { WatchlistLoadError } from "@/components/watchlist/WatchlistLoadError";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { isDemoMode } from "@/lib/demo/config";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
@@ -42,6 +43,7 @@ export default async function DashboardWatchlistPage() {
 
   let items: Awaited<ReturnType<typeof fetchWatchlist>> = [];
   let alertPrefs = DEFAULT_WATCHLIST_ALERT_PREFS;
+  let loadFailed = false;
   try {
     items = await fetchWatchlist(session.userId);
     if (proUnlocked && items.length > 0) {
@@ -51,6 +53,7 @@ export default async function DashboardWatchlistPage() {
     if (prefs?.watchlist) alertPrefs = prefs.watchlist;
   } catch (e) {
     console.error("[watchlist/page]", e);
+    loadFailed = true;
   }
 
   const unreadAlerts = items.filter((i) => i.has_unread_call_alert).length;
@@ -61,6 +64,7 @@ export default async function DashboardWatchlistPage() {
   return (
     <WatchlistItemsProvider initialItems={items}>
       <div className="space-y-6">
+        {loadFailed ? <WatchlistLoadError /> : null}
         <WatchlistCommandHeader
           symbolCount={items.length}
           unreadAlerts={unreadAlerts}

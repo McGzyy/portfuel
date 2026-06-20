@@ -93,7 +93,8 @@ export function WorkspaceLiveBar({
           </span>
           <span className="text-xs font-semibold text-[var(--pf-black)]">Live pulse</span>
           <span className="hidden text-xs text-[var(--pf-gray-500)] sm:inline">
-            · {pulse.isPro ? "Pro" : "Quotes"} every {pulse.quotesRefreshMinutes}m
+            · {pulse.isPro ? "Pro quotes" : "Quotes"} every {pulse.quotesRefreshMinutes}m
+            {pulse.isPro ? " · open book live ~45s" : " · open book ~2m"}
           </span>
         </div>
         <div className="flex items-center gap-3 text-xs text-[var(--pf-gray-600)]">

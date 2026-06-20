@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { PullToRefresh } from "@/components/layout/PullToRefresh";
+import { ClientErrorBoundary } from "@/components/errors/ClientErrorBoundary";
 import { cn } from "@/lib/utils";
 
 export function WorkspaceContent({ children }: { children: React.ReactNode }) {
@@ -20,7 +21,7 @@ export function WorkspaceContent({ children }: { children: React.ReactNode }) {
           isWide && "pf-workspace-content-wide"
         )}
       >
-        {children}
+        <ClientErrorBoundary>{children}</ClientErrorBoundary>
       </div>
     </PullToRefresh>
   );

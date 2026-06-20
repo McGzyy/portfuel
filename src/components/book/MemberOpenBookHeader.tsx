@@ -1,35 +1,8 @@
 import Link from "next/link";
 import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
-import { PositionsHighlightCards } from "@/components/book/PositionsHighlightCards";
+import { MemberOpenBookLiveStats } from "@/components/book/MemberOpenBookLiveStats";
 import type { MemberOpenBookSummary } from "@/lib/calls/member-book";
 import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
-import { formatPct } from "@/lib/utils";
-
-function Stat({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: string;
-  accent?: "positive" | "negative";
-}) {
-  const valueClass =
-    accent === "positive"
-      ? "pf-return-up"
-      : accent === "negative"
-        ? "pf-return-down"
-        : "text-[var(--pf-black)]";
-
-  return (
-    <div className="rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2.5">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-        {label}
-      </p>
-      <p className={`mt-0.5 text-lg font-bold tabular-nums ${valueClass}`}>{value}</p>
-    </div>
-  );
-}
 
 export function MemberOpenBookHeader({
   summary,
@@ -40,13 +13,6 @@ export function MemberOpenBookHeader({
   username: string;
   isPro?: boolean;
 }) {
-  const avgAccent =
-    summary.avgReturnPct == null
-      ? undefined
-      : summary.avgReturnPct >= 0
-        ? ("positive" as const)
-        : ("negative" as const);
-
   const subtitle =
     summary.openCount > 0
       ? `${summary.openCount} live thesis${summary.openCount === 1 ? "" : "es"} across ${summary.uniqueSymbols} symbol${summary.uniqueSymbols === 1 ? "" : "s"} — ${quotesRefreshLabel({ isPro }).replace(/^./, (c) => c.toLowerCase())}.`
@@ -76,22 +42,7 @@ export function MemberOpenBookHeader({
       </div>
 
       {summary.openCount > 0 ? (
-        <div className="space-y-3">
-          <PositionsHighlightCards best={summary.best} worst={summary.worst} />
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Stat label="Open calls" value={String(summary.openCount)} />
-            <Stat label="Symbols" value={String(summary.uniqueSymbols)} />
-            <Stat
-              label="Avg return"
-              value={summary.avgReturnPct != null ? formatPct(summary.avgReturnPct) : "—"}
-              accent={avgAccent}
-            />
-            <Stat
-              label="Long / short"
-              value={`${summary.longCount} / ${summary.shortCount}`}
-            />
-          </div>
-        </div>
+        <MemberOpenBookLiveStats initialSummary={summary} />
       ) : null}
     </header>
   );

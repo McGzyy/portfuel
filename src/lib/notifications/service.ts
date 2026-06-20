@@ -7,6 +7,13 @@ import {
   type CreateNotificationInput,
 } from "@/lib/notifications/create-notification";
 import type { NotificationType, UserNotification } from "@/lib/notifications/types";
+import { typesForFilter, type NotificationFilterKey } from "@/lib/notifications/inbox-filters";
+import { isMissingSnoozeColumn } from "@/lib/notifications/snooze";
+
+function isSnoozeActive(snoozedUntil: string | null | undefined, now = Date.now()): boolean {
+  if (!snoozedUntil) return false;
+  return new Date(snoozedUntil).getTime() > now;
+}
 
 function mapRow(row: {
   id: string;
@@ -15,6 +22,7 @@ function mapRow(row: {
   body: string;
   href: string;
   read_at: string | null;
+  snoozed_until?: string | null;
   created_at: string;
   actor?: { username: string } | null;
 }): UserNotification {
@@ -25,6 +33,7 @@ function mapRow(row: {
     body: row.body,
     href: row.href,
     read_at: row.read_at,
+    snoozed_until: row.snoozed_until ?? null,
     created_at: row.created_at,
     actor_username: row.actor?.username ?? null,
   };
@@ -32,26 +41,59 @@ function mapRow(row: {
 
 export async function fetchNotifications(
   userId: string,
-  limit = 40
+  limit = 80
 ): Promise<UserNotification[]> {
   if (isDemoMode()) return getDemoNotifications();
 
   const db = createServiceClient();
   const { data, error } = await db
     .from("user_notifications")
-    .select("id, type, title, body, href, read_at, created_at, actor_user_id")
+    .select("id, type, title, body, href, read_at, snoozed_until, created_at, actor_user_id")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) {
+    if (isMissingSnoozeColumn(error.message)) {
+      const fallback = await db
+        .from("user_notifications")
+        .select("id, type, title, body, href, read_at, created_at, actor_user_id")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (fallback.error) {
+        console.error("[notifications/fetch]", fallback.error);
+        return [];
+      }
+      const rows = fallback.data ?? [];
+      return mapNotificationRows(db, rows);
+    }
     console.error("[notifications/fetch]", error);
     return [];
   }
 
   const rows = data ?? [];
+  return mapNotificationRows(db, rows);
+}
+
+async function mapNotificationRows(
+  db: ReturnType<typeof createServiceClient>,
+  rows: {
+    id: string;
+    type: string;
+    title: string;
+    body: string;
+    href: string;
+    read_at: string | null;
+    snoozed_until?: string | null;
+    created_at: string;
+    actor_user_id: string | null;
+  }[]
+): Promise<UserNotification[]> {
+  const now = Date.now();
+  const visible = rows.filter((r) => !isSnoozeActive(r.snoozed_until, now));
   const actorIds = [
-    ...new Set(rows.map((r) => r.actor_user_id).filter((id): id is string => Boolean(id))),
+    ...new Set(visible.map((r) => r.actor_user_id).filter((id): id is string => Boolean(id))),
   ];
   const actorMap = new Map<string, string>();
   if (actorIds.length > 0) {
@@ -61,7 +103,7 @@ export async function fetchNotifications(
     }
   }
 
-  return rows.map((row) =>
+  return visible.map((row) =>
     mapRow({
       ...row,
       actor: row.actor_user_id ? { username: actorMap.get(row.actor_user_id) ?? "" } : null,
@@ -73,13 +115,27 @@ export async function fetchUnreadCount(userId: string): Promise<number> {
   if (isDemoMode()) return getDemoNotifications().filter((n) => !n.read_at).length;
 
   const db = createServiceClient();
+  const nowIso = new Date().toISOString();
   const { count, error } = await db
     .from("user_notifications")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId)
-    .is("read_at", null);
+    .is("read_at", null)
+    .or(`snoozed_until.is.null,snoozed_until.lte.${nowIso}`);
 
   if (error) {
+    if (isMissingSnoozeColumn(error.message)) {
+      const fallback = await db
+        .from("user_notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .is("read_at", null);
+      if (fallback.error) {
+        console.error("[notifications/unread]", fallback.error);
+        return 0;
+      }
+      return fallback.count ?? 0;
+    }
     console.error("[notifications/unread]", error);
     return 0;
   }
@@ -88,7 +144,7 @@ export async function fetchUnreadCount(userId: string): Promise<number> {
 
 export async function markNotificationsRead(
   userId: string,
-  opts: { ids?: string[]; all?: boolean }
+  opts: { ids?: string[]; all?: boolean; filter?: NotificationFilterKey }
 ): Promise<void> {
   if (isDemoMode()) return;
 
@@ -105,8 +161,39 @@ export async function markNotificationsRead(
     query = query.in("id", opts.ids);
   }
 
+  if (opts.filter && opts.filter !== "all" && opts.filter !== "unread") {
+    const types = typesForFilter(opts.filter);
+    if (types?.length) query = query.in("type", types);
+  } else if (opts.filter === "unread") {
+    // already scoped to unread
+  }
+
   const { error } = await query;
   if (error) console.error("[notifications/markRead]", error);
+}
+
+export async function snoozeNotification(
+  userId: string,
+  notificationId: string,
+  untilIso: string
+): Promise<{ ok: boolean; migrationRequired?: boolean }> {
+  if (isDemoMode()) return { ok: true };
+
+  const db = createServiceClient();
+  const { error } = await db
+    .from("user_notifications")
+    .update({ snoozed_until: untilIso } as never)
+    .eq("user_id", userId)
+    .eq("id", notificationId);
+
+  if (error) {
+    if (isMissingSnoozeColumn(error.message)) {
+      return { ok: false, migrationRequired: true };
+    }
+    console.error("[notifications/snooze]", error);
+    return { ok: false };
+  }
+  return { ok: true };
 }
 
 export async function notifyCallComment(opts: {

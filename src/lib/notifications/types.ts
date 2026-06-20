@@ -38,6 +38,7 @@ export type UserNotification = {
   body: string;
   href: string;
   read_at: string | null;
+  snoozed_until?: string | null;
   created_at: string;
   actor_username?: string | null;
 };

@@ -479,9 +479,23 @@ body {
   animation: pf-ticker-scroll 40s linear infinite;
 }
 
+@keyframes pf-live-tick-flash {
+  0% {
+    background-color: rgb(16 185 129 / 0.18);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.pf-live-tick {
+  animation: pf-live-tick-flash 0.7s ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pf-live-dot,
-  .pf-ticker-tape {
+  .pf-ticker-tape,
+  .pf-live-tick {
     animation: none;
   }
 }

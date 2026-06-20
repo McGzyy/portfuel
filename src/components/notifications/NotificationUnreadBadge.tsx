@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useWorkspaceActivityOptional } from "@/components/workspace/WorkspaceActivityProvider";
 
 const POLL_MS = 60_000;
+const FALLBACK_POLL_MS = 120_000;
 
 export function NotificationUnreadBadge({
   initial = 0,
@@ -12,6 +14,8 @@ export function NotificationUnreadBadge({
   initial?: number;
   className?: string;
 }) {
+  const activity = useWorkspaceActivityOptional();
+  const streamLive = activity?.streamStatus === "live";
   const [count, setCount] = useState(initial);
 
   const load = useCallback(async () => {
@@ -31,17 +35,24 @@ export function NotificationUnreadBadge({
   }, [initial]);
 
   useEffect(() => {
+    if (activity?.notifUnread != null) {
+      setCount(activity.notifUnread);
+    }
+  }, [activity?.notifUnread]);
+
+  useEffect(() => {
     void load();
-    const id = setInterval(() => void load(), POLL_MS);
     const onRefresh = () => void load();
     window.addEventListener("focus", onRefresh);
     window.addEventListener("portfuel:notifications-unread-changed", onRefresh);
+    const intervalMs = streamLive ? FALLBACK_POLL_MS : POLL_MS;
+    const id = setInterval(() => void load(), intervalMs);
     return () => {
       clearInterval(id);
       window.removeEventListener("focus", onRefresh);
       window.removeEventListener("portfuel:notifications-unread-changed", onRefresh);
     };
-  }, [load]);
+  }, [load, streamLive]);
 
   if (count <= 0) return null;
 

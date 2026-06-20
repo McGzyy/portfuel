@@ -16,7 +16,7 @@ export const WORKSPACE_SHORTCUT_GROUPS: WorkspaceShortcutGroup[] = [
       {
         keys: ["⌘", "K"],
         label: "Search workspace",
-        description: "Symbols, members, pages, headlines, and journal entries.",
+        description: "Symbols, members, pages, headlines, journal — plus quick actions.",
       },
       {
         keys: ["?"],
@@ -41,6 +41,21 @@ export const WORKSPACE_SHORTCUT_GROUPS: WorkspaceShortcutGroup[] = [
       { keys: ["G", "J"], label: "Journal", description: "Private research notebook." },
       { keys: ["G", "R"], label: "Pro research", description: "Screener, earnings, compare." },
       { keys: ["G", "U"], label: "What's new", description: "Release notes and product updates." },
+    ],
+  },
+  {
+    title: "Command palette",
+    items: [
+      {
+        keys: ["⌘", "K"],
+        label: "Open command palette",
+        description: "Search plus actions: publish call, mark alerts read, theme, refresh positions.",
+      },
+      {
+        keys: ["type"],
+        label: "Run by name",
+        description: 'Try "publish", "dark mode", "mark read", or "add NVDA".',
+      },
     ],
   },
   {

@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { AppShell } from "@/components/layout/AppShell";
 import { MemberNav } from "@/components/dashboard/MemberNav";
 import { ModerationBanner } from "@/components/member/ModerationBanner";
@@ -19,6 +20,14 @@ import type { SessionPayload } from "@/lib/auth/session-types";
 import { countUnreadDmThreads } from "@/lib/messages/service";
 import { fetchUnreadCount } from "@/lib/notifications/service";
 import { fetchUserAvatarUrl } from "@/lib/users/member-avatar";
+import { LiveBookProvider } from "@/components/market/LiveBookProvider";
+import { WorkspaceActivityProvider } from "@/components/workspace/WorkspaceActivityProvider";
+import { countFeedCallsSince } from "@/lib/feed/new-count";
+import { FEED_SEEN_COOKIE, parseFeedSeenAt } from "@/lib/feed/last-seen";
+import {
+  canAccessProIntelligence,
+  sessionToProContext,
+} from "@/lib/features/pro-intelligence";
 
 /** Shared workspace chrome — sidebar, mobile nav, search, and content shell. */
 export async function DashboardWorkspaceFrame({
@@ -41,6 +50,16 @@ export async function DashboardWorkspaceFrame({
     ]);
   const [dmUnread, notifUnread] = unreadPair;
   const whatsNewUnread = countUnreadWhatsNew(changelog);
+  const isPro = canAccessProIntelligence(sessionToProContext(session));
+  const cookieStore = await cookies();
+  const feedSeenAt = parseFeedSeenAt(cookieStore.get(FEED_SEEN_COOKIE)?.value);
+  const feedNewCount = await countFeedCallsSince(feedSeenAt).catch(() => 0);
+  const activityInitial = {
+    notifUnread,
+    dmUnread,
+    feedNewCount,
+    at: new Date().toISOString(),
+  };
 
   return (
     <WorkspaceSearchShell>
@@ -50,6 +69,8 @@ export async function DashboardWorkspaceFrame({
         headerCenter={<WorkspaceSearchHeaderTrigger />}
         mainClassName="!max-w-none !px-0 !py-0"
       >
+        <LiveBookProvider isPro={isPro}>
+        <WorkspaceActivityProvider initial={activityInitial}>
         <div className="pf-workspace">
           <div className="pf-workspace-sidebar-wrap">
             <WorkspaceSidebar
@@ -89,6 +110,8 @@ export async function DashboardWorkspaceFrame({
             <WorkspaceContent>{children}</WorkspaceContent>
           </div>
         </div>
+        </WorkspaceActivityProvider>
+        </LiveBookProvider>
         <WorkspaceGuide
           username={session.username}
           userId={session.userId}

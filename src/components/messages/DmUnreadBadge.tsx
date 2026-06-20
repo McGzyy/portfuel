@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useWorkspaceActivityOptional } from "@/components/workspace/WorkspaceActivityProvider";
 
 const POLL_MS = 60_000;
+const FALLBACK_POLL_MS = 120_000;
 
 export function DmUnreadBadge({
   initial = 0,
@@ -12,6 +14,8 @@ export function DmUnreadBadge({
   initial?: number;
   className?: string;
 }) {
+  const activity = useWorkspaceActivityOptional();
+  const streamLive = activity?.streamStatus === "live";
   const [count, setCount] = useState(initial);
 
   const load = useCallback(async () => {
@@ -31,17 +35,24 @@ export function DmUnreadBadge({
   }, [initial]);
 
   useEffect(() => {
+    if (activity?.dmUnread != null) {
+      setCount(activity.dmUnread);
+    }
+  }, [activity?.dmUnread]);
+
+  useEffect(() => {
     void load();
-    const id = setInterval(() => void load(), POLL_MS);
     const onRefresh = () => void load();
     window.addEventListener("focus", onRefresh);
     window.addEventListener("portfuel:dm-unread-changed", onRefresh);
+    const intervalMs = streamLive ? FALLBACK_POLL_MS : POLL_MS;
+    const id = setInterval(() => void load(), intervalMs);
     return () => {
       clearInterval(id);
       window.removeEventListener("focus", onRefresh);
       window.removeEventListener("portfuel:dm-unread-changed", onRefresh);
     };
-  }, [load]);
+  }, [load, streamLive]);
 
   if (count <= 0) return null;
 

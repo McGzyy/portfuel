@@ -25,6 +25,9 @@ export async function GET() {
 const readSchema = z.object({
   ids: z.array(z.string().uuid()).optional(),
   all: z.boolean().optional(),
+  filter: z
+    .enum(["all", "unread", "watchlist", "social", "desk", "support", "billing"])
+    .optional(),
 });
 
 export async function POST(request: Request) {
@@ -41,6 +44,7 @@ export async function POST(request: Request) {
     await markNotificationsRead(session.userId, {
       ids: body.ids,
       all: body.all,
+      filter: body.filter,
     });
     const unreadCount = await fetchUnreadCount(session.userId);
     return NextResponse.json({ ok: true, unreadCount });
