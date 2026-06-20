@@ -25,6 +25,7 @@ import {
   type DashboardNavIcon,
 } from "@/lib/dashboard/nav";
 import { WorkspaceSidebarFooter } from "@/components/dashboard/WorkspaceSidebarFooter";
+import { WorkspaceStreamStatus } from "@/components/workspace/WorkspaceStreamStatus";
 import { PublishIdentitySwitcher } from "@/components/calls/PublishIdentitySwitcher";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
@@ -138,6 +139,10 @@ export function WorkspaceSidebar({
           <PublishIdentitySwitcher />
         </div>
       ) : null}
+
+      <div className="px-3 pb-2">
+        <WorkspaceStreamStatus />
+      </div>
 
       <WorkspaceSidebarFooter username={username} isAdmin={isAdmin} />
     </aside>
