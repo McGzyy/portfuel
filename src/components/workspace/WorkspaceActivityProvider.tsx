@@ -14,7 +14,7 @@ import { isDemoMode } from "@/lib/demo/config";
 import {
   dispatchWorkspaceActivity,
   type WorkspaceActivitySnapshot,
-} from "@/lib/workspace/activity-snapshot";
+} from "@/lib/workspace/activity-events";
 
 export type WorkspaceStreamStatus = "idle" | "connecting" | "live" | "offline";
 

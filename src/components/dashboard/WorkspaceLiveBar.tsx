@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Activity } from "lucide-react";
+import { MarketSessionBadge } from "@/components/market/MarketSessionBadge";
 import { cn, formatPct } from "@/lib/utils";
 import { useProQuoteRefresh } from "@/hooks/useProQuoteRefresh";
 import type { WorkspacePulse } from "@/lib/workspace/pulse";
@@ -92,6 +93,7 @@ export function WorkspaceLiveBar({
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
           </span>
           <span className="text-xs font-semibold text-[var(--pf-black)]">Live pulse</span>
+          <MarketSessionBadge variant="dot" />
           <span className="hidden text-xs text-[var(--pf-gray-500)] sm:inline">
             · {pulse.isPro ? "Pro quotes" : "Quotes"} every {pulse.quotesRefreshMinutes}m
             {pulse.isPro ? " · open book live ~45s" : " · open book ~2m"}

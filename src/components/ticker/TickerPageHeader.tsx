@@ -2,7 +2,8 @@ import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { HypeMeter } from "@/components/brand/HypeMeter";
 import { Badge } from "@/components/ui/badge";
-import { MarketDataNote } from "@/components/market/MarketDataNote";
+import { MarketQuoteContextLine } from "@/components/market/MarketQuoteContextLine";
+import { MarketSessionBadge } from "@/components/market/MarketSessionBadge";
 import { SymbolAvatar } from "@/components/market/SymbolAvatar";
 import { journalSymbolPath } from "@/lib/journal/paths";
 import { cn, formatPct, formatPrice } from "@/lib/utils";
@@ -64,6 +65,9 @@ export function TickerPageHeader({
               <Badge variant={intel?.assetClass === "crypto" ? "fueled" : "default"}>
                 {intel?.assetClass === "crypto" ? "Crypto" : "Equity"}
               </Badge>
+              {intel?.assetClass !== "crypto" ? (
+                <MarketSessionBadge assetClass="equity" />
+              ) : null}
             </div>
             <p className="mt-0.5 truncate text-sm text-[var(--pf-gray-500)]">
               {intel?.companyName ?? symbol}
@@ -115,7 +119,11 @@ export function TickerPageHeader({
               </span>
             ) : null}
           </div>
-          <MarketDataNote isPro={isPro} updatedAt={intel.quote.updatedAt} />
+          <MarketQuoteContextLine
+            isPro={isPro}
+            updatedAt={intel.quote.updatedAt}
+            assetClass={intel?.assetClass}
+          />
         </div>
       ) : null}
     </header>

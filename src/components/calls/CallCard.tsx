@@ -19,6 +19,7 @@ import { CallStopHitNotice } from "@/components/calls/CallStopHitNotice";
 import { CallTargetHitNotice } from "@/components/calls/CallTargetHitNotice";
 import { CallCancelPendingButton } from "@/components/calls/CallCancelPendingButton";
 import { CallSpotlightPrompt } from "@/components/calls/CallSpotlightPrompt";
+import { MarketSessionBadge } from "@/components/market/MarketSessionBadge";
 import { CALL_CARD_INTERACTIVE } from "@/components/calls/call-card-link";
 import { canCloseMemberCall } from "@/lib/calls/close-eligibility";
 import { isCallStopHit } from "@/lib/calls/stop-cross";
@@ -253,6 +254,10 @@ export function CallCard({
               </Badge>
               {"asset_class" in call && call.asset_class === "crypto" ? (
                 <Badge variant="default">Crypto</Badge>
+              ) : !call.closed_at ? (
+                <MarketSessionBadge
+                  assetClass={"asset_class" in call ? call.asset_class : "equity"}
+                />
               ) : null}
               {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
             </div>

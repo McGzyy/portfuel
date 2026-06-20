@@ -13,7 +13,7 @@ import { useWorkspaceActivityStreamLive } from "@/components/workspace/Workspace
 import {
   WORKSPACE_ACTIVITY_EVENT,
   type WorkspaceActivitySnapshot,
-} from "@/lib/workspace/activity-snapshot";
+} from "@/lib/workspace/activity-events";
 import type { DmMessage, DmThreadDetail, DmThreadSummary } from "@/lib/messages/types";
 
 export function MessagesWorkspace({ proUnlocked = false }: { proUnlocked?: boolean }) {

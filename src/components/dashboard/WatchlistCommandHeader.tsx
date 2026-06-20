@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { JournalHeaderAction } from "@/components/journal/JournalHeaderAction";
+import { MarketSessionBadge } from "@/components/market/MarketSessionBadge";
 import type { JournalNextUp } from "@/lib/journal/next-up";
 import type { BookPostureSummary } from "@/lib/watchlist/book-posture";
 
@@ -35,9 +36,12 @@ export function WatchlistCommandHeader({
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
             Research · Watchlist
           </p>
-          <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
-            Watchlist
-          </h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
+              Watchlist
+            </h1>
+            <MarketSessionBadge assetClass="equity" />
+          </div>
           <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
             {symbolCount} of {MAX_WATCHLIST} symbols on your watchlist — add names here to research
             in your journal, then publish a call when ready.

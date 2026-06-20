@@ -9,10 +9,10 @@ function formatEarningsDate(iso: string): string {
 
 function earningsHourLabel(hour: string | null | undefined): string {
   const h = hour?.toLowerCase() ?? "";
-  if (h === "bmo") return "BMO";
-  if (h === "amc") return "AMC";
-  if (h.includes("before")) return "BMO";
-  if (h.includes("after")) return "AMC";
+  if (h === "bmo") return "before open";
+  if (h === "amc") return "after close";
+  if (h.includes("before")) return "before open";
+  if (h.includes("after")) return "after close";
   return "";
 }
 

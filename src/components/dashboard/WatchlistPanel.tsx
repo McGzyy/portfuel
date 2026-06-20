@@ -28,7 +28,7 @@ import { watchlistAddErrorMessage } from "@/lib/watchlist/add-errors";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { useWatchlistItemsOptional } from "@/components/dashboard/WatchlistItemsProvider";
 import { useProQuoteRefresh } from "@/hooks/useProQuoteRefresh";
-import { MarketDataNote } from "@/components/market/MarketDataNote";
+import { MarketQuoteContextLine } from "@/components/market/MarketQuoteContextLine";
 import { pickLatestTimestamp } from "@/lib/market/quote-freshness";
 import { getDemoWatchlistSeed } from "@/lib/watchlist/demo";
 
@@ -270,10 +270,11 @@ export function WatchlistPanel({
         Step 1 — add tickers you want to research. We open your private journal so you can draft a
         thesis, plan levels, and log entries over time.
       </p>
-      <MarketDataNote
+      <MarketQuoteContextLine
         className="mt-2"
         isPro={proUnlocked}
         updatedAt={quotesUpdatedAt}
+        assetClass="equity"
       />
 
       <form onSubmit={addSymbol} className="mt-3">

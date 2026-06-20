@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
+import { MarketSessionBadge } from "@/components/market/MarketSessionBadge";
 import { cn } from "@/lib/utils";
 import { useLiveBookStatus, type LiveBookStatus } from "@/components/market/LiveBookProvider";
 
@@ -96,6 +97,7 @@ export function LiveQuoteStatusChip({
         <span className={cn("relative inline-flex h-1.5 w-1.5 rounded-full", dotClass)} />
       </span>
       <span>{statusLabel(status, ageMs, isPro, quoteErrors)}</span>
+      <MarketSessionBadge variant="dot" className="hidden sm:inline-flex" />
       {showRefresh && refreshNow ? (
         <button
           type="button"

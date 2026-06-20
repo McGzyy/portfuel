@@ -21,7 +21,7 @@ import {
   type NotificationFilterKey,
   type SnoozeDuration,
 } from "@/lib/notifications/inbox-filters";
-import { WORKSPACE_ACTIVITY_EVENT } from "@/lib/workspace/activity-snapshot";
+import { WORKSPACE_ACTIVITY_EVENT } from "@/lib/workspace/activity-events";
 import type { UserNotification } from "@/lib/notifications/types";
 
 export function NotificationsList({ proUnlocked: _proUnlocked = false }: { proUnlocked?: boolean }) {
