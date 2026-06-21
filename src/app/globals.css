@@ -414,9 +414,6 @@ body {
   .pf-workspace-overview-rail {
     position: sticky;
     top: 1rem;
-    max-height: calc(100dvh - 2rem);
-    overflow-y: auto;
-    overscroll-behavior: contain;
     align-self: start;
     border-left: 1px solid var(--pf-border);
     padding-left: 1rem;

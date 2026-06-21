@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useWorkspaceActivityOptional } from "@/components/workspace/WorkspaceActivityProvider";
 import { cn } from "@/lib/utils";
 
-export function OverviewRailLiveCounts({
+export function OverviewRailInboxStrip({
   dmUnread: initialDm,
   notifUnread: initialNotif,
   feedNewCount: initialFeed,
@@ -19,53 +19,51 @@ export function OverviewRailLiveCounts({
   const feed = activity?.feedNewCount ?? initialFeed;
 
   const items = [
-    { href: "/dashboard/feed", label: "Member feed", count: feed },
-    { href: "/dashboard/messages", label: "Messages", count: dm },
+    { href: "/dashboard/feed", label: "Feed", count: feed },
+    { href: "/dashboard/messages", label: "DMs", count: dm },
     { href: "/dashboard/notifications", label: "Alerts", count: notif },
   ];
 
   return (
-    <ul className="space-y-1">
+    <div className="grid grid-cols-3 gap-1.5">
       {items.map((item) => (
-        <li key={item.href}>
-          <Link
-            href={item.href}
-            className="flex items-center justify-between rounded-lg px-2 py-1.5 text-xs font-semibold text-[var(--pf-gray-700)] hover:bg-[var(--pf-gray-50)] hover:text-[var(--pf-black)]"
-          >
-            <span>{item.label}</span>
-            {item.count > 0 ? (
-              <span className="rounded-full bg-[var(--pf-red-muted)] px-2 py-0.5 text-[10px] font-bold tabular-nums text-[var(--pf-red)]">
-                {item.count > 99 ? "99+" : item.count}
-              </span>
-            ) : (
-              <span className="text-[10px] text-[var(--pf-gray-400)]">—</span>
+        <Link
+          key={item.href}
+          href={item.href}
+          className="flex flex-col items-center rounded-md border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-1 py-1.5 text-center hover:bg-white"
+        >
+          <span className="text-[10px] font-semibold text-[var(--pf-gray-600)]">{item.label}</span>
+          <span
+            className={cn(
+              "mt-0.5 text-xs font-bold tabular-nums",
+              item.count > 0 ? "text-[var(--pf-red)]" : "text-[var(--pf-gray-400)]"
             )}
-          </Link>
-        </li>
+          >
+            {item.count > 99 ? "99+" : item.count}
+          </span>
+        </Link>
       ))}
-    </ul>
+    </div>
   );
 }
 
-export function OverviewRailStat({
+export function OverviewRailMiniStat({
   label,
   value,
-  hint,
   accent,
 }: {
   label: string;
   value: string;
-  hint?: string;
   accent?: "positive" | "negative";
 }) {
   return (
-    <div className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+    <div className="text-center">
+      <p className="text-[9px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
         {label}
       </p>
       <p
         className={cn(
-          "mt-0.5 text-lg font-bold tabular-nums",
+          "text-sm font-bold tabular-nums leading-tight",
           accent === "positive" && "text-emerald-600",
           accent === "negative" && "text-[var(--pf-red)]",
           !accent && "text-[var(--pf-black)]"
@@ -73,7 +71,6 @@ export function OverviewRailStat({
       >
         {value}
       </p>
-      {hint ? <p className="mt-0.5 text-[10px] text-[var(--pf-gray-500)]">{hint}</p> : null}
     </div>
   );
 }

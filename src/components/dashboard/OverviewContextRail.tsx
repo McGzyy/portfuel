@@ -1,29 +1,20 @@
 import Link from "next/link";
+import { BarChart3, Compass, Flame, Radar } from "lucide-react";
 import {
-  BarChart3,
-  Compass,
-  Flame,
-  LineChart,
-  Plus,
-  Radar,
-  Star,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  OverviewRailLiveCounts,
-  OverviewRailStat,
+  OverviewRailInboxStrip,
+  OverviewRailMiniStat,
 } from "@/components/dashboard/OverviewContextRail.client";
 import type { FeedSummary } from "@/lib/calls/feed-summary";
 import { formatPct } from "@/lib/utils";
 
-function RailSection({ title, children }: { title: string; children: React.ReactNode }) {
+function RailBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="pf-workspace-panel overflow-hidden">
-      <p className="border-b border-[var(--pf-border)] px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--pf-gray-400)]">
+    <div className="border-b border-[var(--pf-border)] px-3 py-2.5 last:border-b-0">
+      <p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
         {title}
       </p>
-      <div className="p-4">{children}</div>
-    </section>
+      {children}
+    </div>
   );
 }
 
@@ -54,53 +45,52 @@ export function OverviewContextRail({
   notifUnread: number;
   feedNewCount: number;
 }) {
+  const shortcuts = [
+    { href: "/dashboard/desk", label: "Fueled desk", icon: Flame, show: true },
+    { href: "/dashboard/research", label: "Pro research", icon: Compass, show: isPro },
+    { href: "/admin?tab=discovery", label: "Discovery", icon: Radar, show: isAdmin },
+    { href: "/admin?tab=analytics", label: "Analytics", icon: BarChart3, show: isAdmin },
+  ].filter((s) => s.show);
+
   return (
     <aside className="pf-workspace-overview-rail" aria-label="Overview context">
-      <div className="flex flex-col gap-3 pb-4">
-        <RailSection title="Your book">
-          <div className="grid grid-cols-2 gap-2">
-            <OverviewRailStat
-              label="Open calls"
-              value={String(openCallsCount)}
-              hint={pendingEntryCount > 0 ? `${pendingEntryCount} pending entry` : undefined}
-              accent={openCallsCount > 0 ? undefined : undefined}
-            />
-            <OverviewRailStat
-              label="Win rate"
+      <div className="pf-workspace-panel overflow-hidden">
+        <RailBlock title="Your book">
+          <div className="grid grid-cols-3 gap-2">
+            <OverviewRailMiniStat label="Open" value={String(openCallsCount)} />
+            <OverviewRailMiniStat
+              label="Win %"
               value={winRate != null ? `${Math.round(winRate)}%` : "—"}
               accent={winRate != null && winRate >= 50 ? "positive" : undefined}
             />
+            <OverviewRailMiniStat
+              label="Rank"
+              value={rankScore != null ? Number(rankScore).toFixed(1) : "—"}
+            />
           </div>
-          {rankScore != null ? (
-            <p className="mt-2 text-xs text-[var(--pf-gray-500)]">
-              Rank score{" "}
-              <span className="font-bold tabular-nums text-[var(--pf-black)]">
-                {Number(rankScore).toFixed(1)}
-              </span>
-            </p>
+          {pendingEntryCount > 0 ? (
+            <p className="mt-1.5 text-[10px] text-amber-800">{pendingEntryCount} pending entry</p>
           ) : null}
-          <Link href="/calls/new" className="mt-3 block">
-            <Button type="button" size="sm" className="w-full gap-1.5 bg-[var(--pf-red)] text-white hover:bg-[var(--pf-red-hover)]">
-              <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
-              Publish a call
-            </Button>
-          </Link>
-        </RailSection>
+        </RailBlock>
 
-        <RailSection title="Inbox">
-          <OverviewRailLiveCounts
+        <RailBlock title="Inbox">
+          <OverviewRailInboxStrip
             dmUnread={dmUnread}
             notifUnread={notifUnread}
             feedNewCount={feedNewCount}
           />
-        </RailSection>
+        </RailBlock>
 
-        <RailSection title="Community pulse">
-          <div className="grid grid-cols-2 gap-2">
-            <OverviewRailStat label="Top calls" value={String(communityPulse.count)} />
-            <OverviewRailStat
-              label="Avg return"
-              value={communityPulse.avgReturnPct != null ? formatPct(communityPulse.avgReturnPct) : "—"}
+        <RailBlock title="Market">
+          <div className="mb-2 grid grid-cols-2 gap-2">
+            <OverviewRailMiniStat label="Top calls" value={String(communityPulse.count)} />
+            <OverviewRailMiniStat
+              label="Avg ret"
+              value={
+                communityPulse.avgReturnPct != null
+                  ? formatPct(communityPulse.avgReturnPct)
+                  : "—"
+              }
               accent={
                 communityPulse.avgReturnPct != null && communityPulse.avgReturnPct >= 0
                   ? "positive"
@@ -111,40 +101,34 @@ export function OverviewContextRail({
             />
           </div>
           {hotTickers.length > 0 ? (
-            <ul className="mt-3 space-y-1">
-              {hotTickers.slice(0, 5).map((t) => (
+            <ul className="space-y-0.5">
+              {hotTickers.slice(0, 3).map((t) => (
                 <li key={t.symbol}>
                   <Link
                     href={`/ticker/${t.symbol}`}
-                    className="flex items-center justify-between rounded-lg px-2 py-1.5 text-xs hover:bg-[var(--pf-gray-50)]"
+                    className="flex items-center justify-between rounded px-1 py-0.5 text-[11px] hover:bg-[var(--pf-gray-50)]"
                   >
                     <span className="font-mono font-bold text-[var(--pf-black)]">{t.symbol}</span>
-                    <span className="text-[10px] tabular-nums text-[var(--pf-gray-500)]">
-                      {t.callCount} call{t.callCount === 1 ? "" : "s"}
-                      {t.avgReturnPct != null ? ` · ${formatPct(t.avgReturnPct)}` : ""}
+                    <span className="tabular-nums text-[var(--pf-gray-500)]">
+                      {t.avgReturnPct != null ? formatPct(t.avgReturnPct) : `${t.callCount} calls`}
                     </span>
                   </Link>
                 </li>
               ))}
             </ul>
-          ) : (
-            <p className="mt-2 text-xs text-[var(--pf-gray-500)]">No hot tickers yet today.</p>
-          )}
-        </RailSection>
+          ) : null}
+        </RailBlock>
 
         {watchlistPreview.length > 0 ? (
-          <RailSection title="Watchlist">
-            <ul className="space-y-1">
-              {watchlistPreview.slice(0, 5).map((w) => (
+          <RailBlock title="Watchlist">
+            <ul className="space-y-0.5">
+              {watchlistPreview.slice(0, 3).map((w) => (
                 <li key={w.symbol}>
                   <Link
                     href={`/ticker/${w.symbol}`}
-                    className="flex items-center justify-between rounded-lg px-2 py-1.5 text-xs hover:bg-[var(--pf-gray-50)]"
+                    className="flex items-center justify-between rounded px-1 py-0.5 text-[11px] hover:bg-[var(--pf-gray-50)]"
                   >
-                    <span className="flex items-center gap-1 font-mono font-bold text-[var(--pf-black)]">
-                      <Star className="h-3 w-3 text-amber-500" strokeWidth={2.25} />
-                      {w.symbol}
-                    </span>
+                    <span className="font-mono font-bold text-[var(--pf-black)]">{w.symbol}</span>
                     <span className="tabular-nums text-[var(--pf-gray-500)]">
                       {w.last_price != null
                         ? `$${Number(w.last_price).toFixed(2)}`
@@ -158,59 +142,29 @@ export function OverviewContextRail({
             </ul>
             <Link
               href="/dashboard/watchlist"
-              className="mt-2 inline-block text-[10px] font-semibold text-[var(--pf-gray-500)] hover:text-[var(--pf-red)]"
+              className="mt-1 inline-block text-[10px] font-semibold text-[var(--pf-gray-400)] hover:text-[var(--pf-red)]"
             >
-              Full watchlist →
+              All symbols →
             </Link>
-          </RailSection>
+          </RailBlock>
         ) : null}
 
-        <RailSection title="Shortcuts">
-          <ul className="space-y-1 text-xs font-semibold text-[var(--pf-gray-700)]">
-            <li>
-              <Link href="/dashboard/desk" className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-[var(--pf-gray-50)]">
-                <Flame className="h-3.5 w-3.5 text-sky-600" strokeWidth={2.25} />
-                Fueled desk
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/feed" className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-[var(--pf-gray-50)]">
-                <LineChart className="h-3.5 w-3.5 text-[var(--pf-gray-500)]" strokeWidth={2.25} />
-                Member feed
-              </Link>
-            </li>
-            {isPro ? (
-              <li>
-                <Link href="/dashboard/research" className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-[var(--pf-gray-50)]">
-                  <Compass className="h-3.5 w-3.5 text-sky-600" strokeWidth={2.25} />
-                  Pro research
+        {shortcuts.length > 0 ? (
+          <RailBlock title="Go">
+            <div className="grid grid-cols-2 gap-1">
+              {shortcuts.map((s) => (
+                <Link
+                  key={s.href}
+                  href={s.href}
+                  className="flex items-center gap-1.5 rounded-md border border-[var(--pf-border)] px-2 py-1.5 text-[10px] font-semibold text-[var(--pf-gray-700)] hover:bg-[var(--pf-gray-50)]"
+                >
+                  <s.icon className="h-3 w-3 shrink-0" strokeWidth={2.25} />
+                  {s.label}
                 </Link>
-              </li>
-            ) : null}
-            {isAdmin ? (
-              <>
-                <li>
-                  <Link
-                    href="/admin?tab=discovery"
-                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-[var(--pf-gray-50)]"
-                  >
-                    <Radar className="h-3.5 w-3.5 text-[var(--pf-red)]" strokeWidth={2.25} />
-                    Discovery radar
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/admin?tab=analytics"
-                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-[var(--pf-gray-50)]"
-                  >
-                    <BarChart3 className="h-3.5 w-3.5 text-[var(--pf-gray-500)]" strokeWidth={2.25} />
-                    Admin analytics
-                  </Link>
-                </li>
-              </>
-            ) : null}
-          </ul>
-        </RailSection>
+              ))}
+            </div>
+          </RailBlock>
+        ) : null}
       </div>
     </aside>
   );
