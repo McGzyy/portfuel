@@ -12,6 +12,7 @@ import {
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import type { DiscoveryCandidateRow, DiscoveryScanSummary } from "@/lib/desk-discovery/types";
 import { DISCOVERY_PROVIDER_ROADMAP } from "@/lib/desk-discovery/roadmap";
+import { useAdminNavCounts } from "@/components/admin/AdminNavCountsProvider";
 import { cn } from "@/lib/utils";
 
 type InboxFilter = "inbox" | "ready" | "published" | "snoozed" | "rejected";
@@ -72,6 +73,7 @@ export function AdminDiscoveryPanel() {
   const [actionableCount, setActionableCount] = useState(0);
 
   const readyCount = Math.max(0, actionableCount - pendingCount);
+  const { refresh: refreshNavCounts } = useAdminNavCounts();
 
   const load = useCallback(async (opts?: { silent?: boolean }) => {
     const silent = opts?.silent ?? false;
@@ -89,12 +91,13 @@ export function AdminDiscoveryPanel() {
       setPendingCount(json.pendingCount ?? 0);
       setActionableCount(json.actionableCount ?? 0);
       setMigrationMissing(Boolean(json.migrationMissing));
+      void refreshNavCounts();
     } catch {
       setError("Could not load discovery inbox.");
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [filter]);
+  }, [filter, refreshNavCounts]);
 
   useEffect(() => {
     void load();

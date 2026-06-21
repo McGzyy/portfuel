@@ -1,19 +1,21 @@
 export const ADMIN_TABS = [
-  { id: "analytics", label: "Analytics", group: "insights" },
-  { id: "members", label: "Members", group: "people" },
-  { id: "support", label: "Support", group: "people" },
-  { id: "churn", label: "Churn", group: "people" },
-  { id: "vouchers", label: "Vouchers", group: "billing" },
-  { id: "launch", label: "Launch", group: "billing" },
-  { id: "announcements", label: "Announcements", group: "content" },
-  { id: "desk", label: "Desk", group: "content" },
-  { id: "discovery", label: "Discovery", group: "content" },
-  { id: "social", label: "Social", group: "growth" },
-  { id: "discord", label: "Discord", group: "growth" },
-  { id: "marketing", label: "Marketing", group: "growth" },
+  { id: "analytics", label: "Analytics", group: "insights", icon: "bar-chart" },
+  { id: "members", label: "Members", group: "people", icon: "users" },
+  { id: "support", label: "Support", group: "people", icon: "life-buoy" },
+  { id: "churn", label: "Churn", group: "people", icon: "user-minus" },
+  { id: "vouchers", label: "Vouchers", group: "billing", icon: "ticket" },
+  { id: "launch", label: "Launch", group: "billing", icon: "rocket" },
+  { id: "announcements", label: "Announcements", group: "content", icon: "megaphone" },
+  { id: "desk", label: "Desk", group: "content", icon: "briefcase" },
+  { id: "discovery", label: "Discovery", group: "content", icon: "radar" },
+  { id: "social", label: "Social", group: "growth", icon: "share-2" },
+  { id: "discord", label: "Discord", group: "growth", icon: "message-circle" },
+  { id: "marketing", label: "Marketing", group: "growth", icon: "target" },
 ] as const;
 
 export type AdminTab = (typeof ADMIN_TABS)[number]["id"];
+
+export type AdminNavIcon = (typeof ADMIN_TABS)[number]["icon"];
 
 export const ADMIN_TAB_GROUPS = [
   { id: "insights", label: "Insights" },

@@ -328,6 +328,18 @@ export async function listAdminSupportTickets(
   return attachUsers((data ?? []) as SupportTicketRow[]);
 }
 
+/** Open tickets or waiting on admin reply — for nav badges. */
+export async function countAdminSupportAttentionTickets(): Promise<number> {
+  const db = createServiceClient();
+  const { count, error } = await db
+    .from("support_tickets")
+    .select("id", { count: "exact", head: true })
+    .in("status", ["open", "waiting_on_support"]);
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function getSupportTicketForMember(
   ticketId: string,
   userId: string

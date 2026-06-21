@@ -22,6 +22,7 @@ import {
 import { statusTone } from "@/lib/support/display";
 import { discordTicketChannelUrl } from "@/lib/discord/support-tickets";
 import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
+import { useAdminNavCounts } from "@/components/admin/AdminNavCountsProvider";
 import { cn, timeAgo } from "@/lib/utils";
 
 function StatusBadge({ status }: { status: SupportTicketStatus }) {
@@ -197,6 +198,7 @@ export function AdminSupportPanel() {
   const [activeTicket, setActiveTicket] = useState<SupportTicketWithUser | null>(null);
   const [messages, setMessages] = useState<SupportTicketMessageWithAuthor[]>([]);
   const [attachments, setAttachments] = useState<SupportAttachmentView[]>([]);
+  const { refresh: refreshNavCounts } = useAdminNavCounts();
 
   const loadTickets = useCallback(async () => {
     setLoading(true);
@@ -206,12 +208,13 @@ export function AdminSupportPanel() {
       if (!res.ok) throw new Error("fetch_failed");
       const json = (await res.json()) as { tickets: SupportTicketWithUser[] };
       setTickets(json.tickets);
+      void refreshNavCounts();
     } catch {
       setError("Could not load support tickets.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [refreshNavCounts]);
 
   const loadTicket = useCallback(async (id: string) => {
     try {

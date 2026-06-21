@@ -1,7 +1,6 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminMembersPanel } from "@/components/admin/AdminMembersPanel";
 import { AdminAnalyticsPanel } from "@/components/admin/AdminAnalyticsPanel";
 import { AdminDiscoveryPanel } from "@/components/admin/AdminDiscoveryPanel";
@@ -21,9 +20,7 @@ export function AdminShell() {
   const tab = parseAdminTab(searchParams.get("tab"));
 
   return (
-    <div className="mt-6 grid gap-6 lg:grid-cols-[12.5rem_minmax(0,1fr)] lg:gap-8">
-      <AdminSidebar />
-      <div className="min-w-0">
+    <div className="min-w-0">
         {tab === "analytics" ? (
           <AdminAnalyticsPanel />
         ) : tab === "desk" ? (
@@ -50,6 +47,5 @@ export function AdminShell() {
           <AdminMembersPanel />
         )}
       </div>
-    </div>
   );
 }
