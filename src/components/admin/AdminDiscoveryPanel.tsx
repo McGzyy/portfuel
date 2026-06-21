@@ -3,9 +3,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
+import { DiscoveryArchiveTable } from "@/components/admin/DiscoveryArchiveTable";
 import { DiscoveryCandidateCard } from "@/components/admin/DiscoveryCandidateCard";
+import {
+  DiscoveryWorkflowStepper,
+  type StepId,
+} from "@/components/admin/DiscoveryWorkflowStepper";
+import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import type { DiscoveryCandidateRow, DiscoveryScanSummary } from "@/lib/desk-discovery/types";
 import { DISCOVERY_PROVIDER_ROADMAP } from "@/lib/desk-discovery/roadmap";
+import { cn } from "@/lib/utils";
 
 type InboxFilter = "inbox" | "ready" | "published" | "snoozed" | "rejected";
 
@@ -25,6 +32,33 @@ const EMPTY_COPY: Record<InboxFilter, string> = {
   rejected: "No rejected symbols.",
 };
 
+const FILTER_TO_STEP: Record<InboxFilter, StepId> = {
+  inbox: "inbox",
+  ready: "ready",
+  published: "published",
+  snoozed: "inbox",
+  rejected: "inbox",
+};
+
+function filterPillClass(active: boolean) {
+  return active
+    ? "rounded-full border border-[var(--pf-red)] bg-[var(--pf-red-muted)] px-3 py-1.5 text-xs font-bold text-[var(--pf-red)]"
+    : "rounded-full border border-[var(--pf-border)] px-3 py-1.5 text-xs font-semibold text-[var(--pf-gray-700)] hover:bg-[var(--pf-gray-50)]";
+}
+
+function fmtScanWhen(iso: string) {
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
+}
+
 export function AdminDiscoveryPanel() {
   const [candidates, setCandidates] = useState<DiscoveryCandidateRow[]>([]);
   const [lastScan, setLastScan] = useState<DiscoveryScanSummary | null>(null);
@@ -36,6 +70,8 @@ export function AdminDiscoveryPanel() {
   const [filter, setFilter] = useState<InboxFilter>("inbox");
   const [pendingCount, setPendingCount] = useState(0);
   const [actionableCount, setActionableCount] = useState(0);
+
+  const readyCount = Math.max(0, actionableCount - pendingCount);
 
   const load = useCallback(async (opts?: { silent?: boolean }) => {
     const silent = opts?.silent ?? false;
@@ -63,6 +99,24 @@ export function AdminDiscoveryPanel() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const restoreToInbox = useCallback(
+    async (id: string, symbol: string) => {
+      setError("");
+      const res = await fetch(`/api/admin/desk-discovery/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "pending" }),
+      });
+      if (!res.ok) {
+        setError("Restore failed.");
+        return;
+      }
+      setMessage(`${symbol} restored to Inbox.`);
+      await load({ silent: true });
+    },
+    [load]
+  );
 
   async function runScan() {
     setScanning(true);
@@ -118,6 +172,8 @@ export function AdminDiscoveryPanel() {
     }
   }
 
+  const useArchiveTable = filter === "published" || filter === "snoozed" || filter === "rejected";
+
   if (loading) {
     return (
       <div className="flex justify-center py-16">
@@ -127,73 +183,89 @@ export function AdminDiscoveryPanel() {
   }
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="space-y-6">
       <AdminPanelHeader
         group="Content & desk"
         title="Discovery radar"
-        description="Lite market scan → Inbox triage → Ready queue → Fueled publish. Nothing auto-posts."
+        description="Market scan hits land in Inbox for triage. Queue the best setups, then publish as Fueled calls — nothing auto-posts."
         actions={
           <Button type="button" onClick={() => void runScan()} disabled={scanning}>
             {scanning ? "Scanning…" : "Run scan"}
           </Button>
         }
         footer={
-          lastScan ? (
-            <p className="text-xs text-[var(--pf-gray-500)]">
-              Last scan {new Date(lastScan.scannedAt).toLocaleString()} ·{" "}
-              {lastScan.hitsFound} hits · {lastScan.upserted} saved
-              {lastScan.notifiedAdmins ? ` · ${lastScan.notifiedAdmins} alerted` : ""} · batch offset{" "}
-              {lastScan.equityRotationOffset} · tier {lastScan.providerTier}
-            </p>
-          ) : (
-            <p className="text-xs text-[var(--pf-gray-500)]">
-              No scan yet — cron runs weekdays or use Run scan.
-            </p>
-          )
+          <div className="space-y-4 border-t border-[var(--pf-border)] pt-4">
+            <MetricsStrip
+              variant="embedded"
+              className="!px-0"
+              eyebrow="Pipeline"
+              items={[
+                {
+                  label: "Inbox",
+                  value: String(pendingCount),
+                  accent: pendingCount > 0 ? "negative" : undefined,
+                  hint: pendingCount > 0 ? "Needs triage" : "Clear",
+                },
+                {
+                  label: "Ready",
+                  value: String(readyCount),
+                  accent: readyCount > 0 ? "positive" : undefined,
+                  hint: readyCount > 0 ? "Awaiting publish" : undefined,
+                },
+                {
+                  label: "In view",
+                  value: String(candidates.length),
+                  hint: TAB_LABELS[filter],
+                },
+                {
+                  label: "Last scan",
+                  value: lastScan ? String(lastScan.hitsFound) : "—",
+                  hint: lastScan
+                    ? `${fmtScanWhen(lastScan.scannedAt)} · ${lastScan.upserted} saved`
+                    : "No scan yet",
+                },
+              ]}
+            />
+            <DiscoveryWorkflowStepper
+              activeStep={FILTER_TO_STEP[filter]}
+              counts={{ inbox: pendingCount, ready: readyCount }}
+            />
+          </div>
         }
       />
 
       {migrationMissing ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Apply these migrations in Supabase if you have not yet:
-          <ul className="mt-2 list-inside list-disc text-xs">
-            <li>
-              <code>20260711100000_desk_signal_candidates.sql</code>
-            </li>
-            <li>
-              <code>20260712100000_desk_discovery_hardening.sql</code>
-            </li>
-            <li>
-              <code>20260713100000_desk_discovery_symbol_unique.sql</code>
-            </li>
-            <li>
-              <code>20260714100000_desk_discovery_drafts.sql</code>
-            </li>
-          </ul>
+          Discovery tables are missing — apply the desk_signal_candidates migrations in Supabase
+          (see <code className="text-xs">supabase/scripts/portfuel-discovery-one-shot.sql</code>).
         </div>
       ) : null}
 
-      {error ? <p className="text-sm text-rose-600">{error}</p> : null}
-      {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
+      {error ? (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          {error}
+        </div>
+      ) : null}
+      {message ? (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          {message}
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         {(Object.keys(TAB_LABELS) as InboxFilter[]).map((key) => {
           const badge =
             key === "inbox" && pendingCount > 0
               ? ` (${pendingCount})`
-              : key === "ready" && actionableCount > pendingCount
-                ? ` (${actionableCount - pendingCount})`
+              : key === "ready" && readyCount > 0
+                ? ` (${readyCount})`
                 : "";
           return (
             <button
               key={key}
               type="button"
               onClick={() => setFilter(key)}
-              className={
-                filter === key
-                  ? "pf-pill-active rounded-full px-3 py-1.5 text-xs font-semibold"
-                  : "rounded-full border border-[var(--pf-border)] px-3 py-1.5 text-xs font-semibold text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-50)]"
-              }
+              className={filterPillClass(filter === key)}
             >
               {TAB_LABELS[key]}
               {badge}
@@ -206,8 +278,14 @@ export function AdminDiscoveryPanel() {
         <div className="pf-workspace-panel p-8 text-center text-sm text-[var(--pf-gray-500)]">
           {EMPTY_COPY[filter]}
         </div>
+      ) : useArchiveTable ? (
+        <DiscoveryArchiveTable
+          rows={candidates}
+          variant={filter}
+          onRestore={restoreToInbox}
+        />
       ) : (
-        <ul className="space-y-4">
+        <ul className={cn("divide-y divide-[var(--pf-border)] overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]")}>
           {candidates.map((row) => (
             <DiscoveryCandidateCard
               key={row.id}
@@ -221,37 +299,40 @@ export function AdminDiscoveryPanel() {
         </ul>
       )}
 
-      <section className="pf-workspace-panel p-5">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-          Provider roadmap
-        </p>
-        <h3 className="mt-1 text-sm font-bold text-[var(--pf-black)]">Paid tiers (future)</h3>
-        <ul className="mt-3 space-y-3 text-sm text-[var(--pf-gray-600)]">
-          <li>
-            <span className="font-medium text-[var(--pf-black)]">
-              {DISCOVERY_PROVIDER_ROADMAP.lite.label}
-            </span>
-            {" — "}
-            {DISCOVERY_PROVIDER_ROADMAP.lite.providers.join(", ")} (active)
-          </li>
-          <li>
-            <span className="font-medium text-[var(--pf-black)]">
-              {DISCOVERY_PROVIDER_ROADMAP.phase2.label}
-            </span>
-            {" — est. $"}
-            {DISCOVERY_PROVIDER_ROADMAP.phase2.estMonthlyUsd}
-            /mo. {DISCOVERY_PROVIDER_ROADMAP.phase2.notes}
-          </li>
-          <li>
-            <span className="font-medium text-[var(--pf-black)]">
-              {DISCOVERY_PROVIDER_ROADMAP.phase3.label}
-            </span>
-            {" — est. $"}
-            {DISCOVERY_PROVIDER_ROADMAP.phase3.estMonthlyUsd}
-            /mo. {DISCOVERY_PROVIDER_ROADMAP.phase3.notes}
-          </li>
-        </ul>
-      </section>
+      <details className="pf-workspace-panel group">
+        <summary className="cursor-pointer list-none p-4 text-sm font-semibold text-[var(--pf-gray-600)] marker:content-none [&::-webkit-details-marker]:hidden">
+          <span className="text-[var(--pf-gray-400)] group-open:hidden">▸</span>
+          <span className="hidden text-[var(--pf-gray-400)] group-open:inline">▾</span>
+          {" "}Advanced — provider roadmap
+        </summary>
+        <div className="border-t border-[var(--pf-border)] px-4 pb-4 pt-3">
+          <ul className="space-y-3 text-sm text-[var(--pf-gray-600)]">
+            <li>
+              <span className="font-medium text-[var(--pf-black)]">
+                {DISCOVERY_PROVIDER_ROADMAP.lite.label}
+              </span>
+              {" — "}
+              {DISCOVERY_PROVIDER_ROADMAP.lite.providers.join(", ")} (active)
+            </li>
+            <li>
+              <span className="font-medium text-[var(--pf-black)]">
+                {DISCOVERY_PROVIDER_ROADMAP.phase2.label}
+              </span>
+              {" — est. $"}
+              {DISCOVERY_PROVIDER_ROADMAP.phase2.estMonthlyUsd}
+              /mo. {DISCOVERY_PROVIDER_ROADMAP.phase2.notes}
+            </li>
+            <li>
+              <span className="font-medium text-[var(--pf-black)]">
+                {DISCOVERY_PROVIDER_ROADMAP.phase3.label}
+              </span>
+              {" — est. $"}
+              {DISCOVERY_PROVIDER_ROADMAP.phase3.estMonthlyUsd}
+              /mo. {DISCOVERY_PROVIDER_ROADMAP.phase3.notes}
+            </li>
+          </ul>
+        </div>
+      </details>
     </div>
   );
 }
