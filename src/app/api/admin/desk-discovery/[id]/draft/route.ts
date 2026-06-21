@@ -49,6 +49,7 @@ export async function POST(request: Request, context: RouteContext) {
       candidate,
       draft: candidate.draft,
       text: candidate.draft?.thesis ?? "",
+      source: candidate.draft?.source ?? "template",
     });
   } catch (e) {
     if (e instanceof z.ZodError) {

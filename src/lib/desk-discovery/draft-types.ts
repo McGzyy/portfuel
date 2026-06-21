@@ -9,6 +9,8 @@ export const discoveryDraftSchema = z.object({
   entryNote: z.string().max(200).optional(),
   targetNote: z.string().max(200).optional(),
   stopNote: z.string().max(200).optional(),
+  /** How the draft was produced — shown in admin UI. */
+  source: z.enum(["ai", "template"]).optional(),
 });
 
 export type DiscoveryDraftPayload = z.infer<typeof discoveryDraftSchema>;

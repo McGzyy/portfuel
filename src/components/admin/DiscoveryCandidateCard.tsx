@@ -169,8 +169,14 @@ export function DiscoveryCandidateCard({
               </span>
             ) : null}
             {row.draftGeneratedAt && !dirty ? (
-              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
-                AI draft
+              <span
+                className={
+                  row.draft?.source === "template"
+                    ? "rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800"
+                    : "rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700"
+                }
+              >
+                {row.draft?.source === "template" ? "Template draft" : "AI draft"}
               </span>
             ) : null}
           </div>
@@ -419,6 +425,12 @@ export function DiscoveryCandidateCard({
             <p className="text-[10px] text-[var(--pf-gray-500)]">
               Publish preview: {formatDiscoveryDraftForPublish(draft).slice(0, 120)}
               {formatDiscoveryDraftForPublish(draft).length > 120 ? "…" : ""}
+            </p>
+          ) : null}
+          {row.draft?.source === "template" ? (
+            <p className="text-[10px] text-amber-800">
+              Template draft — click Regenerate AI for full research-backed copy (requires OPENAI_API_KEY on
+              server).
             </p>
           ) : null}
           <div className="flex flex-wrap gap-2">

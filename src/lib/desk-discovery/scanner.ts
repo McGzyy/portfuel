@@ -209,7 +209,7 @@ export async function generateAndSaveDiscoveryDraft(
 
   const now = new Date().toISOString();
   return updateDiscoveryCandidate(candidate.id, {
-    draft: result.draft,
+    draft: { ...result.draft, source: result.source },
     draftGeneratedAt: now,
     ...(opts?.autoApprove && candidate.status === "pending"
       ? { status: "approved" as const }
