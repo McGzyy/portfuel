@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,8 +13,10 @@ import type {
 } from "@/lib/desk-discovery/types";
 import type { DiscoveryDraftPayload } from "@/lib/desk-discovery/draft-types";
 import { formatDiscoveryDraftForPublish } from "@/lib/desk-discovery/draft-types";
+import { sanitizeDiscoveryDraft } from "@/lib/desk-discovery/level-sanity";
 import { buildScoreBreakdown } from "@/lib/desk-discovery/score-breakdown";
 import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
+import { DiscoveryPublishModal } from "@/components/admin/DiscoveryPublishModal";
 
 const SIGNAL_LABELS: Record<DiscoverySignalType, string> = {
   earnings_soon: "Earnings",
@@ -23,15 +25,6 @@ const SIGNAL_LABELS: Record<DiscoverySignalType, string> = {
   price_move: "Price",
   crypto_momentum: "Crypto",
 };
-
-function publishHref(row: DiscoveryCandidateRow): string {
-  const params = new URLSearchParams();
-  params.set("symbol", row.symbol);
-  params.set("fueled", "1");
-  params.set("discoveryId", row.id);
-  if (row.assetClass === "crypto") params.set("asset", "crypto");
-  return `/calls/new?${params.toString()}`;
-}
 
 function emptyDraft(row: DiscoveryCandidateRow): DiscoveryDraftPayload {
   return (
@@ -62,10 +55,31 @@ export function DiscoveryCandidateCard({
   const [draftLoading, setDraftLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
 
   useEffect(() => {
-    setDraft(emptyDraft(row));
+    let cancelled = false;
+    const base = emptyDraft(row);
+    setDraft(base);
     setDirty(false);
+
+    void (async () => {
+      try {
+        const res = await fetch(
+          `/api/symbols/validate?symbol=${encodeURIComponent(row.symbol)}&assetClass=${row.assetClass}`
+        );
+        const data = await res.json();
+        if (cancelled || !data.ok || typeof data.lastPrice !== "number") return;
+        const sanitized = sanitizeDiscoveryDraft(base, data.lastPrice);
+        if (!cancelled) setDraft(sanitized);
+      } catch {
+        /* keep base draft */
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [row.id, row.updatedAt, row.draft]);
 
   const isPublished = row.status === "published";
@@ -244,12 +258,15 @@ export function DiscoveryCandidateCard({
             ) : null}
             {isReady ? (
               <>
-                <Link
-                  href={publishHref(row)}
-                  className="inline-flex h-8 items-center justify-center rounded-[var(--pf-radius)] border border-[var(--pf-red)] bg-[var(--pf-red)] px-3 text-xs font-semibold text-white transition-all hover:bg-[var(--pf-red-hover)]"
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={draft.thesis.trim().length < 20}
+                  className="bg-[var(--pf-red)] text-white hover:bg-[var(--pf-red-hover)]"
+                  onClick={() => setPublishOpen(true)}
                 >
                   Publish Fueled call
-                </Link>
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
@@ -455,6 +472,15 @@ export function DiscoveryCandidateCard({
             ) : null}
           </div>
         </div>
+      ) : null}
+      {publishOpen && isReady ? (
+        <DiscoveryPublishModal
+          row={row}
+          draft={draft}
+          open={publishOpen}
+          onClose={() => setPublishOpen(false)}
+          onPublished={onUpdated}
+        />
       ) : null}
     </li>
   );

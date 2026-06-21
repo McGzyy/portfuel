@@ -19,6 +19,7 @@ import {
   buildDiscoverySignalBlock,
   loadDiscoveryMarketContext,
 } from "@/lib/desk-discovery/draft-context";
+import { sanitizeAnalysisLevels, sanitizeDiscoveryDraft } from "@/lib/desk-discovery/level-sanity";
 import type { DiscoveryReason } from "@/lib/desk-discovery/types";
 import { validateSymbol } from "@/lib/market/validate-symbol";
 
@@ -43,12 +44,15 @@ const thesisRules = `draftThesis (member-facing "Your call"):
 - Cover: why now, catalyst/tape context from sources, level plan in words, what invalidates the view.
 - Do NOT repeat the signal list verbatim — synthesize into a desk-quality thesis.`;
 
-function mapAnalysisToDraft(analysis: TickerAnalyzeResult): DiscoveryDraftPayload {
+function mapAnalysisToDraft(
+  analysis: TickerAnalyzeResult,
+  lastPrice?: number
+): DiscoveryDraftPayload {
   const direction = analysis.direction ?? "long";
   const fmt = (n: number | null | undefined) =>
     n != null && Number.isFinite(n) ? `$${n}` : undefined;
 
-  return discoveryDraftSchema.parse({
+  const raw = discoveryDraftSchema.parse({
     direction,
     thesis: formatFueledThesisForPublish(analysis),
     catalyst: analysis.summary.trim(),
@@ -58,6 +62,8 @@ function mapAnalysisToDraft(analysis: TickerAnalyzeResult): DiscoveryDraftPayloa
     targetNote: analysis.targetPrice != null ? `${fmt(analysis.targetPrice)} target` : undefined,
     stopNote: analysis.stopPrice != null ? `${fmt(analysis.stopPrice)} stop` : undefined,
   });
+
+  return sanitizeDiscoveryDraft(raw, lastPrice);
 }
 
 function buildTemplateDraft(input: {
@@ -99,17 +105,20 @@ function buildTemplateDraft(input: {
     stopNote = `$${levels.stop.toFixed(2)} stop`;
   }
 
-  return discoveryDraftSchema.parse({
-    direction,
-    thesis,
-    catalyst: catalystDetail,
-    risk:
-      "Guidance miss, macro risk-off, or a break of the planned stop invalidates the setup. Re-evaluate after the catalyst if the thesis was event-driven.",
-    timeframe: earnings ? "Through earnings + 5 sessions" : "Swing · 2–4 weeks",
-    entryNote,
-    targetNote,
-    stopNote,
-  });
+  return sanitizeDiscoveryDraft(
+    discoveryDraftSchema.parse({
+      direction,
+      thesis,
+      catalyst: catalystDetail,
+      risk:
+        "Guidance miss, macro risk-off, or a break of the planned stop invalidates the setup. Re-evaluate after the catalyst if the thesis was event-driven.",
+      timeframe: earnings ? "Through earnings + 5 sessions" : "Swing · 2–4 weeks",
+      entryNote,
+      targetNote,
+      stopNote,
+    }),
+    input.lastPrice
+  );
 }
 
 export async function generateDiscoveryDraft(input: {
@@ -181,8 +190,11 @@ Output JSON only:
       maxOutputTokens: 900,
     });
 
-    const enriched = enrichFueledAnalysis(object, market.lastPrice ?? validated.lastPrice);
-    const draft = mapAnalysisToDraft(enriched);
+    const enriched = sanitizeAnalysisLevels(
+      enrichFueledAnalysis(object, market.lastPrice ?? validated.lastPrice),
+      market.lastPrice ?? validated.lastPrice
+    );
+    const draft = mapAnalysisToDraft(enriched, market.lastPrice ?? validated.lastPrice);
     return { draft, text: formatDiscoveryDraftForPublish(draft), source: "ai" };
   } catch (e) {
     console.error("[desk-discovery/draft AI]", input.symbol, e);
@@ -194,8 +206,11 @@ Output JSON only:
         prompt: `${discoveryBlock}\n\nProduce the Fueled desk analysis JSON.`,
         maxOutputTokens: 700,
       });
-      const enriched = enrichFueledAnalysis(object, market.lastPrice ?? validated.lastPrice);
-      const draft = mapAnalysisToDraft(enriched);
+      const enriched = sanitizeAnalysisLevels(
+        enrichFueledAnalysis(object, market.lastPrice ?? validated.lastPrice),
+        market.lastPrice ?? validated.lastPrice
+      );
+      const draft = mapAnalysisToDraft(enriched, market.lastPrice ?? validated.lastPrice);
       return { draft, text: formatDiscoveryDraftForPublish(draft), source: "ai" };
     } catch (fallbackErr) {
       console.error("[desk-discovery/draft AI fallback]", input.symbol, fallbackErr);

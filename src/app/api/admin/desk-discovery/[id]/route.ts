@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
 import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
-import { discoveryDraftSchema } from "@/lib/desk-discovery/draft-types";
+import { discoveryDraftSchema, type DiscoveryDraftPayload } from "@/lib/desk-discovery/draft-types";
+import { loadDiscoveryMarketContext } from "@/lib/desk-discovery/draft-context";
+import { sanitizeDiscoveryDraft } from "@/lib/desk-discovery/level-sanity";
 import { getDiscoveryCandidateById, updateDiscoveryCandidate } from "@/lib/desk-discovery/scanner";
 
 const patchSchema = z
@@ -54,16 +56,28 @@ export async function PATCH(request: Request, context: RouteContext) {
       snoozedUntil = null;
     }
 
-    const draftPatch =
-      body.clearDraft === true
-        ? { draft: null as null, draftGeneratedAt: null as null }
-        : body.draft
-          ? { draft: body.draft, draftGeneratedAt: new Date().toISOString() }
-          : {};
+    let draftPayload: {
+      draft?: DiscoveryDraftPayload | null;
+      draftGeneratedAt?: string | null;
+    } = {};
+    if (body.clearDraft === true) {
+      draftPayload = { draft: null, draftGeneratedAt: null };
+    } else if (body.draft) {
+      const lookup = await getDiscoveryCandidateById(id);
+      let draft = body.draft;
+      if (lookup.candidate) {
+        const market = await loadDiscoveryMarketContext(
+          lookup.candidate.symbol,
+          lookup.candidate.assetClass
+        );
+        draft = sanitizeDiscoveryDraft(draft, market.lastPrice);
+      }
+      draftPayload = { draft, draftGeneratedAt: new Date().toISOString() };
+    }
 
     const result = await updateDiscoveryCandidate(id, {
       ...(body.status !== undefined ? { status: body.status, snoozedUntil } : {}),
-      ...draftPatch,
+      ...draftPayload,
     });
 
     if (result.error) {

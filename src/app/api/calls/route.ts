@@ -30,6 +30,8 @@ import {
 } from "@/lib/calls/pending-entry";
 import { linkDiscoveryCandidateToCall } from "@/lib/desk-discovery/publish-link";
 import { getDiscoveryCandidateById } from "@/lib/desk-discovery/scanner";
+import { loadDiscoveryMarketContext } from "@/lib/desk-discovery/draft-context";
+import { validateDiscoveryPublishLevels } from "@/lib/desk-discovery/level-sanity";
 
 const createSchema = z.object({
   symbol: z.string().min(1).max(12),
@@ -122,6 +124,24 @@ export async function POST(request: Request) {
 
     if (marketPrice == null) {
       return NextResponse.json({ error: "quote_unavailable" }, { status: 503 });
+    }
+
+    if (body.discoveryCandidateId) {
+      const ctx = await loadDiscoveryMarketContext(resolvedSymbol, body.assetClass);
+      if (ctx.lastPrice != null) marketPrice = ctx.lastPrice;
+
+      if (body.targetPrice != null && body.stopPrice != null) {
+        const levelCheck = validateDiscoveryPublishLevels({
+          direction: body.direction,
+          entry: marketPrice,
+          target: body.targetPrice,
+          stop: body.stopPrice,
+          lastPrice: marketPrice,
+        });
+        if (!levelCheck.ok) {
+          return NextResponse.json({ error: levelCheck.error }, { status: 400 });
+        }
+      }
     }
 
     const entryMode = body.entryMode ?? "live";
