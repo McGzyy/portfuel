@@ -16,6 +16,7 @@ import type {
 import type { DiscoveryDraftPayload } from "@/lib/desk-discovery/draft-types";
 import { formatDiscoveryDraftForPublish } from "@/lib/desk-discovery/draft-types";
 import { sanitizeDiscoveryDraft } from "@/lib/desk-discovery/level-sanity";
+import { earningsLabel } from "@/lib/desk-discovery/candidate-sort";
 import { buildScoreBreakdown } from "@/lib/desk-discovery/score-breakdown";
 import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
 import { DiscoveryPublishModal } from "@/components/admin/DiscoveryPublishModal";
@@ -104,12 +105,16 @@ function ActionMenu({
 export function DiscoveryCandidateCard({
   row,
   filter,
+  expanded,
+  onExpandedChange,
   onUpdated,
   onMessage,
   onError,
 }: {
   row: DiscoveryCandidateRow;
   filter: string;
+  expanded: boolean;
+  onExpandedChange: (expanded: boolean) => void;
   onUpdated: () => Promise<void>;
   onMessage: (msg: string) => void;
   onError: (msg: string) => void;
@@ -119,7 +124,6 @@ export function DiscoveryCandidateCard({
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const priceSanitizedRef = useRef(false);
 
   useEffect(() => {
@@ -187,6 +191,7 @@ export function DiscoveryCandidateCard({
     (r, i, arr) => arr.findIndex((x) => x.detail === r.detail) === i
   );
   const headline = row.headline ?? uniqueReasons[0]?.detail ?? "";
+  const earnings = earningsLabel(row.reasons);
   const draftPreview =
     draft.thesis.trim().length >= 20
       ? [
@@ -236,7 +241,7 @@ export function DiscoveryCandidateCard({
         autoSanitizedDiscoveryIds.delete(row.id);
         priceSanitizedRef.current = false;
         setDraft(json.draft);
-        setExpanded(true);
+        onExpandedChange(true);
       }
       setDirty(false);
       onMessage(
@@ -336,6 +341,9 @@ export function DiscoveryCandidateCard({
             ) : null}
           </div>
           <p className="mt-1 line-clamp-2 text-sm text-[var(--pf-gray-600)]">{headline}</p>
+          {earnings ? (
+            <p className="mt-1 text-xs font-medium text-amber-800">{earnings}</p>
+          ) : null}
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {row.signalTypes.slice(0, 2).map((t) => (
               <span
@@ -387,7 +395,7 @@ export function DiscoveryCandidateCard({
 
       <button
         type="button"
-        onClick={() => setExpanded((v) => !v)}
+        onClick={() => onExpandedChange(!expanded)}
         className="mt-3 flex w-full items-center gap-1.5 text-left text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--foreground)]"
         aria-expanded={expanded}
       >

@@ -1,10 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { DiscoveryArchiveTable } from "@/components/admin/DiscoveryArchiveTable";
 import { DiscoveryCandidateCard } from "@/components/admin/DiscoveryCandidateCard";
+import {
+  DiscoveryQueueListHeader,
+  DiscoveryQueueToolbar,
+} from "@/components/admin/DiscoveryQueueToolbar";
 import {
   DiscoveryWorkflowStepper,
   type StepId,
@@ -12,6 +16,11 @@ import {
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
 import type { DiscoveryCandidateRow, DiscoveryScanSummary } from "@/lib/desk-discovery/types";
 import { DISCOVERY_PROVIDER_ROADMAP } from "@/lib/desk-discovery/roadmap";
+import {
+  sortDiscoveryCandidates,
+  type DiscoverySortMode,
+} from "@/lib/desk-discovery/candidate-sort";
+import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
 import { useAdminNavCounts } from "@/components/admin/AdminNavCountsProvider";
 import { cn } from "@/lib/utils";
 
@@ -69,6 +78,9 @@ export function AdminDiscoveryPanel() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [filter, setFilter] = useState<InboxFilter>("inbox");
+  const [sortMode, setSortMode] = useState<DiscoverySortMode>("score");
+  const [highPriorityOnly, setHighPriorityOnly] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [actionableCount, setActionableCount] = useState(0);
 
@@ -102,6 +114,24 @@ export function AdminDiscoveryPanel() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    setExpandedId(null);
+    setHighPriorityOnly(false);
+  }, [filter]);
+
+  const highPriorityCount = useMemo(
+    () => candidates.filter((r) => r.score >= DISCOVERY_CONFIG.highScoreNotifyThreshold).length,
+    [candidates]
+  );
+
+  const queueRows = useMemo(() => {
+    let rows = candidates;
+    if (highPriorityOnly) {
+      rows = rows.filter((r) => r.score >= DISCOVERY_CONFIG.highScoreNotifyThreshold);
+    }
+    return sortDiscoveryCandidates(rows, sortMode);
+  }, [candidates, sortMode, highPriorityOnly]);
 
   const restoreToInbox = useCallback(
     async (id: string, symbol: string) => {
@@ -288,18 +318,35 @@ export function AdminDiscoveryPanel() {
           onRestore={restoreToInbox}
         />
       ) : (
-        <ul className={cn("divide-y divide-[var(--pf-border)] overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]")}>
-          {candidates.map((row) => (
-            <DiscoveryCandidateCard
-              key={row.id}
-              row={row}
-              filter={filter}
-              onUpdated={() => load({ silent: true })}
-              onMessage={setMessage}
-              onError={setError}
-            />
-          ))}
-        </ul>
+        <div className="space-y-3">
+          <DiscoveryQueueToolbar
+            sort={sortMode}
+            onSortChange={setSortMode}
+            highPriorityOnly={highPriorityOnly}
+            onHighPriorityOnlyChange={setHighPriorityOnly}
+            highPriorityCount={highPriorityCount}
+            totalCount={queueRows.length}
+          />
+          <DiscoveryQueueListHeader count={queueRows.length} filterLabel={TAB_LABELS[filter].toLowerCase()} />
+          <ul
+            className={cn(
+              "divide-y divide-[var(--pf-border)] overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]"
+            )}
+          >
+            {queueRows.map((row) => (
+              <DiscoveryCandidateCard
+                key={row.id}
+                row={row}
+                filter={filter}
+                expanded={expandedId === row.id}
+                onExpandedChange={(open) => setExpandedId(open ? row.id : null)}
+                onUpdated={() => load({ silent: true })}
+                onMessage={setMessage}
+                onError={setError}
+              />
+            ))}
+          </ul>
+        </div>
       )}
 
       <details className="pf-workspace-panel group">

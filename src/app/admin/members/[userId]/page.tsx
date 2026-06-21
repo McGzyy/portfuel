@@ -1,7 +1,8 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { AdminMemberDetailPanel } from "@/components/admin/AdminMemberDetailPanel";
+import { AdminWorkspaceFrame } from "@/components/admin/AdminWorkspaceFrame";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
 
@@ -17,12 +18,18 @@ export default async function AdminMemberDetailPage({
   const { userId } = await params;
 
   return (
-    <AppShell user={toHeaderUser(session)}>
-      <PageHeader
-        title="Member 360"
-        description="Billing, email, moderation, and audit history for one member."
-      />
-      <AdminMemberDetailPanel userId={userId} />
+    <AppShell user={toHeaderUser(session)} headerMode="workspace" mainClassName="!max-w-none !px-0 !py-0">
+      <AdminWorkspaceFrame>
+        <Suspense
+          fallback={
+            <div className="flex justify-center py-16">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--pf-border)] border-t-[var(--pf-red)]" />
+            </div>
+          }
+        >
+          <AdminMemberDetailPanel userId={userId} />
+        </Suspense>
+      </AdminWorkspaceFrame>
     </AppShell>
   );
 }

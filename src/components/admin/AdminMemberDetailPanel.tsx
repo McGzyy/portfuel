@@ -230,13 +230,21 @@ export function AdminMemberDetailPanel({ userId }: { userId: string }) {
     isActive && !user.stripe_customer_id && Boolean(user.membership_tier) && !proGrantActive;
 
   return (
-    <div className="mt-6 space-y-6">
-      <Link
-        href="/admin?tab=members"
-        className="inline-flex items-center gap-1 text-sm font-medium text-[var(--pf-red)] hover:underline"
-      >
-        ← All members
-      </Link>
+    <div className="space-y-6">
+      <div className="border-b border-[var(--pf-border)] pb-4">
+        <Link
+          href="/admin?tab=members"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-gray-600)] hover:text-[var(--pf-black)] hover:underline"
+        >
+          ← Members
+        </Link>
+        <h1 className="mt-2 text-xl font-bold tracking-tight text-[var(--pf-black)] sm:text-2xl">
+          Member 360
+        </h1>
+        <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
+          Billing, email, moderation, and audit history for one member.
+        </p>
+      </div>
 
       {error ? (
         <p className="rounded-lg bg-[var(--pf-red-muted)] px-3 py-2 text-sm text-[var(--pf-red)]">
