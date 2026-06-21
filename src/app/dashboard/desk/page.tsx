@@ -14,6 +14,7 @@ import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { fetchDeskBrief } from "@/lib/desk/brief";
 import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
 import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
+import { fetchDiscoveryOriginCallIds } from "@/lib/desk-discovery/call-origin";
 import { fetchFueledTrackRecord } from "@/lib/fueled/track-record";
 import { FueledTrackRecordPanel } from "@/components/dashboard/FueledTrackRecordPanel";
 import { fetchLatestSnapshotUpdatedAt } from "@/lib/market/quote-freshness";
@@ -42,10 +43,16 @@ export default async function DashboardDeskPage() {
     ...latest.map((c) => c.symbol),
     ...performing.map((c) => c.symbol),
   ]);
-  const fueledLatest = latest.filter((c) => c.is_fueled).map((c) => mapCallForCard(c, hypeScores));
+  const discoveryCallIds = await fetchDiscoveryOriginCallIds([
+    ...latest.map((c) => c.id),
+    ...performing.map((c) => c.id),
+  ]);
+  const fueledLatest = latest
+    .filter((c) => c.is_fueled)
+    .map((c) => mapCallForCard(c, hypeScores, discoveryCallIds));
   const fueledPerforming = performing
     .filter((c) => c.is_fueled)
-    .map((c) => mapCallForCard(c, hypeScores));
+    .map((c) => mapCallForCard(c, hypeScores, discoveryCallIds));
 
   const openPositions = portfolio.filter((e) => e.status === "open").length;
   const quoteSymbols = [

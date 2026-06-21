@@ -20,6 +20,7 @@ import { earningsLabel } from "@/lib/desk-discovery/candidate-sort";
 import { buildScoreBreakdown } from "@/lib/desk-discovery/score-breakdown";
 import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
 import { DiscoveryPublishModal } from "@/components/admin/DiscoveryPublishModal";
+import { DiscoveryScoreTooltip } from "@/components/admin/DiscoveryScoreTooltip";
 import { cn } from "@/lib/utils";
 
 /** Persists across card remounts so silent level fixes do not re-PATCH in a loop. */
@@ -107,6 +108,9 @@ export function DiscoveryCandidateCard({
   filter,
   expanded,
   onExpandedChange,
+  focused = false,
+  publishRequested = false,
+  onPublishHandled,
   onUpdated,
   onMessage,
   onError,
@@ -115,6 +119,9 @@ export function DiscoveryCandidateCard({
   filter: string;
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
+  focused?: boolean;
+  publishRequested?: boolean;
+  onPublishHandled?: () => void;
   onUpdated: () => Promise<void>;
   onMessage: (msg: string) => void;
   onError: (msg: string) => void;
@@ -185,6 +192,13 @@ export function DiscoveryCandidateCard({
   const isPublished = row.status === "published";
   const isInbox = row.status === "pending";
   const isReady = row.status === "approved";
+
+  useEffect(() => {
+    if (publishRequested && isReady) {
+      setPublishOpen(true);
+      onPublishHandled?.();
+    }
+  }, [publishRequested, isReady, onPublishHandled]);
   const isHighScore = row.score >= DISCOVERY_CONFIG.highScoreNotifyThreshold;
   const scoreLines = buildScoreBreakdown(row.signalTypes);
   const uniqueReasons = row.reasons.filter(
@@ -318,7 +332,12 @@ export function DiscoveryCandidateCard({
   }
 
   return (
-    <li className="bg-white px-4 py-4 sm:px-5">
+    <li
+      className={cn(
+        "bg-white px-4 py-4 sm:px-5",
+        focused && "ring-2 ring-inset ring-[var(--pf-red)]/35 bg-[var(--pf-red-muted)]/20"
+      )}
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -328,9 +347,7 @@ export function DiscoveryCandidateCard({
             >
               {row.symbol}
             </Link>
-            <span className="text-sm font-semibold tabular-nums text-[var(--pf-red)]">
-              {row.score}
-            </span>
+            <DiscoveryScoreTooltip score={row.score} lines={scoreLines} className="text-sm" />
             {isHighScore && isInbox ? (
               <Badge className="bg-amber-100 text-amber-800">High priority</Badge>
             ) : null}

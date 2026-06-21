@@ -16,6 +16,7 @@ import {
 } from "@/lib/desk-discovery/draft-types";
 import {
   buildDiscoveryAdminNote,
+  buildDiscoveryEarningsContext,
   buildDiscoverySignalBlock,
   loadDiscoveryMarketContext,
 } from "@/lib/desk-discovery/draft-context";
@@ -134,6 +135,7 @@ export async function generateDiscoveryDraft(input: {
 
   const market = await loadDiscoveryMarketContext(input.symbol, input.assetClass);
   const signalBlock = buildDiscoverySignalBlock(input.reasons);
+  const earningsContext = await buildDiscoveryEarningsContext(input.symbol, input.reasons);
 
   if (isDemoMode() || !isAiCoachConfigured()) {
     const draft = buildTemplateDraft({ ...input, ...market });
@@ -161,6 +163,7 @@ export async function generateDiscoveryDraft(input: {
 
 Discovery-only context (no social post — synthesize from signals + research above):
 ${signalBlock}
+${earningsContext ? `\nEarnings context: ${earningsContext}` : ""}
 Preferred direction: ${input.direction ?? "infer from signals and tape"}
 Industry: ${market.industry ?? "—"}`;
 

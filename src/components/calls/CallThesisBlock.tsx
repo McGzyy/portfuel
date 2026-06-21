@@ -43,6 +43,7 @@ type ThesisCall = {
   timeframe_tag: string | null;
   live?: boolean;
   is_fueled: boolean;
+  from_discovery?: boolean;
   vote_score: number;
   comment_count: number;
   users: {
@@ -156,6 +157,7 @@ export function CallThesisBlock({
               <Badge variant="default">Crypto</Badge>
             ) : null}
             {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
+            {call.from_discovery ? <Badge variant="discovery">Discovery</Badge> : null}
             {isPending ? (
               <Badge
                 variant="default"

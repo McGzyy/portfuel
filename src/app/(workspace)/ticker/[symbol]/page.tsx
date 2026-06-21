@@ -29,6 +29,7 @@ import {
 } from "@/lib/features/pro-intelligence";
 import { fetchUserOpenCallOnSymbol } from "@/lib/calls/user-symbol-call";
 import { fetchWatchlist } from "@/lib/watchlist/service";
+import { fetchDiscoveryOriginCallIds, callIsFromDiscovery } from "@/lib/desk-discovery/call-origin";
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +64,12 @@ export default async function TickerPage({
     }
   }
 
-  const calls = intel?.calls ?? [];
+  const rawCalls = intel?.calls ?? [];
+  const discoveryCallIds = await fetchDiscoveryOriginCallIds(rawCalls.map((c) => c.id));
+  const calls = rawCalls.map((c) => ({
+    ...c,
+    from_discovery: callIsFromDiscovery(c.id, discoveryCallIds),
+  }));
   const communityStats = summarizeTickerCommunity(calls);
   const proContext = sessionToProContext(session);
   const proLocked = session ? isProIntelligenceLocked(proContext) : true;

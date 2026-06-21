@@ -59,6 +59,11 @@ export function ChartCallHoverTip({
             Fueled
           </Badge>
         ) : null}
+        {call.from_discovery ? (
+          <Badge variant="discovery" className="text-[10px]">
+            Discovery
+          </Badge>
+        ) : null}
         <span className={cn("ml-auto text-xs font-bold tabular-nums", retClass)}>
           {isPending ? "Awaiting entry" : formatPct(ret)}
         </span>

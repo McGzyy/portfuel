@@ -1,6 +1,8 @@
 import { getCompanyProfile, getQuote } from "@/lib/market/finnhub";
+import { fetchEarningsCalendarRange } from "@/lib/market/earnings-calendar";
 import { resolveEquityLastPrice, resolveQuotePrice } from "@/lib/market/equity-quote";
 import { validateSymbol } from "@/lib/market/validate-symbol";
+import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
 import type { DiscoveryReason } from "@/lib/desk-discovery/types";
 
 export async function loadDiscoveryMarketContext(
@@ -50,4 +52,30 @@ export function buildDiscoverySignalBlock(reasons: DiscoveryReason[]): string {
 export function buildDiscoveryAdminNote(reasons: DiscoveryReason[]): string {
   const types = [...new Set(reasons.map((r) => r.type.replace(/_/g, " ")))].join(", ");
   return `Desk discovery scan — ${types}. Draft an accountable Fueled call members can act on.`;
+}
+
+/** Upcoming earnings EPS/date for discovery AI prompt when earnings_soon is flagged. */
+export async function buildDiscoveryEarningsContext(
+  symbol: string,
+  reasons: DiscoveryReason[]
+): Promise<string | null> {
+  if (!reasons.some((r) => r.type === "earnings_soon")) return null;
+
+  const from = new Date();
+  const to = new Date();
+  to.setDate(to.getDate() + DISCOVERY_CONFIG.earningsMaxDays);
+
+  try {
+    const rows = await fetchEarningsCalendarRange(from, to);
+    const sym = symbol.toUpperCase();
+    const hit = rows.find((r) => r.symbol === sym);
+    if (!hit) return null;
+
+    const hour = hit.hour ? ` ${hit.hour.toUpperCase()}` : "";
+    const eps =
+      hit.epsEstimate != null ? ` · EPS est $${hit.epsEstimate.toFixed(2)}` : "";
+    return `Upcoming earnings ${hit.date}${hour}${eps} (Q${hit.quarter} ${hit.year}).`;
+  } catch {
+    return null;
+  }
 }

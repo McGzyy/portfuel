@@ -7,12 +7,14 @@ import { fetchUserProfile, fetchUserRecentCalls } from "@/lib/users/profile";
 import type { CallCardData } from "@/components/calls/CallCard";
 import { mapUserCallRowToCard } from "@/lib/calls/map-user-call-card";
 import { normalizeCallCardPrices } from "@/lib/calls/card-display";
+import { callIsFromDiscovery, fetchDiscoveryOriginCallIds } from "@/lib/desk-discovery/call-origin";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 
 export function mapCallForCard(
   c: Awaited<ReturnType<typeof fetchCallsFeed>>[number],
-  hypeScores?: Record<string, number>
+  hypeScores?: Record<string, number>,
+  discoveryCallIds?: Set<string>
 ): CallCardData {
   const username = c.users.username ?? null;
   const prices = normalizeCallCardPrices(c);
@@ -37,6 +39,7 @@ export function mapCallForCard(
     ...prices,
     timeframe_tag: c.timeframe_tag,
     is_fueled: c.is_fueled,
+    from_discovery: callIsFromDiscovery(c.id, discoveryCallIds),
     vote_score: c.vote_score,
     comment_count: c.comment_count,
     avatar_url: c.users.avatar_url ?? null,
@@ -52,6 +55,15 @@ export function mapCallForCard(
     trigger_entry_price: row.trigger_entry_price ?? null,
     expires_at: row.expires_at ?? null,
   };
+}
+
+/** Map feed rows to cards with Discovery origin badges resolved in one query. */
+export async function mapFeedCallsForCard(
+  calls: Awaited<ReturnType<typeof fetchCallsFeed>>,
+  hypeScores?: Record<string, number>
+): Promise<CallCardData[]> {
+  const discoveryCallIds = await fetchDiscoveryOriginCallIds(calls.map((c) => c.id));
+  return calls.map((c) => mapCallForCard(c, hypeScores, discoveryCallIds));
 }
 
 export const requireDashboardSession = cache(async function requireDashboardSession() {

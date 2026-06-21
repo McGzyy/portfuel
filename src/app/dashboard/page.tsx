@@ -33,8 +33,10 @@ import {
   loadFeedCalls,
   loadMemberStats,
   mapCallForCard,
+  mapFeedCallsForCard,
   requireDashboardSession,
 } from "@/lib/dashboard/data";
+import { fetchDiscoveryOriginCallIds } from "@/lib/desk-discovery/call-origin";
 import { mapUserCallRowToCard } from "@/lib/calls/map-user-call-card";
 import { computeMemberProAnalytics } from "@/lib/users/member-analytics";
 import { buildFeedHref } from "@/lib/dashboard/nav";
@@ -159,8 +161,14 @@ export default async function DashboardOverviewPage({
     ...latestRaw.map((c) => c.symbol),
     ...ownCalls.map((c) => c.symbol),
   ]);
-  const performingCalls = performingRaw.map((c) => mapCallForCard(c, hypeScores));
-  const latestCalls = latestRaw.map((c) => mapCallForCard(c, hypeScores));
+  const discoveryCallIds = await fetchDiscoveryOriginCallIds([
+    ...performingRaw.map((c) => c.id),
+    ...latestRaw.map((c) => c.id),
+  ]);
+  const performingCalls = performingRaw.map((c) =>
+    mapCallForCard(c, hypeScores, discoveryCallIds)
+  );
+  const latestCalls = latestRaw.map((c) => mapCallForCard(c, hypeScores, discoveryCallIds));
   const communityPulse = summarizeFeed(performingCalls);
   const hotTickers = getHotTickersFromCalls(
     latestCalls.map((c) => ({ symbol: c.symbol, return_pct: c.return_pct })),

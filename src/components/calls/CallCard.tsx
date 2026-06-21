@@ -44,6 +44,7 @@ type CallCardExtras = {
   expires_at?: string | null;
   avatar_url?: string | null;
   updated_at?: string | null;
+  from_discovery?: boolean;
 };
 
 export type CallCardData = (TeaserCallRow | {
@@ -261,6 +262,7 @@ export function CallCard({
                 />
               ) : null}
               {call.is_fueled ? <Badge variant="fueled">Fueled</Badge> : null}
+              {call.from_discovery ? <Badge variant="discovery">Discovery</Badge> : null}
             </div>
             {(call.call_state === "pending_entry" ||
               expiryLabel ||

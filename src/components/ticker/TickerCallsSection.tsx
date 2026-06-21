@@ -7,7 +7,7 @@ import { formatPct } from "@/lib/utils";
 import type { AssetClass } from "@/lib/market/validate-symbol";
 import type { CallWithUser } from "@/lib/db/supabase";
 
-export type TickerThesisCall = CallWithUser & { live?: boolean };
+export type TickerThesisCall = CallWithUser & { live?: boolean; from_discovery?: boolean };
 
 function summarizeTickerCalls(calls: TickerThesisCall[]) {
   const longs = calls.filter((c) => c.direction === "long").length;
@@ -137,6 +137,7 @@ export function TickerCallsSection({
                     peak_return_pct: c.peak_return_pct,
                     closed_at: c.closed_at,
                     live: c.live,
+                    from_discovery: c.from_discovery,
                     users: {
                       display_name: c.users.display_name,
                       pin: c.users.username ?? c.users.pin,

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { isAiCoachConfigured } from "@/lib/ai/config";
 import { requireAdmin } from "@/lib/auth/session";
 import {
   countActionableDiscoveryCandidates,
@@ -52,6 +53,7 @@ export async function GET(request: Request) {
       pendingCount,
       actionableCount,
       migrationMissing: list.migrationMissing ?? false,
+      aiConfigured: isAiCoachConfigured(),
     });
   } catch (e) {
     return adminError(e);

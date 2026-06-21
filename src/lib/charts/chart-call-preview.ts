@@ -24,6 +24,7 @@ export type ChartCallPreview = {
   expires_at?: string | null;
   live?: boolean;
   is_fueled: boolean;
+  from_discovery?: boolean;
   vote_score: number;
   comment_count: number;
   users: {
@@ -36,7 +37,7 @@ export type ChartCallPreview = {
 };
 
 export function toChartCallPreview(
-  c: CallWithUser & { live?: boolean }
+  c: CallWithUser & { live?: boolean; from_discovery?: boolean }
 ): ChartCallPreview {
   return {
     id: c.id,
@@ -61,6 +62,7 @@ export function toChartCallPreview(
     expires_at: c.expires_at ?? null,
     live: c.live,
     is_fueled: c.is_fueled,
+    from_discovery: c.from_discovery,
     vote_score: c.vote_score,
     comment_count: c.comment_count,
     users: {

@@ -27,7 +27,7 @@ import {
 } from "@/lib/feed/last-seen";
 import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
-import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
+import { loadFeedCalls, mapCallForCard, mapFeedCallsForCard, requireDashboardSession } from "@/lib/dashboard/data";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import {
   getProGateCta,
@@ -104,8 +104,8 @@ export default async function DashboardFeedPage({
   const fueledMapped =
     feedFilter === "fueled"
       ? []
-      : fueledFeedCards.map((c) => mapCallForCard(c, hypeScores));
-  let mapped = calls.map((c) => mapCallForCard(c, hypeScores));
+      : await mapFeedCallsForCard(fueledFeedCards, hypeScores);
+  let mapped = await mapFeedCallsForCard(calls, hypeScores);
   const newCount = mapped.filter((c) => isCallNewSinceSeen(c.called_at, feedSeenAt)).length;
   if (showNewOnly) {
     mapped = mapped.filter((c) => isCallNewSinceSeen(c.called_at, feedSeenAt));

@@ -6,7 +6,7 @@ export function Badge({
   className,
 }: {
   children: React.ReactNode;
-  variant?: "default" | "long" | "short" | "fueled" | "trusted";
+  variant?: "default" | "long" | "short" | "fueled" | "trusted" | "discovery";
   className?: string;
 }) {
   const styles = {
@@ -15,6 +15,7 @@ export function Badge({
     short: "bg-rose-50 text-rose-700 border border-rose-200",
     fueled: "bg-[var(--pf-red)] text-white",
     trusted: "bg-[var(--pf-black)] text-white",
+    discovery: "border border-sky-200 bg-sky-50 text-sky-800",
   };
   return (
     <span
