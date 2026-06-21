@@ -45,13 +45,7 @@ function PanelToggle({
   );
 }
 
-function LayoutBarContent({
-  className,
-  onCloseMobile,
-}: {
-  className?: string;
-  onCloseMobile?: () => void;
-}) {
+function LayoutBarContent({ onClose }: { onClose?: () => void }) {
   const {
     prefs,
     customizeOpen,
@@ -68,10 +62,7 @@ function LayoutBarContent({
 
   return (
     <section
-      className={cn(
-        "rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-3 shadow-[var(--pf-shadow-sm)] sm:px-5",
-        className
-      )}
+      className="rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-3 shadow-[var(--pf-shadow-sm)] sm:px-5"
       aria-label="Overview layout"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -105,8 +96,8 @@ function LayoutBarContent({
             <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
             Customize
           </Button>
-          {onCloseMobile ? (
-            <Button type="button" size="sm" variant="secondary" onClick={onCloseMobile} aria-label="Close">
+          {onClose ? (
+            <Button type="button" size="sm" variant="secondary" onClick={onClose} aria-label="Close">
               <X className="h-3.5 w-3.5" strokeWidth={2.25} />
             </Button>
           ) : null}
@@ -150,12 +141,12 @@ function LayoutBarContent({
 }
 
 export function OverviewLayoutBar() {
-  const { setCustomizeOpen } = useOverviewLayout();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const { prefs, setCustomizeOpen } = useOverviewLayout();
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     const open = () => {
-      setMobileOpen(true);
+      setExpanded(true);
       setCustomizeOpen(true);
     };
     if (window.sessionStorage.getItem("pf_overview_layout_open") === "1") {
@@ -166,27 +157,28 @@ export function OverviewLayoutBar() {
     return () => window.removeEventListener(OVERVIEW_LAYOUT_OPEN_EVENT, open);
   }, [setCustomizeOpen]);
 
-  return (
-    <>
-      <div className="lg:hidden">
-        {mobileOpen ? (
-          <LayoutBarContent onCloseMobile={() => setMobileOpen(false)} />
-        ) : (
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={() => setMobileOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-[var(--pf-gray-500)] transition-colors hover:bg-[var(--pf-gray-100)] hover:text-[var(--pf-black)]"
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2.25} />
-              Customize overview
-            </button>
-          </div>
-        )}
+  function close() {
+    setExpanded(false);
+    setCustomizeOpen(false);
+  }
+
+  if (!expanded) {
+    return (
+      <div className="flex items-center justify-end gap-3">
+        <span className="text-[11px] font-medium text-[var(--pf-gray-400)]">
+          {OVERVIEW_FOCUS_LABELS[prefs.focus]} focus
+        </span>
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-[var(--pf-gray-500)] transition-colors hover:bg-[var(--pf-gray-100)] hover:text-[var(--pf-black)]"
+        >
+          <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2.25} />
+          Customize overview
+        </button>
       </div>
-      <div className="hidden lg:block">
-        <LayoutBarContent />
-      </div>
-    </>
-  );
+    );
+  }
+
+  return <LayoutBarContent onClose={close} />;
 }

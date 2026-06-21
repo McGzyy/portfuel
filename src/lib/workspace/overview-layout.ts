@@ -29,10 +29,10 @@ export type OverviewLayoutPrefs = {
   /** Explicit show/hide overrides on top of focus presets. */
   panelOverrides: Partial<Record<OverviewPanelId, boolean>>;
   density: OverviewDensity;
-  version: 1 | 2;
+  version: 1 | 2 | 3;
 };
 
-export const OVERVIEW_LAYOUT_VERSION = 2 as const;
+export const OVERVIEW_LAYOUT_VERSION = 3 as const;
 
 export const OVERVIEW_LAYOUT_STORAGE_PREFIX = "pf_overview_layout:";
 export const OVERVIEW_LAYOUT_OPEN_EVENT = "portfuel:open-overview-layout";
@@ -126,18 +126,10 @@ export function isMobileOverviewViewport(): boolean {
 }
 
 export function defaultOverviewLayoutPrefs(options?: { mobile?: boolean }): OverviewLayoutPrefs {
-  if (options?.mobile) {
-    return {
-      focus: "trader",
-      panelOverrides: {},
-      density: "compact",
-      version: OVERVIEW_LAYOUT_VERSION,
-    };
-  }
   return {
-    focus: "default",
+    focus: "trader",
     panelOverrides: {},
-    density: "comfortable",
+    density: options?.mobile ? "compact" : "comfortable",
     version: OVERVIEW_LAYOUT_VERSION,
   };
 }
@@ -151,7 +143,7 @@ function normalizeOverviewLayoutPrefs(parsed: Partial<OverviewLayoutPrefs>): Ove
   };
 }
 
-function shouldMigrateToMobileTrader(parsed: Partial<OverviewLayoutPrefs>): boolean {
+function shouldMigrateToTraderPreset(parsed: Partial<OverviewLayoutPrefs>): boolean {
   const focus = parsed.focus ?? "default";
   const overrides = parsed.panelOverrides ?? {};
   return focus === "default" && Object.keys(overrides).length === 0;
@@ -182,8 +174,11 @@ export function readOverviewLayoutPrefs(userId: string): OverviewLayoutPrefs {
       return defaults;
     }
     const parsed = JSON.parse(raw) as Partial<OverviewLayoutPrefs>;
-    if (parsed.version !== OVERVIEW_LAYOUT_VERSION && mobile && shouldMigrateToMobileTrader(parsed)) {
-      const migrated = defaultOverviewLayoutPrefs({ mobile: true });
+    if (
+      (parsed.version ?? 1) < OVERVIEW_LAYOUT_VERSION &&
+      shouldMigrateToTraderPreset(parsed)
+    ) {
+      const migrated = defaultOverviewLayoutPrefs({ mobile });
       writeOverviewLayoutPrefs(userId, migrated);
       return migrated;
     }

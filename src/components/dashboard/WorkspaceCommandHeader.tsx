@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
 import { PublishIdentityIndicator } from "@/components/calls/PublishIdentityIndicator";
 import { LocalTimeGreeting } from "@/components/time/LocalTimeGreeting";
 import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
@@ -7,7 +5,6 @@ import { cn } from "@/lib/utils";
 
 export function WorkspaceCommandHeader({
   displayName,
-  username,
   openCallsCount,
   pendingEntryCount = 0,
   isAdmin = false,
@@ -43,35 +40,23 @@ export function WorkspaceCommandHeader({
   return (
     <header
       className={cn(
-        "pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-4 py-3.5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-5 lg:py-6",
+        "pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-4 py-3.5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-5",
+        "lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none",
         className
       )}
     >
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-2xl">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-              Workspace · Overview
-            </p>
-            {isAdmin ? <PublishIdentityIndicator /> : null}
-          </div>
-          <LocalTimeGreeting
-            displayName={displayName}
-            className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]"
-          />
-          <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">{subtitle}</p>
-          {openCallsCount > 0 ? (
-            <Link
-              href="/dashboard/book"
-              className="mt-3 inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
-            >
-              Positions →
-            </Link>
-          ) : null}
+      <div className="max-w-2xl">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)] lg:hidden">
+            Workspace · Overview
+          </p>
+          {isAdmin ? <PublishIdentityIndicator /> : null}
         </div>
-        <div className="hidden shrink-0 lg:block">
-          <WorkspaceNewCallAction />
-        </div>
+        <LocalTimeGreeting
+          displayName={displayName}
+          className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem] lg:mt-0 lg:text-[2rem]"
+        />
+        <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">{subtitle}</p>
       </div>
     </header>
   );

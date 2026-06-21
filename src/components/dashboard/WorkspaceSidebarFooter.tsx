@@ -26,7 +26,7 @@ export function WorkspaceSidebarFooter({
       <Link
         href={COPY.newCallHref}
         onClick={onNavigate}
-        className="pf-sidebar-footer-cta"
+        className="pf-sidebar-footer-cta hidden lg:flex"
       >
         <Megaphone className="h-4 w-4 shrink-0" strokeWidth={2.25} />
         {COPY.publishCallCta}

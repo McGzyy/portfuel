@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { CallCard, type CallCardData } from "@/components/calls/CallCard";
 import { OpenCallOverviewRow } from "@/components/calls/OpenCallOverviewRow";
+import type { CallCardData } from "@/components/calls/CallCard";
 import { SparklineProvider } from "@/components/charts/SparklineProvider";
 import { Button } from "@/components/ui/button";
 import { LiveQuoteStatusChip } from "@/components/market/LiveQuoteStatusChip";
@@ -10,11 +10,6 @@ import { useMergedCalls } from "@/components/market/LiveBookProvider";
 
 export function OpenCallsPanel({
   calls,
-  viewerUserId,
-  isAdmin,
-  username,
-  isPro,
-  proLocked,
 }: {
   calls: CallCardData[];
   viewerUserId?: string | null;
@@ -27,6 +22,7 @@ export function OpenCallsPanel({
   if (calls.length === 0) return null;
 
   const symbols = liveCalls.map((c) => c.symbol);
+  const previewCount = 6;
 
   return (
     <section className="pf-workspace-panel" aria-label="Your open calls">
@@ -53,32 +49,13 @@ export function OpenCallsPanel({
         </Link>
       </div>
       <SparklineProvider symbols={symbols}>
-        <div className="pf-panel-inset flex flex-col gap-2 lg:hidden">
-          {liveCalls.slice(0, 5).map((call) => (
+        <div className="pf-panel-inset grid gap-2 lg:grid-cols-2">
+          {liveCalls.slice(0, previewCount).map((call) => (
             <OpenCallOverviewRow key={call.id} call={call} />
           ))}
         </div>
-        <div className="hidden divide-y divide-[var(--pf-border)] lg:block">
-          {liveCalls.slice(0, 4).map((call) => (
-            <div key={call.id} className="pf-panel-inset">
-              <CallCard
-                call={call}
-                compact
-                embedded
-                interactive
-                showSparkline
-                showSummary={!proLocked}
-                viewerUserId={viewerUserId}
-                isAdmin={isAdmin}
-                isPro={isPro}
-                showUpgrade={proLocked}
-                canGenerateSummary={!proLocked}
-              />
-            </div>
-          ))}
-        </div>
       </SparklineProvider>
-      {calls.length > 4 ? (
+      {calls.length > previewCount ? (
         <div className="pf-panel-inset-x border-t border-[var(--pf-border)] py-4 text-center">
           <Link href="/dashboard/book">
             <Button variant="secondary" size="sm">

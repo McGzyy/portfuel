@@ -87,7 +87,9 @@ export function SiteHeader({
                   <PublishIdentitySwitcher compact />
                 </div>
               ) : null}
-              <NotificationBell />
+              <div className={cn(inWorkspace && "lg:hidden")}>
+                <NotificationBell />
+              </div>
               {!inWorkspace ? (
                 <Link
                   href="/dashboard"
