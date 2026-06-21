@@ -18,12 +18,9 @@ export function WorkspaceGuideTrigger({
         onOpen?.();
         window.dispatchEvent(new Event(WORKSPACE_GUIDE_OPEN_EVENT));
       }}
-      className={cn(
-        "inline-flex items-center gap-1 text-xs font-semibold text-[var(--pf-gray-500)] transition-colors hover:text-[var(--foreground)]",
-        className
-      )}
+      className={cn(className)}
     >
-      <Map className="h-3 w-3 shrink-0" strokeWidth={2.25} />
+      <Map className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
       Map
     </button>
   );

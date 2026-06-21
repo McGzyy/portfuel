@@ -145,15 +145,13 @@ export function MemberNav({
         </div>
 
         <nav
-          className="pf-sidebar-nav-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 py-2"
+          className="pf-sidebar-nav-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-2.5"
           aria-label="Workspace"
         >
           {WORKSPACE_NAV_GROUPS.map((group) => (
             <div key={group.title} className="pf-sidebar-nav-group">
-              <p className="mb-0.5 px-2 text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--pf-gray-400)]">
-                {group.title}
-              </p>
-              <div className="space-y-px">
+              <p className="pf-sidebar-nav-group-label">{group.title}</p>
+              <div className="space-y-0.5">
                 {group.items.map((item) => {
                   const Icon = ICONS[item.icon];
                   const active = isWorkspaceNavItemActive(pathname, item, { username });
@@ -171,7 +169,7 @@ export function MemberNav({
                     >
                       <Icon
                         className={cn(
-                          "h-3.5 w-3.5 shrink-0",
+                          "h-4 w-4 shrink-0",
                           active ? "text-[var(--pf-red)]" : "text-[var(--pf-gray-400)]"
                         )}
                         strokeWidth={2.25}

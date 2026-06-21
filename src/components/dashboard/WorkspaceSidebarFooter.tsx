@@ -34,14 +34,14 @@ export function WorkspaceSidebarFooter({
 
       <div className="pf-sidebar-footer-links">
         <Link href="/dashboard/whats-new" onClick={onNavigate} className="pf-sidebar-footer-link">
-          <Sparkles className="h-3 w-3 shrink-0" strokeWidth={2.25} />
+          <Sparkles className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
           <span className="inline-flex items-center gap-1">
             What&apos;s new
             <WhatsNewBadge count={whatsNewUnread} />
           </span>
         </Link>
         <Link href="/dashboard/help" onClick={onNavigate} className="pf-sidebar-footer-link">
-          <LifeBuoy className="h-3 w-3 shrink-0" strokeWidth={2.25} />
+          <LifeBuoy className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
           Help
         </Link>
         <WorkspaceGuideTrigger onOpen={onNavigate} className="pf-sidebar-footer-link" />
@@ -50,16 +50,16 @@ export function WorkspaceSidebarFooter({
           onClick={onNavigate}
           className="pf-sidebar-footer-link"
         >
-          <User className="h-3 w-3 shrink-0" strokeWidth={2.25} />
+          <User className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
           Profile
         </Link>
         <Link href="/dashboard/settings" onClick={onNavigate} className="pf-sidebar-footer-link">
-          <Settings className="h-3 w-3 shrink-0" strokeWidth={2.25} />
+          <Settings className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
           Settings
         </Link>
         {isAdmin ? (
           <Link href="/admin" onClick={onNavigate} className="pf-sidebar-footer-link">
-            <Shield className="h-3 w-3 shrink-0" strokeWidth={2.25} />
+            <Shield className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
             Admin
           </Link>
         ) : null}
