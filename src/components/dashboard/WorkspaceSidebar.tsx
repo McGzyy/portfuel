@@ -12,21 +12,18 @@ import {
   ScanSearch,
   Calendar,
   GitCompare,
+  LifeBuoy,
   MessageCircle,
   Notebook,
-  Trophy,
-  LifeBuoy,
   Sparkles,
+  Trophy,
 } from "lucide-react";
-import { WhatsNewBadge } from "@/components/announcements/WhatsNewBadge";
 import {
   WORKSPACE_NAV_GROUPS,
   isWorkspaceNavItemActive,
   type DashboardNavIcon,
 } from "@/lib/dashboard/nav";
 import { WorkspaceSidebarFooter } from "@/components/dashboard/WorkspaceSidebarFooter";
-import { WorkspaceStreamStatus } from "@/components/workspace/WorkspaceStreamStatus";
-import { PublishIdentitySwitcher } from "@/components/calls/PublishIdentitySwitcher";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
 import { MemberAvatar } from "@/components/member/MemberAvatar";
@@ -69,13 +66,15 @@ export function WorkspaceSidebar({
   const pathname = usePathname();
 
   return (
-    <aside className="pf-workspace-sidebar flex h-full min-h-0 w-full flex-col">
-      <div className="shrink-0 border-b border-[var(--pf-border)] px-4 py-4">
-        <Link href={`/member/${username}`} className="flex items-center gap-3">
-          <MemberAvatar displayName={displayName} username={username} avatarUrl={avatarUrl} size="lg" />
+    <aside className="pf-workspace-sidebar grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)_auto]">
+      <div className="pf-sidebar-profile shrink-0 border-b border-[var(--pf-border)]">
+        <Link href={`/member/${username}`} className="flex items-center gap-2.5">
+          <MemberAvatar displayName={displayName} username={username} avatarUrl={avatarUrl} size="md" />
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-[var(--foreground)]">{displayName}</p>
-            <p className="mt-0.5 truncate font-mono text-[11px] text-[var(--pf-gray-500)]">
+            <p className="truncate text-sm font-bold leading-tight text-[var(--foreground)]">
+              {displayName}
+            </p>
+            <p className="mt-0.5 truncate font-mono text-[10px] text-[var(--pf-gray-500)]">
               @{username}
             </p>
           </div>
@@ -83,15 +82,15 @@ export function WorkspaceSidebar({
       </div>
 
       <nav
-        className="pf-sidebar-nav-scroll min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-3"
+        className="pf-sidebar-nav-scroll min-h-0 overflow-y-auto overscroll-contain px-2.5 py-2 lg:overflow-y-hidden"
         aria-label="Workspace"
       >
         {WORKSPACE_NAV_GROUPS.map((group) => (
-          <div key={group.title}>
-            <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+          <div key={group.title} className="pf-sidebar-nav-group">
+            <p className="mb-0.5 px-2 text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--pf-gray-400)]">
               {group.title}
             </p>
-            <div className="space-y-0.5">
+            <div className="space-y-px">
               {group.items.map((item) => {
                 const Icon = ICONS[item.icon];
                 const active = isWorkspaceNavItemActive(pathname, item, { username });
@@ -101,7 +100,7 @@ export function WorkspaceSidebar({
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-semibold transition-colors",
+                      "pf-sidebar-nav-item",
                       active
                         ? "pf-nav-link-active bg-[var(--pf-black)] text-white"
                         : "text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-100)] hover:text-[var(--foreground)]"
@@ -109,21 +108,18 @@ export function WorkspaceSidebar({
                   >
                     <Icon
                       className={cn(
-                        "h-4 w-4 shrink-0",
+                        "h-3.5 w-3.5 shrink-0",
                         active ? "text-[var(--pf-red)]" : "text-[var(--pf-gray-400)]"
                       )}
                       strokeWidth={2.25}
                     />
-                    <span className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="flex min-w-0 flex-1 items-center gap-1.5">
                       <span className="truncate">{item.label}</span>
                       {item.href === "/dashboard/messages" ? (
                         <DmUnreadBadge initial={dmUnread} />
                       ) : null}
                       {item.href === "/dashboard/notifications" ? (
                         <NotificationUnreadBadge initial={notifUnread} />
-                      ) : null}
-                      {item.href === "/dashboard/whats-new" ? (
-                        <WhatsNewBadge count={whatsNewUnread} />
                       ) : null}
                     </span>
                   </Link>
@@ -134,17 +130,11 @@ export function WorkspaceSidebar({
         ))}
       </nav>
 
-      {isAdmin ? (
-        <div className="px-3 pb-2">
-          <PublishIdentitySwitcher />
-        </div>
-      ) : null}
-
-      <div className="px-3 pb-2">
-        <WorkspaceStreamStatus />
-      </div>
-
-      <WorkspaceSidebarFooter username={username} isAdmin={isAdmin} />
+      <WorkspaceSidebarFooter
+        username={username}
+        isAdmin={isAdmin}
+        whatsNewUnread={whatsNewUnread}
+      />
     </aside>
   );
 }

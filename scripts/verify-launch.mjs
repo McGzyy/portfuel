@@ -40,6 +40,9 @@ const CRITICAL_MIGRATIONS = [
   "20260709100000_x_automation_prefs.sql",
   "20260710100000_notification_snooze.sql",
   "20260711100000_desk_signal_candidates.sql",
+  "20260712100000_desk_discovery_hardening.sql",
+  "20260713100000_desk_discovery_symbol_unique.sql",
+  "20260713110000_desk_discovery_calls_fk.sql",
 ];
 
 function ok(msg) {

@@ -14,7 +14,12 @@ export type PaidDiscoverySignalType =
 
 export type DiscoveryAssetClass = "equity" | "crypto";
 
-export type DiscoveryCandidateStatus = "pending" | "snoozed" | "rejected" | "approved";
+export type DiscoveryCandidateStatus =
+  | "pending"
+  | "snoozed"
+  | "rejected"
+  | "approved"
+  | "published";
 
 export type DiscoveryReason = {
   type: DiscoverySignalType | PaidDiscoverySignalType;
@@ -48,6 +53,7 @@ export type DiscoveryCandidateRow = {
   headline: string | null;
   status: DiscoveryCandidateStatus;
   snoozedUntil: string | null;
+  publishedCallId: string | null;
   scanRunId: string | null;
   firstSeenAt: string;
   lastSeenAt: string;
@@ -59,6 +65,9 @@ export type DiscoveryScanSummary = {
   scannedAt: string;
   hitsFound: number;
   upserted: number;
+  skippedExisting: number;
+  saveErrors: string[];
+  notifiedAdmins: number;
   skippedExcluded: number;
   equityBatchSize: number;
   equityRotationOffset: number;

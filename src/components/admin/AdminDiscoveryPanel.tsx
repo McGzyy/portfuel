@@ -10,6 +10,9 @@ import type {
   DiscoverySignalType,
 } from "@/lib/desk-discovery/types";
 import { DISCOVERY_PROVIDER_ROADMAP } from "@/lib/desk-discovery/roadmap";
+import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
+
+type InboxFilter = "inbox" | "approved" | "published";
 
 const SIGNAL_LABELS: Record<DiscoverySignalType, string> = {
   earnings_soon: "Earnings",
@@ -23,6 +26,7 @@ function publishHref(row: DiscoveryCandidateRow, thesis?: string): string {
   const params = new URLSearchParams();
   params.set("symbol", row.symbol);
   params.set("fueled", "1");
+  params.set("discoveryId", row.id);
   if (row.assetClass === "crypto") params.set("asset", "crypto");
   if (thesis?.trim()) params.set("thesis", thesis.trim());
   return `/calls/new?${params.toString()}`;
@@ -38,12 +42,14 @@ export function AdminDiscoveryPanel() {
   const [message, setMessage] = useState("");
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [draftLoading, setDraftLoading] = useState<string | null>(null);
+  const [filter, setFilter] = useState<InboxFilter>("inbox");
+  const [pendingCount, setPendingCount] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/admin/desk-discovery");
+      const res = await fetch(`/api/admin/desk-discovery?status=${filter}`);
       const json = await res.json();
       if (!res.ok) {
         setError("Could not load discovery inbox.");
@@ -51,13 +57,14 @@ export function AdminDiscoveryPanel() {
       }
       setCandidates(json.candidates ?? []);
       setLastScan(json.lastScan ?? null);
+      setPendingCount(json.pendingCount ?? 0);
       setMigrationMissing(Boolean(json.migrationMissing));
     } catch {
       setError("Could not load discovery inbox.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filter]);
 
   useEffect(() => {
     void load();
@@ -85,9 +92,30 @@ export function AdminDiscoveryPanel() {
       }
       setCandidates(json.candidates ?? []);
       setLastScan(json.summary ?? null);
-      setMessage(
-        `Scan complete — ${json.summary?.upserted ?? 0} updated, ${json.summary?.hitsFound ?? 0} scored hits.`
-      );
+      const summary = json.summary as DiscoveryScanSummary | undefined;
+      if (summary && summary.hitsFound > 0 && summary.upserted === 0) {
+        if (summary.saveErrors?.length) {
+          setError(
+            `Found ${summary.hitsFound} hits but save failed: ${summary.saveErrors[0]}. Apply discovery migrations in Supabase if you have not yet.`
+          );
+        } else if (summary.skippedExisting > 0) {
+          setMessage(
+            `Scan found ${summary.hitsFound} hits — ${summary.skippedExisting} skipped (snoozed, rejected, or already published). Check Approved/Published tabs or clear those rows.`
+          );
+        } else {
+          setError(
+            `Found ${summary.hitsFound} hits but none were saved. Confirm desk_signal_candidates migrations are applied.`
+          );
+        }
+      } else {
+        setMessage(
+          `Scan complete — ${summary?.upserted ?? 0} saved, ${summary?.hitsFound ?? 0} scored hits${
+            summary?.notifiedAdmins
+              ? `, ${summary.notifiedAdmins} admin alert(s) sent`
+              : ""
+          }.`
+        );
+      }
     } catch {
       setError("Scan failed.");
     } finally {
@@ -168,7 +196,8 @@ export function AdminDiscoveryPanel() {
           lastScan ? (
             <p className="text-xs text-[var(--pf-gray-500)]">
               Last scan {new Date(lastScan.scannedAt).toLocaleString()} ·{" "}
-              {lastScan.hitsFound} hits · {lastScan.upserted} saved · batch offset{" "}
+              {lastScan.hitsFound} hits · {lastScan.upserted} saved
+              {lastScan.notifiedAdmins ? ` · ${lastScan.notifiedAdmins} alerted` : ""} · batch offset{" "}
               {lastScan.equityRotationOffset} · tier {lastScan.providerTier}
             </p>
           ) : (
@@ -181,22 +210,59 @@ export function AdminDiscoveryPanel() {
 
       {migrationMissing ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Apply{" "}
-          <code className="text-xs">20260711100000_desk_signal_candidates.sql</code> in Supabase
-          to enable the discovery inbox.
+          Apply these migrations in Supabase if you have not yet:
+          <ul className="mt-2 list-inside list-disc text-xs">
+            <li>
+              <code>20260711100000_desk_signal_candidates.sql</code>
+            </li>
+            <li>
+              <code>20260712100000_desk_discovery_hardening.sql</code>
+            </li>
+            <li>
+              <code>20260713100000_desk_discovery_symbol_unique.sql</code>
+            </li>
+          </ul>
         </div>
       ) : null}
 
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}
       {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
 
+      <div className="flex flex-wrap gap-2">
+        {(
+          [
+            ["inbox", `Inbox${pendingCount > 0 ? ` (${pendingCount})` : ""}`],
+            ["approved", "Approved"],
+            ["published", "Published"],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setFilter(key)}
+            className={
+              filter === key
+                ? "pf-pill-active rounded-full px-3 py-1.5 text-xs font-semibold"
+                : "rounded-full border border-[var(--pf-border)] px-3 py-1.5 text-xs font-semibold text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-50)]"
+            }
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {candidates.length === 0 ? (
         <div className="pf-workspace-panel p-8 text-center text-sm text-[var(--pf-gray-500)]">
-          Inbox empty — run a scan or wait for the next cron pass.
+          {filter === "inbox"
+            ? "Inbox empty — run a scan or wait for the next cron pass."
+            : `No ${filter} candidates yet.`}
         </div>
       ) : (
         <ul className="space-y-4">
-          {candidates.map((row) => (
+          {candidates.map((row) => {
+            const isPublished = row.status === "published";
+            const isHighScore = row.score >= DISCOVERY_CONFIG.highScoreNotifyThreshold;
+            return (
             <li key={row.id} className="pf-workspace-panel p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -210,9 +276,19 @@ export function AdminDiscoveryPanel() {
                     <span className="rounded-full bg-[var(--pf-gray-100)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
                       {row.assetClass}
                     </span>
+                    {row.status !== "pending" ? (
+                      <span className="rounded-full bg-[var(--pf-gray-100)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
+                        {row.status}
+                      </span>
+                    ) : null}
                     <span className="text-sm font-semibold text-[var(--pf-red)]">
                       Score {row.score}
                     </span>
+                    {isHighScore && row.status === "pending" ? (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800">
+                        High priority
+                      </span>
+                    ) : null}
                   </div>
                   <p className="mt-1 text-sm text-[var(--pf-gray-600)]">
                     {row.headline ?? row.reasons[0]?.detail}
@@ -234,7 +310,18 @@ export function AdminDiscoveryPanel() {
                       </li>
                     ))}
                   </ul>
+                  {row.publishedCallId ? (
+                    <p className="mt-2 text-xs">
+                      <Link
+                        href={`/ticker/${row.symbol}?call=${row.publishedCallId}`}
+                        className="font-semibold text-[var(--pf-red)] hover:underline"
+                      >
+                        View published Fueled call →
+                      </Link>
+                    </p>
+                  ) : null}
                 </div>
+                {!isPublished ? (
                 <div className="flex shrink-0 flex-wrap gap-2">
                   <Button
                     type="button"
@@ -251,6 +338,16 @@ export function AdminDiscoveryPanel() {
                   >
                     Publish
                   </Link>
+                  {row.status === "pending" ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void patchStatus(row.id, "approved")}
+                    >
+                      Approve
+                    </Button>
+                  ) : null}
                   <Button
                     type="button"
                     variant="outline"
@@ -268,6 +365,7 @@ export function AdminDiscoveryPanel() {
                     Reject
                   </Button>
                 </div>
+                ) : null}
               </div>
               {drafts[row.id] ? (
                 <div className="mt-4 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-3">
@@ -280,7 +378,8 @@ export function AdminDiscoveryPanel() {
                 </div>
               ) : null}
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
 

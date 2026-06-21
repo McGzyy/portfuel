@@ -7,6 +7,7 @@ import {
   LineChart,
   MessageCircle,
   MessageSquare,
+  Radar,
   Target,
   ThumbsUp,
   TrendingUp,
@@ -50,6 +51,8 @@ export function iconForNotificationType(type: NotificationType | string): Lucide
       return Users;
     case "admin_churn_feedback":
       return Bell;
+    case "admin_desk_discovery":
+      return Radar;
     default:
       return Bell;
   }

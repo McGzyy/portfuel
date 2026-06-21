@@ -11,6 +11,7 @@ import {
   type AdminTab,
 } from "@/lib/admin/nav";
 import { cn } from "@/lib/utils";
+import { AdminDiscoveryNavBadge } from "@/components/admin/AdminDiscoveryNavBadge";
 
 export function AdminSidebar() {
   const searchParams = useSearchParams();
@@ -71,13 +72,14 @@ export function AdminSidebar() {
                         <Link
                           href={adminTabHref(item.id)}
                           className={cn(
-                            "block rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
+                            "flex items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
                             isActive
                               ? "pf-pill-active"
                               : "text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-50)] hover:text-[var(--pf-black)]"
                           )}
                         >
                           {item.label}
+                          {item.id === "discovery" ? <AdminDiscoveryNavBadge /> : null}
                         </Link>
                       </li>
                     );

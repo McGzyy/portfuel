@@ -2,21 +2,42 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
 import {
+  countPendingDiscoveryCandidates,
   getLastDiscoveryScanSummary,
   listDiscoveryCandidates,
   runDiscoveryScan,
 } from "@/lib/desk-discovery/scanner";
+import type { DiscoveryCandidateStatus } from "@/lib/desk-discovery/types";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     await requireAdmin();
-    const [list, lastScan] = await Promise.all([
-      listDiscoveryCandidates({ status: "active" }),
+    const url = new URL(request.url);
+    const countOnly = url.searchParams.get("countOnly") === "1";
+    if (countOnly) {
+      const pendingCount = await countPendingDiscoveryCandidates();
+      return NextResponse.json({ pendingCount });
+    }
+
+    const statusParam = url.searchParams.get("status");
+    const status =
+      statusParam === "pending" ||
+      statusParam === "approved" ||
+      statusParam === "published" ||
+      statusParam === "inbox" ||
+      statusParam === "active"
+        ? (statusParam as DiscoveryCandidateStatus | "active" | "inbox")
+        : "inbox";
+
+    const [list, lastScan, pendingCount] = await Promise.all([
+      listDiscoveryCandidates({ status }),
       getLastDiscoveryScanSummary(),
+      countPendingDiscoveryCandidates(),
     ]);
     return NextResponse.json({
       candidates: list.candidates,
       lastScan,
+      pendingCount,
       migrationMissing: list.migrationMissing ?? false,
     });
   } catch (e) {
@@ -37,7 +58,7 @@ export async function POST(request: Request) {
       const status = result.error === "migration_missing" ? 503 : 500;
       return NextResponse.json({ error: result.error }, { status });
     }
-    const list = await listDiscoveryCandidates({ status: "active" });
+    const list = await listDiscoveryCandidates({ status: "inbox" });
     return NextResponse.json({
       summary: result,
       candidates: list.candidates,

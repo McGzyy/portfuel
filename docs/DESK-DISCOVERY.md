@@ -15,7 +15,15 @@ Automated **lite** market scanning → admin **Discovery** inbox → manual Fuel
 
 **Ops:** Admin → Discovery → Run scan, or cron `0 13,21 * * 1-5` (weekdays).
 
-**Migration:** `20260711100000_desk_signal_candidates.sql`
+**Migrations:**
+- `20260711100000_desk_signal_candidates.sql`
+- `20260712100000_desk_discovery_hardening.sql` (publish link, admin alerts)
+
+**Lite hardening:**
+- Admins get in-app (+ optional email) alerts when score ≥ 40 (once per candidate)
+- Publish from discovery links the Fueled call (`discoveryId` query param)
+- Inbox filters: Inbox / Approved / Published; sidebar badge for pending count
+- Rescans preserve approved/published/snoozed/rejected status
 
 ## Paid roadmap (future)
 

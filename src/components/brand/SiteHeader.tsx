@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
 import type { HeaderUser } from "@/lib/auth/session-user";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { PublishIdentitySwitcher } from "@/components/calls/PublishIdentitySwitcher";
 import { cn } from "@/lib/utils";
 
 export function SiteHeader({
@@ -80,6 +81,11 @@ export function SiteHeader({
                     Settings
                   </Link>
                 </>
+              ) : null}
+              {user.role === "admin" && inWorkspace ? (
+                <div className="hidden shrink-0 lg:block">
+                  <PublishIdentitySwitcher compact />
+                </div>
               ) : null}
               <NotificationBell />
               {!inWorkspace ? (

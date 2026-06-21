@@ -81,6 +81,7 @@ export function NewCallForm({
   const initialAsset =
     searchParams.get("asset") === "crypto" ? "crypto" : "equity";
   const initialSymbol = (searchParams.get("symbol") ?? "").toUpperCase();
+  const discoveryCandidateId = searchParams.get("discoveryId") ?? "";
 
   const [assetClass, setAssetClass] = useState<"equity" | "crypto">(initialAsset);
   const [symbol, setSymbol] = useState(initialSymbol);
@@ -263,6 +264,8 @@ export function NewCallForm({
           socialAnalysisMode: modeToSend,
           socialAnalysisRawText:
             isAdmin && !sourceTweetUrl && aiDraftRawText ? aiDraftRawText : undefined,
+          discoveryCandidateId:
+            isDeskIdentity && discoveryCandidateId ? discoveryCandidateId : undefined,
         }),
       });
       const data = await res.json();

@@ -167,6 +167,12 @@ export const ALERT_CATALOG: AlertCatalogEntry[] = [
     label: "Admin: cancellation feedback",
     description: "Staff alert when a member submits churn feedback.",
   },
+  {
+    type: "admin_desk_discovery",
+    category: "admin",
+    label: "Admin: desk discovery",
+    description: "Staff alert when the discovery radar finds high-score setups.",
+  },
 ];
 
 export const PERMANENT_NOTIFICATION_TYPES: NotificationType[] = ALERT_CATALOG.filter(

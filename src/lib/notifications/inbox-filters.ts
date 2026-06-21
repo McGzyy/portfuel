@@ -47,6 +47,7 @@ const SUPPORT_TYPES = new Set<NotificationType>([
   "support_ticket_idle_warning",
   "support_ticket_status",
   "admin_support_ticket",
+  "admin_desk_discovery",
 ]);
 
 export function notificationFilterBucket(type: NotificationType): NotificationFilterKey {

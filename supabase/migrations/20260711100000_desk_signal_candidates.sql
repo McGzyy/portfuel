@@ -17,8 +17,8 @@ create table if not exists public.desk_signal_candidates (
   updated_at timestamptz not null default now()
 );
 
-create unique index if not exists desk_signal_candidates_symbol_uidx
-  on public.desk_signal_candidates (symbol);
+alter table public.desk_signal_candidates
+  add constraint desk_signal_candidates_symbol_key unique (symbol);
 
 create index if not exists desk_signal_candidates_status_score_idx
   on public.desk_signal_candidates (status, score desc, last_seen_at desc);

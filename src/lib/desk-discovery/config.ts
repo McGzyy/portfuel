@@ -16,6 +16,7 @@ export const DISCOVERY_CONFIG = {
   cryptoMomentumMin: 0.06,
   cryptoMomentumMax: 0.4,
   maxCandidatesPerScan: 40,
+  highScoreNotifyThreshold: 40,
 } as const;
 
 export const SIGNAL_WEIGHTS: Record<DiscoverySignalType, number> = {

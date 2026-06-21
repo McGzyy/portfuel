@@ -21,7 +21,6 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { WhatsNewBadge } from "@/components/announcements/WhatsNewBadge";
 import {
   WORKSPACE_BOTTOM_NAV,
   WORKSPACE_MORE_PATH_PREFIXES,
@@ -146,15 +145,15 @@ export function MemberNav({
         </div>
 
         <nav
-          className="pf-sidebar-nav-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain p-3"
+          className="pf-sidebar-nav-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 py-2"
           aria-label="Workspace"
         >
           {WORKSPACE_NAV_GROUPS.map((group) => (
-            <div key={group.title} className="mb-4 last:mb-0">
-              <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            <div key={group.title} className="pf-sidebar-nav-group">
+              <p className="mb-0.5 px-2 text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--pf-gray-400)]">
                 {group.title}
               </p>
-              <div className="space-y-0.5">
+              <div className="space-y-px">
                 {group.items.map((item) => {
                   const Icon = ICONS[item.icon];
                   const active = isWorkspaceNavItemActive(pathname, item, { username });
@@ -164,7 +163,7 @@ export function MemberNav({
                       href={item.href}
                       onClick={() => setDrawerOpen(false)}
                       className={cn(
-                        "flex items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-sm font-semibold transition-colors",
+                        "pf-sidebar-nav-item",
                         active
                           ? "pf-nav-link-active bg-[var(--pf-black)] text-white"
                           : "text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-100)] hover:text-[var(--foreground)]"
@@ -172,21 +171,18 @@ export function MemberNav({
                     >
                       <Icon
                         className={cn(
-                          "h-4 w-4 shrink-0",
+                          "h-3.5 w-3.5 shrink-0",
                           active ? "text-[var(--pf-red)]" : "text-[var(--pf-gray-400)]"
                         )}
                         strokeWidth={2.25}
                       />
-                      <span className="flex min-w-0 flex-1 items-center gap-2">
+                      <span className="flex min-w-0 flex-1 items-center gap-1.5">
                         <span className="truncate">{item.label}</span>
                         {item.href === "/dashboard/messages" ? (
                           <DmUnreadBadge initial={dmUnread} />
                         ) : null}
                         {item.href === "/dashboard/notifications" ? (
                           <NotificationUnreadBadge initial={notifUnread} />
-                        ) : null}
-                        {item.href === "/dashboard/whats-new" ? (
-                          <WhatsNewBadge count={whatsNewUnread} />
                         ) : null}
                       </span>
                     </Link>
@@ -198,14 +194,15 @@ export function MemberNav({
         </nav>
 
         {isAdmin ? (
-          <div className="border-t border-[var(--pf-border)] px-3 py-3">
-            <PublishIdentitySwitcher />
+          <div className="shrink-0 border-t border-[var(--pf-border)] px-3 py-2 lg:hidden">
+            <PublishIdentitySwitcher compact />
           </div>
         ) : null}
 
         <WorkspaceSidebarFooter
           username={username}
           isAdmin={isAdmin}
+          whatsNewUnread={whatsNewUnread}
           onNavigate={() => setDrawerOpen(false)}
           className="pb-[var(--pf-drawer-footer-pad)]"
         />

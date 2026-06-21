@@ -11,6 +11,7 @@ export type NotificationType =
   | "watchlist_plan_level"
   | "admin_churn_feedback"
   | "admin_support_ticket"
+  | "admin_desk_discovery"
   | "support_ticket_reply"
   | "support_ticket_opened"
   | "support_ticket_idle_warning"

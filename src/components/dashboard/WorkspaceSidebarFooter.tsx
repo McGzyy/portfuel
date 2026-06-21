@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { LifeBuoy, Megaphone, Settings, Shield, User } from "lucide-react";
+import { LifeBuoy, Megaphone, Settings, Shield, Sparkles, User } from "lucide-react";
+import { WhatsNewBadge } from "@/components/announcements/WhatsNewBadge";
 import { COPY } from "@/lib/copy";
 import { WorkspaceGuideTrigger } from "@/components/dashboard/WorkspaceGuideTrigger";
 import { cn } from "@/lib/utils";
@@ -9,11 +10,13 @@ import { cn } from "@/lib/utils";
 export function WorkspaceSidebarFooter({
   username,
   isAdmin,
+  whatsNewUnread = 0,
   onNavigate,
   className,
 }: {
   username: string;
   isAdmin?: boolean;
+  whatsNewUnread?: number;
   onNavigate?: () => void;
   className?: string;
 }) {
@@ -29,14 +32,18 @@ export function WorkspaceSidebarFooter({
       </Link>
 
       <div className="pf-sidebar-footer-links">
+        <Link href="/dashboard/whats-new" onClick={onNavigate} className="pf-sidebar-footer-link">
+          <Sparkles className="h-3 w-3 shrink-0" strokeWidth={2.25} />
+          <span className="inline-flex items-center gap-1">
+            What&apos;s new
+            <WhatsNewBadge count={whatsNewUnread} />
+          </span>
+        </Link>
         <Link href="/dashboard/help" onClick={onNavigate} className="pf-sidebar-footer-link">
           <LifeBuoy className="h-3 w-3 shrink-0" strokeWidth={2.25} />
           Help
         </Link>
-        <WorkspaceGuideTrigger
-          onOpen={onNavigate}
-          className="pf-sidebar-footer-link"
-        />
+        <WorkspaceGuideTrigger onOpen={onNavigate} className="pf-sidebar-footer-link" />
         <Link
           href={`/member/${username}`}
           onClick={onNavigate}

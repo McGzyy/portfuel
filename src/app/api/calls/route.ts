@@ -28,6 +28,7 @@ import {
   pendingEntryExpiresAt,
   validateConditionalTrigger,
 } from "@/lib/calls/pending-entry";
+import { linkDiscoveryCandidateToCall } from "@/lib/desk-discovery/publish-link";
 
 const createSchema = z.object({
   symbol: z.string().min(1).max(12),
@@ -42,6 +43,7 @@ const createSchema = z.object({
   sourceTweetUrl: z.string().url().max(500).optional(),
   socialAnalysisMode: z.enum(["default", "deep"]).optional(),
   socialAnalysisRawText: z.string().min(12).max(8000).optional(),
+  discoveryCandidateId: z.string().uuid().optional(),
 });
 
 export async function GET(request: Request) {
@@ -281,6 +283,13 @@ export async function POST(request: Request) {
       void tryAutopostFueledOnPublish(createdCall.id).catch((e) =>
         console.error("[calls POST x-fueled-autopost]", e)
       );
+      if (body.discoveryCandidateId) {
+        void linkDiscoveryCandidateToCall({
+          candidateId: body.discoveryCandidateId,
+          callId: createdCall.id,
+          symbol: resolvedSymbol,
+        });
+      }
     }
 
     void markWatchlistActiveOnPublish(session.userId, resolvedSymbol).catch((e) =>

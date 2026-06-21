@@ -8,6 +8,7 @@ import {
   loadDiscoveryExclusions,
   type DiscoveryExclusions,
 } from "@/lib/desk-discovery/exclusions";
+import { notifyAdminsDiscoveryCandidates } from "@/lib/desk-discovery/notify-admins";
 import { scanPaidProviders } from "@/lib/desk-discovery/providers";
 import { mergeDiscoveryHits } from "@/lib/desk-discovery/scoring";
 import { scanCryptoMomentum } from "@/lib/desk-discovery/signals/crypto-momentum";
@@ -34,6 +35,7 @@ type DbCandidate = {
   headline: string | null;
   status: string;
   snoozed_until: string | null;
+  published_call_id: string | null;
   scan_run_id: string | null;
   first_seen_at: string;
   last_seen_at: string;
@@ -51,6 +53,7 @@ function mapRow(row: DbCandidate): DiscoveryCandidateRow {
     headline: row.headline,
     status: row.status as DiscoveryCandidateStatus,
     snoozedUntil: row.snoozed_until,
+    publishedCallId: row.published_call_id,
     scanRunId: row.scan_run_id,
     firstSeenAt: row.first_seen_at,
     lastSeenAt: row.last_seen_at,
@@ -59,7 +62,7 @@ function mapRow(row: DbCandidate): DiscoveryCandidateRow {
 }
 
 export async function listDiscoveryCandidates(opts?: {
-  status?: DiscoveryCandidateStatus | "active";
+  status?: DiscoveryCandidateStatus | "active" | "inbox";
   limit?: number;
 }): Promise<{ candidates: DiscoveryCandidateRow[]; migrationMissing?: boolean }> {
   if (isDemoMode()) {
@@ -75,12 +78,14 @@ export async function listDiscoveryCandidates(opts?: {
       .order("last_seen_at", { ascending: false })
       .limit(opts?.limit ?? 50);
 
-    if (opts?.status === "active") {
-      q = q.in("status", ["pending", "snoozed"]);
+    if (opts?.status === "inbox") {
+      q = q.in("status", ["pending", "approved"]);
+    } else if (opts?.status === "active") {
+      q = q.in("status", ["pending", "snoozed", "approved"]);
     } else if (opts?.status) {
       q = q.eq("status", opts.status);
     } else {
-      q = q.in("status", ["pending", "snoozed"]);
+      q = q.in("status", ["pending", "approved"]);
     }
 
     const { data, error } = await q;
@@ -175,40 +180,112 @@ async function saveScanState(input: {
 async function upsertCandidates(
   candidates: ScoredDiscoveryCandidate[],
   scanRunId: string
-): Promise<number> {
-  if (candidates.length === 0) return 0;
+): Promise<{ upserted: number; skippedExisting: number; saveErrors: string[] }> {
+  if (candidates.length === 0) {
+    return { upserted: 0, skippedExisting: 0, saveErrors: [] };
+  }
 
   const db = createServiceClient();
-  const now = new Date().toISOString();
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const symbols = candidates.map((c) => c.symbol);
+  const { data: existingRows, error: fetchError } = await db
+    .from("desk_signal_candidates")
+    .select("symbol, status, snoozed_until, updated_at")
+    .in("symbol", symbols);
+
+  if (fetchError) {
+    if (isMissingDiscoveryTable(fetchError.message)) throw new Error("migration_missing");
+    return { upserted: 0, skippedExisting: 0, saveErrors: [fetchError.message] };
+  }
+
+  type ExistingRow = {
+    symbol: string;
+    status: string;
+    snoozed_until: string | null;
+    updated_at: string;
+  };
+
+  const existingBySymbol = new Map(
+    (existingRows ?? []).map((r) => {
+      const row = r as ExistingRow;
+      return [row.symbol.toUpperCase(), row];
+    })
+  );
+
   let upserted = 0;
+  let skippedExisting = 0;
+  const saveErrors: string[] = [];
 
   for (const c of candidates.slice(0, DISCOVERY_CONFIG.maxCandidatesPerScan)) {
-    const { error } = await db.from("desk_signal_candidates").upsert(
-      {
-        symbol: c.symbol,
-        asset_class: c.assetClass,
-        score: c.score,
-        signal_types: c.signalTypes,
-        reasons: c.reasons,
-        headline: c.headline,
-        status: "pending",
-        snoozed_until: null,
-        scan_run_id: scanRunId,
-        last_seen_at: now,
-        updated_at: now,
-      },
-      { onConflict: "symbol", ignoreDuplicates: false }
-    );
+    const existing = existingBySymbol.get(c.symbol);
 
-    if (error) {
-      if (isMissingDiscoveryTable(error.message)) throw new Error("migration_missing");
-      console.error("[desk-discovery] upsert", c.symbol, error.message);
+    if (shouldSkipExistingCandidate(existing, now)) {
+      skippedExisting += 1;
       continue;
     }
+
+    const status = existing?.status === "approved" ? "approved" : "pending";
+    const payload = {
+      symbol: c.symbol,
+      asset_class: c.assetClass,
+      score: c.score,
+      signal_types: c.signalTypes,
+      reasons: c.reasons,
+      headline: c.headline,
+      status,
+      snoozed_until: null,
+      scan_run_id: scanRunId,
+      last_seen_at: nowIso,
+      updated_at: nowIso,
+    };
+
+    const result = existing
+      ? await db
+          .from("desk_signal_candidates")
+          .update(payload as never)
+          .eq("symbol", c.symbol)
+      : await db
+          .from("desk_signal_candidates")
+          .insert({ ...payload, first_seen_at: nowIso } as never);
+
+    if (result.error) {
+      if (isMissingDiscoveryTable(result.error.message)) throw new Error("migration_missing");
+      saveErrors.push(`${c.symbol}: ${result.error.message}`);
+      console.error("[desk-discovery] save", c.symbol, result.error.message);
+      continue;
+    }
+
     upserted += 1;
   }
 
-  return upserted;
+  return { upserted, skippedExisting, saveErrors };
+}
+
+function shouldSkipExistingCandidate(
+  existing:
+    | {
+        status: string;
+        snoozed_until: string | null;
+        updated_at: string;
+      }
+    | undefined,
+  now: Date
+): boolean {
+  if (!existing) return false;
+  if (existing.status === "published") return true;
+
+  if (existing.status === "snoozed") {
+    return Boolean(existing.snoozed_until && existing.snoozed_until > now.toISOString());
+  }
+
+  if (existing.status === "rejected") {
+    const rejectCutoff = new Date(now);
+    rejectCutoff.setDate(rejectCutoff.getDate() - DISCOVERY_CONFIG.rejectCooldownDays);
+    return existing.updated_at >= rejectCutoff.toISOString();
+  }
+
+  return false;
 }
 
 function countSignals(hits: RawDiscoveryHit[]): Partial<Record<DiscoverySignalType, number>> {
@@ -228,6 +305,9 @@ export async function runDiscoveryScan(): Promise<
       scannedAt: new Date().toISOString(),
       hitsFound: 2,
       upserted: 0,
+      skippedExisting: 0,
+      saveErrors: [],
+      notifiedAdmins: 0,
       skippedExcluded: 0,
       equityBatchSize: DISCOVERY_CONFIG.equityBatchSize,
       equityRotationOffset: 0,
@@ -258,8 +338,13 @@ export async function runDiscoveryScan(): Promise<
   const scored = mergeDiscoveryHits(filteredHits);
 
   let upserted = 0;
+  let skippedExisting = 0;
+  let saveErrors: string[] = [];
   try {
-    upserted = await upsertCandidates(scored, scanRunId);
+    const saveResult = await upsertCandidates(scored, scanRunId);
+    upserted = saveResult.upserted;
+    skippedExisting = saveResult.skippedExisting;
+    saveErrors = saveResult.saveErrors;
   } catch (e) {
     if (e instanceof Error && e.message === "migration_missing") {
       return { error: "migration_missing" };
@@ -267,11 +352,19 @@ export async function runDiscoveryScan(): Promise<
     throw e;
   }
 
+  const notifiedAdmins = await notifyAdminsDiscoveryCandidates(
+    scored,
+    DISCOVERY_CONFIG.highScoreNotifyThreshold
+  );
+
   const summary: DiscoveryScanSummary = {
     scanRunId,
     scannedAt: new Date().toISOString(),
     hitsFound: scored.length,
     upserted,
+    skippedExisting,
+    saveErrors,
+    notifiedAdmins,
     skippedExcluded,
     equityBatchSize: equityBatch.length,
     equityRotationOffset: offset,
@@ -303,6 +396,7 @@ function demoCandidates(): DiscoveryCandidateRow[] {
       headline: "Demo: datacenter demand headline tags NVDA",
       status: "pending",
       snoozedUntil: null,
+      publishedCallId: null,
       scanRunId: null,
       firstSeenAt: now,
       lastSeenAt: now,
@@ -318,12 +412,33 @@ function demoCandidates(): DiscoveryCandidateRow[] {
       headline: "Demo: SOL +8.2% vs BTC over 7d",
       status: "pending",
       snoozedUntil: null,
+      publishedCallId: null,
       scanRunId: null,
       firstSeenAt: now,
       lastSeenAt: now,
       updatedAt: now,
     },
   ];
+}
+
+export async function countPendingDiscoveryCandidates(): Promise<number> {
+  if (isDemoMode()) return 2;
+
+  try {
+    const db = createServiceClient();
+    const { count, error } = await db
+      .from("desk_signal_candidates")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending");
+
+    if (error) {
+      if (isMissingDiscoveryTable(error.message)) return 0;
+      return 0;
+    }
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
 }
 
 export async function getLastDiscoveryScanSummary(): Promise<DiscoveryScanSummary | null> {
