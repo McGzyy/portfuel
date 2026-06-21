@@ -5,6 +5,7 @@ import { AdminMemberDetailPanel } from "@/components/admin/AdminMemberDetailPane
 import { AdminWorkspaceFrame } from "@/components/admin/AdminWorkspaceFrame";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
+import { fetchWorkspaceHeaderAccount } from "@/lib/workspace/header-account";
 
 export default async function AdminMemberDetailPage({
   params,
@@ -16,9 +17,15 @@ export default async function AdminMemberDetailPage({
   if (session.role !== "admin") redirect("/dashboard");
 
   const { userId } = await params;
+  const workspaceAccount = await fetchWorkspaceHeaderAccount(session);
 
   return (
-    <AppShell user={toHeaderUser(session)} headerMode="workspace" mainClassName="!max-w-none !px-0 !py-0">
+    <AppShell
+      user={toHeaderUser(session)}
+      headerMode="workspace"
+      workspaceAccount={workspaceAccount}
+      mainClassName="!max-w-none !px-0 !py-0"
+    >
       <AdminWorkspaceFrame>
         <Suspense
           fallback={

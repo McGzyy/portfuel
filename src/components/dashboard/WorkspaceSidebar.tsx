@@ -8,15 +8,15 @@ import {
   BookOpen,
   Flame,
   LayoutDashboard,
+  MessageCircle,
+  Notebook,
   Rows3,
   ScanSearch,
   Calendar,
   GitCompare,
-  LifeBuoy,
-  MessageCircle,
-  Notebook,
-  Sparkles,
   Trophy,
+  LifeBuoy,
+  Sparkles,
 } from "lucide-react";
 import {
   WORKSPACE_NAV_GROUPS,
@@ -26,8 +26,8 @@ import {
 import { WorkspaceSidebarFooter } from "@/components/dashboard/WorkspaceSidebarFooter";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
-import { MemberAvatar } from "@/components/member/MemberAvatar";
 import { cn } from "@/lib/utils";
+import { SITE_NAME } from "@/lib/seo/site";
 
 const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
   "layout-dashboard": LayoutDashboard,
@@ -48,17 +48,11 @@ const ICONS: Record<DashboardNavIcon, typeof LayoutDashboard> = {
 
 export function WorkspaceSidebar({
   username,
-  displayName,
-  avatarUrl,
-  isAdmin,
   dmUnread = 0,
   notifUnread = 0,
   whatsNewUnread = 0,
 }: {
   username: string;
-  displayName: string;
-  avatarUrl?: string | null;
-  isAdmin?: boolean;
   dmUnread?: number;
   notifUnread?: number;
   whatsNewUnread?: number;
@@ -67,17 +61,14 @@ export function WorkspaceSidebar({
 
   return (
     <aside className="pf-workspace-sidebar grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)_auto]">
-      <div className="pf-sidebar-profile shrink-0 border-b border-[var(--pf-border)]">
-        <Link href={`/member/${username}`} className="flex items-center gap-2.5">
-          <MemberAvatar displayName={displayName} username={username} avatarUrl={avatarUrl} size="md" />
-          <div className="min-w-0">
-            <p className="truncate text-[0.9375rem] font-bold leading-tight text-[var(--foreground)]">
-              {displayName}
-            </p>
-            <p className="mt-0.5 truncate font-mono text-xs text-[var(--pf-gray-500)]">
-              @{username}
-            </p>
-          </div>
+      <div className="pf-sidebar-brand shrink-0 border-b border-[var(--pf-border)]">
+        <Link href="/dashboard" className="block">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
+            Workspace
+          </p>
+          <p className="mt-0.5 text-[0.9375rem] font-bold leading-tight text-[var(--foreground)]">
+            {SITE_NAME}
+          </p>
         </Link>
       </div>
 
@@ -128,11 +119,7 @@ export function WorkspaceSidebar({
         ))}
       </nav>
 
-      <WorkspaceSidebarFooter
-        username={username}
-        isAdmin={isAdmin}
-        whatsNewUnread={whatsNewUnread}
-      />
+      <WorkspaceSidebarFooter whatsNewUnread={whatsNewUnread} />
     </aside>
   );
 }

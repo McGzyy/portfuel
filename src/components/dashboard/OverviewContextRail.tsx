@@ -4,19 +4,12 @@ import {
   OverviewRailInboxStrip,
   OverviewRailMiniStat,
 } from "@/components/dashboard/OverviewContextRail.client";
+import {
+  ContextRailBlock,
+  ContextRailModule,
+} from "@/components/workspace/ContextRailModule";
 import type { FeedSummary } from "@/lib/calls/feed-summary";
 import { formatPct } from "@/lib/utils";
-
-function RailBlock({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="border-b border-[var(--pf-border)] px-4 py-3 last:border-b-0">
-      <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-        {title}
-      </p>
-      {children}
-    </div>
-  );
-}
 
 export function OverviewContextRail({
   openCallsCount,
@@ -53,17 +46,8 @@ export function OverviewContextRail({
   ].filter((s) => s.show);
 
   return (
-    <aside className="pf-workspace-overview-rail" aria-label="Overview context">
-      <div className="pf-overview-context-module">
-        <div className="pf-overview-context-module-head">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--pf-gray-400)]">
-            Today
-          </p>
-          <p className="mt-0.5 text-sm font-bold text-[var(--pf-black)]">Your pulse</p>
-        </div>
-
-        <div className="pf-overview-context-module-body">
-          <RailBlock title="Your book">
+    <ContextRailModule eyebrow="Today" title="Your pulse" ariaLabel="Overview context">
+          <ContextRailBlock title="Your book">
             <div className="grid grid-cols-3 gap-2">
               <OverviewRailMiniStat label="Open" value={String(openCallsCount)} />
               <OverviewRailMiniStat
@@ -81,17 +65,17 @@ export function OverviewContextRail({
                 {pendingEntryCount} pending entry
               </p>
             ) : null}
-          </RailBlock>
+          </ContextRailBlock>
 
-          <RailBlock title="Inbox">
+          <ContextRailBlock title="Inbox">
             <OverviewRailInboxStrip
               dmUnread={dmUnread}
               notifUnread={notifUnread}
               feedNewCount={feedNewCount}
             />
-          </RailBlock>
+          </ContextRailBlock>
 
-          <RailBlock title="Market">
+          <ContextRailBlock title="Market">
             <div className="mb-3 grid grid-cols-2 gap-2">
               <OverviewRailMiniStat label="Top calls" value={String(communityPulse.count)} />
               <OverviewRailMiniStat
@@ -129,10 +113,10 @@ export function OverviewContextRail({
             ) : (
               <p className="text-xs text-[var(--pf-gray-500)]">No hot tickers yet today.</p>
             )}
-          </RailBlock>
+          </ContextRailBlock>
 
           {watchlistPreview.length > 0 ? (
-            <RailBlock title="Watchlist">
+            <ContextRailBlock title="Watchlist">
               <ul className="space-y-1">
                 {watchlistPreview.slice(0, 5).map((w) => (
                   <li key={w.symbol}>
@@ -158,11 +142,11 @@ export function OverviewContextRail({
               >
                 All symbols →
               </Link>
-            </RailBlock>
+            </ContextRailBlock>
           ) : null}
 
           {shortcuts.length > 0 ? (
-            <RailBlock title="Go">
+            <ContextRailBlock title="Go">
               <div className="grid grid-cols-2 gap-1.5">
                 {shortcuts.map((s) => (
                   <Link
@@ -175,10 +159,8 @@ export function OverviewContextRail({
                   </Link>
                 ))}
               </div>
-            </RailBlock>
+            </ContextRailBlock>
           ) : null}
-        </div>
-      </div>
-    </aside>
+    </ContextRailModule>
   );
 }

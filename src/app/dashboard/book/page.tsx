@@ -12,6 +12,8 @@ import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { computeMemberProAnalytics } from "@/lib/users/member-analytics";
 import { MemberProAnalyticsPanel } from "@/components/pro/MemberProAnalyticsPanel";
+import { BookContextRail } from "@/components/book/BookContextRail";
+import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
 import {
   getProGateCta,
   isProIntelligenceLocked,
@@ -59,7 +61,16 @@ export default async function DashboardBookPage() {
   const chartMemberAvatar = toChartMemberAvatar(ownProfile.member);
 
   return (
-    <div className="space-y-6">
+    <WorkspaceContextShell
+      rail={
+        <BookContextRail
+          summary={book.summary}
+          proAnalytics={proAnalytics}
+          username={session.username}
+        />
+      }
+      mainClassName="space-y-6 pb-14 lg:pb-0"
+    >
       <MemberOpenBookHeader
         summary={book.summary}
         username={session.username}
@@ -104,6 +115,6 @@ export default async function DashboardBookPage() {
         isPro={!proLocked}
         proLocked={proLocked}
       />
-    </div>
+    </WorkspaceContextShell>
   );
 }

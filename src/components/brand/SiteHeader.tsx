@@ -5,8 +5,9 @@ import { LogoThemed } from "@/components/brand/LogoThemed";
 import { Button } from "@/components/ui/button";
 import { COPY } from "@/lib/copy";
 import type { HeaderUser } from "@/lib/auth/session-user";
+import type { WorkspaceHeaderAccount } from "@/lib/workspace/header-account";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { PublishIdentitySwitcher } from "@/components/calls/PublishIdentitySwitcher";
+import { WorkspaceUserMenu } from "@/components/workspace/WorkspaceUserMenu";
 import { cn } from "@/lib/utils";
 
 export function SiteHeader({
@@ -15,6 +16,7 @@ export function SiteHeader({
   headerMode = "default",
   logoHref: logoHrefProp,
   centerSlot,
+  workspaceAccount,
 }: {
   showAuth?: boolean;
   user?: HeaderUser;
@@ -24,6 +26,7 @@ export function SiteHeader({
   logoHref?: string;
   /** Workspace command palette trigger (logged-in dashboard only). */
   centerSlot?: ReactNode;
+  workspaceAccount?: WorkspaceHeaderAccount;
 }) {
   const inWorkspace = headerMode === "workspace" && Boolean(user);
   const logoHref = logoHrefProp ?? (user ? "/dashboard" : "/");
@@ -82,14 +85,16 @@ export function SiteHeader({
                   </Link>
                 </>
               ) : null}
-              {user.role === "admin" && inWorkspace ? (
-                <div className="hidden shrink-0 lg:block">
-                  <PublishIdentitySwitcher compact />
-                </div>
+              {inWorkspace ? (
+                <>
+                  <NotificationBell />
+                  <WorkspaceUserMenu
+                    user={user}
+                    avatarUrl={workspaceAccount?.avatarUrl}
+                    whatsNewUnread={workspaceAccount?.whatsNewUnread ?? 0}
+                  />
+                </>
               ) : null}
-              <div className={cn(inWorkspace && "lg:hidden")}>
-                <NotificationBell />
-              </div>
               {!inWorkspace ? (
                 <Link
                   href="/dashboard"

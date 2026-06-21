@@ -1,6 +1,7 @@
 "use client";
 
 import { useOverviewLayout } from "@/components/dashboard/OverviewLayoutProvider";
+import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
 import { cn } from "@/lib/utils";
 
 export function OverviewLayoutBody({
@@ -12,16 +13,12 @@ export function OverviewLayoutBody({
 }) {
   const { densityClass } = useOverviewLayout();
 
-  if (!rail) {
-    return <div className={cn(densityClass, "pb-14 lg:pb-0")}>{children}</div>;
-  }
-
   return (
-    <div className="pf-workspace-overview-shell">
-      <div className={cn("pf-workspace-overview-main min-w-0", densityClass, "pb-14 lg:pb-0")}>
-        {children}
-      </div>
-      {rail}
-    </div>
+    <WorkspaceContextShell
+      rail={rail}
+      mainClassName={cn(densityClass, "pb-14 lg:pb-0")}
+    >
+      {children}
+    </WorkspaceContextShell>
   );
 }

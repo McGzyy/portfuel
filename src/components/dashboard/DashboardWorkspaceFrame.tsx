@@ -19,7 +19,7 @@ import { toHeaderUser } from "@/lib/auth/session-user";
 import type { SessionPayload } from "@/lib/auth/session-types";
 import { countUnreadDmThreads } from "@/lib/messages/service";
 import { fetchUnreadCount } from "@/lib/notifications/service";
-import { fetchUserAvatarUrl } from "@/lib/users/member-avatar";
+import { fetchWorkspaceHeaderAccount } from "@/lib/workspace/header-account";
 import { LiveBookProvider } from "@/components/market/LiveBookProvider";
 import { WorkspaceActivityProvider } from "@/components/workspace/WorkspaceActivityProvider";
 import { countFeedCallsSince } from "@/lib/feed/new-count";
@@ -37,7 +37,7 @@ export async function DashboardWorkspaceFrame({
   session: SessionPayload;
   children: React.ReactNode;
 }) {
-  const [unreadPair, announcements, changelog, showWorkspaceGuide, avatarUrl] =
+  const [unreadPair, announcements, changelog, showWorkspaceGuide, headerAccount] =
     await Promise.all([
       Promise.all([
         countUnreadDmThreads(session.userId),
@@ -46,7 +46,7 @@ export async function DashboardWorkspaceFrame({
       fetchActiveAnnouncementsForUser(session.userId, session).catch(() => []),
       fetchChangelogForUser(session.userId, session).catch(() => []),
       shouldAutoShowWorkspaceGuide(session.userId, session.role).catch(() => false),
-      fetchUserAvatarUrl(session.userId).catch(() => null),
+      fetchWorkspaceHeaderAccount(session),
     ]);
   const [dmUnread, notifUnread] = unreadPair;
   const whatsNewUnread = countUnreadWhatsNew(changelog);
@@ -67,6 +67,7 @@ export async function DashboardWorkspaceFrame({
         user={toHeaderUser(session)}
         headerMode="workspace"
         headerCenter={<WorkspaceSearchHeaderTrigger />}
+        workspaceAccount={headerAccount}
         mainClassName="!max-w-none !px-0 !py-0"
       >
         <LiveBookProvider isPro={isPro}>
@@ -75,9 +76,6 @@ export async function DashboardWorkspaceFrame({
           <div className="pf-workspace-sidebar-wrap">
             <WorkspaceSidebar
               username={session.username}
-              displayName={session.displayName ?? session.username}
-              avatarUrl={avatarUrl}
-              isAdmin={session.role === "admin"}
               dmUnread={dmUnread}
               notifUnread={notifUnread}
               whatsNewUnread={whatsNewUnread}
@@ -90,7 +88,7 @@ export async function DashboardWorkspaceFrame({
               whatsNewUnread={whatsNewUnread}
               username={session.username}
               displayName={session.displayName ?? session.username}
-              avatarUrl={avatarUrl}
+              avatarUrl={headerAccount.avatarUrl}
               isAdmin={session.role === "admin"}
             />
             <ModerationBanner

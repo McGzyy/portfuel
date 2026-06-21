@@ -207,7 +207,8 @@ body {
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.pf-sidebar-profile {
+.pf-sidebar-profile,
+.pf-sidebar-brand {
   padding: 0.875rem 1rem;
 }
 
@@ -397,37 +398,43 @@ body {
   width: 100%;
 }
 
-/* Member overview — main column + sticky context rail */
-.pf-workspace-content.pf-workspace-content--overview {
+/* Member overview + context rails — main column + sticky context rail */
+.pf-workspace-content.pf-workspace-content--overview,
+.pf-workspace-content.pf-workspace-content--context-rail {
   max-width: none;
   width: 100%;
 }
 
 @media (min-width: 1024px) {
-  .pf-workspace-content.pf-workspace-content--overview {
+  .pf-workspace-content.pf-workspace-content--overview,
+  .pf-workspace-content.pf-workspace-content--context-rail {
     padding-left: 2.75rem;
     padding-right: 1.25rem;
   }
 
-  .pf-workspace-overview-shell {
+  .pf-workspace-overview-shell,
+  .pf-workspace-context-shell {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 19rem;
     gap: 1.5rem;
     align-items: start;
   }
 
-  .pf-workspace-overview-main {
+  .pf-workspace-overview-main,
+  .pf-workspace-context-main {
     min-width: 0;
   }
 
-  .pf-workspace-overview-rail {
+  .pf-workspace-overview-rail,
+  .pf-workspace-context-rail {
     position: sticky;
     top: calc(4.5rem + var(--pf-safe-top, 0px) + 0.75rem);
     z-index: 30;
     align-self: start;
   }
 
-  .pf-overview-context-module {
+  .pf-overview-context-module,
+  .pf-context-rail-module {
     display: flex;
     min-height: calc(100dvh - 8.5rem - var(--pf-safe-top, 0px));
     flex-direction: column;
@@ -442,13 +449,15 @@ body {
       0 24px 56px -16px rgb(15 23 42 / 0.1);
   }
 
-  .pf-overview-context-module-head {
+  .pf-overview-context-module-head,
+  .pf-context-rail-module-head {
     border-bottom: 1px solid var(--pf-border);
     background: linear-gradient(180deg, #fff 0%, var(--pf-gray-50) 100%);
     padding: 0.875rem 1rem;
   }
 
-  .pf-overview-context-module-body {
+  .pf-overview-context-module-body,
+  .pf-context-rail-module-body {
     flex: 1;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -456,7 +465,8 @@ body {
 }
 
 @media (max-width: 1023px) {
-  .pf-workspace-overview-rail {
+  .pf-workspace-overview-rail,
+  .pf-workspace-context-rail {
     display: none;
   }
 }

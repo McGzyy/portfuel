@@ -1,22 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { LifeBuoy, Megaphone, Settings, Shield, Sparkles, User } from "lucide-react";
+import { LifeBuoy, Megaphone, Sparkles } from "lucide-react";
 import { WhatsNewBadge } from "@/components/announcements/WhatsNewBadge";
 import { COPY } from "@/lib/copy";
 import { WorkspaceGuideTrigger } from "@/components/dashboard/WorkspaceGuideTrigger";
-import { WorkspaceSignOutButton } from "@/components/auth/WorkspaceSignOutButton";
 import { cn } from "@/lib/utils";
 
 export function WorkspaceSidebarFooter({
-  username,
-  isAdmin,
   whatsNewUnread = 0,
   onNavigate,
   className,
 }: {
-  username: string;
-  isAdmin?: boolean;
   whatsNewUnread?: number;
   onNavigate?: () => void;
   className?: string;
@@ -45,27 +40,6 @@ export function WorkspaceSidebarFooter({
           Help
         </Link>
         <WorkspaceGuideTrigger onOpen={onNavigate} className="pf-sidebar-footer-link" />
-        <Link
-          href={`/member/${username}`}
-          onClick={onNavigate}
-          className="pf-sidebar-footer-link"
-        >
-          <User className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
-          Profile
-        </Link>
-        <Link href="/dashboard/settings" onClick={onNavigate} className="pf-sidebar-footer-link">
-          <Settings className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
-          Settings
-        </Link>
-        {isAdmin ? (
-          <Link href="/admin" onClick={onNavigate} className="pf-sidebar-footer-link">
-            <Shield className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
-            Admin
-          </Link>
-        ) : null}
-      </div>
-      <div className="mt-2 border-t border-[var(--pf-border)] pt-2">
-        <WorkspaceSignOutButton />
       </div>
     </div>
   );

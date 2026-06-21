@@ -31,7 +31,6 @@ import {
   type DashboardNavIcon,
 } from "@/lib/dashboard/nav";
 import { WorkspaceSidebarFooter } from "@/components/dashboard/WorkspaceSidebarFooter";
-import { PublishIdentitySwitcher } from "@/components/calls/PublishIdentitySwitcher";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
 import { MemberAvatar } from "@/components/member/MemberAvatar";
@@ -68,7 +67,6 @@ export function MemberNav({
   username,
   displayName,
   avatarUrl,
-  isAdmin = false,
 }: {
   dmUnread?: number;
   notifUnread?: number;
@@ -191,15 +189,7 @@ export function MemberNav({
           ))}
         </nav>
 
-        {isAdmin ? (
-          <div className="shrink-0 border-t border-[var(--pf-border)] px-3 py-2 lg:hidden">
-            <PublishIdentitySwitcher compact />
-          </div>
-        ) : null}
-
         <WorkspaceSidebarFooter
-          username={username}
-          isAdmin={isAdmin}
           whatsNewUnread={whatsNewUnread}
           onNavigate={() => setDrawerOpen(false)}
           className="pb-[var(--pf-drawer-footer-pad)]"

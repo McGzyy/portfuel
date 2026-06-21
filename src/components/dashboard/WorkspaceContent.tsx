@@ -12,6 +12,8 @@ export function WorkspaceContent({ children }: { children: React.ReactNode }) {
   const isWide =
     pathname === "/calls/new" || pathname.startsWith("/ticker/");
   const isOverview = pathname === "/dashboard";
+  const isContextRail =
+    pathname === "/dashboard" || pathname === "/dashboard/book";
 
   return (
     <PullToRefresh>
@@ -20,7 +22,8 @@ export function WorkspaceContent({ children }: { children: React.ReactNode }) {
           "pf-workspace-content",
           isFeed && "pf-workspace-content--feed",
           isWide && "pf-workspace-content-wide",
-          isOverview && "pf-workspace-content--overview"
+          isOverview && "pf-workspace-content--overview",
+          isContextRail && "pf-workspace-content--context-rail"
         )}
       >
         <ClientErrorBoundary>{children}</ClientErrorBoundary>

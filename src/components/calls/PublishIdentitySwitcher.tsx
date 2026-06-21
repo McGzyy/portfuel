@@ -1,17 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
+import { usePublishIdentities } from "@/hooks/usePublishIdentities";
 import { cn } from "@/lib/utils";
-
-type Identity = {
-  userId: string;
-  username: string;
-  displayName: string | null;
-  kind: "desk" | "personal";
-  label: string;
-};
 
 export function PublishIdentitySwitcher({
   className,
@@ -21,27 +13,9 @@ export function PublishIdentitySwitcher({
   /** Header-friendly single-line control — keeps the sidebar shorter. */
   compact?: boolean;
 }) {
-  const router = useRouter();
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [activeUserId, setActiveUserId] = useState<string | null>(null);
-  const [identities, setIdentities] = useState<Identity[]>([]);
-
-  const load = useCallback(async () => {
-    const res = await fetch("/api/admin/switch-identity");
-    if (!res.ok) return;
-    const json = (await res.json()) as {
-      activeUserId: string;
-      identities: Identity[];
-    };
-    setActiveUserId(json.activeUserId);
-    setIdentities(json.identities);
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const { active, identities, hasMultiple, busy, switchTo } = usePublishIdentities();
 
   useEffect(() => {
     if (!open) return;
@@ -52,28 +26,15 @@ export function PublishIdentitySwitcher({
     return () => document.removeEventListener("mousedown", onPointerDown);
   }, [open]);
 
-  const active = identities.find((i) => i.userId === activeUserId);
+  const handleSwitch = useCallback(
+    async (userId: string) => {
+      setOpen(false);
+      await switchTo(userId);
+    },
+    [switchTo]
+  );
 
-  if (identities.length < 2) return null;
-
-  async function switchTo(userId: string) {
-    if (userId === activeUserId || busy) return;
-    setBusy(true);
-    setOpen(false);
-    try {
-      const res = await fetch("/api/admin/switch-identity", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      });
-      if (res.ok) {
-        router.refresh();
-        await load();
-      }
-    } finally {
-      setBusy(false);
-    }
-  }
+  if (!hasMultiple) return null;
 
   return (
     <div ref={rootRef} className={cn("relative", className)}>
@@ -127,9 +88,9 @@ export function PublishIdentitySwitcher({
                 type="button"
                 className={cn(
                   "w-full px-3 py-2.5 text-left text-sm hover:bg-[var(--pf-gray-50)]",
-                  identity.userId === activeUserId && "bg-[var(--pf-gray-50)] font-semibold"
+                  identity.userId === active?.userId && "bg-[var(--pf-gray-50)] font-semibold"
                 )}
-                onClick={() => void switchTo(identity.userId)}
+                onClick={() => void handleSwitch(identity.userId)}
               >
                 {identity.label}
               </button>

@@ -6,14 +6,22 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminWorkspaceFrame } from "@/components/admin/AdminWorkspaceFrame";
 import { getSession } from "@/lib/auth/session";
 import { toHeaderUser } from "@/lib/auth/session-user";
+import { fetchWorkspaceHeaderAccount } from "@/lib/workspace/header-account";
 
 export default async function AdminPage() {
   const session = await getSession();
   if (!session) redirect("/login");
   if (session.role !== "admin") redirect("/dashboard");
 
+  const workspaceAccount = await fetchWorkspaceHeaderAccount(session);
+
   return (
-    <AppShell user={toHeaderUser(session)} headerMode="workspace" mainClassName="!max-w-none !px-0 !py-0">
+    <AppShell
+      user={toHeaderUser(session)}
+      headerMode="workspace"
+      workspaceAccount={workspaceAccount}
+      mainClassName="!max-w-none !px-0 !py-0"
+    >
       <AdminWorkspaceFrame>
         <AdminCommandHeader />
         <Suspense
