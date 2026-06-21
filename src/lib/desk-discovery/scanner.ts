@@ -3,6 +3,8 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
 import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
 import { isMissingDiscoveryTable } from "@/lib/desk-discovery/db-errors";
+import type { DiscoveryDraftPayload } from "@/lib/desk-discovery/draft-types";
+import { generateDiscoveryDraft } from "@/lib/desk-discovery/draft";
 import {
   isSymbolExcluded,
   loadDiscoveryExclusions,
@@ -37,10 +39,19 @@ type DbCandidate = {
   snoozed_until: string | null;
   published_call_id: string | null;
   scan_run_id: string | null;
+  draft: unknown;
+  draft_generated_at: string | null;
   first_seen_at: string;
   last_seen_at: string;
   updated_at: string;
 };
+
+function parseDraft(raw: unknown): DiscoveryDraftPayload | null {
+  if (!raw || typeof raw !== "object") return null;
+  const d = raw as Record<string, unknown>;
+  if (typeof d.thesis !== "string" || typeof d.direction !== "string") return null;
+  return raw as DiscoveryDraftPayload;
+}
 
 function mapRow(row: DbCandidate): DiscoveryCandidateRow {
   return {
@@ -55,18 +66,48 @@ function mapRow(row: DbCandidate): DiscoveryCandidateRow {
     snoozedUntil: row.snoozed_until,
     publishedCallId: row.published_call_id,
     scanRunId: row.scan_run_id,
+    draft: parseDraft(row.draft),
+    draftGeneratedAt: row.draft_generated_at,
     firstSeenAt: row.first_seen_at,
     lastSeenAt: row.last_seen_at,
     updatedAt: row.updated_at,
   };
 }
 
+export async function getDiscoveryCandidateById(
+  id: string
+): Promise<{ candidate?: DiscoveryCandidateRow; error?: string }> {
+  if (isDemoMode()) {
+    const candidate = demoCandidates().find((c) => c.id === id);
+    return candidate ? { candidate } : { error: "not_found" };
+  }
+
+  try {
+    const db = createServiceClient();
+    const { data, error } = await db
+      .from("desk_signal_candidates")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      if (isMissingDiscoveryTable(error.message)) return { error: "migration_missing" };
+      return { error: "fetch_failed" };
+    }
+    if (!data) return { error: "not_found" };
+    return { candidate: mapRow(data as DbCandidate) };
+  } catch (e) {
+    console.error("[desk-discovery] getById", e);
+    return { error: "server_error" };
+  }
+}
+
 export async function listDiscoveryCandidates(opts?: {
-  status?: DiscoveryCandidateStatus | "active" | "inbox";
+  status?: DiscoveryCandidateStatus | "active" | "inbox" | "ready";
   limit?: number;
 }): Promise<{ candidates: DiscoveryCandidateRow[]; migrationMissing?: boolean }> {
   if (isDemoMode()) {
-    return { candidates: demoCandidates() };
+    return { candidates: demoCandidatesForFilter(opts?.status) };
   }
 
   try {
@@ -79,13 +120,15 @@ export async function listDiscoveryCandidates(opts?: {
       .limit(opts?.limit ?? 50);
 
     if (opts?.status === "inbox") {
-      q = q.in("status", ["pending", "approved"]);
+      q = q.eq("status", "pending");
+    } else if (opts?.status === "ready") {
+      q = q.eq("status", "approved");
     } else if (opts?.status === "active") {
       q = q.in("status", ["pending", "snoozed", "approved"]);
     } else if (opts?.status) {
       q = q.eq("status", opts.status);
     } else {
-      q = q.in("status", ["pending", "approved"]);
+      q = q.eq("status", "pending");
     }
 
     const { data, error } = await q;
@@ -112,21 +155,29 @@ export async function listDiscoveryCandidates(opts?: {
 export async function updateDiscoveryCandidate(
   id: string,
   patch: {
-    status: DiscoveryCandidateStatus;
+    status?: DiscoveryCandidateStatus;
     snoozedUntil?: string | null;
+    draft?: DiscoveryDraftPayload | null;
+    draftGeneratedAt?: string | null;
   }
 ): Promise<{ candidate?: DiscoveryCandidateRow; error?: string }> {
   if (isDemoMode()) return { error: "demo_readonly" };
+
+  const updatePayload: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
+  if (patch.status !== undefined) updatePayload.status = patch.status;
+  if (patch.snoozedUntil !== undefined) updatePayload.snoozed_until = patch.snoozedUntil;
+  if (patch.draft !== undefined) updatePayload.draft = patch.draft;
+  if (patch.draftGeneratedAt !== undefined) {
+    updatePayload.draft_generated_at = patch.draftGeneratedAt;
+  }
 
   try {
     const db = createServiceClient();
     const { data, error } = await db
       .from("desk_signal_candidates")
-      .update({
-        status: patch.status,
-        snoozed_until: patch.snoozedUntil ?? null,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload as never)
       .eq("id", id)
       .select("*")
       .maybeSingle();
@@ -140,6 +191,53 @@ export async function updateDiscoveryCandidate(
   } catch (e) {
     console.error("[desk-discovery] update", e);
     return { error: "server_error" };
+  }
+}
+
+export async function generateAndSaveDiscoveryDraft(
+  candidate: DiscoveryCandidateRow,
+  opts?: { autoApprove?: boolean; direction?: "long" | "short" }
+): Promise<{ candidate?: DiscoveryCandidateRow; error?: string }> {
+  const result = await generateDiscoveryDraft({
+    symbol: candidate.symbol,
+    assetClass: candidate.assetClass,
+    reasons: candidate.reasons,
+    direction: opts?.direction ?? candidate.draft?.direction,
+  });
+
+  if ("error" in result) return { error: result.error };
+
+  const now = new Date().toISOString();
+  return updateDiscoveryCandidate(candidate.id, {
+    draft: result.draft,
+    draftGeneratedAt: now,
+    ...(opts?.autoApprove && candidate.status === "pending"
+      ? { status: "approved" as const }
+      : {}),
+  });
+}
+
+async function autoDraftHighScoreCandidates(candidates: ScoredDiscoveryCandidate[]): Promise<void> {
+  const highScore = candidates.filter((c) => c.score >= DISCOVERY_CONFIG.highScoreNotifyThreshold);
+  if (highScore.length === 0) return;
+
+  const db = createServiceClient();
+  for (const hit of highScore.slice(0, 8)) {
+    try {
+      const { data } = await db
+        .from("desk_signal_candidates")
+        .select("*")
+        .eq("symbol", hit.symbol)
+        .maybeSingle();
+
+      if (!data) continue;
+      const row = mapRow(data as DbCandidate);
+      if (row.status !== "pending" || row.draft) continue;
+
+      await generateAndSaveDiscoveryDraft(row, { autoApprove: false });
+    } catch (e) {
+      console.error("[desk-discovery] auto-draft", hit.symbol, e);
+    }
   }
 }
 
@@ -352,6 +450,10 @@ export async function runDiscoveryScan(): Promise<
     throw e;
   }
 
+  void autoDraftHighScoreCandidates(scored).catch((e) =>
+    console.error("[desk-discovery] auto-draft batch", e)
+  );
+
   const notifiedAdmins = await notifyAdminsDiscoveryCandidates(
     scored,
     DISCOVERY_CONFIG.highScoreNotifyThreshold
@@ -398,6 +500,8 @@ function demoCandidates(): DiscoveryCandidateRow[] {
       snoozedUntil: null,
       publishedCallId: null,
       scanRunId: null,
+      draft: null,
+      draftGeneratedAt: null,
       firstSeenAt: now,
       lastSeenAt: now,
       updatedAt: now,
@@ -410,10 +514,18 @@ function demoCandidates(): DiscoveryCandidateRow[] {
       signalTypes: ["crypto_momentum"],
       reasons: [{ type: "crypto_momentum", detail: "Demo: SOL +8.2% vs BTC over 7d" }],
       headline: "Demo: SOL +8.2% vs BTC over 7d",
-      status: "pending",
+      status: "approved",
       snoozedUntil: null,
       publishedCallId: null,
       scanRunId: null,
+      draft: {
+        direction: "long",
+        thesis: "SOL momentum vs BTC over 7d — watch for continuation or mean reversion.",
+        catalyst: "Relative strength vs BTC over 7d.",
+        risk: "BTC risk-off or SOL underperformance vs benchmark.",
+        timeframe: "1–2 weeks",
+      },
+      draftGeneratedAt: now,
       firstSeenAt: now,
       lastSeenAt: now,
       updatedAt: now,
@@ -421,15 +533,39 @@ function demoCandidates(): DiscoveryCandidateRow[] {
   ];
 }
 
+function demoCandidatesForFilter(
+  status?: DiscoveryCandidateStatus | "active" | "inbox" | "ready"
+): DiscoveryCandidateRow[] {
+  const all = demoCandidates();
+  if (status === "inbox") return all.filter((c) => c.status === "pending");
+  if (status === "ready") return all.filter((c) => c.status === "approved");
+  if (status === "published") return [];
+  if (status === "snoozed" || status === "rejected") return [];
+  if (status === "pending" || status === "approved") {
+    return all.filter((c) => c.status === status);
+  }
+  return all;
+}
+
 export async function countPendingDiscoveryCandidates(): Promise<number> {
-  if (isDemoMode()) return 2;
+  return countDiscoveryCandidatesByStatus(["pending"]);
+}
+
+export async function countActionableDiscoveryCandidates(): Promise<number> {
+  return countDiscoveryCandidatesByStatus(["pending", "approved"]);
+}
+
+async function countDiscoveryCandidatesByStatus(statuses: DiscoveryCandidateStatus[]): Promise<number> {
+  if (isDemoMode()) {
+    return demoCandidates().filter((c) => statuses.includes(c.status)).length;
+  }
 
   try {
     const db = createServiceClient();
     const { count, error } = await db
       .from("desk_signal_candidates")
       .select("id", { count: "exact", head: true })
-      .eq("status", "pending");
+      .in("status", statuses);
 
     if (error) {
       if (isMissingDiscoveryTable(error.message)) return 0;

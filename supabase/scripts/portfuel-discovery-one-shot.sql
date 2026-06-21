@@ -33,7 +33,9 @@ on conflict (id) do nothing;
 -- 2) Hardening columns
 alter table public.desk_signal_candidates
   add column if not exists published_call_id uuid,
-  add column if not exists admin_notified_at timestamptz;
+  add column if not exists admin_notified_at timestamptz,
+  add column if not exists draft jsonb,
+  add column if not exists draft_generated_at timestamptz;
 
 -- 3) Status check (includes published)
 alter table public.desk_signal_candidates
@@ -130,7 +132,8 @@ begin
       ('20260711100000', 'desk_signal_candidates'),
       ('20260712100000', 'desk_discovery_hardening'),
       ('20260713100000', 'desk_discovery_symbol_unique'),
-      ('20260713110000', 'desk_discovery_calls_fk')
+      ('20260713110000', 'desk_discovery_calls_fk'),
+      ('20260714100000', 'desk_discovery_drafts')
     on conflict (version) do nothing;
   end if;
 end $$;

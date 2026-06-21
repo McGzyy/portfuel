@@ -21,8 +21,10 @@ Automated **lite** market scanning → admin **Discovery** inbox → manual Fuel
 
 **Lite hardening:**
 - Admins get in-app (+ optional email) alerts when score ≥ 40 (once per candidate)
-- Publish from discovery links the Fueled call (`discoveryId` query param)
-- Inbox filters: Inbox / Approved / Published; sidebar badge for pending count
+- High-score hits get an AI draft pre-filled in Inbox (not auto-queued)
+- Publish from **Ready to publish** only — links the Fueled call (`discoveryId` query param)
+- Workflow tabs: Inbox / Ready to publish / Published / Snoozed / Rejected
+- Sidebar badge counts pending + approved awaiting publish
 - Rescans preserve approved/published/snoozed/rejected status
 
 ## Paid roadmap (future)

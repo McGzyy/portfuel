@@ -1,36 +1,29 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
-import type {
-  DiscoveryCandidateRow,
-  DiscoveryScanSummary,
-  DiscoverySignalType,
-} from "@/lib/desk-discovery/types";
+import { DiscoveryCandidateCard } from "@/components/admin/DiscoveryCandidateCard";
+import type { DiscoveryCandidateRow, DiscoveryScanSummary } from "@/lib/desk-discovery/types";
 import { DISCOVERY_PROVIDER_ROADMAP } from "@/lib/desk-discovery/roadmap";
-import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
 
-type InboxFilter = "inbox" | "approved" | "published";
+type InboxFilter = "inbox" | "ready" | "published" | "snoozed" | "rejected";
 
-const SIGNAL_LABELS: Record<DiscoverySignalType, string> = {
-  earnings_soon: "Earnings",
-  news_catalyst: "News",
-  volume_anomaly: "Volume",
-  price_move: "Price",
-  crypto_momentum: "Crypto",
+const TAB_LABELS: Record<InboxFilter, string> = {
+  inbox: "Inbox",
+  ready: "Ready to publish",
+  published: "Published",
+  snoozed: "Snoozed",
+  rejected: "Rejected",
 };
 
-function publishHref(row: DiscoveryCandidateRow, thesis?: string): string {
-  const params = new URLSearchParams();
-  params.set("symbol", row.symbol);
-  params.set("fueled", "1");
-  params.set("discoveryId", row.id);
-  if (row.assetClass === "crypto") params.set("asset", "crypto");
-  if (thesis?.trim()) params.set("thesis", thesis.trim());
-  return `/calls/new?${params.toString()}`;
-}
+const EMPTY_COPY: Record<InboxFilter, string> = {
+  inbox: "Inbox empty — run a scan or wait for the next cron pass.",
+  ready: "Nothing queued — approve hits from Inbox or use AI draft & queue.",
+  published: "No published discovery calls yet.",
+  snoozed: "No snoozed symbols.",
+  rejected: "No rejected symbols.",
+};
 
 export function AdminDiscoveryPanel() {
   const [candidates, setCandidates] = useState<DiscoveryCandidateRow[]>([]);
@@ -40,10 +33,9 @@ export function AdminDiscoveryPanel() {
   const [migrationMissing, setMigrationMissing] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [draftLoading, setDraftLoading] = useState<string | null>(null);
   const [filter, setFilter] = useState<InboxFilter>("inbox");
   const [pendingCount, setPendingCount] = useState(0);
+  const [actionableCount, setActionableCount] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -58,6 +50,7 @@ export function AdminDiscoveryPanel() {
       setCandidates(json.candidates ?? []);
       setLastScan(json.lastScan ?? null);
       setPendingCount(json.pendingCount ?? 0);
+      setActionableCount(json.actionableCount ?? 0);
       setMigrationMissing(Boolean(json.migrationMissing));
     } catch {
       setError("Could not load discovery inbox.");
@@ -84,7 +77,7 @@ export function AdminDiscoveryPanel() {
       if (!res.ok) {
         if (json.error === "migration_missing") {
           setMigrationMissing(true);
-          setError("Run migration 20260711100000_desk_signal_candidates.sql in Supabase first.");
+          setError("Run discovery migrations in Supabase first.");
         } else {
           setError("Scan failed.");
         }
@@ -100,7 +93,7 @@ export function AdminDiscoveryPanel() {
           );
         } else if (summary.skippedExisting > 0) {
           setMessage(
-            `Scan found ${summary.hitsFound} hits — ${summary.skippedExisting} skipped (snoozed, rejected, or already published). Check Approved/Published tabs or clear those rows.`
+            `Scan found ${summary.hitsFound} hits — ${summary.skippedExisting} skipped (snoozed, rejected, or already published).`
           );
         } else {
           setError(
@@ -113,63 +106,14 @@ export function AdminDiscoveryPanel() {
             summary?.notifiedAdmins
               ? `, ${summary.notifiedAdmins} admin alert(s) sent`
               : ""
-          }.`
+          }. High-score hits get an AI draft pre-filled in Inbox.`
         );
       }
+      await load();
     } catch {
       setError("Scan failed.");
     } finally {
       setScanning(false);
-    }
-  }
-
-  async function patchStatus(
-    id: string,
-    status: "snoozed" | "rejected" | "approved",
-    snoozeDays?: number
-  ) {
-    setError("");
-    try {
-      const res = await fetch(`/api/admin/desk-discovery/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, snoozeDays }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setError(
-          json.error === "demo_readonly" ? "Demo mode is read-only." : "Update failed."
-        );
-        return;
-      }
-      if (status === "approved") {
-        setMessage(`${json.candidate?.symbol ?? "Symbol"} marked approved — publish when ready.`);
-      }
-      await load();
-    } catch {
-      setError("Update failed.");
-    }
-  }
-
-  async function draftThesis(row: DiscoveryCandidateRow) {
-    setDraftLoading(row.id);
-    setError("");
-    try {
-      const res = await fetch(`/api/admin/desk-discovery/${row.id}/draft`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ direction: "long" }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json.error === "reasons_too_short" ? "Not enough signal detail to draft." : "Draft failed.");
-        return;
-      }
-      setDrafts((prev) => ({ ...prev, [row.id]: json.text ?? "" }));
-    } catch {
-      setError("Draft failed.");
-    } finally {
-      setDraftLoading(null);
     }
   }
 
@@ -186,7 +130,7 @@ export function AdminDiscoveryPanel() {
       <AdminPanelHeader
         group="Content & desk"
         title="Discovery radar"
-        description="Lite market scan for names worth a Fueled look — review, draft, then publish. Nothing auto-posts."
+        description="Lite market scan → Inbox triage → Ready queue → Fueled publish. Nothing auto-posts."
         actions={
           <Button type="button" onClick={() => void runScan()} disabled={scanning}>
             {scanning ? "Scanning…" : "Run scan"}
@@ -221,6 +165,9 @@ export function AdminDiscoveryPanel() {
             <li>
               <code>20260713100000_desk_discovery_symbol_unique.sql</code>
             </li>
+            <li>
+              <code>20260714100000_desk_discovery_drafts.sql</code>
+            </li>
           </ul>
         </div>
       ) : null}
@@ -229,157 +176,47 @@ export function AdminDiscoveryPanel() {
       {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
 
       <div className="flex flex-wrap gap-2">
-        {(
-          [
-            ["inbox", `Inbox${pendingCount > 0 ? ` (${pendingCount})` : ""}`],
-            ["approved", "Approved"],
-            ["published", "Published"],
-          ] as const
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setFilter(key)}
-            className={
-              filter === key
-                ? "pf-pill-active rounded-full px-3 py-1.5 text-xs font-semibold"
-                : "rounded-full border border-[var(--pf-border)] px-3 py-1.5 text-xs font-semibold text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-50)]"
-            }
-          >
-            {label}
-          </button>
-        ))}
+        {(Object.keys(TAB_LABELS) as InboxFilter[]).map((key) => {
+          const badge =
+            key === "inbox" && pendingCount > 0
+              ? ` (${pendingCount})`
+              : key === "ready" && actionableCount > pendingCount
+                ? ` (${actionableCount - pendingCount})`
+                : "";
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setFilter(key)}
+              className={
+                filter === key
+                  ? "pf-pill-active rounded-full px-3 py-1.5 text-xs font-semibold"
+                  : "rounded-full border border-[var(--pf-border)] px-3 py-1.5 text-xs font-semibold text-[var(--pf-gray-600)] hover:bg-[var(--pf-gray-50)]"
+              }
+            >
+              {TAB_LABELS[key]}
+              {badge}
+            </button>
+          );
+        })}
       </div>
 
       {candidates.length === 0 ? (
         <div className="pf-workspace-panel p-8 text-center text-sm text-[var(--pf-gray-500)]">
-          {filter === "inbox"
-            ? "Inbox empty — run a scan or wait for the next cron pass."
-            : `No ${filter} candidates yet.`}
+          {EMPTY_COPY[filter]}
         </div>
       ) : (
         <ul className="space-y-4">
-          {candidates.map((row) => {
-            const isPublished = row.status === "published";
-            const isHighScore = row.score >= DISCOVERY_CONFIG.highScoreNotifyThreshold;
-            return (
-            <li key={row.id} className="pf-workspace-panel p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Link
-                      href={`/ticker/${row.symbol}`}
-                      className="text-lg font-bold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
-                    >
-                      {row.symbol}
-                    </Link>
-                    <span className="rounded-full bg-[var(--pf-gray-100)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
-                      {row.assetClass}
-                    </span>
-                    {row.status !== "pending" ? (
-                      <span className="rounded-full bg-[var(--pf-gray-100)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-500)]">
-                        {row.status}
-                      </span>
-                    ) : null}
-                    <span className="text-sm font-semibold text-[var(--pf-red)]">
-                      Score {row.score}
-                    </span>
-                    {isHighScore && row.status === "pending" ? (
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800">
-                        High priority
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="mt-1 text-sm text-[var(--pf-gray-600)]">
-                    {row.headline ?? row.reasons[0]?.detail}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {row.signalTypes.map((t) => (
-                      <span
-                        key={t}
-                        className="rounded-md border border-[var(--pf-border)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--pf-gray-500)]"
-                      >
-                        {SIGNAL_LABELS[t] ?? t}
-                      </span>
-                    ))}
-                  </div>
-                  <ul className="mt-2 space-y-0.5 text-xs text-[var(--pf-gray-500)]">
-                    {row.reasons.map((r, i) => (
-                      <li key={`${r.type}-${i}`}>
-                        {SIGNAL_LABELS[r.type as DiscoverySignalType] ?? r.type}: {r.detail}
-                      </li>
-                    ))}
-                  </ul>
-                  {row.publishedCallId ? (
-                    <p className="mt-2 text-xs">
-                      <Link
-                        href={`/ticker/${row.symbol}?call=${row.publishedCallId}`}
-                        className="font-semibold text-[var(--pf-red)] hover:underline"
-                      >
-                        View published Fueled call →
-                      </Link>
-                    </p>
-                  ) : null}
-                </div>
-                {!isPublished ? (
-                <div className="flex shrink-0 flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={draftLoading === row.id}
-                    onClick={() => void draftThesis(row)}
-                  >
-                    {draftLoading === row.id ? "Drafting…" : "AI draft"}
-                  </Button>
-                  <Link
-                    href={publishHref(row, drafts[row.id])}
-                    className="inline-flex h-8 items-center justify-center rounded-[var(--pf-radius)] border border-[var(--pf-red)] px-3 text-xs font-semibold text-[var(--pf-red)] transition-all hover:bg-[var(--pf-red)] hover:text-white"
-                  >
-                    Publish
-                  </Link>
-                  {row.status === "pending" ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => void patchStatus(row.id, "approved")}
-                    >
-                      Approve
-                    </Button>
-                  ) : null}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => void patchStatus(row.id, "snoozed")}
-                  >
-                    Snooze 7d
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => void patchStatus(row.id, "rejected")}
-                  >
-                    Reject
-                  </Button>
-                </div>
-                ) : null}
-              </div>
-              {drafts[row.id] ? (
-                <div className="mt-4 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                    Draft thesis
-                  </p>
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--pf-gray-700)]">
-                    {drafts[row.id]}
-                  </p>
-                </div>
-              ) : null}
-            </li>
-            );
-          })}
+          {candidates.map((row) => (
+            <DiscoveryCandidateCard
+              key={row.id}
+              row={row}
+              filter={filter}
+              onUpdated={load}
+              onMessage={setMessage}
+              onError={setError}
+            />
+          ))}
         </ul>
       )}
 

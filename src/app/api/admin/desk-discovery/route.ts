@@ -2,12 +2,25 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
 import {
+  countActionableDiscoveryCandidates,
   countPendingDiscoveryCandidates,
+  getDiscoveryCandidateById,
   getLastDiscoveryScanSummary,
   listDiscoveryCandidates,
   runDiscoveryScan,
 } from "@/lib/desk-discovery/scanner";
 import type { DiscoveryCandidateStatus } from "@/lib/desk-discovery/types";
+
+const STATUS_PARAMS = [
+  "pending",
+  "approved",
+  "published",
+  "snoozed",
+  "rejected",
+  "inbox",
+  "ready",
+  "active",
+] as const;
 
 export async function GET(request: Request) {
   try {
@@ -15,29 +28,29 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const countOnly = url.searchParams.get("countOnly") === "1";
     if (countOnly) {
-      const pendingCount = await countPendingDiscoveryCandidates();
-      return NextResponse.json({ pendingCount });
+      const [pendingCount, actionableCount] = await Promise.all([
+        countPendingDiscoveryCandidates(),
+        countActionableDiscoveryCandidates(),
+      ]);
+      return NextResponse.json({ pendingCount, actionableCount });
     }
 
     const statusParam = url.searchParams.get("status");
-    const status =
-      statusParam === "pending" ||
-      statusParam === "approved" ||
-      statusParam === "published" ||
-      statusParam === "inbox" ||
-      statusParam === "active"
-        ? (statusParam as DiscoveryCandidateStatus | "active" | "inbox")
-        : "inbox";
+    const status = STATUS_PARAMS.includes(statusParam as (typeof STATUS_PARAMS)[number])
+      ? (statusParam as DiscoveryCandidateStatus | "active" | "inbox" | "ready")
+      : "inbox";
 
-    const [list, lastScan, pendingCount] = await Promise.all([
+    const [list, lastScan, pendingCount, actionableCount] = await Promise.all([
       listDiscoveryCandidates({ status }),
       getLastDiscoveryScanSummary(),
       countPendingDiscoveryCandidates(),
+      countActionableDiscoveryCandidates(),
     ]);
     return NextResponse.json({
       candidates: list.candidates,
       lastScan,
       pendingCount,
+      actionableCount,
       migrationMissing: list.migrationMissing ?? false,
     });
   } catch (e) {

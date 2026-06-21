@@ -29,6 +29,7 @@ import {
   validateConditionalTrigger,
 } from "@/lib/calls/pending-entry";
 import { linkDiscoveryCandidateToCall } from "@/lib/desk-discovery/publish-link";
+import { getDiscoveryCandidateById } from "@/lib/desk-discovery/scanner";
 
 const createSchema = z.object({
   symbol: z.string().min(1).max(12),
@@ -92,6 +93,22 @@ export async function POST(request: Request) {
     const validated = await validateSymbol(symbol, body.assetClass);
     if (!validated.ok) {
       return NextResponse.json({ error: validated.error }, { status: 400 });
+    }
+
+    if (body.discoveryCandidateId) {
+      if (!isDeskPublishIdentity(session)) {
+        return NextResponse.json({ error: "discovery_desk_only" }, { status: 403 });
+      }
+      const discovery = await getDiscoveryCandidateById(body.discoveryCandidateId);
+      if (discovery.error || !discovery.candidate) {
+        return NextResponse.json({ error: "discovery_not_found" }, { status: 400 });
+      }
+      if (discovery.candidate.status !== "approved") {
+        return NextResponse.json({ error: "discovery_not_ready" }, { status: 400 });
+      }
+      if (discovery.candidate.symbol !== symbol) {
+        return NextResponse.json({ error: "discovery_symbol_mismatch" }, { status: 400 });
+      }
     }
 
     const resolvedSymbol = validated.symbol;
@@ -284,11 +301,15 @@ export async function POST(request: Request) {
         console.error("[calls POST x-fueled-autopost]", e)
       );
       if (body.discoveryCandidateId) {
-        void linkDiscoveryCandidateToCall({
+        const linkResult = await linkDiscoveryCandidateToCall({
           candidateId: body.discoveryCandidateId,
           callId: createdCall.id,
           symbol: resolvedSymbol,
         });
+        if (!linkResult.ok) {
+          console.error("[calls POST discovery-link]", linkResult.error);
+          return NextResponse.json({ error: "discovery_link_failed" }, { status: 500 });
+        }
       }
     }
 

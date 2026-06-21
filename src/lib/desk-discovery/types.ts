@@ -1,3 +1,5 @@
+import type { DiscoveryDraftPayload } from "@/lib/desk-discovery/draft-types";
+
 /** Signal types active in the free/lite tier. */
 export type DiscoverySignalType =
   | "earnings_soon"
@@ -55,6 +57,8 @@ export type DiscoveryCandidateRow = {
   snoozedUntil: string | null;
   publishedCallId: string | null;
   scanRunId: string | null;
+  draft: DiscoveryDraftPayload | null;
+  draftGeneratedAt: string | null;
   firstSeenAt: string;
   lastSeenAt: string;
   updatedAt: string;

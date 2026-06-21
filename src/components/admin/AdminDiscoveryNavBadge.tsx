@@ -12,7 +12,7 @@ export function AdminDiscoveryNavBadge() {
         const res = await fetch("/api/admin/desk-discovery?countOnly=1");
         if (!res.ok || cancelled) return;
         const json = await res.json();
-        if (!cancelled) setCount(json.pendingCount ?? 0);
+        if (!cancelled) setCount(json.actionableCount ?? json.pendingCount ?? 0);
       } catch {
         /* ignore */
       }

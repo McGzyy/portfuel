@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/session";
-import { generateDiscoveryDraft } from "@/lib/desk-discovery/draft";
-import { listDiscoveryCandidates } from "@/lib/desk-discovery/scanner";
-import type { DiscoveryReason } from "@/lib/desk-discovery/types";
+import {
+  generateAndSaveDiscoveryDraft,
+  getDiscoveryCandidateById,
+} from "@/lib/desk-discovery/scanner";
 
 const draftSchema = z.object({
   direction: z.enum(["long", "short"]).optional(),
+  autoApprove: z.boolean().optional(),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -17,24 +19,37 @@ export async function POST(request: Request, context: RouteContext) {
     const { id } = await context.params;
     const body = draftSchema.parse(await request.json().catch(() => ({})));
 
-    const { candidates } = await listDiscoveryCandidates({ status: "active", limit: 100 });
-    const row = candidates.find((c) => c.id === id);
-    if (!row) {
-      return NextResponse.json({ error: "not_found" }, { status: 404 });
+    const lookup = await getDiscoveryCandidateById(id);
+    if (lookup.error || !lookup.candidate) {
+      const status =
+        lookup.error === "not_found"
+          ? 404
+          : lookup.error === "migration_missing"
+            ? 503
+            : 500;
+      return NextResponse.json({ error: lookup.error ?? "not_found" }, { status });
     }
 
-    const result = await generateDiscoveryDraft({
-      symbol: row.symbol,
-      assetClass: row.assetClass,
-      reasons: row.reasons as DiscoveryReason[],
+    const row = lookup.candidate;
+    if (row.status === "published") {
+      return NextResponse.json({ error: "already_published" }, { status: 400 });
+    }
+
+    const result = await generateAndSaveDiscoveryDraft(row, {
+      autoApprove: body.autoApprove ?? true,
       direction: body.direction,
     });
 
-    if ("error" in result) {
+    if (result.error) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    return NextResponse.json({ text: result.text });
+    const candidate = result.candidate!;
+    return NextResponse.json({
+      candidate,
+      draft: candidate.draft,
+      text: candidate.draft?.thesis ?? "",
+    });
   } catch (e) {
     if (e instanceof z.ZodError) {
       return NextResponse.json({ error: "invalid_input" }, { status: 400 });

@@ -23,6 +23,8 @@ import type { HeaderUser } from "@/lib/auth/session-user";
 import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import type { TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
 import { formatFueledThesisForPublish } from "@/lib/ai/fueled-analysis-format";
+import { formatDiscoveryDraftForPublish, parseLevelNote } from "@/lib/desk-discovery/draft-types";
+import type { DiscoveryDraftPayload } from "@/lib/desk-discovery/draft-types";
 import { journalSymbolPath } from "@/lib/journal/paths";
 import { COPY } from "@/lib/copy";
 import { formatPrice } from "@/lib/utils";
@@ -82,6 +84,7 @@ export function NewCallForm({
     searchParams.get("asset") === "crypto" ? "crypto" : "equity";
   const initialSymbol = (searchParams.get("symbol") ?? "").toUpperCase();
   const discoveryCandidateId = searchParams.get("discoveryId") ?? "";
+  const fromDiscovery = Boolean(discoveryCandidateId);
 
   const [assetClass, setAssetClass] = useState<"equity" | "crypto">(initialAsset);
   const [symbol, setSymbol] = useState(initialSymbol);
@@ -110,6 +113,58 @@ export function NewCallForm({
   const [aiDraftRawText, setAiDraftRawText] = useState<string>("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [discoveryLoading, setDiscoveryLoading] = useState(fromDiscovery);
+  const [discoveryReady, setDiscoveryReady] = useState(false);
+
+  function applyDiscoveryDraft(draft: DiscoveryDraftPayload) {
+    setDirection(draft.direction);
+    setThesis(formatDiscoveryDraftForPublish(draft));
+    if (draft.timeframe.trim()) setTimeframeTag(draft.timeframe.trim());
+    const target = parseLevelNote(draft.targetNote);
+    const stop = parseLevelNote(draft.stopNote);
+    if (target != null) setTargetPrice(String(target));
+    if (stop != null) setStopPrice(String(stop));
+  }
+
+  useEffect(() => {
+    if (!fromDiscovery || !discoveryCandidateId) return;
+    let cancelled = false;
+    void (async () => {
+      setDiscoveryLoading(true);
+      try {
+        const res = await fetch(`/api/admin/desk-discovery/${discoveryCandidateId}`);
+        const data = await res.json();
+        if (cancelled) return;
+        if (!res.ok || !data.candidate) {
+          setError("Could not load discovery candidate — return to Discovery and queue the symbol first.");
+          return;
+        }
+        const candidate = data.candidate as {
+          symbol: string;
+          assetClass: "equity" | "crypto";
+          status: string;
+          draft: DiscoveryDraftPayload | null;
+        };
+        if (candidate.status !== "approved") {
+          setError(
+            "This symbol is not in the Ready to publish queue. Approve it in Discovery first."
+          );
+          return;
+        }
+        setSymbol(candidate.symbol);
+        setAssetClass(candidate.assetClass);
+        if (candidate.draft) applyDiscoveryDraft(candidate.draft);
+        setDiscoveryReady(true);
+      } catch {
+        if (!cancelled) setError("Could not load discovery candidate.");
+      } finally {
+        if (!cancelled) setDiscoveryLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [fromDiscovery, discoveryCandidateId]);
 
   async function refreshAiAssistUsage() {
     if (!isAdmin && !isPro) return;
@@ -284,6 +339,10 @@ export function NewCallForm({
           setError("For a short top call, entry trigger must be above the current price.");
         } else if (data.error === "trigger_required") {
           setError("Enter a trigger price for a conditional entry call.");
+        } else if (data.error === "discovery_not_ready") {
+          setError("Queue this symbol in Discovery (Ready to publish) before publishing.");
+        } else if (data.error === "discovery_link_failed") {
+          setError("Call saved but discovery link failed — check Admin → Discovery.");
         } else {
           setError(typeof data.error === "string" ? data.error : "Could not submit call.");
         }
@@ -323,6 +382,21 @@ export function NewCallForm({
       />
 
       <MemberQuotaStrip quota={weeklyQuota} showUpgrade={showUpgrade} className="mb-6" />
+
+      {fromDiscovery ? (
+        <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-[var(--pf-red)]/25 bg-[var(--pf-red-muted)] px-4 py-3 text-sm text-[var(--pf-gray-800)]">
+          {discoveryLoading ? (
+            <span>Loading thesis from Discovery radar…</span>
+          ) : discoveryReady ? (
+            <>
+              <span className="font-semibold">From Discovery radar.</span> Thesis pre-filled from your
+              review queue — confirm levels and publish as Fueled.
+            </>
+          ) : (
+            <span>Discovery candidate not ready — return to Admin → Discovery.</span>
+          )}
+        </div>
+      ) : null}
 
       {queryDraft.fromTweet ? (
         <div className="mb-6 rounded-[var(--pf-radius-lg)] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -387,7 +461,7 @@ export function NewCallForm({
             />
           ) : null}
 
-          {!journalPrefilled ? (
+          {!journalPrefilled && !fromDiscovery ? (
             <ThesisCoachPanel
               isPro={isPro}
               showUpgrade={showUpgrade}
@@ -425,7 +499,7 @@ export function NewCallForm({
             ) : null}
 
             {isAdmin || isPro ? (
-              !journalPrefilled ? (
+              !journalPrefilled && !fromDiscovery ? (
               <section className="space-y-3 rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-4 py-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>

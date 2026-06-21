@@ -6,11 +6,29 @@ export async function linkDiscoveryCandidateToCall(input: {
   candidateId: string;
   callId: string;
   symbol: string;
-}): Promise<void> {
-  if (isDemoMode()) return;
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (isDemoMode()) return { ok: true };
 
   try {
     const db = createServiceClient();
+    const { data: existing, error: fetchError } = await db
+      .from("desk_signal_candidates")
+      .select("id, status, symbol")
+      .eq("id", input.candidateId)
+      .maybeSingle();
+
+    if (fetchError) {
+      if (isMissingDiscoveryTable(fetchError.message)) return { ok: false, error: "migration_missing" };
+      return { ok: false, error: "fetch_failed" };
+    }
+    if (!existing) return { ok: false, error: "not_found" };
+    const row = existing as { status: string; symbol: string };
+    if (row.symbol.toUpperCase() !== input.symbol.toUpperCase()) {
+      return { ok: false, error: "symbol_mismatch" };
+    }
+    if (row.status === "published") return { ok: false, error: "already_published" };
+    if (row.status !== "approved") return { ok: false, error: "not_approved" };
+
     const { error } = await db
       .from("desk_signal_candidates")
       .update({
@@ -19,12 +37,17 @@ export async function linkDiscoveryCandidateToCall(input: {
         updated_at: new Date().toISOString(),
       } as never)
       .eq("id", input.candidateId)
-      .eq("symbol", input.symbol.toUpperCase());
+      .eq("status", "approved");
 
-    if (error && !isMissingDiscoveryTable(error.message)) {
+    if (error) {
+      if (isMissingDiscoveryTable(error.message)) return { ok: false, error: "migration_missing" };
       console.error("[desk-discovery/link-publish]", error.message);
+      return { ok: false, error: "update_failed" };
     }
+
+    return { ok: true };
   } catch (e) {
     console.error("[desk-discovery/link-publish]", e);
+    return { ok: false, error: "server_error" };
   }
 }
