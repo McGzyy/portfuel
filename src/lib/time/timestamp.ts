@@ -25,6 +25,27 @@ export function localDayStartUnix(value: string | Date): number {
   return Math.floor(localMidnight.getTime() / 1000);
 }
 
+/** UTC calendar day start — matches Finnhub/Twelve Data daily bar timestamps. */
+export function utcDayStartUnix(value: string | Date): number {
+  const d = parseAppTimestamp(value);
+  return Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) / 1000);
+}
+
+export function utcDayStartFromUnix(seconds: number): number {
+  const d = new Date(seconds * 1000);
+  return Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) / 1000);
+}
+
+/** Iterate UTC calendar days inclusive (86400s steps — safe in UTC). */
+export function* eachUtcDay(fromInclusive: number, toInclusive: number): Generator<number> {
+  let day = utcDayStartFromUnix(fromInclusive);
+  const end = utcDayStartFromUnix(toInclusive);
+  while (day <= end) {
+    yield day;
+    day += 86400;
+  }
+}
+
 export function formatPublishedAt(value: string | Date): string {
   const d = parseAppTimestamp(value);
   if (Number.isNaN(d.getTime())) return "—";
