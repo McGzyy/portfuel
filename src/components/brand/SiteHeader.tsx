@@ -96,18 +96,20 @@ export function SiteHeader({
                   Workspace
                 </Link>
               ) : null}
-              <form action="/api/auth/logout" method="POST">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  type="submit"
-                  className="h-10 min-w-10 px-2 sm:h-9 sm:min-w-0 sm:px-3"
-                  aria-label="Log out"
-                >
-                  <LogOut className="h-4 w-4 sm:hidden" strokeWidth={2.25} />
-                  <span className="hidden sm:inline">Log out</span>
-                </Button>
-              </form>
+              {!inWorkspace ? (
+                <form action="/api/auth/logout" method="POST">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    type="submit"
+                    className="h-10 min-w-10 px-2 sm:h-9 sm:min-w-0 sm:px-3"
+                    aria-label="Log out"
+                  >
+                    <LogOut className="h-4 w-4 sm:hidden" strokeWidth={2.25} />
+                    <span className="hidden sm:inline">Log out</span>
+                  </Button>
+                </form>
+              ) : null}
             </>
           ) : showAuth ? (
             <>

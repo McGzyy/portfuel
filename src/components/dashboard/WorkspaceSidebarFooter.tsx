@@ -5,6 +5,7 @@ import { LifeBuoy, Megaphone, Settings, Shield, Sparkles, User } from "lucide-re
 import { WhatsNewBadge } from "@/components/announcements/WhatsNewBadge";
 import { COPY } from "@/lib/copy";
 import { WorkspaceGuideTrigger } from "@/components/dashboard/WorkspaceGuideTrigger";
+import { WorkspaceSignOutButton } from "@/components/auth/WorkspaceSignOutButton";
 import { cn } from "@/lib/utils";
 
 export function WorkspaceSidebarFooter({
@@ -62,6 +63,9 @@ export function WorkspaceSidebarFooter({
             Admin
           </Link>
         ) : null}
+      </div>
+      <div className="mt-2 border-t border-[var(--pf-border)] pt-2">
+        <WorkspaceSignOutButton />
       </div>
     </div>
   );
