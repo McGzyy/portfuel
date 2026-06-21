@@ -102,7 +102,7 @@ export function OverviewReturnHero({
           ) : (
             <Link
               href={COPY.newCallHref}
-              className="inline-flex items-center rounded-full bg-[var(--pf-red)] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[var(--pf-red-dark)]"
+              className="hidden items-center rounded-full bg-[var(--pf-red)] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[var(--pf-red-dark)] lg:inline-flex"
             >
               {COPY.publishCallCta} →
             </Link>

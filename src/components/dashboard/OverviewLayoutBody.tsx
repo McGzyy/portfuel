@@ -5,5 +5,5 @@ import { cn } from "@/lib/utils";
 
 export function OverviewLayoutBody({ children }: { children: React.ReactNode }) {
   const { densityClass } = useOverviewLayout();
-  return <div className={cn(densityClass)}>{children}</div>;
+  return <div className={cn(densityClass, "pb-14 lg:pb-0")}>{children}</div>;
 }

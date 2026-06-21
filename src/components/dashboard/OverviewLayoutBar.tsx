@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { LayoutGrid, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { useEffect, useState } from "react";
+import { LayoutGrid, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { useOverviewLayout } from "@/components/dashboard/OverviewLayoutProvider";
@@ -45,7 +45,13 @@ function PanelToggle({
   );
 }
 
-export function OverviewLayoutBar() {
+function LayoutBarContent({
+  className,
+  onCloseMobile,
+}: {
+  className?: string;
+  onCloseMobile?: () => void;
+}) {
   const {
     prefs,
     customizeOpen,
@@ -57,22 +63,15 @@ export function OverviewLayoutBar() {
     isPanelVisible,
   } = useOverviewLayout();
 
-  useEffect(() => {
-    const open = () => setCustomizeOpen(true);
-    if (window.sessionStorage.getItem("pf_overview_layout_open") === "1") {
-      window.sessionStorage.removeItem("pf_overview_layout_open");
-      setCustomizeOpen(true);
-    }
-    window.addEventListener(OVERVIEW_LAYOUT_OPEN_EVENT, open);
-    return () => window.removeEventListener(OVERVIEW_LAYOUT_OPEN_EVENT, open);
-  }, [setCustomizeOpen]);
-
   const focusHint =
     prefs.focus !== "default" ? OVERVIEW_FOCUS_DESCRIPTIONS[prefs.focus] : null;
 
   return (
     <section
-      className="rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-3 shadow-[var(--pf-shadow-sm)] sm:px-5"
+      className={cn(
+        "rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-3 shadow-[var(--pf-shadow-sm)] sm:px-5",
+        className
+      )}
       aria-label="Overview layout"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -106,10 +105,15 @@ export function OverviewLayoutBar() {
             <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" strokeWidth={2.25} />
             Customize
           </Button>
+          {onCloseMobile ? (
+            <Button type="button" size="sm" variant="secondary" onClick={onCloseMobile} aria-label="Close">
+              <X className="h-3.5 w-3.5" strokeWidth={2.25} />
+            </Button>
+          ) : null}
         </div>
       </div>
 
-      <div className="mt-3">
+      <div className="mt-3 overflow-x-auto pb-0.5">
         <SegmentedControl value={prefs.focus} onChange={setFocus} options={FOCUS_OPTIONS} />
       </div>
 
@@ -142,5 +146,47 @@ export function OverviewLayoutBar() {
         </div>
       ) : null}
     </section>
+  );
+}
+
+export function OverviewLayoutBar() {
+  const { setCustomizeOpen } = useOverviewLayout();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    const open = () => {
+      setMobileOpen(true);
+      setCustomizeOpen(true);
+    };
+    if (window.sessionStorage.getItem("pf_overview_layout_open") === "1") {
+      window.sessionStorage.removeItem("pf_overview_layout_open");
+      open();
+    }
+    window.addEventListener(OVERVIEW_LAYOUT_OPEN_EVENT, open);
+    return () => window.removeEventListener(OVERVIEW_LAYOUT_OPEN_EVENT, open);
+  }, [setCustomizeOpen]);
+
+  return (
+    <>
+      <div className="lg:hidden">
+        {mobileOpen ? (
+          <LayoutBarContent onCloseMobile={() => setMobileOpen(false)} />
+        ) : (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-[var(--pf-gray-500)] transition-colors hover:bg-[var(--pf-gray-100)] hover:text-[var(--pf-black)]"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2.25} />
+              Customize overview
+            </button>
+          </div>
+        )}
+      </div>
+      <div className="hidden lg:block">
+        <LayoutBarContent />
+      </div>
+    </>
   );
 }

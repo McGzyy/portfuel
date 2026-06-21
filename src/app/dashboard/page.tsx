@@ -76,9 +76,9 @@ import {
   toReferralInvitePrompt,
 } from "@/lib/referrals/prompt";
 import { ReferralOverviewStrip } from "@/components/referrals/ReferralInviteStrip";
-import { OverviewShortcutBar } from "@/components/dashboard/OverviewShortcutBar";
 import { OverviewLayoutProvider } from "@/components/dashboard/OverviewLayoutProvider";
 import { OverviewLayoutBar } from "@/components/dashboard/OverviewLayoutBar";
+import { OverviewPublishFab } from "@/components/dashboard/OverviewPublishFab";
 import { OverviewLayoutBody } from "@/components/dashboard/OverviewLayoutBody";
 import { OverviewPanelGate } from "@/components/dashboard/OverviewPanelGate";
 
@@ -290,10 +290,6 @@ export default async function DashboardOverviewPage({
       />
 
       <OverviewLayoutBar />
-
-      <div className="lg:hidden">
-        <OverviewShortcutBar />
-      </div>
 
       <OverviewPanelGate panelId="hero">
       <OverviewReturnHero
@@ -576,6 +572,7 @@ export default async function DashboardOverviewPage({
         </p>
       ) : null}
       </OverviewLayoutBody>
+      <OverviewPublishFab />
     </OverviewLayoutProvider>
   );
 }

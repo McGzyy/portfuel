@@ -12,6 +12,7 @@ import {
 import {
   defaultOverviewLayoutPrefs,
   dispatchOverviewLayoutChanged,
+  isMobileOverviewViewport,
   isOverviewPanelVisible,
   readOverviewLayoutPrefs,
   writeOverviewLayoutPrefs,
@@ -83,7 +84,7 @@ export function OverviewLayoutProvider({
   );
 
   const resetLayout = useCallback(() => {
-    persist(defaultOverviewLayoutPrefs());
+    persist(defaultOverviewLayoutPrefs({ mobile: isMobileOverviewViewport() }));
   }, [persist]);
 
   const isVisible = useCallback(

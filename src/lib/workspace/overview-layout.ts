@@ -29,8 +29,10 @@ export type OverviewLayoutPrefs = {
   /** Explicit show/hide overrides on top of focus presets. */
   panelOverrides: Partial<Record<OverviewPanelId, boolean>>;
   density: OverviewDensity;
-  version: 1;
+  version: 1 | 2;
 };
+
+export const OVERVIEW_LAYOUT_VERSION = 2 as const;
 
 export const OVERVIEW_LAYOUT_STORAGE_PREFIX = "pf_overview_layout:";
 export const OVERVIEW_LAYOUT_OPEN_EVENT = "portfuel:open-overview-layout";
@@ -82,14 +84,21 @@ export const FOCUS_PRESET_HIDDEN: Record<
 > = {
   trader: [
     "activity",
+    "stats",
+    "track_record",
+    "live_bar",
+    "book_posture",
     "fueled_desk",
     "member_feed",
     "following",
+    "watchlist",
+    "fueled_portfolio",
     "fueled_track_record",
     "journal_pulse",
     "onboarding",
     "referral",
     "alerts_email",
+    "pro_strip",
   ],
   researcher: [
     "fueled_desk",
@@ -111,13 +120,41 @@ export const FOCUS_PRESET_HIDDEN: Record<
 
 export const ALL_OVERVIEW_PANEL_IDS = Object.keys(OVERVIEW_PANEL_LABELS) as OverviewPanelId[];
 
-export function defaultOverviewLayoutPrefs(): OverviewLayoutPrefs {
+export function isMobileOverviewViewport(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(max-width: 1023px)").matches;
+}
+
+export function defaultOverviewLayoutPrefs(options?: { mobile?: boolean }): OverviewLayoutPrefs {
+  if (options?.mobile) {
+    return {
+      focus: "trader",
+      panelOverrides: {},
+      density: "compact",
+      version: OVERVIEW_LAYOUT_VERSION,
+    };
+  }
   return {
     focus: "default",
     panelOverrides: {},
     density: "comfortable",
-    version: 1,
+    version: OVERVIEW_LAYOUT_VERSION,
   };
+}
+
+function normalizeOverviewLayoutPrefs(parsed: Partial<OverviewLayoutPrefs>): OverviewLayoutPrefs {
+  return {
+    focus: parsed.focus ?? "default",
+    panelOverrides: parsed.panelOverrides ?? {},
+    density: parsed.density === "compact" ? "compact" : "comfortable",
+    version: OVERVIEW_LAYOUT_VERSION,
+  };
+}
+
+function shouldMigrateToMobileTrader(parsed: Partial<OverviewLayoutPrefs>): boolean {
+  const focus = parsed.focus ?? "default";
+  const overrides = parsed.panelOverrides ?? {};
+  return focus === "default" && Object.keys(overrides).length === 0;
 }
 
 export function overviewLayoutStorageKey(userId: string): string {
@@ -138,15 +175,23 @@ export function readOverviewLayoutPrefs(userId: string): OverviewLayoutPrefs {
   if (typeof window === "undefined") return defaultOverviewLayoutPrefs();
   try {
     const raw = window.localStorage.getItem(overviewLayoutStorageKey(userId));
-    if (!raw) return defaultOverviewLayoutPrefs();
+    const mobile = isMobileOverviewViewport();
+    if (!raw) {
+      const defaults = defaultOverviewLayoutPrefs({ mobile });
+      writeOverviewLayoutPrefs(userId, defaults);
+      return defaults;
+    }
     const parsed = JSON.parse(raw) as Partial<OverviewLayoutPrefs>;
-    if (parsed.version !== 1) return defaultOverviewLayoutPrefs();
-    return {
-      focus: parsed.focus ?? "default",
-      panelOverrides: parsed.panelOverrides ?? {},
-      density: parsed.density === "compact" ? "compact" : "comfortable",
-      version: 1,
-    };
+    if (parsed.version !== OVERVIEW_LAYOUT_VERSION && mobile && shouldMigrateToMobileTrader(parsed)) {
+      const migrated = defaultOverviewLayoutPrefs({ mobile: true });
+      writeOverviewLayoutPrefs(userId, migrated);
+      return migrated;
+    }
+    const normalized = normalizeOverviewLayoutPrefs(parsed);
+    if (parsed.version !== OVERVIEW_LAYOUT_VERSION) {
+      writeOverviewLayoutPrefs(userId, normalized);
+    }
+    return normalized;
   } catch {
     return defaultOverviewLayoutPrefs();
   }

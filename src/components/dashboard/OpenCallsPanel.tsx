@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { CallCard, type CallCardData } from "@/components/calls/CallCard";
+import { OpenCallOverviewRow } from "@/components/calls/OpenCallOverviewRow";
 import { SparklineProvider } from "@/components/charts/SparklineProvider";
 import { Button } from "@/components/ui/button";
 import { LiveQuoteStatusChip } from "@/components/market/LiveQuoteStatusChip";
 import { useMergedCalls } from "@/components/market/LiveBookProvider";
-import { COPY } from "@/lib/copy";
 
 export function OpenCallsPanel({
   calls,
@@ -50,7 +50,12 @@ export function OpenCallsPanel({
         </Link>
       </div>
       <SparklineProvider symbols={symbols}>
-        <div className="divide-y divide-[var(--pf-border)]">
+        <div className="pf-panel-inset flex flex-col gap-2 lg:hidden">
+          {liveCalls.slice(0, 5).map((call) => (
+            <OpenCallOverviewRow key={call.id} call={call} />
+          ))}
+        </div>
+        <div className="hidden divide-y divide-[var(--pf-border)] lg:block">
           {liveCalls.slice(0, 4).map((call) => (
             <div key={call.id} className="pf-panel-inset">
               <CallCard
@@ -78,15 +83,7 @@ export function OpenCallsPanel({
             </Button>
           </Link>
         </div>
-      ) : (
-        <div className="pf-panel-inset-x border-t border-[var(--pf-border)] py-4">
-          <Link href={COPY.newCallHref}>
-            <Button variant="outline" size="sm" className="w-full sm:w-auto">
-              {COPY.publishCallCta}
-            </Button>
-          </Link>
-        </div>
-      )}
+      ) : null}
     </section>
   );
 }

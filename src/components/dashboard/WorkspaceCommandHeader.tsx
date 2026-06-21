@@ -43,7 +43,7 @@ export function WorkspaceCommandHeader({
   return (
     <header
       className={cn(
-        "pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-4 py-4 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6",
+        "pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-4 py-3.5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-5 lg:py-6",
         className
       )}
     >
@@ -69,7 +69,9 @@ export function WorkspaceCommandHeader({
             </Link>
           ) : null}
         </div>
-        <WorkspaceNewCallAction />
+        <div className="hidden shrink-0 lg:block">
+          <WorkspaceNewCallAction />
+        </div>
       </div>
     </header>
   );
