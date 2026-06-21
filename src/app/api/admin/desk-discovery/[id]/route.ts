@@ -72,7 +72,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         );
         draft = sanitizeDiscoveryDraft(draft, market.lastPrice);
       }
-      draftPayload = { draft, draftGeneratedAt: new Date().toISOString() };
+      draftPayload = { draft };
     }
 
     const result = await updateDiscoveryCandidate(id, {

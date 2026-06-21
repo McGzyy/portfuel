@@ -19,6 +19,9 @@ import { buildScoreBreakdown } from "@/lib/desk-discovery/score-breakdown";
 import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
 import { DiscoveryPublishModal } from "@/components/admin/DiscoveryPublishModal";
 
+/** Persists across card remounts so silent level fixes do not re-PATCH in a loop. */
+const autoSanitizedDiscoveryIds = new Set<string>();
+
 const SIGNAL_LABELS: Record<DiscoverySignalType, string> = {
   earnings_soon: "Earnings",
   news_catalyst: "News",
@@ -59,13 +62,19 @@ export function DiscoveryCandidateCard({
   const [publishOpen, setPublishOpen] = useState(false);
   const [draftOpen, setDraftOpen] = useState(false);
   const [signalsOpen, setSignalsOpen] = useState(false);
-  const autoSanitizedRef = useRef<Set<string>>(new Set());
+  const priceSanitizedRef = useRef(false);
 
   useEffect(() => {
+    if (!dirty) {
+      setDraft(emptyDraft(row));
+    }
+  }, [row.id, row.updatedAt, row.draft, dirty]);
+
+  useEffect(() => {
+    if (!row.draft || priceSanitizedRef.current || autoSanitizedDiscoveryIds.has(row.id)) return;
+
     let cancelled = false;
     const base = emptyDraft(row);
-    setDraft(base);
-    setDirty(false);
 
     void (async () => {
       try {
@@ -74,22 +83,28 @@ export function DiscoveryCandidateCard({
         );
         const data = await res.json();
         if (cancelled || !data.ok || typeof data.lastPrice !== "number") return;
+
         const sanitized = sanitizeDiscoveryDraft(base, data.lastPrice);
         if (cancelled) return;
-        setDraft(sanitized);
+
+        priceSanitizedRef.current = true;
 
         const levelsChanged =
           sanitized.entryNote !== base.entryNote ||
           sanitized.targetNote !== base.targetNote ||
           sanitized.stopNote !== base.stopNote;
-        if (levelsChanged && row.draft && !autoSanitizedRef.current.has(row.id)) {
-          autoSanitizedRef.current.add(row.id);
+
+        if (!levelsChanged) return;
+
+        if (!dirty) setDraft(sanitized);
+
+        if (!autoSanitizedDiscoveryIds.has(row.id)) {
+          autoSanitizedDiscoveryIds.add(row.id);
           await fetch(`/api/admin/desk-discovery/${row.id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ draft: sanitized }),
           });
-          void onUpdated();
         }
       } catch {
         /* keep base draft */
@@ -99,7 +114,11 @@ export function DiscoveryCandidateCard({
     return () => {
       cancelled = true;
     };
-  }, [row.id, row.updatedAt, row.draft]);
+  }, [row.id, row.symbol, row.assetClass, row.draft]);
+
+  useEffect(() => {
+    priceSanitizedRef.current = false;
+  }, [row.id]);
 
   const isPublished = row.status === "published";
   const isInbox = row.status === "pending";
@@ -153,6 +172,8 @@ export function DiscoveryCandidateCard({
         return;
       }
       if (json.draft) {
+        autoSanitizedDiscoveryIds.delete(row.id);
+        priceSanitizedRef.current = false;
         setDraft(json.draft);
         setDraftOpen(true);
       }

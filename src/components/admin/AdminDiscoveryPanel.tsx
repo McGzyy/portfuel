@@ -37,8 +37,9 @@ export function AdminDiscoveryPanel() {
   const [pendingCount, setPendingCount] = useState(0);
   const [actionableCount, setActionableCount] = useState(0);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    const silent = opts?.silent ?? false;
+    if (!silent) setLoading(true);
     setError("");
     try {
       const res = await fetch(`/api/admin/desk-discovery?status=${filter}`);
@@ -55,7 +56,7 @@ export function AdminDiscoveryPanel() {
     } catch {
       setError("Could not load discovery inbox.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [filter]);
 
@@ -212,7 +213,7 @@ export function AdminDiscoveryPanel() {
               key={row.id}
               row={row}
               filter={filter}
-              onUpdated={load}
+              onUpdated={() => load({ silent: true })}
               onMessage={setMessage}
               onError={setError}
             />
