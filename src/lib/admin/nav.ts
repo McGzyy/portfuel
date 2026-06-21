@@ -7,6 +7,7 @@ export const ADMIN_TABS = [
   { id: "launch", label: "Launch", group: "billing" },
   { id: "announcements", label: "Announcements", group: "content" },
   { id: "desk", label: "Desk", group: "content" },
+  { id: "discovery", label: "Discovery", group: "content" },
   { id: "social", label: "Social", group: "growth" },
   { id: "discord", label: "Discord", group: "growth" },
   { id: "marketing", label: "Marketing", group: "growth" },

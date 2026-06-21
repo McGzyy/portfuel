@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminMembersPanel } from "@/components/admin/AdminMembersPanel";
 import { AdminAnalyticsPanel } from "@/components/admin/AdminAnalyticsPanel";
+import { AdminDiscoveryPanel } from "@/components/admin/AdminDiscoveryPanel";
 import { AdminDeskPanel } from "@/components/admin/AdminDeskPanel";
 import { AdminLaunchPanel } from "@/components/admin/AdminLaunchPanel";
 import { AdminSocialPanel } from "@/components/admin/AdminSocialPanel";
@@ -27,6 +28,8 @@ export function AdminShell() {
           <AdminAnalyticsPanel />
         ) : tab === "desk" ? (
           <AdminDeskPanel />
+        ) : tab === "discovery" ? (
+          <AdminDiscoveryPanel />
         ) : tab === "launch" ? (
           <AdminLaunchPanel />
         ) : tab === "announcements" ? (

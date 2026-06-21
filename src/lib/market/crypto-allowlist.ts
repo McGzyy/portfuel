@@ -241,3 +241,8 @@ export function clearCryptoResolveCacheForTests() {
   resolveCache.clear();
   exchangeRowsCache = null;
 }
+
+/** Majors scanned by desk discovery (lite tier). */
+export function listCoreCryptoDiscoverySymbols(): string[] {
+  return Object.keys(CORE_CRYPTO_ASSETS);
+}
