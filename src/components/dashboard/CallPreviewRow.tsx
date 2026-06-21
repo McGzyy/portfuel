@@ -68,7 +68,13 @@ export function CallPreviewRow({
         </div>
         <div className="flex shrink-0 items-start gap-2">
           {showSparkline ? (
-            <SymbolSparkline symbol={call.symbol} width={48} height={22} className="mt-0.5" />
+            <SymbolSparkline
+              symbol={call.symbol}
+              width={48}
+              height={22}
+              trendUp={ret != null ? ret >= 0 : null}
+              className="mt-0.5"
+            />
           ) : null}
           <div className="text-right">
             <p

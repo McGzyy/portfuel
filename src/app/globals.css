@@ -355,6 +355,21 @@ body {
   padding: 1.5rem 1.125rem 2.5rem;
 }
 
+@media (max-width: 1023px) {
+  .pf-workspace-content {
+    padding: 1rem 1rem 2rem;
+  }
+
+  .pf-panel-inset {
+    padding: 1rem 1.25rem;
+  }
+
+  .pf-panel-inset-x {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+}
+
 .pf-workspace-content.pf-workspace-content--feed {
   max-width: 68rem;
 }
@@ -1011,9 +1026,9 @@ body {
 }
 
 .pf-live-bar-compact {
-  border-style: dashed;
-  background: var(--pf-surface-muted);
-  box-shadow: none;
+  border-style: solid;
+  background: var(--pf-surface);
+  box-shadow: var(--pf-shadow-sm);
 }
 
 .pf-text-positive {

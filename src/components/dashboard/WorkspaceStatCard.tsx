@@ -19,7 +19,7 @@ export function WorkspaceStatCard({
   const body = (
     <>
       <div className="flex items-baseline justify-between gap-2 sm:block">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)] sm:text-[10px]">
           {label}
         </p>
         <p

@@ -64,6 +64,7 @@ export function OpenCallOverviewRow({ call }: { call: CallCardData }) {
           symbol={call.symbol}
           width={56}
           height={26}
+          trendUp={call.return_pct != null ? call.return_pct >= 0 : null}
           className="opacity-90"
         />
         <ReturnDisplay

@@ -9,11 +9,13 @@ export function SymbolSparkline({
   width = 52,
   height = 24,
   className,
+  trendUp,
 }: {
   symbol: string;
   width?: number;
   height?: number;
   className?: string;
+  trendUp?: boolean | null;
 }) {
   const points = useSparkline(symbol);
 
@@ -22,6 +24,7 @@ export function SymbolSparkline({
       points={points}
       width={width}
       height={height}
+      trendUp={trendUp}
       className={cn("shrink-0", className)}
     />
   );

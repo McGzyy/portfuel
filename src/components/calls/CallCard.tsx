@@ -232,6 +232,7 @@ export function CallCard({
               symbol={call.symbol}
               width={compact ? 64 : 72}
               height={compact ? 30 : 36}
+              trendUp={call.return_pct != null ? call.return_pct >= 0 : null}
               className="shrink-0 opacity-90"
             />
           ) : null}

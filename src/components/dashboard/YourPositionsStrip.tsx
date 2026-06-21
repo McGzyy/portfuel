@@ -82,7 +82,14 @@ export function YourPositionsStrip({
                       {c.direction}
                       {c.is_fueled ? " · Fueled" : ""}
                     </p>
-                    <SymbolSparkline symbol={c.symbol} width={44} height={20} />
+                    <SymbolSparkline
+                      symbol={c.symbol}
+                      width={44}
+                      height={20}
+                      trendUp={
+                        !isPending && c.return_pct != null ? c.return_pct >= 0 : null
+                      }
+                    />
                   </div>
                 </div>
               </li>

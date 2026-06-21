@@ -127,7 +127,7 @@ export function WorkspaceSearchTrigger({ className }: { className?: string }) {
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "flex h-8 min-w-[5.25rem] flex-1 items-center justify-center gap-1.5 rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-2 text-xs text-[var(--pf-gray-500)] shadow-[var(--pf-shadow-sm)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-surface)] sm:hidden",
+          "flex h-10 min-h-10 min-w-0 flex-1 items-center justify-center gap-2 rounded-[var(--pf-radius)] border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 text-xs text-[var(--pf-gray-500)] shadow-[var(--pf-shadow-sm)] transition-colors hover:border-[var(--pf-gray-300)] hover:bg-[var(--pf-surface)] sm:hidden",
           className
         )}
         aria-label="Search workspace"

@@ -11,11 +11,14 @@ export function MiniSparkline({
   width = 52,
   height = 22,
   className,
+  /** When set, line color follows return direction instead of price start/end. */
+  trendUp,
 }: {
   points: LinePoint[];
   width?: number;
   height?: number;
   className?: string;
+  trendUp?: boolean | null;
 }) {
   const theme = activeChartTheme(useIsDarkMode());
 
@@ -30,7 +33,8 @@ export function MiniSparkline({
   }
 
   const values = points.map((p) => p.value);
-  const up = values[values.length - 1] >= values[0];
+  const inferredUp = values[values.length - 1] >= values[0];
+  const up = trendUp ?? inferredUp;
   const path = sparklinePath(values, width, height);
 
   return (

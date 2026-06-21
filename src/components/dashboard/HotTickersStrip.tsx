@@ -66,7 +66,10 @@ export function HotTickersStrip({
             href={`/ticker/${t.symbol}`}
             className="pf-hot-ticker-chip w-full sm:w-auto"
           >
-            <MiniSparkline points={series[t.symbol] ?? []} />
+            <MiniSparkline
+              points={series[t.symbol] ?? []}
+              trendUp={t.avgReturnPct != null ? t.avgReturnPct >= 0 : null}
+            />
             <span className="font-mono text-[var(--pf-black)]">{t.symbol}</span>
             <span className="tabular-nums text-[var(--pf-gray-400)]">
               {t.callCount} call{t.callCount === 1 ? "" : "s"}

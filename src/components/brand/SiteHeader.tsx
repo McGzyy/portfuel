@@ -32,20 +32,20 @@ export function SiteHeader({
     <header className="pf-site-header sticky z-50 border-b border-[var(--pf-border)] shadow-[var(--pf-shadow-sm)]">
       <div
         className={cn(
-          "mx-auto flex h-14 items-center justify-between gap-2 px-3 sm:h-[4.5rem] sm:gap-3 sm:px-4",
+          "mx-auto flex min-h-[3.25rem] items-center justify-between gap-2 px-3 py-1 sm:h-[4.5rem] sm:gap-3 sm:px-4 sm:py-0",
           inWorkspace ? "max-w-none lg:px-6" : "max-w-6xl"
         )}
       >
         <LogoThemed size="xs" href={logoHref} className="min-w-0 shrink-0 sm:hidden" unoptimized />
         <LogoThemed size="md" href={logoHref} className="hidden min-w-0 shrink-0 sm:inline-flex" unoptimized />
         {inWorkspace && centerSlot ? (
-          <div className="flex min-w-0 flex-1 items-center justify-center px-0.5 sm:px-4">
+          <div className="flex min-w-0 flex-1 items-center justify-center px-1 sm:px-4">
             {centerSlot}
           </div>
         ) : (
           <div className="flex-1" aria-hidden />
         )}
-        <nav className="flex shrink-0 items-center gap-0.5 sm:gap-2">
+        <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
           {user ? (
             <>
               {user.role === "admin" && !inWorkspace ? (
@@ -101,7 +101,7 @@ export function SiteHeader({
                   variant="ghost"
                   size="sm"
                   type="submit"
-                  className="h-8 min-w-8 px-2 sm:h-9 sm:min-w-0 sm:px-3"
+                  className="h-10 min-w-10 px-2 sm:h-9 sm:min-w-0 sm:px-3"
                   aria-label="Log out"
                 >
                   <LogOut className="h-4 w-4 sm:hidden" strokeWidth={2.25} />

@@ -37,7 +37,10 @@ export function OpenCallsPanel({
               Your open calls
             </h2>
             <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
-              Live return and progress — pending entries show trigger and expiry
+              <span className="sm:hidden">Live return and progress</span>
+              <span className="hidden sm:inline">
+                Live return and progress — pending entries show trigger and expiry
+              </span>
             </p>
           </div>
           <LiveQuoteStatusChip compact showRefresh />

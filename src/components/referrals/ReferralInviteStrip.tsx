@@ -71,8 +71,7 @@ export function ReferralOverviewStrip({ prompt }: { prompt: ReferralInvitePrompt
             </p>
             <p className="mt-1 text-xs leading-relaxed text-[var(--pf-gray-600)]">
               Earn <strong className="font-semibold">{prompt.referrerReward}</strong> when they
-              activate. They get <strong className="font-semibold">{prompt.refereeOffer}</strong> on
-              their first month.
+              activate. They get <strong className="font-semibold">{prompt.refereeOffer}</strong>.
             </p>
           </div>
         </div>
