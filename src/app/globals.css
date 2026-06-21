@@ -391,6 +391,61 @@ body {
   max-width: 68rem;
 }
 
+/* Admin command center — full width for split workboards */
+.pf-workspace-content.pf-workspace-content--admin {
+  max-width: none;
+  width: 100%;
+}
+
+/* Discovery radar — queue | detail | sticky context rail */
+.pf-discovery-workboard {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .pf-discovery-workboard {
+    display: grid;
+    grid-template-columns: minmax(13.75rem, 15rem) minmax(0, 1fr) 17.5rem;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .pf-discovery-workboard--archive {
+    grid-template-columns: minmax(0, 1fr) 17.5rem;
+  }
+
+  .pf-discovery-workboard-toolbar {
+    grid-column: 1 / -1;
+  }
+
+  .pf-discovery-workboard-queue {
+    max-height: calc(100dvh - 14rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .pf-discovery-workboard-detail {
+    min-height: min(70dvh, 40rem);
+  }
+
+  .pf-discovery-rail-host {
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    align-self: start;
+    border-left: 1px solid var(--pf-border);
+    padding-left: 1rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  .pf-discovery-rail-host {
+    display: none;
+  }
+}
+
 @media (max-width: 639px) {
   .pf-workspace-content.pf-workspace-content--feed {
     padding: 1rem 1.25rem 2rem;

@@ -36,13 +36,20 @@ export function DiscoveryQueueSkeleton({ rows = 6 }: { rows?: number }) {
 
 export function DiscoveryWorkboardSkeleton() {
   return (
-    <div className="hidden gap-5 lg:grid lg:grid-cols-[minmax(220px,260px)_minmax(0,1fr)] xl:gap-6">
+    <div className="pf-discovery-workboard hidden lg:grid">
+      <div className="pf-discovery-workboard-toolbar space-y-3">
+        <Shimmer className="h-11 w-full rounded-[var(--pf-radius-lg)]" />
+      </div>
       <DiscoveryQueueSkeleton rows={8} />
       <div className="pf-workspace-panel space-y-3 p-5">
         <Shimmer className="h-6 w-24" />
         <Shimmer className="h-4 w-full max-w-md" />
         <Shimmer className="mt-4 h-24 w-full" />
         <Shimmer className="h-10 w-full" />
+      </div>
+      <div className="pf-discovery-rail-host space-y-3 border-l border-[var(--pf-border)] pl-4">
+        <Shimmer className="h-36 w-full rounded-[var(--pf-radius-lg)]" />
+        <Shimmer className="h-48 w-full rounded-[var(--pf-radius-lg)]" />
       </div>
     </div>
   );

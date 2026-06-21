@@ -15,7 +15,7 @@ export function AdminWorkspaceFrame({ children }: { children: React.ReactNode })
         </div>
         <div className="pf-workspace-main">
           <AdminMobileNav />
-          <div className="pf-workspace-content max-w-none">
+          <div className="pf-workspace-content pf-workspace-content--admin max-w-none">
             <ClientErrorBoundary>{children}</ClientErrorBoundary>
           </div>
         </div>

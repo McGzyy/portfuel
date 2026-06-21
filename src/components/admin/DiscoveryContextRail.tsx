@@ -133,8 +133,8 @@ export function DiscoveryContextRail({
     focusedRow != null && focusedRow.score >= DISCOVERY_CONFIG.highScoreNotifyThreshold;
 
   return (
-    <aside className={cn("hidden w-[272px] shrink-0 xl:block", className)}>
-      <div className="sticky top-4 flex max-h-[calc(100dvh-2rem)] flex-col gap-3 overflow-y-auto overscroll-contain pb-4">
+    <aside className={cn("pf-discovery-rail-host", className)}>
+      <div className="flex flex-col gap-3 pb-4">
         <RailSection title="Pipeline">
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2">

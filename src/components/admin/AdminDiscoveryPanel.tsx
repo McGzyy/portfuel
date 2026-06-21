@@ -456,22 +456,44 @@ export function AdminDiscoveryPanel() {
     syncUrl({ highPriority: next });
   }
 
+  const railProps = {
+    filter,
+    activeStep: FILTER_TO_STEP[filter],
+    pendingCount,
+    readyCount,
+    lastScan,
+    scanning,
+    onRunScan: () => void runScan(),
+    focusedRow: useArchiveTable ? null : focusedRow,
+    queueMode: !useArchiveTable,
+    onQueue: filter === "inbox" ? () => void queueFocused() : undefined,
+    onPublish:
+      filter === "ready" && focusedRow ? () => setPublishRowId(focusedRow.id) : undefined,
+    onReject: useArchiveTable ? undefined : () => void rejectFocused(),
+    onSnooze: useArchiveTable ? undefined : () => void snoozeFocused(),
+  };
+
   const queueContent =
     candidates.length === 0 ? (
-      <div className="pf-workspace-panel p-8 text-center text-sm text-[var(--pf-gray-500)]">
-        {EMPTY_COPY[filter]}
-      </div>
+      <>
+        <div className="pf-workspace-panel p-8 text-center text-sm text-[var(--pf-gray-500)] lg:col-span-2">
+          {EMPTY_COPY[filter]}
+        </div>
+        <DiscoveryContextRail {...railProps} />
+      </>
     ) : (
-      <div className="space-y-3">
-        <DiscoveryQueueToolbar
-          sort={sortMode}
-          onSortChange={changeSort}
-          highPriorityOnly={highPriorityOnly}
-          onHighPriorityOnlyChange={changeHighPriority}
-          highPriorityCount={highPriorityCount}
-          totalCount={queueRows.length}
-        />
-        <DiscoveryQueueListHeader count={queueRows.length} filterLabel={TAB_LABELS[filter].toLowerCase()} />
+      <>
+        <div className="pf-discovery-workboard-toolbar space-y-3">
+          <DiscoveryQueueToolbar
+            sort={sortMode}
+            onSortChange={changeSort}
+            highPriorityOnly={highPriorityOnly}
+            onHighPriorityOnlyChange={changeHighPriority}
+            highPriorityCount={highPriorityCount}
+            totalCount={queueRows.length}
+          />
+          <DiscoveryQueueListHeader count={queueRows.length} filterLabel={TAB_LABELS[filter].toLowerCase()} />
+        </div>
 
         {/* Mobile: accordion list */}
         <ul className="divide-y divide-[var(--pf-border)] overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)] lg:hidden">
@@ -493,54 +515,57 @@ export function AdminDiscoveryPanel() {
           ))}
         </ul>
 
-        {/* Desktop: split workboard */}
-        <div className="hidden gap-4 lg:grid lg:grid-cols-[minmax(220px,260px)_minmax(0,1fr)]">
-          <ul
-            ref={listRef}
-            className="max-h-[calc(100dvh-14rem)] divide-y divide-[var(--pf-border)] overflow-y-auto overscroll-contain rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]"
-          >
-            {queueRows.map((row, index) => (
-              <DiscoveryCandidateCard
-                key={row.id}
-                row={row}
-                filter={filter}
-                layout="row"
-                rowIndex={index}
-                expanded={false}
-                onExpandedChange={() => {}}
-                selected={focusedRow?.id === row.id}
-                focused={focusedIndex === index}
-                onSelect={() => selectRow(row.id, index)}
-                publishRequested={false}
-                onUpdated={() => load({ silent: true })}
-                onMessage={showToast}
-                onError={setError}
-              />
-            ))}
-          </ul>
-          <div className="min-h-[min(70dvh,40rem)]">
-            {focusedRow ? (
-              <DiscoveryCandidateCard
-                key={focusedRow.id}
-                row={focusedRow}
-                filter={filter}
-                layout="detail"
-                expanded
-                onExpandedChange={() => {}}
-                publishRequested={publishRowId === focusedRow.id}
-                onPublishHandled={() => setPublishRowId(null)}
-                onUpdated={() => load({ silent: true })}
-                onMessage={showToast}
-                onError={setError}
-              />
-            ) : (
-              <div className="pf-workspace-panel flex h-full min-h-[16rem] items-center justify-center p-8 text-center text-sm text-[var(--pf-gray-500)]">
-                Select a symbol from the queue to review signals and edit the draft.
-              </div>
-            )}
-          </div>
+        {/* Desktop: queue column */}
+        <ul
+          ref={listRef}
+          className="pf-discovery-workboard-queue hidden divide-y divide-[var(--pf-border)] rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)] lg:block"
+        >
+          {queueRows.map((row, index) => (
+            <DiscoveryCandidateCard
+              key={row.id}
+              row={row}
+              filter={filter}
+              layout="row"
+              rowIndex={index}
+              expanded={false}
+              onExpandedChange={() => {}}
+              selected={focusedRow?.id === row.id}
+              focused={focusedIndex === index}
+              onSelect={() => selectRow(row.id, index)}
+              publishRequested={false}
+              onUpdated={() => load({ silent: true })}
+              onMessage={showToast}
+              onError={setError}
+            />
+          ))}
+        </ul>
+
+        {/* Desktop: detail column */}
+        <div className="pf-discovery-workboard-detail hidden lg:block">
+          {focusedRow ? (
+            <DiscoveryCandidateCard
+              key={focusedRow.id}
+              row={focusedRow}
+              filter={filter}
+              layout="detail"
+              expanded
+              onExpandedChange={() => {}}
+              publishRequested={publishRowId === focusedRow.id}
+              onPublishHandled={() => setPublishRowId(null)}
+              onUpdated={() => load({ silent: true })}
+              onMessage={showToast}
+              onError={setError}
+            />
+          ) : (
+            <div className="pf-workspace-panel flex h-full min-h-[16rem] items-center justify-center p-8 text-center text-sm text-[var(--pf-gray-500)]">
+              Select a symbol from the queue to review signals and edit the draft.
+            </div>
+          )}
         </div>
-      </div>
+
+        {/* Desktop: sticky context rail (third grid column) */}
+        <DiscoveryContextRail {...railProps} />
+      </>
     );
 
   return (
@@ -550,12 +575,12 @@ export function AdminDiscoveryPanel() {
         title="Discovery radar"
         description="Market scan hits land in Inbox for triage. Queue the best setups, then publish as Fueled calls — nothing auto-posts."
         actions={
-          <Button type="button" onClick={() => void runScan()} disabled={scanning} className="xl:hidden">
+          <Button type="button" onClick={() => void runScan()} disabled={scanning} className="lg:hidden">
             {scanning ? "Scanning…" : "Run scan"}
           </Button>
         }
         footer={
-          <div className="space-y-4 border-t border-[var(--pf-border)] pt-4 xl:hidden">
+          <div className="space-y-4 border-t border-[var(--pf-border)] pt-4 lg:hidden">
             <MetricsStrip
               variant="embedded"
               className="!px-0"
@@ -644,40 +669,19 @@ export function AdminDiscoveryPanel() {
           </div>
           <DiscoveryWorkboardSkeleton />
         </>
-      ) : (
-        <div className="flex gap-5 xl:gap-6">
-          <div className="min-w-0 flex-1">
-            {useArchiveTable ? (
-              <DiscoveryArchiveTable
-                rows={candidates}
-                variant={filter}
-                onRestore={restoreToInbox}
-              />
-            ) : (
-              queueContent
-            )}
+      ) : useArchiveTable ? (
+        <div className="pf-discovery-workboard pf-discovery-workboard--archive">
+          <div className="min-w-0">
+            <DiscoveryArchiveTable
+              rows={candidates}
+              variant={filter}
+              onRestore={restoreToInbox}
+            />
           </div>
-
-          <DiscoveryContextRail
-            filter={filter}
-            activeStep={FILTER_TO_STEP[filter]}
-            pendingCount={pendingCount}
-            readyCount={readyCount}
-            lastScan={lastScan}
-            scanning={scanning}
-            onRunScan={() => void runScan()}
-            focusedRow={useArchiveTable ? null : focusedRow}
-            queueMode={!useArchiveTable}
-            onQueue={filter === "inbox" ? () => void queueFocused() : undefined}
-            onPublish={
-              filter === "ready" && focusedRow
-                ? () => setPublishRowId(focusedRow.id)
-                : undefined
-            }
-            onReject={useArchiveTable ? undefined : () => void rejectFocused()}
-            onSnooze={useArchiveTable ? undefined : () => void snoozeFocused()}
-          />
+          <DiscoveryContextRail {...railProps} />
         </div>
+      ) : (
+        <div className="pf-discovery-workboard space-y-3 lg:space-y-0">{queueContent}</div>
       )}
 
       <details className="pf-workspace-panel group">
