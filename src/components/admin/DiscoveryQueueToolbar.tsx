@@ -67,7 +67,8 @@ export function DiscoveryQueueListHeader({ count, filterLabel }: { count: number
       <span>
         {count} {filterLabel}
       </span>
-      <span className="hidden sm:inline">Expand one row at a time to edit drafts</span>
+      <span className="hidden sm:inline lg:hidden">Expand a row to edit drafts</span>
+      <span className="hidden lg:inline">Select a symbol to review signals and edit the draft</span>
     </div>
   );
 }

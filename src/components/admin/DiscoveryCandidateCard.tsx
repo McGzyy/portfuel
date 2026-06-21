@@ -109,6 +109,10 @@ export function DiscoveryCandidateCard({
   expanded,
   onExpandedChange,
   focused = false,
+  selected = false,
+  layout = "accordion",
+  rowIndex,
+  onSelect,
   publishRequested = false,
   onPublishHandled,
   onUpdated,
@@ -120,6 +124,10 @@ export function DiscoveryCandidateCard({
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
   focused?: boolean;
+  selected?: boolean;
+  layout?: "accordion" | "row" | "detail";
+  rowIndex?: number;
+  onSelect?: () => void;
   publishRequested?: boolean;
   onPublishHandled?: () => void;
   onUpdated: () => Promise<void>;
@@ -331,6 +339,264 @@ export function DiscoveryCandidateCard({
     });
   }
 
+  const detailEditor = (
+    <div className="space-y-4">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+          Signal details
+        </p>
+        <ul className="mt-1 space-y-0.5 text-xs text-[var(--pf-gray-500)]">
+          {uniqueReasons.map((r, i) => (
+            <li key={`${r.type}-${i}`}>
+              {SIGNAL_LABELS[r.type as DiscoverySignalType] ?? r.type}: {r.detail}
+            </li>
+          ))}
+        </ul>
+        <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+          {scoreLines.map((line) => (
+            <span key={line.label} className="rounded bg-[var(--pf-gray-50)] px-1.5 py-0.5">
+              {line.label} +{line.points}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+            Draft thesis
+          </p>
+          <SegmentedControl
+            value={draft.direction}
+            onChange={(v) => updateDraft("direction", v as "long" | "short")}
+            options={[
+              { value: "long", label: "Long" },
+              { value: "short", label: "Short" },
+            ]}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor={`thesis-${row.id}`} className="text-xs">
+            Thesis
+          </Label>
+          <Textarea
+            id={`thesis-${row.id}`}
+            value={draft.thesis}
+            onChange={(e) => updateDraft("thesis", e.target.value)}
+            rows={4}
+            className="text-sm"
+            placeholder="Setup and trade idea for the Fueled call…"
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1">
+            <Label htmlFor={`catalyst-${row.id}`} className="text-xs">
+              Catalyst
+            </Label>
+            <Input
+              id={`catalyst-${row.id}`}
+              value={draft.catalyst}
+              onChange={(e) => updateDraft("catalyst", e.target.value)}
+              className="text-sm"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`timeframe-${row.id}`} className="text-xs">
+              Timeframe
+            </Label>
+            <Input
+              id={`timeframe-${row.id}`}
+              value={draft.timeframe}
+              onChange={(e) => updateDraft("timeframe", e.target.value)}
+              className="text-sm"
+            />
+          </div>
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor={`risk-${row.id}`} className="text-xs">
+            Risk
+          </Label>
+          <Input
+            id={`risk-${row.id}`}
+            value={draft.risk}
+            onChange={(e) => updateDraft("risk", e.target.value)}
+            className="text-sm"
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="space-y-1">
+            <Label htmlFor={`entry-${row.id}`} className="text-xs">
+              Entry note
+            </Label>
+            <Input
+              id={`entry-${row.id}`}
+              value={draft.entryNote ?? ""}
+              onChange={(e) => updateDraft("entryNote", e.target.value || undefined)}
+              className="text-sm"
+              placeholder="e.g. 118 support"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`target-${row.id}`} className="text-xs">
+              Target note
+            </Label>
+            <Input
+              id={`target-${row.id}`}
+              value={draft.targetNote ?? ""}
+              onChange={(e) => updateDraft("targetNote", e.target.value || undefined)}
+              className="text-sm"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`stop-${row.id}`} className="text-xs">
+              Stop note
+            </Label>
+            <Input
+              id={`stop-${row.id}`}
+              value={draft.stopNote ?? ""}
+              onChange={(e) => updateDraft("stopNote", e.target.value || undefined)}
+              className="text-sm"
+            />
+          </div>
+        </div>
+        {draft.thesis.trim().length >= 20 ? (
+          <p className="text-[10px] text-[var(--pf-gray-500)]">
+            Publish preview: {formatDiscoveryDraftForPublish(draft).slice(0, 160)}
+            {formatDiscoveryDraftForPublish(draft).length > 160 ? "…" : ""}
+          </p>
+        ) : null}
+        {row.draft?.source === "template" ? (
+          <p className="text-[10px] text-amber-800">
+            Template draft — use Regenerate AI for research-backed copy.
+          </p>
+        ) : null}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={saving || draftLoading || draft.thesis.trim().length < 20}
+            onClick={() => void saveDraft(false)}
+          >
+            {saving ? "Saving…" : "Save draft"}
+          </Button>
+          {isInbox ? (
+            <Button
+              type="button"
+              size="sm"
+              disabled={saving || draft.thesis.trim().length < 20}
+              onClick={() => void saveDraft(true)}
+            >
+              Save & queue
+            </Button>
+          ) : null}
+          {isReady ? (
+            <Button
+              type="button"
+              size="sm"
+              disabled={draft.thesis.trim().length < 20}
+              className="bg-[var(--pf-red)] text-white hover:bg-[var(--pf-red-hover)]"
+              onClick={() => setPublishOpen(true)}
+            >
+              Publish
+            </Button>
+          ) : null}
+          {isInbox ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={draftLoading}
+              onClick={() => void runAiDraft(true)}
+            >
+              {draftLoading ? "Drafting…" : "AI draft & queue"}
+            </Button>
+          ) : isReady ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={draftLoading}
+              onClick={() => void runAiDraft(false)}
+            >
+              {draftLoading ? "Drafting…" : "Regenerate AI"}
+            </Button>
+          ) : null}
+          <ActionMenu items={overflowItems} />
+        </div>
+      </div>
+    </div>
+  );
+
+  if (layout === "row") {
+    return (
+      <li data-discovery-row={rowIndex}>
+        <button
+          type="button"
+          onClick={onSelect}
+          className={cn(
+            "flex w-full flex-col gap-1 border-b border-[var(--pf-border)] px-3 py-2.5 text-left transition-colors last:border-b-0",
+            (selected || focused) &&
+              "bg-[var(--pf-red-muted)]/30 ring-2 ring-inset ring-[var(--pf-red)]/25",
+            !selected && !focused && "hover:bg-[var(--pf-gray-50)]"
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-[var(--pf-black)]">{row.symbol}</span>
+            <DiscoveryScoreTooltip score={row.score} lines={scoreLines} className="text-xs" />
+            {isHighScore && isInbox ? (
+              <span className="rounded bg-amber-100 px-1 py-0.5 text-[9px] font-bold uppercase text-amber-800">
+                High
+              </span>
+            ) : null}
+          </div>
+          <p className="line-clamp-1 text-xs text-[var(--pf-gray-600)]">{headline}</p>
+          {earnings ? (
+            <p className="line-clamp-1 text-[10px] font-medium text-amber-800">{earnings}</p>
+          ) : null}
+        </button>
+      </li>
+    );
+  }
+
+  if (layout === "detail") {
+    return (
+      <div className="pf-workspace-panel flex min-h-[min(70dvh,40rem)] flex-col">
+        <div className="border-b border-[var(--pf-border)] px-5 py-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href={`/ticker/${row.symbol}`}
+                  className="text-xl font-bold text-[var(--pf-black)] hover:text-[var(--pf-red)]"
+                >
+                  {row.symbol}
+                </Link>
+                <DiscoveryScoreTooltip score={row.score} lines={scoreLines} />
+                {row.draftGeneratedAt && !dirty ? (
+                  <Badge variant={row.draft?.source === "template" ? "default" : "long"}>
+                    {row.draft?.source === "template" ? "Template" : "AI draft"}
+                  </Badge>
+                ) : null}
+              </div>
+              <p className="mt-1 text-sm text-[var(--pf-gray-600)]">{headline}</p>
+            </div>
+          </div>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-5">{detailEditor}</div>
+        {publishOpen && isReady ? (
+          <DiscoveryPublishModal
+            row={row}
+            draft={draft}
+            open={publishOpen}
+            onClose={() => setPublishOpen(false)}
+            onPublished={onUpdated}
+          />
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <li
       className={cn(
@@ -424,159 +690,7 @@ export function DiscoveryCandidateCard({
       </button>
 
       {expanded ? (
-        <div className="mt-3 space-y-4 border-t border-[var(--pf-border)] pt-4">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-              Signal details
-            </p>
-            <ul className="mt-1 space-y-0.5 text-xs text-[var(--pf-gray-500)]">
-              {uniqueReasons.map((r, i) => (
-                <li key={`${r.type}-${i}`}>
-                  {SIGNAL_LABELS[r.type as DiscoverySignalType] ?? r.type}: {r.detail}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-              {scoreLines.map((line) => (
-                <span key={line.label} className="rounded bg-[var(--pf-gray-50)] px-1.5 py-0.5">
-                  {line.label} +{line.points}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-                Draft thesis
-              </p>
-              <SegmentedControl
-                value={draft.direction}
-                onChange={(v) => updateDraft("direction", v as "long" | "short")}
-                options={[
-                  { value: "long", label: "Long" },
-                  { value: "short", label: "Short" },
-                ]}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor={`thesis-${row.id}`} className="text-xs">
-                Thesis
-              </Label>
-              <Textarea
-                id={`thesis-${row.id}`}
-                value={draft.thesis}
-                onChange={(e) => updateDraft("thesis", e.target.value)}
-                rows={3}
-                className="text-sm"
-                placeholder="Setup and trade idea for the Fueled call…"
-              />
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <Label htmlFor={`catalyst-${row.id}`} className="text-xs">
-                  Catalyst
-                </Label>
-                <Input
-                  id={`catalyst-${row.id}`}
-                  value={draft.catalyst}
-                  onChange={(e) => updateDraft("catalyst", e.target.value)}
-                  className="text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor={`timeframe-${row.id}`} className="text-xs">
-                  Timeframe
-                </Label>
-                <Input
-                  id={`timeframe-${row.id}`}
-                  value={draft.timeframe}
-                  onChange={(e) => updateDraft("timeframe", e.target.value)}
-                  className="text-sm"
-                />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor={`risk-${row.id}`} className="text-xs">
-                Risk
-              </Label>
-              <Input
-                id={`risk-${row.id}`}
-                value={draft.risk}
-                onChange={(e) => updateDraft("risk", e.target.value)}
-                className="text-sm"
-              />
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="space-y-1">
-                <Label htmlFor={`entry-${row.id}`} className="text-xs">
-                  Entry note
-                </Label>
-                <Input
-                  id={`entry-${row.id}`}
-                  value={draft.entryNote ?? ""}
-                  onChange={(e) => updateDraft("entryNote", e.target.value || undefined)}
-                  className="text-sm"
-                  placeholder="e.g. 118 support"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor={`target-${row.id}`} className="text-xs">
-                  Target note
-                </Label>
-                <Input
-                  id={`target-${row.id}`}
-                  value={draft.targetNote ?? ""}
-                  onChange={(e) => updateDraft("targetNote", e.target.value || undefined)}
-                  className="text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor={`stop-${row.id}`} className="text-xs">
-                  Stop note
-                </Label>
-                <Input
-                  id={`stop-${row.id}`}
-                  value={draft.stopNote ?? ""}
-                  onChange={(e) => updateDraft("stopNote", e.target.value || undefined)}
-                  className="text-sm"
-                />
-              </div>
-            </div>
-            {draft.thesis.trim().length >= 20 ? (
-              <p className="text-[10px] text-[var(--pf-gray-500)]">
-                Publish preview: {formatDiscoveryDraftForPublish(draft).slice(0, 120)}
-                {formatDiscoveryDraftForPublish(draft).length > 120 ? "…" : ""}
-              </p>
-            ) : null}
-            {row.draft?.source === "template" ? (
-              <p className="text-[10px] text-amber-800">
-                Template draft — use Regenerate AI for research-backed copy.
-              </p>
-            ) : null}
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={saving || draft.thesis.trim().length < 20}
-                onClick={() => void saveDraft(false)}
-              >
-                {saving ? "Saving…" : "Save draft"}
-              </Button>
-              {isInbox ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={saving || draft.thesis.trim().length < 20}
-                  onClick={() => void saveDraft(true)}
-                >
-                  Save & queue
-                </Button>
-              ) : null}
-            </div>
-          </div>
-        </div>
+        <div className="mt-3 space-y-4 border-t border-[var(--pf-border)] pt-4">{detailEditor}</div>
       ) : null}
 
       {publishOpen && isReady ? (

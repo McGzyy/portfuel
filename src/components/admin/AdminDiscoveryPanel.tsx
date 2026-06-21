@@ -1,10 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AdminPanelHeader } from "@/components/admin/AdminPanelHeader";
 import { DiscoveryArchiveTable } from "@/components/admin/DiscoveryArchiveTable";
 import { DiscoveryCandidateCard } from "@/components/admin/DiscoveryCandidateCard";
+import {
+  DiscoveryActionToast,
+  type DiscoveryToastState,
+} from "@/components/admin/DiscoveryActionToast";
+import { DiscoveryContextRail } from "@/components/admin/DiscoveryContextRail";
+import {
+  DiscoveryQueueSkeleton,
+  DiscoveryWorkboardSkeleton,
+} from "@/components/admin/DiscoveryQueueSkeleton";
 import {
   DiscoveryQueueListHeader,
   DiscoveryQueueToolbar,
@@ -14,19 +24,27 @@ import {
   type StepId,
 } from "@/components/admin/DiscoveryWorkflowStepper";
 import { MetricsStrip } from "@/components/dashboard/MetricsStrip";
-import type { DiscoveryCandidateRow, DiscoveryScanSummary } from "@/lib/desk-discovery/types";
+import type {
+  DiscoveryCandidateRow,
+  DiscoveryCandidateStatus,
+  DiscoveryScanSummary,
+} from "@/lib/desk-discovery/types";
 import { DISCOVERY_PROVIDER_ROADMAP } from "@/lib/desk-discovery/roadmap";
 import {
   sortDiscoveryCandidates,
   type DiscoverySortMode,
 } from "@/lib/desk-discovery/candidate-sort";
 import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
+import {
+  buildDiscoveryAdminUrl,
+  parseDiscoveryFilter,
+  parseDiscoverySort,
+  type DiscoveryPanelFilter,
+} from "@/lib/admin/discovery-panel-url";
 import { useAdminNavCounts } from "@/components/admin/AdminNavCountsProvider";
 import { cn } from "@/lib/utils";
 
-type InboxFilter = "inbox" | "ready" | "published" | "snoozed" | "rejected";
-
-const TAB_LABELS: Record<InboxFilter, string> = {
+const TAB_LABELS: Record<DiscoveryPanelFilter, string> = {
   inbox: "Inbox",
   ready: "Ready to publish",
   published: "Published",
@@ -34,7 +52,7 @@ const TAB_LABELS: Record<InboxFilter, string> = {
   rejected: "Rejected",
 };
 
-const EMPTY_COPY: Record<InboxFilter, string> = {
+const EMPTY_COPY: Record<DiscoveryPanelFilter, string> = {
   inbox: "Inbox empty — run a scan or wait for the next cron pass.",
   ready: "Nothing queued — approve hits from Inbox or use AI draft & queue.",
   published: "No published discovery calls yet.",
@@ -42,7 +60,7 @@ const EMPTY_COPY: Record<InboxFilter, string> = {
   rejected: "No rejected symbols.",
 };
 
-const FILTER_TO_STEP: Record<InboxFilter, StepId> = {
+const FILTER_TO_STEP: Record<DiscoveryPanelFilter, StepId> = {
   inbox: "inbox",
   ready: "ready",
   published: "published",
@@ -70,25 +88,61 @@ function fmtScanWhen(iso: string) {
 }
 
 export function AdminDiscoveryPanel() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [candidates, setCandidates] = useState<DiscoveryCandidateRow[]>([]);
   const [lastScan, setLastScan] = useState<DiscoveryScanSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [migrationMissing, setMigrationMissing] = useState(false);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-  const [filter, setFilter] = useState<InboxFilter>("inbox");
-  const [sortMode, setSortMode] = useState<DiscoverySortMode>("score");
-  const [highPriorityOnly, setHighPriorityOnly] = useState(false);
+  const [toast, setToast] = useState<DiscoveryToastState>(null);
+  const [filter, setFilter] = useState<DiscoveryPanelFilter>(() =>
+    parseDiscoveryFilter(searchParams.get("filter"))
+  );
+  const [sortMode, setSortMode] = useState<DiscoverySortMode>(() =>
+    parseDiscoverySort(searchParams.get("sort"))
+  );
+  const [highPriorityOnly, setHighPriorityOnly] = useState(
+    () => searchParams.get("hp") === "1"
+  );
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => searchParams.get("id"));
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [publishRowId, setPublishRowId] = useState<string | null>(null);
   const [aiConfigured, setAiConfigured] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
   const [actionableCount, setActionableCount] = useState(0);
 
+  const listRef = useRef<HTMLUListElement>(null);
   const readyCount = Math.max(0, actionableCount - pendingCount);
   const { refresh: refreshNavCounts } = useAdminNavCounts();
+
+  const syncUrl = useCallback(
+    (next: {
+      filter?: DiscoveryPanelFilter;
+      sort?: DiscoverySortMode;
+      id?: string | null;
+      highPriority?: boolean;
+    }) => {
+      const href = buildDiscoveryAdminUrl({
+        filter: next.filter ?? filter,
+        sort: next.sort ?? sortMode,
+        id: next.id !== undefined ? next.id : selectedId,
+        highPriority: next.highPriority ?? highPriorityOnly,
+      });
+      router.replace(href, { scroll: false });
+    },
+    [router, filter, sortMode, selectedId, highPriorityOnly]
+  );
+
+  useEffect(() => {
+    setFilter(parseDiscoveryFilter(searchParams.get("filter")));
+    setSortMode(parseDiscoverySort(searchParams.get("sort")));
+    setHighPriorityOnly(searchParams.get("hp") === "1");
+    setSelectedId(searchParams.get("id"));
+  }, [searchParams]);
 
   const load = useCallback(async (opts?: { silent?: boolean }) => {
     const silent = opts?.silent ?? false;
@@ -121,8 +175,8 @@ export function AdminDiscoveryPanel() {
 
   useEffect(() => {
     setExpandedId(null);
-    setHighPriorityOnly(false);
     setFocusedIndex(0);
+    setSelectedId(null);
     setPublishRowId(null);
   }, [filter]);
 
@@ -139,11 +193,117 @@ export function AdminDiscoveryPanel() {
     return sortDiscoveryCandidates(rows, sortMode);
   }, [candidates, sortMode, highPriorityOnly]);
 
-  const useArchiveTable = filter === "published" || filter === "snoozed" || filter === "rejected";
+  const useArchiveTable =
+    filter === "published" || filter === "snoozed" || filter === "rejected";
+
+  const focusedRow = queueRows[focusedIndex] ?? null;
 
   useEffect(() => {
     setFocusedIndex((i) => Math.min(i, Math.max(0, queueRows.length - 1)));
   }, [queueRows.length]);
+
+  useEffect(() => {
+    if (!listRef.current || useArchiveTable) return;
+    const el = listRef.current.querySelector<HTMLElement>(`[data-discovery-row="${focusedIndex}"]`);
+    el?.scrollIntoView({ block: "nearest" });
+  }, [focusedIndex, useArchiveTable]);
+
+  const selectRowAtIndex = useCallback(
+    (index: number) => {
+      const row = queueRows[index];
+      if (!row) return;
+      setFocusedIndex(index);
+      setSelectedId(row.id);
+      syncUrl({ id: row.id });
+    },
+    [queueRows, syncUrl]
+  );
+
+  useEffect(() => {
+    if (useArchiveTable || queueRows.length === 0 || loading) return;
+    const urlId = searchParams.get("id");
+    if (urlId) {
+      const idx = queueRows.findIndex((r) => r.id === urlId);
+      if (idx >= 0) {
+        setFocusedIndex(idx);
+        setSelectedId(urlId);
+        return;
+      }
+    }
+    selectRowAtIndex(0);
+  }, [filter, queueRows.length, useArchiveTable, loading]); // eslint-disable-line react-hooks/exhaustive-deps -- init selection when queue loads
+
+  const showToast = useCallback((message: string, undo?: () => void) => {
+    setToast({ message, undo });
+  }, []);
+
+  const patchStatus = useCallback(
+    async (
+      row: DiscoveryCandidateRow,
+      status: DiscoveryCandidateStatus,
+      toastLabel: string,
+      undoStatus?: DiscoveryCandidateStatus
+    ) => {
+      const snapshot = candidates;
+      const prevPending = pendingCount;
+      const prevActionable = actionableCount;
+
+      setCandidates((prev) => prev.filter((c) => c.id !== row.id));
+      if (status === "approved" && filter === "inbox") {
+        setPendingCount((n) => Math.max(0, n - 1));
+        setActionableCount((n) => n + 1);
+      }
+
+      showToast(`${row.symbol} ${toastLabel}`, undoStatus
+        ? () => {
+            setCandidates(snapshot);
+            setPendingCount(prevPending);
+            setActionableCount(prevActionable);
+            void fetch(`/api/admin/desk-discovery/${row.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: undoStatus }),
+            }).then(() => load({ silent: true }));
+          }
+        : undefined);
+
+      try {
+        const res = await fetch(`/api/admin/desk-discovery/${row.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        });
+        if (!res.ok) throw new Error("patch failed");
+        await load({ silent: true });
+      } catch {
+        setCandidates(snapshot);
+        setPendingCount(prevPending);
+        setActionableCount(prevActionable);
+        setError("Update failed.");
+        setToast(null);
+      }
+    },
+    [candidates, filter, load, pendingCount, actionableCount, showToast]
+  );
+
+  const queueFocused = useCallback(async () => {
+    const row = focusedRow;
+    if (!row || filter !== "inbox") return;
+    setError("");
+    await patchStatus(row, "approved", "queued to publish", "pending");
+  }, [focusedRow, filter, patchStatus]);
+
+  const rejectFocused = useCallback(async () => {
+    const row = focusedRow;
+    if (!row || useArchiveTable) return;
+    await patchStatus(row, "rejected", "rejected", row.status);
+  }, [focusedRow, patchStatus, useArchiveTable]);
+
+  const snoozeFocused = useCallback(async () => {
+    const row = focusedRow;
+    if (!row || useArchiveTable) return;
+    await patchStatus(row, "snoozed", "snoozed for 7 days", row.status);
+  }, [focusedRow, patchStatus, useArchiveTable]);
 
   useEffect(() => {
     if (useArchiveTable || queueRows.length === 0) return;
@@ -155,37 +315,20 @@ export function AdminDiscoveryPanel() {
       return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
     }
 
-    async function queueFocused() {
-      const row = queueRows[focusedIndex];
-      if (!row) return;
-      setError("");
-      const res = await fetch(`/api/admin/desk-discovery/${row.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "approved" }),
-      });
-      if (!res.ok) {
-        setError("Queue failed.");
-        return;
-      }
-      setMessage(`${row.symbol} queued to publish.`);
-      await load({ silent: true });
-    }
-
     function onKeyDown(e: KeyboardEvent) {
       if (isTypingTarget(e.target)) return;
 
       if (e.key === "j") {
         e.preventDefault();
-        setFocusedIndex((i) => Math.min(queueRows.length - 1, i + 1));
+        selectRowAtIndex(Math.min(queueRows.length - 1, focusedIndex + 1));
         return;
       }
       if (e.key === "k") {
         e.preventDefault();
-        setFocusedIndex((i) => Math.max(0, i - 1));
+        selectRowAtIndex(Math.max(0, focusedIndex - 1));
         return;
       }
-      if (e.key === "Enter") {
+      if (e.key === "Enter" && window.innerWidth < 1024) {
         e.preventDefault();
         const row = queueRows[focusedIndex];
         if (!row) return;
@@ -201,12 +344,31 @@ export function AdminDiscoveryPanel() {
         e.preventDefault();
         const row = queueRows[focusedIndex];
         if (row) setPublishRowId(row.id);
+        return;
+      }
+      if (e.key === "x") {
+        e.preventDefault();
+        void rejectFocused();
+        return;
+      }
+      if (e.key === "s") {
+        e.preventDefault();
+        void snoozeFocused();
       }
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [useArchiveTable, queueRows, focusedIndex, filter, load]);
+  }, [
+    useArchiveTable,
+    queueRows,
+    focusedIndex,
+    filter,
+    queueFocused,
+    rejectFocused,
+    snoozeFocused,
+    selectRowAtIndex,
+  ]);
 
   const restoreToInbox = useCallback(
     async (id: string, symbol: string) => {
@@ -220,15 +382,14 @@ export function AdminDiscoveryPanel() {
         setError("Restore failed.");
         return;
       }
-      setMessage(`${symbol} restored to Inbox.`);
+      showToast(`${symbol} restored to Inbox`);
       await load({ silent: true });
     },
-    [load]
+    [load, showToast]
   );
 
   async function runScan() {
     setScanning(true);
-    setMessage("");
     setError("");
     try {
       const res = await fetch("/api/admin/desk-discovery", {
@@ -255,8 +416,8 @@ export function AdminDiscoveryPanel() {
             `Found ${summary.hitsFound} hits but save failed: ${summary.saveErrors[0]}. Apply discovery migrations in Supabase if you have not yet.`
           );
         } else if (summary.skippedExisting > 0) {
-          setMessage(
-            `Scan found ${summary.hitsFound} hits — ${summary.skippedExisting} skipped (snoozed, rejected, or already published).`
+          showToast(
+            `Scan found ${summary.hitsFound} hits — ${summary.skippedExisting} skipped (already handled).`
           );
         } else {
           setError(
@@ -264,12 +425,8 @@ export function AdminDiscoveryPanel() {
           );
         }
       } else {
-        setMessage(
-          `Scan complete — ${summary?.upserted ?? 0} saved, ${summary?.hitsFound ?? 0} scored hits${
-            summary?.notifiedAdmins
-              ? `, ${summary.notifiedAdmins} admin alert(s) sent`
-              : ""
-          }. High-score hits get an AI draft pre-filled in Inbox.`
+        showToast(
+          `Scan complete — ${summary?.upserted ?? 0} saved from ${summary?.hitsFound ?? 0} hits.`
         );
       }
       await load();
@@ -280,13 +437,111 @@ export function AdminDiscoveryPanel() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-16">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--pf-border)] border-t-[var(--pf-red)]" />
+  function selectRow(id: string, index: number) {
+    selectRowAtIndex(index);
+  }
+
+  function changeFilter(next: DiscoveryPanelFilter) {
+    setFilter(next);
+    syncUrl({ filter: next, id: null });
+  }
+
+  function changeSort(next: DiscoverySortMode) {
+    setSortMode(next);
+    syncUrl({ sort: next });
+  }
+
+  function changeHighPriority(next: boolean) {
+    setHighPriorityOnly(next);
+    syncUrl({ highPriority: next });
+  }
+
+  const queueContent =
+    candidates.length === 0 ? (
+      <div className="pf-workspace-panel p-8 text-center text-sm text-[var(--pf-gray-500)]">
+        {EMPTY_COPY[filter]}
+      </div>
+    ) : (
+      <div className="space-y-3">
+        <DiscoveryQueueToolbar
+          sort={sortMode}
+          onSortChange={changeSort}
+          highPriorityOnly={highPriorityOnly}
+          onHighPriorityOnlyChange={changeHighPriority}
+          highPriorityCount={highPriorityCount}
+          totalCount={queueRows.length}
+        />
+        <DiscoveryQueueListHeader count={queueRows.length} filterLabel={TAB_LABELS[filter].toLowerCase()} />
+
+        {/* Mobile: accordion list */}
+        <ul className="divide-y divide-[var(--pf-border)] overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)] lg:hidden">
+          {queueRows.map((row, index) => (
+            <DiscoveryCandidateCard
+              key={row.id}
+              row={row}
+              filter={filter}
+              layout="accordion"
+              expanded={expandedId === row.id}
+              onExpandedChange={(open) => setExpandedId(open ? row.id : null)}
+              focused={focusedIndex === index}
+              publishRequested={publishRowId === row.id}
+              onPublishHandled={() => setPublishRowId(null)}
+              onUpdated={() => load({ silent: true })}
+              onMessage={showToast}
+              onError={setError}
+            />
+          ))}
+        </ul>
+
+        {/* Desktop: split workboard */}
+        <div className="hidden gap-4 lg:grid lg:grid-cols-[minmax(220px,260px)_minmax(0,1fr)]">
+          <ul
+            ref={listRef}
+            className="max-h-[calc(100dvh-14rem)] divide-y divide-[var(--pf-border)] overflow-y-auto overscroll-contain rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]"
+          >
+            {queueRows.map((row, index) => (
+              <DiscoveryCandidateCard
+                key={row.id}
+                row={row}
+                filter={filter}
+                layout="row"
+                rowIndex={index}
+                expanded={false}
+                onExpandedChange={() => {}}
+                selected={focusedRow?.id === row.id}
+                focused={focusedIndex === index}
+                onSelect={() => selectRow(row.id, index)}
+                publishRequested={false}
+                onUpdated={() => load({ silent: true })}
+                onMessage={showToast}
+                onError={setError}
+              />
+            ))}
+          </ul>
+          <div className="min-h-[min(70dvh,40rem)]">
+            {focusedRow ? (
+              <DiscoveryCandidateCard
+                key={focusedRow.id}
+                row={focusedRow}
+                filter={filter}
+                layout="detail"
+                expanded
+                onExpandedChange={() => {}}
+                publishRequested={publishRowId === focusedRow.id}
+                onPublishHandled={() => setPublishRowId(null)}
+                onUpdated={() => load({ silent: true })}
+                onMessage={showToast}
+                onError={setError}
+              />
+            ) : (
+              <div className="pf-workspace-panel flex h-full min-h-[16rem] items-center justify-center p-8 text-center text-sm text-[var(--pf-gray-500)]">
+                Select a symbol from the queue to review signals and edit the draft.
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     );
-  }
 
   return (
     <div className="space-y-6">
@@ -295,12 +550,12 @@ export function AdminDiscoveryPanel() {
         title="Discovery radar"
         description="Market scan hits land in Inbox for triage. Queue the best setups, then publish as Fueled calls — nothing auto-posts."
         actions={
-          <Button type="button" onClick={() => void runScan()} disabled={scanning}>
+          <Button type="button" onClick={() => void runScan()} disabled={scanning} className="xl:hidden">
             {scanning ? "Scanning…" : "Run scan"}
           </Button>
         }
         footer={
-          <div className="space-y-4 border-t border-[var(--pf-border)] pt-4">
+          <div className="space-y-4 border-t border-[var(--pf-border)] pt-4 xl:hidden">
             <MetricsStrip
               variant="embedded"
               className="!px-0"
@@ -350,8 +605,7 @@ export function AdminDiscoveryPanel() {
       {!aiConfigured ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           <span className="font-semibold">OPENAI_API_KEY not configured.</span> AI drafts fall back to
-          templates until the key is set on the server — Regenerate AI will not produce full
-          research-backed copy.
+          templates until the key is set on the server.
         </div>
       ) : null}
 
@@ -360,14 +614,9 @@ export function AdminDiscoveryPanel() {
           {error}
         </div>
       ) : null}
-      {message ? (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {message}
-        </div>
-      ) : null}
 
       <div className="flex flex-wrap gap-2">
-        {(Object.keys(TAB_LABELS) as InboxFilter[]).map((key) => {
+        {(Object.keys(TAB_LABELS) as DiscoveryPanelFilter[]).map((key) => {
           const badge =
             key === "inbox" && pendingCount > 0
               ? ` (${pendingCount})`
@@ -378,7 +627,7 @@ export function AdminDiscoveryPanel() {
             <button
               key={key}
               type="button"
-              onClick={() => setFilter(key)}
+              onClick={() => changeFilter(key)}
               className={filterPillClass(filter === key)}
             >
               {TAB_LABELS[key]}
@@ -388,63 +637,46 @@ export function AdminDiscoveryPanel() {
         })}
       </div>
 
-      {candidates.length === 0 ? (
-        <div className="pf-workspace-panel p-8 text-center text-sm text-[var(--pf-gray-500)]">
-          {EMPTY_COPY[filter]}
-        </div>
-      ) : useArchiveTable ? (
-        <DiscoveryArchiveTable
-          rows={candidates}
-          variant={filter}
-          onRestore={restoreToInbox}
-        />
+      {loading ? (
+        <>
+          <div className="lg:hidden">
+            <DiscoveryQueueSkeleton />
+          </div>
+          <DiscoveryWorkboardSkeleton />
+        </>
       ) : (
-        <div className="space-y-3">
-          <DiscoveryQueueToolbar
-            sort={sortMode}
-            onSortChange={setSortMode}
-            highPriorityOnly={highPriorityOnly}
-            onHighPriorityOnlyChange={setHighPriorityOnly}
-            highPriorityCount={highPriorityCount}
-            totalCount={queueRows.length}
-          />
-          <DiscoveryQueueListHeader count={queueRows.length} filterLabel={TAB_LABELS[filter].toLowerCase()} />
-          {!useArchiveTable && queueRows.length > 0 ? (
-            <p className="px-1 text-[10px] text-[var(--pf-gray-400)]">
-              Shortcuts: <kbd className="rounded border px-1">j</kbd>/<kbd className="rounded border px-1">k</kbd> navigate ·{" "}
-              <kbd className="rounded border px-1">Enter</kbd> expand ·{" "}
-              {filter === "inbox" ? (
-                <>
-                  <kbd className="rounded border px-1">a</kbd> queue
-                </>
-              ) : (
-                <>
-                  <kbd className="rounded border px-1">p</kbd> publish
-                </>
-              )}
-            </p>
-          ) : null}
-          <ul
-            className={cn(
-              "divide-y divide-[var(--pf-border)] overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] bg-white shadow-[var(--pf-shadow-sm)]"
-            )}
-          >
-            {queueRows.map((row, index) => (
-              <DiscoveryCandidateCard
-                key={row.id}
-                row={row}
-                filter={filter}
-                expanded={expandedId === row.id}
-                onExpandedChange={(open) => setExpandedId(open ? row.id : null)}
-                focused={focusedIndex === index}
-                publishRequested={publishRowId === row.id}
-                onPublishHandled={() => setPublishRowId(null)}
-                onUpdated={() => load({ silent: true })}
-                onMessage={setMessage}
-                onError={setError}
+        <div className="flex gap-5 xl:gap-6">
+          <div className="min-w-0 flex-1">
+            {useArchiveTable ? (
+              <DiscoveryArchiveTable
+                rows={candidates}
+                variant={filter}
+                onRestore={restoreToInbox}
               />
-            ))}
-          </ul>
+            ) : (
+              queueContent
+            )}
+          </div>
+
+          <DiscoveryContextRail
+            filter={filter}
+            activeStep={FILTER_TO_STEP[filter]}
+            pendingCount={pendingCount}
+            readyCount={readyCount}
+            lastScan={lastScan}
+            scanning={scanning}
+            onRunScan={() => void runScan()}
+            focusedRow={useArchiveTable ? null : focusedRow}
+            queueMode={!useArchiveTable}
+            onQueue={filter === "inbox" ? () => void queueFocused() : undefined}
+            onPublish={
+              filter === "ready" && focusedRow
+                ? () => setPublishRowId(focusedRow.id)
+                : undefined
+            }
+            onReject={useArchiveTable ? undefined : () => void rejectFocused()}
+            onSnooze={useArchiveTable ? undefined : () => void snoozeFocused()}
+          />
         </div>
       )}
 
@@ -482,6 +714,8 @@ export function AdminDiscoveryPanel() {
           </ul>
         </div>
       </details>
+
+      <DiscoveryActionToast toast={toast} onDismiss={() => setToast(null)} />
     </div>
   );
 }
