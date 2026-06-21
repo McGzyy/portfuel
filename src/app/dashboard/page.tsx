@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AdminCommunityHint } from "@/components/dashboard/AdminCommunityHint";
 import { WorkspaceOnboardingChecklist } from "@/components/dashboard/WorkspaceOnboardingChecklist";
@@ -78,8 +79,13 @@ import {
   toReferralInvitePrompt,
 } from "@/lib/referrals/prompt";
 import { ReferralOverviewStrip } from "@/components/referrals/ReferralInviteStrip";
+import { OverviewContextRail } from "@/components/dashboard/OverviewContextRail";
 import { OverviewLayoutProvider } from "@/components/dashboard/OverviewLayoutProvider";
 import { OverviewLayoutBar } from "@/components/dashboard/OverviewLayoutBar";
+import { countFeedCallsSince } from "@/lib/feed/new-count";
+import { FEED_SEEN_COOKIE, parseFeedSeenAt } from "@/lib/feed/last-seen";
+import { countUnreadDmThreads } from "@/lib/messages/service";
+import { fetchUnreadCount } from "@/lib/notifications/service";
 import { OverviewPublishFab } from "@/components/dashboard/OverviewPublishFab";
 import { OverviewLayoutBody } from "@/components/dashboard/OverviewLayoutBody";
 import { OverviewPanelGate } from "@/components/dashboard/OverviewPanelGate";
@@ -245,6 +251,13 @@ export default async function DashboardOverviewPage({
   ).length;
 
   const displayLabel = session.displayName ?? session.username;
+  const cookieStore = await cookies();
+  const feedSeenAt = parseFeedSeenAt(cookieStore.get(FEED_SEEN_COOKIE)?.value);
+  const [feedNewCount, dmUnread, notifUnread] = await Promise.all([
+    countFeedCallsSince(feedSeenAt).catch(() => 0),
+    countUnreadDmThreads(session.userId).catch(() => 0),
+    fetchUnreadCount(session.userId).catch(() => 0),
+  ]);
 
   const journalReadyItems = watchlistItems.filter((i) => i.journal_progress?.ready_to_publish);
   const journalNextUp = pickJournalNextUp(watchlistItems);
@@ -287,7 +300,24 @@ export default async function DashboardOverviewPage({
 
   return (
     <OverviewLayoutProvider userId={session.userId}>
-      <OverviewLayoutBody>
+      <OverviewLayoutBody
+        rail={
+          <OverviewContextRail
+            openCallsCount={openCallCards.length}
+            pendingEntryCount={pendingEntryCount}
+            winRate={memberStats?.win_rate}
+            rankScore={memberStats?.rank_score != null ? Number(memberStats.rank_score) : null}
+            communityPulse={communityPulse}
+            hotTickers={hotTickers}
+            watchlistPreview={watchlistPreview}
+            isAdmin={session.role === "admin"}
+            isPro={isPro}
+            dmUnread={dmUnread}
+            notifUnread={notifUnread}
+            feedNewCount={feedNewCount}
+          />
+        }
+      >
       <WorkspaceCommandHeader
         displayName={displayLabel}
         username={session.username}
