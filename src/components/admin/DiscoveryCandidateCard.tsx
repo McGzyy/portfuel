@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +57,9 @@ export function DiscoveryCandidateCard({
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
+  const [draftOpen, setDraftOpen] = useState(false);
+  const [signalsOpen, setSignalsOpen] = useState(false);
+  const autoSanitizedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
@@ -71,7 +75,22 @@ export function DiscoveryCandidateCard({
         const data = await res.json();
         if (cancelled || !data.ok || typeof data.lastPrice !== "number") return;
         const sanitized = sanitizeDiscoveryDraft(base, data.lastPrice);
-        if (!cancelled) setDraft(sanitized);
+        if (cancelled) return;
+        setDraft(sanitized);
+
+        const levelsChanged =
+          sanitized.entryNote !== base.entryNote ||
+          sanitized.targetNote !== base.targetNote ||
+          sanitized.stopNote !== base.stopNote;
+        if (levelsChanged && row.draft && !autoSanitizedRef.current.has(row.id)) {
+          autoSanitizedRef.current.add(row.id);
+          await fetch(`/api/admin/desk-discovery/${row.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ draft: sanitized }),
+          });
+          void onUpdated();
+        }
       } catch {
         /* keep base draft */
       }
@@ -87,6 +106,17 @@ export function DiscoveryCandidateCard({
   const isReady = row.status === "approved";
   const isHighScore = row.score >= DISCOVERY_CONFIG.highScoreNotifyThreshold;
   const scoreLines = buildScoreBreakdown(row.signalTypes);
+  const uniqueReasons = row.reasons.filter(
+    (r, i, arr) => arr.findIndex((x) => x.detail === r.detail) === i
+  );
+  const draftSummary = [
+    draft.direction.toUpperCase(),
+    draft.timeframe || null,
+    draft.entryNote ?? null,
+    draft.thesis.trim().slice(0, 72) + (draft.thesis.length > 72 ? "…" : ""),
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   async function patch(body: Record<string, unknown>) {
     onError("");
@@ -122,7 +152,10 @@ export function DiscoveryCandidateCard({
         );
         return;
       }
-      if (json.draft) setDraft(json.draft);
+      if (json.draft) {
+        setDraft(json.draft);
+        setDraftOpen(true);
+      }
       setDirty(false);
       onMessage(
         autoApprove
@@ -207,20 +240,37 @@ export function DiscoveryCandidateCard({
               </span>
             ))}
           </div>
-          <ul className="mt-2 space-y-0.5 text-xs text-[var(--pf-gray-500)]">
-            {row.reasons.map((r, i) => (
-              <li key={`${r.type}-${i}`}>
-                {SIGNAL_LABELS[r.type as DiscoverySignalType] ?? r.type}: {r.detail}
-              </li>
-            ))}
-          </ul>
-          <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-            {scoreLines.map((line) => (
-              <span key={line.label} className="rounded bg-[var(--pf-gray-50)] px-1.5 py-0.5">
-                {line.label} +{line.points}
-              </span>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => setSignalsOpen((v) => !v)}
+            className="mt-2 flex w-full items-center gap-1.5 text-left text-xs font-semibold text-[var(--pf-gray-500)] hover:text-[var(--foreground)]"
+            aria-expanded={signalsOpen}
+          >
+            <ChevronDown
+              className={`h-3.5 w-3.5 shrink-0 transition-transform ${signalsOpen ? "rotate-180" : ""}`}
+              strokeWidth={2.25}
+            />
+            Signal details
+            {!signalsOpen ? ` · ${uniqueReasons[0]?.detail ?? row.headline ?? "View"}` : null}
+          </button>
+          {signalsOpen ? (
+            <>
+              <ul className="mt-1 space-y-0.5 text-xs text-[var(--pf-gray-500)]">
+                {uniqueReasons.map((r, i) => (
+                  <li key={`${r.type}-${i}`}>
+                    {SIGNAL_LABELS[r.type as DiscoverySignalType] ?? r.type}: {r.detail}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                {scoreLines.map((line) => (
+                  <span key={line.label} className="rounded bg-[var(--pf-gray-50)] px-1.5 py-0.5">
+                    {line.label} +{line.points}
+                  </span>
+                ))}
+              </div>
+            </>
+          ) : null}
           {row.publishedCallId ? (
             <p className="mt-2 text-xs">
               <Link
@@ -340,11 +390,31 @@ export function DiscoveryCandidateCard({
       </div>
 
       {!isPublished ? (
-        <div className="mt-4 space-y-3 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] p-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-              Draft thesis
-            </p>
+        <div className="mt-4 overflow-hidden rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)]">
+          <button
+            type="button"
+            onClick={() => setDraftOpen((v) => !v)}
+            className="flex w-full items-start justify-between gap-3 px-3 py-3 text-left hover:bg-[var(--pf-gray-100)]/80"
+            aria-expanded={draftOpen}
+          >
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
+                Draft thesis
+              </p>
+              {!draftOpen && draft.thesis.trim().length >= 20 ? (
+                <p className="mt-1 line-clamp-2 text-sm text-[var(--pf-gray-700)]">{draftSummary}</p>
+              ) : !draftOpen ? (
+                <p className="mt-1 text-sm text-[var(--pf-gray-500)]">No draft yet — expand to edit or run AI.</p>
+              ) : null}
+            </div>
+            <ChevronDown
+              className={`mt-0.5 h-4 w-4 shrink-0 text-[var(--pf-gray-400)] transition-transform ${draftOpen ? "rotate-180" : ""}`}
+              strokeWidth={2.25}
+            />
+          </button>
+          {draftOpen ? (
+          <div className="space-y-3 border-t border-[var(--pf-border)] px-3 py-3">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <SegmentedControl
               value={draft.direction}
               onChange={(v) => updateDraft("direction", v as "long" | "short")}
@@ -471,6 +541,8 @@ export function DiscoveryCandidateCard({
               </Button>
             ) : null}
           </div>
+          </div>
+          ) : null}
         </div>
       ) : null}
       {publishOpen && isReady ? (

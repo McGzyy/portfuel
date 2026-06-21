@@ -1,4 +1,5 @@
 import { getCryptoLastPrice, getQuote } from "@/lib/market/finnhub";
+import { resolveEquityLastPrice, resolveQuotePrice } from "@/lib/market/equity-quote";
 import { getCoreCryptoAsset, resolveCryptoAsset } from "@/lib/market/crypto-allowlist";
 
 export type AssetClass = "equity" | "crypto";
@@ -42,8 +43,9 @@ export async function validateSymbol(
     };
   }
 
-  const quote = await getQuote(sym);
-  const price = quote?.c;
+  const quote = await getQuote(sym, { fresh: true });
+  const price =
+    (await resolveEquityLastPrice(sym)) ?? resolveQuotePrice(quote) ?? quote?.c;
   if (price == null || !Number.isFinite(price) || price <= 0) {
     return { ok: false, error: "Unknown stock ticker. Check the symbol (e.g. AAPL, NVDA)." };
   }
