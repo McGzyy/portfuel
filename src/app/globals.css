@@ -406,17 +406,43 @@ body {
 @media (min-width: 1024px) {
   .pf-workspace-overview-shell {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 17.5rem;
-    gap: 1.25rem;
+    grid-template-columns: minmax(0, 1fr) 19rem;
+    gap: 1.5rem;
     align-items: start;
   }
 
   .pf-workspace-overview-rail {
     position: sticky;
-    top: 1rem;
+    top: calc(4.5rem + var(--pf-safe-top, 0px) + 0.75rem);
+    z-index: 30;
     align-self: start;
-    border-left: 1px solid var(--pf-border);
-    padding-left: 1rem;
+  }
+
+  .pf-overview-context-module {
+    display: flex;
+    min-height: calc(100dvh - 5.75rem - var(--pf-safe-top, 0px));
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--pf-radius-lg);
+    border: 1px solid color-mix(in srgb, var(--pf-border) 88%, transparent);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(10px);
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.65) inset,
+      0 10px 28px -6px rgb(15 23 42 / 0.14),
+      0 24px 56px -16px rgb(15 23 42 / 0.1);
+  }
+
+  .pf-overview-context-module-head {
+    border-bottom: 1px solid var(--pf-border);
+    background: linear-gradient(180deg, #fff 0%, var(--pf-gray-50) 100%);
+    padding: 0.875rem 1rem;
+  }
+
+  .pf-overview-context-module-body {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 }
 

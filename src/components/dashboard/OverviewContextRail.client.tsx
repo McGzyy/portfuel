@@ -25,17 +25,17 @@ export function OverviewRailInboxStrip({
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-1.5">
+    <div className="grid grid-cols-3 gap-2">
       {items.map((item) => (
         <Link
           key={item.href}
           href={item.href}
-          className="flex flex-col items-center rounded-md border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-1 py-1.5 text-center hover:bg-white"
+          className="flex flex-col items-center rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-1.5 py-2 text-center hover:border-[var(--pf-gray-300)] hover:bg-white"
         >
           <span className="text-[10px] font-semibold text-[var(--pf-gray-600)]">{item.label}</span>
           <span
             className={cn(
-              "mt-0.5 text-xs font-bold tabular-nums",
+              "mt-1 text-sm font-bold tabular-nums",
               item.count > 0 ? "text-[var(--pf-red)]" : "text-[var(--pf-gray-400)]"
             )}
           >
@@ -57,13 +57,13 @@ export function OverviewRailMiniStat({
   accent?: "positive" | "negative";
 }) {
   return (
-    <div className="text-center">
+    <div className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-2 py-2 text-center">
       <p className="text-[9px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
         {label}
       </p>
       <p
         className={cn(
-          "text-sm font-bold tabular-nums leading-tight",
+          "mt-0.5 text-base font-bold tabular-nums leading-tight",
           accent === "positive" && "text-emerald-600",
           accent === "negative" && "text-[var(--pf-red)]",
           !accent && "text-[var(--pf-black)]"
