@@ -405,22 +405,19 @@ body {
 
 @media (min-width: 1024px) {
   .pf-workspace-content.pf-workspace-content--overview {
-    padding-left: 3.25rem;
-    padding-right: 2.75rem;
+    padding-left: 2.75rem;
+    padding-right: 1.25rem;
   }
 
   .pf-workspace-overview-shell {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 19rem;
-    gap: 2rem;
+    gap: 1.5rem;
     align-items: start;
-    max-width: 76rem;
-    margin-inline: auto;
   }
 
   .pf-workspace-overview-main {
-    max-width: 52rem;
-    padding-right: 0.5rem;
+    min-width: 0;
   }
 
   .pf-workspace-overview-rail {
