@@ -274,7 +274,7 @@ export async function renderTrackRecordCardOgPng(
                   letterSpacing: 1.2,
                 }}
               >
-                CUMULATIVE RETURN · CALL BY CALL
+                CUMULATIVE RETURN · DAILY MARKS
               </div>
               <div
                 style={{

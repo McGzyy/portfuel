@@ -5,6 +5,29 @@ import {
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { getAppOrigin, getPublicSiteHost } from "@/lib/social/app-url";
 import { fetchLogoAsDataUrl, resolveSymbolLogoUrl } from "@/lib/market/symbol-logo";
+import { buildPerformanceSeries } from "@/lib/charts/cumulative-return-mtm";
+import type { UserCallRow } from "@/lib/calls/call-fields";
+
+const SPARK_MAX_POINTS = 64;
+
+/** Downsample long MTM series so the spark stays readable in the PNG. */
+function downsampleEquityCurve(values: number[], maxPoints = SPARK_MAX_POINTS): number[] {
+  if (values.length <= maxPoints) return values;
+  const out: number[] = [];
+  for (let i = 0; i < maxPoints; i++) {
+    const idx = Math.round((i / (maxPoints - 1)) * (values.length - 1));
+    out.push(values[idx]!);
+  }
+  return out;
+}
+
+async function buildTrackRecordEquityCurve(calls: UserCallRow[]): Promise<number[]> {
+  const series = await buildPerformanceSeries(calls);
+  if (series.length === 0) return [0];
+
+  const withBaseline = [0, ...series.map((p) => p.value)];
+  return downsampleEquityCurve(withBaseline);
+}
 
 export type TrackRecordHighlight = {
   symbol: string;
@@ -65,17 +88,7 @@ export async function loadTrackRecordCardPayload(
     })
   );
 
-  const chronological = [...calls]
-    .filter((c) => c.return_pct != null)
-    .sort(
-      (a, b) => new Date(a.called_at).getTime() - new Date(b.called_at).getTime()
-    );
-  let cumulative = 0;
-  const equityCurve = [0];
-  for (const call of chronological) {
-    cumulative += Number(call.return_pct);
-    equityCurve.push(Math.round(cumulative * 100) / 100);
-  }
+  const equityCurve = await buildTrackRecordEquityCurve(calls as UserCallRow[]);
 
   const origin = getAppOrigin();
   const avatarDataUrl = member.avatar_url
