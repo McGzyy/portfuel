@@ -146,10 +146,11 @@ export function NotificationsList({ proUnlocked: _proUnlocked = false }: { proUn
 
   return (
     <div className="space-y-5">
-      <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <NotificationsCommandHeader unreadCount={unread} totalCount={items.length} embedded />
-          <div className="flex shrink-0 flex-wrap items-center gap-2 pt-1">
+      <NotificationsCommandHeader
+        unreadCount={unread}
+        totalCount={items.length}
+        action={
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
             <Link
               href="/dashboard/settings?section=notifications"
               className="pf-chip-action gap-1.5 px-3 py-1.5 text-xs"
@@ -163,8 +164,8 @@ export function NotificationsList({ proUnlocked: _proUnlocked = false }: { proUn
               </Button>
             ) : null}
           </div>
-        </div>
-      </header>
+        }
+      />
 
       {!loading && items.length > 0 ? (
         <NotificationsFilterBar active={filter} counts={filterCounts} onChange={setFilter} />

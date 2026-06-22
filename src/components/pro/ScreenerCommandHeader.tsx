@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import type { CommunityScreenerData } from "@/lib/screener/community";
 
 export function ScreenerCommandHeader({ data }: { data: CommunityScreenerData }) {
@@ -13,27 +14,19 @@ export function ScreenerCommandHeader({ data }: { data: CommunityScreenerData })
       : "";
 
   return (
-    <header className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-2xl">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-            Pro Intelligence · Screener
-          </p>
-          <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
-            Community screener
-          </h1>
-          <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">
-            {calledLine}
-            {returnLine} — activity, target progress, desk vs crowd, and conviction filters.
-          </p>
-          <Link
-            href="/dashboard/feed"
-            className="mt-3 inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
-          >
-            Open member feed →
-          </Link>
-        </div>
-      </div>
-    </header>
+    <WorkspacePageHeader
+      eyebrow="Pro Intelligence · Screener"
+      eyebrowMobileOnly
+      title="Community screener"
+      description={`${calledLine}${returnLine} — activity, target progress, desk vs crowd, and conviction filters.`}
+      footerLink={
+        <Link
+          href="/dashboard/feed"
+          className="inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
+        >
+          Open member feed →
+        </Link>
+      }
+    />
   );
 }
