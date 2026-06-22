@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
+import { TickerBackNav } from "@/components/ticker/TickerBackNav";
 import { HypeMeter } from "@/components/brand/HypeMeter";
 import { Badge } from "@/components/ui/badge";
 import { MarketQuoteContextLine } from "@/components/market/MarketQuoteContextLine";
@@ -33,21 +34,7 @@ export function TickerPageHeader({
   return (
     <header className="pf-ticker-header space-y-4 sm:space-y-5">
       <div className="flex items-center justify-between gap-3">
-        {session ? (
-          <Link
-            href="/dashboard"
-            className="inline-flex text-sm font-medium text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-red)]"
-          >
-            ← Workspace
-          </Link>
-        ) : (
-          <Link
-            href="/"
-            className="inline-flex text-sm font-medium text-[var(--pf-gray-500)] transition-colors hover:text-[var(--pf-red)]"
-          >
-            ← Home
-          </Link>
-        )}
+        <TickerBackNav loggedIn={session} />
         <HypeMeter score={intel?.hypeScore ?? 0} />
       </div>
 

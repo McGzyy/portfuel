@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { SymbolSparkline } from "@/components/charts/SymbolSparkline";
 import { SymbolAvatar } from "@/components/market/SymbolAvatar";
+import { formatCallQuoteFreshnessLine } from "@/lib/market/quote-freshness";
 import { cn, formatPct, formatPrice, timeAgo } from "@/lib/utils";
 
 export type CallPreviewData = {
@@ -20,10 +21,18 @@ export type CallPreviewData = {
   last_price?: number | null;
 };
 
-function previewPriceLine(call: CallPreviewData): string | null {
+function previewPriceLine(
+  call: CallPreviewData,
+  options?: { quoteUpdatedAt?: string | null; isPro?: boolean }
+): string | null {
   const parts: string[] = [];
   if (call.entry_price != null) parts.push(`E $${formatPrice(Number(call.entry_price))}`);
   if (call.last_price != null) parts.push(`L $${formatPrice(Number(call.last_price))}`);
+  const quoteLine = formatCallQuoteFreshnessLine({
+    updatedAt: options?.quoteUpdatedAt,
+    isPro: options?.isPro,
+  });
+  if (quoteLine) parts.push(quoteLine);
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
@@ -31,15 +40,19 @@ export function CallPreviewRow({
   call,
   variant = "default",
   showSparkline = false,
+  quoteUpdatedAt,
+  isPro,
 }: {
   call: CallPreviewData;
   variant?: "default" | "on-dark";
   showSparkline?: boolean;
+  quoteUpdatedAt?: string | null;
+  isPro?: boolean;
 }) {
   const slug = call.username && !/^\d{5}$/.test(call.username) ? call.username : null;
   const name = call.display_name ?? (slug ? `@${slug}` : "Member");
   const ret = call.return_pct;
-  const prices = previewPriceLine(call);
+  const prices = previewPriceLine(call, { quoteUpdatedAt, isPro });
   const dark = variant === "on-dark";
 
   return (
@@ -101,7 +114,8 @@ export function CallPreviewRow({
         <p
           className={cn(
             "mt-2 font-mono text-[10px] font-semibold tabular-nums",
-            dark ? "text-slate-400" : "text-[var(--pf-gray-500)]"
+            dark ? "text-slate-400" : "text-[var(--pf-gray-500)]",
+            prices.includes("stale") && !dark && "text-amber-700/90"
           )}
         >
           {prices}

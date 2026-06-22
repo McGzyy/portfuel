@@ -1,8 +1,12 @@
 import { getSession } from "@/lib/auth/session";
 import { DashboardWorkspaceFrame } from "@/components/dashboard/DashboardWorkspaceFrame";
 
-/** Wraps publish, ticker, and profile in the same workspace shell as /dashboard when logged in. */
-export default async function WorkspaceSatelliteLayout({
+/**
+ * Shared workspace shell for /dashboard, /ticker, /member, and /calls/new.
+ * Keeps sidebar + header mounted across in-app navigation instead of remounting
+ * separate layouts per route group.
+ */
+export default async function WorkspaceShellLayout({
   children,
 }: {
   children: React.ReactNode;

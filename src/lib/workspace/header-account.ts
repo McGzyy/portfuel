@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { SessionPayload } from "@/lib/auth/session-types";
 import { countUnreadWhatsNew, fetchChangelogForUser } from "@/lib/announcements/changelog";
 import { fetchUserAvatarUrl } from "@/lib/users/member-avatar";
@@ -19,3 +20,6 @@ export async function fetchWorkspaceHeaderAccount(
     whatsNewUnread: countUnreadWhatsNew(changelog),
   };
 }
+
+/** Deduped per-request header account + what's-new counts for workspace chrome. */
+export const loadWorkspaceHeaderAccount = cache(fetchWorkspaceHeaderAccount);

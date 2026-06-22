@@ -42,7 +42,6 @@ import {
 } from "@/lib/dashboard/data";
 import { fetchDiscoveryOriginCallIds } from "@/lib/desk-discovery/call-origin";
 import { mapUserCallRowToCard } from "@/lib/calls/map-user-call-card";
-import { computeMemberProAnalytics } from "@/lib/users/member-analytics";
 import { buildFeedHref } from "@/lib/dashboard/nav";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import {
@@ -66,18 +65,8 @@ import { JournalReadyToPublishBanner } from "@/components/journal/JournalReadyTo
 import { JournalContinueCard } from "@/components/journal/JournalContinueCard";
 import { BookPostureStrip } from "@/components/watchlist/BookPostureStrip";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
-import { ProCommandCenter } from "@/components/pro/ProCommandCenter";
-import { fetchCommunityScreener } from "@/lib/screener/community";
-import type { CommunityScreenerData } from "@/lib/screener/community";
-import {
-  fetchEarningsBattleboard,
-  summarizeBattleboard,
-  type EarningsBattleboardSummary,
-} from "@/lib/earnings/battleboard";
-import { fetchEarningsForSymbols } from "@/lib/market/earnings-calendar";
-import {
-  buildProTodayBrief,
-} from "@/lib/pro/today-brief";
+import { OverviewProCommandSectionLoader } from "@/components/dashboard/OverviewProCommandSectionLoader";
+import { OverviewProCommandSkeleton } from "@/components/dashboard/OverviewProCommandSkeleton";
 import { formatPct, formatPrice } from "@/lib/utils";
 import { fetchLatestSnapshotUpdatedAt, fetchSnapshotUpdatedAtBySymbol } from "@/lib/market/quote-freshness";
 import { fetchReferralStats } from "@/lib/referrals/service";
@@ -205,7 +194,6 @@ export default async function DashboardOverviewPage({
   const featuredDesk = fueledPreviews[0] ?? null;
 
   const isPro = !proLocked;
-  const proBookAnalytics = isPro ? computeMemberProAnalytics(ownCalls) : null;
 
   const [
     watchlistItems,
@@ -265,54 +253,28 @@ export default async function DashboardOverviewPage({
   ).length;
 
   const displayLabel = session.displayName ?? session.username;
+  const previewQuoteSymbols = [
+    ...new Set([
+      ...latestPreviews.map((p) => p.symbol),
+      ...followingPreviews.map((p) => p.symbol),
+    ]),
+  ];
   const [{ feedNewCount, dmUnread, notifUnread }, quotesUpdatedAt, quoteUpdatedAtBySymbol] =
     await Promise.all([
       loadWorkspaceActivitySnapshot(session.userId),
       fetchLatestSnapshotUpdatedAt([
         ...openCallCards.map((c) => c.symbol),
         ...watchlistItems.map((w) => w.symbol),
+        ...previewQuoteSymbols,
       ]).catch(() => null),
-      fetchSnapshotUpdatedAtBySymbol(openCallCards.map((c) => c.symbol)).catch(() => ({})),
+      fetchSnapshotUpdatedAtBySymbol([
+        ...openCallCards.map((c) => c.symbol),
+        ...previewQuoteSymbols,
+      ]).catch(() => ({})),
     ]);
 
   const journalReadyItems = watchlistItems.filter((i) => i.journal_progress?.ready_to_publish);
   const journalNextUp = pickJournalNextUp(watchlistItems);
-
-  let proTodayBrief: ReturnType<typeof buildProTodayBrief> | null = null;
-  let proOverviewIntel: {
-    battleboard: EarningsBattleboardSummary;
-    screener: CommunityScreenerData;
-    reportingSymbols: string[];
-  } | null = null;
-
-  if (session.subscriptionStatus === "active") {
-    const [screener, battleboardRows, watchlistEarnings] = await Promise.all([
-      fetchCommunityScreener(),
-      fetchEarningsBattleboard(),
-      isPro
-        ? fetchEarningsForSymbols(
-            watchlistItems.filter((w) => w.asset_class === "equity").map((w) => w.symbol),
-            14
-          )
-        : Promise.resolve([]),
-    ]);
-    const battleboard = summarizeBattleboard(battleboardRows);
-    proOverviewIntel = {
-      battleboard,
-      screener,
-      reportingSymbols: battleboardRows.map((row) => row.symbol),
-    };
-
-    proTodayBrief = buildProTodayBrief({
-      deskNote: deskBrief.weeklyNote,
-      watchlistEarnings,
-      screener,
-      battleboard,
-      openCalls: openCallCards,
-      journalReady: journalReadyItems,
-      memberProfileHref: `/member/${session.username}`,
-    });
-  }
 
   return (
     <OverviewLayoutProvider userId={session.userId}>
@@ -448,13 +410,17 @@ export default async function DashboardOverviewPage({
       </OverviewPanelGate>
 
       <OverviewPanelGate panelId="pro_command">
-      {isPro && proTodayBrief && proOverviewIntel ? (
-        <ProCommandCenter
-          brief={proTodayBrief}
-          battleboard={proOverviewIntel.battleboard}
-          screener={proOverviewIntel.screener}
-          bookAnalytics={proBookAnalytics}
-        />
+      {isPro && session.subscriptionStatus === "active" ? (
+        <Suspense fallback={<OverviewProCommandSkeleton />}>
+          <OverviewProCommandSectionLoader
+            username={session.username}
+            openCallCards={openCallCards}
+            ownCalls={ownCalls}
+            journalReadyItems={journalReadyItems}
+            deskWeeklyNote={deskBrief.weeklyNote}
+            watchlistItems={watchlistItems}
+          />
+        </Suspense>
       ) : null}
       </OverviewPanelGate>
 
@@ -492,11 +458,19 @@ export default async function DashboardOverviewPage({
             href={buildFeedHref({})}
           >
             {latestPreviews.length === 0 ? (
-              <p className="px-3 py-8 text-center text-sm text-[var(--pf-gray-500)]">
-                No member calls yet.
-              </p>
+              <CallsEmptyState
+                title="No member calls yet"
+                description="Community theses appear here as members publish. Browse the feed or follow top callers from rankings."
+                showPublishCta={false}
+                secondaryHref={buildFeedHref({})}
+                secondaryLabel="Browse feed"
+              />
             ) : (
-              <FeedPreviewList previews={latestPreviews} />
+              <FeedPreviewList
+                previews={latestPreviews}
+                quoteUpdatedAtBySymbol={quoteUpdatedAtBySymbol}
+                isPro={isPro}
+              />
             )}
           </WorkspacePanel>
           </OverviewPanelGate>
@@ -504,7 +478,12 @@ export default async function DashboardOverviewPage({
 
         <div className="space-y-6 lg:col-span-5 xl:col-span-4">
           <OverviewPanelGate panelId="following">
-          <FollowingFeedPanel following={followingMembers} previews={followingPreviews} />
+          <FollowingFeedPanel
+            following={followingMembers}
+            previews={followingPreviews}
+            quoteUpdatedAtBySymbol={quoteUpdatedAtBySymbol}
+            isPro={isPro}
+          />
           </OverviewPanelGate>
 
           <OverviewPanelGate panelId="watchlist">
@@ -514,9 +493,13 @@ export default async function DashboardOverviewPage({
             href="/dashboard/watchlist"
           >
             {watchlistPreview.length === 0 ? (
-              <p className="px-3 py-6 text-center text-sm text-[var(--pf-gray-500)]">
-                Add symbols on the watchlist page.
-              </p>
+              <CallsEmptyState
+                title="Watchlist is empty"
+                description="Track symbols you care about — prices, alerts, and journal ideas live on your watchlist."
+                showPublishCta={false}
+                secondaryHref="/dashboard/watchlist"
+                secondaryLabel="Add symbols"
+              />
             ) : (
               <ul>
                 {watchlistPreview.map((w) => (
