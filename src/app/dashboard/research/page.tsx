@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { EarningsSurfacesExplainer } from "@/components/pro/EarningsSurfacesExplainer";
 import { ProCommunityScreener } from "@/components/pro/ProCommunityScreener";
 import { ProEarningsBattleboardSection } from "@/components/pro/ProEarningsBattleboardSection";
 import { ResearchCommandHeader } from "@/components/pro/ResearchCommandHeader";
+import { ResearchWorkspaceShell } from "@/components/pro/ResearchWorkspaceShell";
 import { TickerCompareWorkspace } from "@/components/pro/TickerCompareWorkspace";
 import { buildCompareHref, parseCompareSymbolsParam } from "@/lib/dashboard/compare-symbols";
-import { parseResearchHubTab } from "@/lib/dashboard/research-hub";
+import { parseResearchHubTab, type ResearchHubTab } from "@/lib/dashboard/research-hub";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { fetchEarningsBattleboard } from "@/lib/earnings/battleboard";
 import {
@@ -35,34 +37,51 @@ function compareDetail(symbolCount: number, watchlistCount: number): string {
   return "Add at least two tickers to see how they move together.";
 }
 
+function resolveTab(raw: string | undefined): ResearchHubTab {
+  if (!raw) return "compare";
+  return parseResearchHubTab(raw);
+}
+
 export default async function DashboardResearchPage({
   searchParams,
 }: {
   searchParams: Promise<{ tab?: string; symbols?: string; lane?: string }>;
 }) {
   const sp = await searchParams;
-  const tab = parseResearchHubTab(sp.tab);
+  const tab = resolveTab(sp.tab);
   const session = await requireDashboardSession();
   const proContext = sessionToProContext(session);
   const proLocked = isProIntelligenceLocked(proContext);
   const proGateCta = getProGateCta(proContext);
 
+  let watchlistSymbols: string[] = [];
+  try {
+    const wl = await fetchWatchlist(session.userId);
+    watchlistSymbols = wl.map((w) => w.symbol);
+  } catch {
+    /* optional */
+  }
+
+  const shell = (content: ReactNode) => (
+    <ResearchWorkspaceShell
+      tab={tab}
+      watchlistCount={watchlistSymbols.length}
+      userId={session.userId}
+      isPro={!proLocked}
+    >
+      {content}
+    </ResearchWorkspaceShell>
+  );
+
   if (tab === "screener") {
     const data = await fetchCommunityScreener();
-    let watchlistSymbols: string[] = [];
-    try {
-      const wl = await fetchWatchlist(session.userId);
-      watchlistSymbols = wl.map((w) => w.symbol);
-    } catch {
-      /* optional */
-    }
     const compareSymbols = [data.mostCalled[0]?.symbol, data.topReturns[0]?.symbol].filter(
       (s): s is string => Boolean(s)
     );
     const compareHref = buildCompareHref(compareSymbols);
 
-    return (
-      <div className="space-y-6">
+    return shell(
+      <>
         <ResearchCommandHeader tab="screener" />
         {!proLocked && compareSymbols.length >= 2 ? (
           <p className="text-xs text-[var(--pf-gray-500)]">
@@ -78,22 +97,14 @@ export default async function DashboardResearchPage({
           showExport
           watchlistSymbols={watchlistSymbols}
         />
-      </div>
+      </>
     );
   }
 
   if (tab === "earnings") {
     const rows = await fetchEarningsBattleboard();
-    let watchlistSymbols: string[] = [];
-    try {
-      const wl = await fetchWatchlist(session.userId);
-      watchlistSymbols = wl.map((w) => w.symbol);
-    } catch {
-      /* optional */
-    }
-
-    return (
-      <div className="space-y-6">
+    return shell(
+      <>
         <ResearchCommandHeader tab="earnings" />
         <EarningsSurfacesExplainer />
         <ProEarningsBattleboardSection
@@ -102,40 +113,23 @@ export default async function DashboardResearchPage({
           proGateCta={proGateCta}
           watchlistSymbols={watchlistSymbols}
         />
-      </div>
+      </>
     );
   }
 
   if (tab === "news") {
-    let watchlistSymbols: string[] = [];
-    try {
-      const wl = await fetchWatchlist(session.userId);
-      watchlistSymbols = wl.map((w) => w.symbol);
-    } catch {
-      /* optional */
-    }
-
     const initialLane = parseMarketHeadlineLane(sp.lane);
     const initialHeadlines = await fetchMarketHeadlinesByLane(initialLane, watchlistSymbols);
-
-    return (
-      <div className="space-y-6">
+    return shell(
+      <>
         <ResearchCommandHeader tab="news" />
         <MarketHeadlinesPanel
           initialLane={initialLane}
           initialHeadlines={initialHeadlines}
           watchlistCount={watchlistSymbols.length}
         />
-      </div>
+      </>
     );
-  }
-
-  let watchlistSymbols: string[] = [];
-  try {
-    const wl = await fetchWatchlist(session.userId);
-    watchlistSymbols = wl.map((w) => w.symbol);
-  } catch {
-    /* optional */
   }
 
   const fromQuery = parseCompareSymbolsParam(sp.symbols);
@@ -146,8 +140,8 @@ export default async function DashboardResearchPage({
         ? [...fromQuery, ...watchlistSymbols.filter((s) => s !== fromQuery[0])].slice(0, 3)
         : watchlistSymbols.slice(0, 2);
 
-  return (
-    <div className="space-y-6">
+  return shell(
+    <>
       <ResearchCommandHeader
         tab="compare"
         detail={compareDetail(initialSymbols.length, watchlistSymbols.length)}
@@ -160,6 +154,6 @@ export default async function DashboardResearchPage({
         viewerUserId={session.userId}
         syncUrl
       />
-    </div>
+    </>
   );
 }

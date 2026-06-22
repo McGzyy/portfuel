@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Settings2 } from "lucide-react";
 import { NotificationsCommandHeader } from "@/components/notifications/NotificationsCommandHeader";
+import { AlertsContextRail } from "@/components/notifications/AlertsContextRail";
+import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
 import { NotificationsFilterBar } from "@/components/notifications/NotificationsFilterBar";
 import { NotificationInboxItem } from "@/components/notifications/NotificationInboxItem";
 import { Button } from "@/components/ui/button";
@@ -145,6 +147,11 @@ export function NotificationsList({ proUnlocked: _proUnlocked = false }: { proUn
   }
 
   return (
+    <WorkspaceContextShell
+      pulseLabel="Alerts pulse"
+      rail={<AlertsContextRail unreadCount={unread} totalCount={items.length} />}
+      mainClassName="space-y-5 pb-14 lg:pb-0"
+    >
     <div className="space-y-5">
       <NotificationsCommandHeader
         unreadCount={unread}
@@ -250,5 +257,6 @@ export function NotificationsList({ proUnlocked: _proUnlocked = false }: { proUn
         </div>
       )}
     </div>
+    </WorkspaceContextShell>
   );
 }

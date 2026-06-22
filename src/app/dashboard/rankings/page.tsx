@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { RankingsPageContent } from "@/components/rankings/RankingsPageContent";
+import { RankingsContextRail } from "@/components/rankings/RankingsContextRail";
+import { WorkspaceLivePulse } from "@/components/dashboard/WorkspaceLivePulse";
+import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
 import { fetchLeaderboard } from "@/lib/calls/leaderboard";
 import { summarizeRankings } from "@/lib/calls/rankings-summary";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
@@ -52,15 +55,24 @@ export default async function DashboardRankingsPage() {
   }
 
   return (
-    <RankingsPageContent
-      rows={rows}
-      summary={summary}
-      proLocked={proLocked}
-      proGateCta={proGateCta}
-      loggedIn
-      viewerUserId={session.userId}
-      followingIds={followingIds}
-      suggestedFollows={suggestedFollows}
-    />
+    <WorkspaceContextShell
+      pulseLabel="Rankings pulse"
+      rail={
+        <RankingsContextRail summary={summary} followingCount={followingIds.length} />
+      }
+      mainClassName="space-y-6 pb-14 lg:pb-0"
+    >
+      <WorkspaceLivePulse userId={session.userId} isPro={!proLocked} />
+      <RankingsPageContent
+        rows={rows}
+        summary={summary}
+        proLocked={proLocked}
+        proGateCta={proGateCta}
+        loggedIn
+        viewerUserId={session.userId}
+        followingIds={followingIds}
+        suggestedFollows={suggestedFollows}
+      />
+    </WorkspaceContextShell>
   );
 }

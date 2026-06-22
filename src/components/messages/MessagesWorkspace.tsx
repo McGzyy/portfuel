@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MessagesCommandHeader } from "@/components/messages/MessagesCommandHeader";
+import { MessagesContextRail } from "@/components/messages/MessagesContextRail";
+import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
 import { cn, timeAgo } from "@/lib/utils";
 import { DmTypingIndicator } from "@/components/messages/DmTypingIndicator";
 import { useDmTyping } from "@/components/messages/useDmTyping";
@@ -173,6 +175,13 @@ export function MessagesWorkspace({ proUnlocked = false }: { proUnlocked?: boole
   }
 
   return (
+    <WorkspaceContextShell
+      pulseLabel="Messages pulse"
+      rail={
+        <MessagesContextRail threadCount={threads.length} unreadCount={unreadThreads} />
+      }
+      mainClassName="space-y-6 pb-14 lg:pb-0"
+    >
     <div className="space-y-6">
       <MessagesCommandHeader
         threadCount={threads.length}
@@ -310,5 +319,6 @@ export function MessagesWorkspace({ proUnlocked = false }: { proUnlocked?: boole
         </section>
       </div>
     </div>
+    </WorkspaceContextShell>
   );
 }

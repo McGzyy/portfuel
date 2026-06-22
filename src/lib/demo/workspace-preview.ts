@@ -40,6 +40,7 @@ function summarizeFueled(calls: CallWithUser[]): FueledTrackRecord {
     closedCalls: 0,
     avgReturnPct: avg,
     winRate: withReturn.length > 0 ? (wins / withReturn.length) * 100 : null,
+    openAvgReturnPct: avg,
     bestSymbol: best?.symbol ?? null,
     bestReturnPct: best?.return_pct ?? null,
     recent: fueled.slice(0, 5).map((c) => ({
@@ -48,6 +49,7 @@ function summarizeFueled(calls: CallWithUser[]): FueledTrackRecord {
       direction: c.direction as "long" | "short",
       return_pct: c.return_pct,
       called_at: c.called_at,
+      closed_at: c.closed_at ?? null,
     })),
   };
 }

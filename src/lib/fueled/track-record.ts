@@ -1,13 +1,17 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { isDemoMode } from "@/lib/demo/config";
+import { isOpenMemberCall } from "@/lib/calls/open-calls";
 import { getDemoCallsFeed } from "@/lib/demo/fixtures";
 
 export type FueledTrackRecord = {
   totalCalls: number;
   openCalls: number;
   closedCalls: number;
+  /** Avg return on closed calls only. */
   avgReturnPct: number | null;
   winRate: number | null;
+  /** Live avg return on open calls (mark-to-market). */
+  openAvgReturnPct: number | null;
   bestSymbol: string | null;
   bestReturnPct: number | null;
   recent: {
@@ -16,10 +20,17 @@ export type FueledTrackRecord = {
     direction: "long" | "short";
     return_pct: number | null;
     called_at: string;
+    closed_at?: string | null;
   }[];
 };
 
-function summarize(rows: { return_pct: number | null; symbol: string }[]): {
+type CallRow = {
+  return_pct: number | null;
+  symbol: string;
+  closed_at?: string | null;
+};
+
+function summarizeReturns(rows: CallRow[]): {
   avgReturnPct: number | null;
   winRate: number | null;
   bestSymbol: string | null;
@@ -50,21 +61,26 @@ function summarize(rows: { return_pct: number | null; symbol: string }[]): {
 export async function fetchFueledTrackRecord(): Promise<FueledTrackRecord> {
   if (isDemoMode()) {
     const fueled = getDemoCallsFeed("latest").filter((c) => c.is_fueled);
-    const stats = summarize(fueled);
+    const openRows = fueled.filter((c) => isOpenMemberCall(c));
+    const closedRows = fueled.filter((c) => !isOpenMemberCall(c));
+    const closedStats = summarizeReturns(closedRows);
+    const openStats = summarizeReturns(openRows);
     return {
       totalCalls: fueled.length,
-      openCalls: fueled.length,
-      closedCalls: 0,
-      avgReturnPct: stats.avgReturnPct,
-      winRate: stats.winRate,
-      bestSymbol: stats.bestSymbol,
-      bestReturnPct: stats.bestReturnPct,
+      openCalls: openRows.length,
+      closedCalls: closedRows.length,
+      avgReturnPct: closedStats.avgReturnPct,
+      winRate: closedStats.winRate,
+      openAvgReturnPct: openStats.avgReturnPct,
+      bestSymbol: closedStats.bestSymbol ?? openStats.bestSymbol,
+      bestReturnPct: closedStats.bestReturnPct ?? openStats.bestReturnPct,
       recent: fueled.slice(0, 5).map((c) => ({
         id: c.id,
         symbol: c.symbol,
         direction: c.direction as "long" | "short",
         return_pct: c.return_pct,
         called_at: c.called_at,
+        closed_at: c.closed_at ?? null,
       })),
     };
   }
@@ -72,29 +88,34 @@ export async function fetchFueledTrackRecord(): Promise<FueledTrackRecord> {
   const db = createServiceClient();
   const { data, error } = await db
     .from("calls")
-    .select("id, symbol, direction, return_pct, called_at, target_progress")
+    .select("id, symbol, direction, return_pct, called_at, closed_at, target_progress")
     .eq("is_fueled", true)
     .order("called_at", { ascending: false });
 
   if (error) throw error;
 
   const rows = data ?? [];
-  const stats = summarize(rows);
+  const openRows = rows.filter((r) => !r.closed_at);
+  const closedRows = rows.filter((r) => r.closed_at);
+  const closedStats = summarizeReturns(closedRows);
+  const openStats = summarizeReturns(openRows);
 
   return {
     totalCalls: rows.length,
-    openCalls: rows.length,
-    closedCalls: 0,
-    avgReturnPct: stats.avgReturnPct,
-    winRate: stats.winRate,
-    bestSymbol: stats.bestSymbol,
-    bestReturnPct: stats.bestReturnPct,
+    openCalls: openRows.length,
+    closedCalls: closedRows.length,
+    avgReturnPct: closedStats.avgReturnPct,
+    winRate: closedStats.winRate,
+    openAvgReturnPct: openStats.avgReturnPct,
+    bestSymbol: closedStats.bestSymbol ?? openStats.bestSymbol,
+    bestReturnPct: closedStats.bestReturnPct ?? openStats.bestReturnPct,
     recent: rows.slice(0, 5).map((c) => ({
       id: c.id,
       symbol: c.symbol,
       direction: c.direction as "long" | "short",
       return_pct: c.return_pct != null ? Number(c.return_pct) : null,
       called_at: c.called_at,
+      closed_at: c.closed_at ?? null,
     })),
   };
 }

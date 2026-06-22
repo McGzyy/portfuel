@@ -6,6 +6,7 @@ import {
 } from "@/components/workspace/ContextRailModule";
 import { OverviewRailMiniStat } from "@/components/dashboard/OverviewContextRail.client";
 import type { FueledTrackRecord } from "@/lib/fueled/track-record";
+import { displayFueledTrackRecord } from "@/lib/fueled/track-record-display";
 import type { DeskPortfolioView } from "@/lib/desk/portfolio";
 import { cn, formatPct } from "@/lib/utils";
 
@@ -29,6 +30,7 @@ export function DeskContextRail({
   isAdmin?: boolean;
 }) {
   const openBook = openEntries.filter((e) => e.status === "open").slice(0, 5);
+  const display = displayFueledTrackRecord(trackRecord);
 
   return (
     <ContextRailModule eyebrow="House" title="Desk intel" ariaLabel="Fueled desk context">
@@ -39,10 +41,10 @@ export function DeskContextRail({
           <OverviewRailMiniStat
             label="Win %"
             value={
-              trackRecord.winRate != null ? `${Math.round(trackRecord.winRate)}%` : "—"
+              display.winRate != null ? `${Math.round(display.winRate)}%` : "—"
             }
             accent={
-              trackRecord.winRate != null && trackRecord.winRate >= 50 ? "positive" : undefined
+              display.winRate != null && display.winRate >= 50 ? "positive" : undefined
             }
           />
         </div>
@@ -96,11 +98,18 @@ export function DeskContextRail({
           <OverviewRailMiniStat
             label="Avg ret"
             value={
-              trackRecord.avgReturnPct != null ? formatPct(trackRecord.avgReturnPct) : "—"
+              display.showAggregateStats && display.avgReturnPct != null
+                ? formatPct(display.avgReturnPct)
+                : display.openAvgReturnPct != null
+                  ? formatPct(display.openAvgReturnPct)
+                  : "—"
             }
             accent={
-              trackRecord.avgReturnPct != null
-                ? trackRecord.avgReturnPct >= 0
+              (display.showAggregateStats ? display.avgReturnPct : display.openAvgReturnPct) !=
+              null
+                ? (display.showAggregateStats
+                    ? display.avgReturnPct
+                    : display.openAvgReturnPct)! >= 0
                   ? "positive"
                   : "negative"
                 : undefined
@@ -108,6 +117,14 @@ export function DeskContextRail({
           />
           <OverviewRailMiniStat label="Closed" value={String(trackRecord.closedCalls)} />
         </div>
+        {display.statusNote ? (
+          <p className="mt-2 text-[11px] leading-snug text-[var(--pf-gray-500)]">
+            {display.statusNote}
+            {!display.showAggregateStats && display.openAvgReturnPct != null
+              ? " Open book return shown until enough closes."
+              : ""}
+          </p>
+        ) : null}
         {pinnedSymbol ? (
           <p className="mt-2 text-[11px] text-[var(--pf-gray-500)]">
             Pinned:{" "}

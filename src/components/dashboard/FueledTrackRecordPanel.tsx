@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { Flame, TrendingUp } from "lucide-react";
 import type { FueledTrackRecord } from "@/lib/fueled/track-record";
+import { displayFueledTrackRecord } from "@/lib/fueled/track-record-display";
 import { formatPct, timeAgo } from "@/lib/utils";
 
 export function FueledTrackRecordPanel({ record }: { record: FueledTrackRecord }) {
   if (record.totalCalls === 0) return null;
+
+  const display = displayFueledTrackRecord(record);
 
   return (
     <section className="pf-fueled-desk overflow-hidden p-5 sm:p-6" aria-label="Fueled desk track record">
@@ -35,21 +38,27 @@ export function FueledTrackRecordPanel({ record }: { record: FueledTrackRecord }
           <dd className="mt-1 text-2xl font-bold tabular-nums text-white">{record.totalCalls}</dd>
         </div>
         <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
-          <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Avg return</dt>
+          <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+            {display.showAggregateStats ? "Avg return" : "Open avg"}
+          </dt>
           <dd
             className={
-              record.avgReturnPct != null && record.avgReturnPct >= 0
+              (display.showAggregateStats ? display.avgReturnPct : display.openAvgReturnPct) !=
+                null &&
+              (display.showAggregateStats ? display.avgReturnPct : display.openAvgReturnPct)! >= 0
                 ? "mt-1 text-2xl font-bold tabular-nums text-emerald-400"
                 : "mt-1 text-2xl font-bold tabular-nums text-rose-400"
             }
           >
-            {formatPct(record.avgReturnPct)}
+            {formatPct(
+              display.showAggregateStats ? display.avgReturnPct : display.openAvgReturnPct
+            )}
           </dd>
         </div>
         <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
           <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Win rate</dt>
           <dd className="mt-1 text-2xl font-bold tabular-nums text-white">
-            {record.winRate != null ? `${record.winRate.toFixed(0)}%` : "—"}
+            {display.winRate != null ? `${display.winRate.toFixed(0)}%` : "—"}
           </dd>
         </div>
         <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
@@ -62,6 +71,10 @@ export function FueledTrackRecordPanel({ record }: { record: FueledTrackRecord }
           </dd>
         </div>
       </dl>
+
+      {display.statusNote ? (
+        <p className="mt-3 text-xs text-slate-400">{display.statusNote}</p>
+      ) : null}
 
       {record.recent.length > 0 ? (
         <ul className="mt-5 divide-y divide-white/10 rounded-lg border border-white/10 bg-black/20">
