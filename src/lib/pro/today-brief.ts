@@ -7,6 +7,8 @@ import type { WatchlistEntry } from "@/lib/watchlist/types";
 import { formatPct } from "@/lib/utils";
 import { journalSymbolPath } from "@/lib/journal/paths";
 import { buildResearchHubHref } from "@/lib/dashboard/research-hub";
+import { buildFeedHref } from "@/lib/dashboard/nav";
+import type { ProFollowingHighlight } from "@/lib/pro/following-brief";
 
 export type ProTodayBriefRow = {
   id: string;
@@ -15,7 +17,7 @@ export type ProTodayBriefRow = {
   /** Smaller secondary line — extra context without crowding the headline fact. */
   meta?: string;
   href: string;
-  accent?: "desk" | "earnings" | "screener" | "book" | "journal" | "crypto";
+  accent?: "desk" | "earnings" | "screener" | "book" | "journal" | "crypto" | "following" | "watchlist";
 };
 
 export type ProTodayBrief = {
@@ -47,6 +49,8 @@ export function buildProTodayBrief(input: {
   openCalls: CallCardData[];
   journalReady: WatchlistEntry[];
   memberProfileHref: string;
+  followingHighlights?: ProFollowingHighlight[];
+  watchlistItems?: WatchlistEntry[];
 }): ProTodayBrief {
   const rows: ProTodayBriefRow[] = [];
 
@@ -62,6 +66,70 @@ export function buildProTodayBrief(input: {
       meta: "House research · weekly positioning on the desk",
       href: "/dashboard/desk",
       accent: "desk",
+    });
+  }
+
+  const following = input.followingHighlights ?? [];
+  const recentPublishes = following.filter((h) => h.kind === "publish");
+  const followingMovers = following.filter((h) => h.kind === "mover");
+
+  if (recentPublishes.length > 0) {
+    const lead = recentPublishes[0]!;
+    rows.push({
+      id: "following",
+      title: "Following",
+      detail:
+        recentPublishes.length === 1
+          ? `@${lead.username} published ${lead.symbol} ${lead.direction.toUpperCase()}`
+          : `${recentPublishes.length} new theses from people you follow`,
+      meta: recentPublishes
+        .slice(0, 3)
+        .map((h) => `@${h.username} · ${h.symbol}`)
+        .join(" · "),
+      href: buildFeedHref({ filter: "following" }),
+      accent: "following",
+    });
+  } else if (followingMovers.length > 0) {
+    const lead = followingMovers[0]!;
+    rows.push({
+      id: "following-movers",
+      title: "Following movers",
+      detail: `${lead.symbol} ${lead.returnPct != null ? formatPct(lead.returnPct) : ""} · @${lead.username}`,
+      meta:
+        followingMovers.length > 1
+          ? `Also: ${followingMovers
+              .slice(1)
+              .map((h) => `${h.symbol} ${h.returnPct != null ? formatPct(h.returnPct) : ""}`)
+              .join(" · ")}`
+          : `${lead.direction.toUpperCase()} thesis on your following feed`,
+      href: buildFeedHref({ filter: "following", tab: "performing" }),
+      accent: "following",
+    });
+  }
+
+  const watchlistMovers = (input.watchlistItems ?? [])
+    .filter((i) => i.change_since_add_pct != null && i.change_since_add_pct !== 0)
+    .sort(
+      (a, b) =>
+        Math.abs(b.change_since_add_pct ?? 0) - Math.abs(a.change_since_add_pct ?? 0)
+    )
+    .slice(0, 3);
+
+  if (watchlistMovers.length > 0) {
+    const lead = watchlistMovers[0]!;
+    rows.push({
+      id: "watchlist-movers",
+      title: "Watchlist movers",
+      detail: `${lead.symbol} ${formatPct(lead.change_since_add_pct)} since you added`,
+      meta:
+        watchlistMovers.length > 1
+          ? `Also: ${watchlistMovers
+              .slice(1)
+              .map((i) => `${i.symbol} ${formatPct(i.change_since_add_pct)}`)
+              .join(" · ")}`
+          : "Live marks on symbols you're researching",
+      href: journalSymbolPath(lead.symbol),
+      accent: "watchlist",
     });
   }
 
@@ -198,7 +266,7 @@ export function buildProTodayBrief(input: {
 
   return {
     deskNote: input.deskNote?.trim() || null,
-    rows: rows.slice(0, 6),
+    rows: rows.slice(0, 7),
   };
 }
 
@@ -212,6 +280,22 @@ export const DEMO_PRO_TODAY_BRIEF: ProTodayBrief = {
       detail: "Quality over quantity this week — mega-cap AI and BTC ETF flows in focus.",
       href: "/dashboard/desk",
       accent: "desk",
+    },
+    {
+      id: "following-demo",
+      title: "Following",
+      detail: "2 new theses from people you follow",
+      meta: "@alpha · NVDA · @deskflow · AMD",
+      href: "/dashboard/feed?filter=following",
+      accent: "following",
+    },
+    {
+      id: "watchlist-demo",
+      title: "Watchlist movers",
+      detail: "TSLA +4.2% since you added",
+      meta: "Also: COIN +3.1% · SMCI −2.8%",
+      href: "/dashboard/journal/TSLA",
+      accent: "watchlist",
     },
     {
       id: "earnings-demo",

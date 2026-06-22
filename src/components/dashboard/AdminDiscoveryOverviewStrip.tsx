@@ -1,22 +1,26 @@
 import Link from "next/link";
 import { Radar } from "lucide-react";
+import { DiscoveryOpenShadowsList } from "@/components/admin/DiscoveryOpenShadowsList";
 import { countActionableDiscoveryCandidates } from "@/lib/desk-discovery/scanner";
 import {
   countOpenDiscoveryShadowCalls,
   getShadowPerformanceStats,
   isDiscoveryShadowTableReady,
+  listOpenDiscoveryShadowCalls,
 } from "@/lib/desk-discovery/shadow-calls";
 import { formatPct, formatWinRatePct } from "@/lib/utils";
 
 const MIGRATION = "20260715100000_discovery_shadow_calls.sql";
 
 export async function AdminDiscoveryOverviewStrip() {
-  const [shadowTableReady, pending, openShadows, shadowStats] = await Promise.all([
-    isDiscoveryShadowTableReady().catch(() => false),
-    countActionableDiscoveryCandidates().catch(() => 0),
-    countOpenDiscoveryShadowCalls().catch(() => 0),
-    getShadowPerformanceStats().catch(() => null),
-  ]);
+  const [shadowTableReady, pending, openShadows, shadowStats, openShadowRows] =
+    await Promise.all([
+      isDiscoveryShadowTableReady().catch(() => false),
+      countActionableDiscoveryCandidates().catch(() => 0),
+      countOpenDiscoveryShadowCalls().catch(() => 0),
+      getShadowPerformanceStats().catch(() => null),
+      listOpenDiscoveryShadowCalls(6).catch(() => []),
+    ]);
 
   if (!shadowTableReady) {
     return (
@@ -86,6 +90,9 @@ export async function AdminDiscoveryOverviewStrip() {
             <p className="mt-0.5 text-xs leading-relaxed text-[var(--pf-gray-600)]">
               {queueLine} · {paperLine}
             </p>
+            {openShadowRows.length > 0 ? (
+              <DiscoveryOpenShadowsList shadows={openShadowRows} />
+            ) : null}
           </div>
         </div>
         <Link

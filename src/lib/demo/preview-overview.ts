@@ -375,6 +375,29 @@ export async function loadDemoOverviewData(tier: DemoPreviewTier): Promise<DemoO
         openCalls: openCallCards,
         journalReady,
         memberProfileHref: `/member/${DEMO_PREVIEW_PROFILE.username}`,
+        watchlistItems,
+        followingHighlights: [
+          {
+            kind: "publish",
+            symbol: "NVDA",
+            username: "alpha",
+            displayName: "Alpha",
+            direction: "long",
+            returnPct: 8.2,
+            calledAt: new Date().toISOString(),
+            callId: "demo-following-1",
+          },
+          {
+            kind: "publish",
+            symbol: "AMD",
+            username: "deskflow",
+            displayName: "Deskflow",
+            direction: "long",
+            returnPct: 3.1,
+            calledAt: new Date().toISOString(),
+            callId: "demo-following-2",
+          },
+        ],
       })
     : null;
 

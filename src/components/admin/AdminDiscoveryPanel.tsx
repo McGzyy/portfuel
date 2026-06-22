@@ -577,7 +577,7 @@ export function AdminDiscoveryPanel() {
         title="Discovery radar"
         description="Market scan hits land in Inbox for triage. Queue the best setups, then publish as Fueled calls — nothing auto-posts."
         actions={
-          <Button type="button" onClick={() => void runScan()} disabled={scanning} className="lg:hidden">
+          <Button type="button" onClick={() => void runScan()} disabled={scanning}>
             {scanning ? "Scanning…" : "Run scan"}
           </Button>
         }

@@ -11,6 +11,8 @@ import {
   ScanSearch,
   Sparkles,
   TrendingUp,
+  Users,
+  Bookmark,
 } from "lucide-react";
 import { buildResearchHubHref } from "@/lib/dashboard/research-hub";
 import { ProIntelligenceGate } from "@/components/pro/ProIntelligenceGate";
@@ -32,6 +34,10 @@ function rowIcon(accent: ProTodayBriefRow["accent"]) {
       return BookOpen;
     case "crypto":
       return Coins;
+    case "following":
+      return Users;
+    case "watchlist":
+      return Bookmark;
     default:
       return Sparkles;
   }
@@ -153,7 +159,7 @@ export function ProTodayBrief({
       cta={proGateCta}
       variant="preview"
       title="Pro Today brief"
-      description="One morning screen: desk note, your watchlist earnings, screener movers, open calls, and journal ideas ready to publish."
+      description="One morning screen: desk note, following activity, watchlist movers, earnings, screener pulse, open calls, and journal ideas ready to publish."
       teaser={locked ? <ProTodayBriefTeaser brief={brief} /> : undefined}
       className={cn(locked && "rounded-[var(--pf-radius-lg)]")}
     >

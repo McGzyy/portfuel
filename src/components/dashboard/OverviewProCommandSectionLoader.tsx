@@ -6,12 +6,16 @@ import {
   summarizeBattleboard,
 } from "@/lib/earnings/battleboard";
 import { fetchEarningsForSymbols } from "@/lib/market/earnings-calendar";
+import { fetchFollowingIds } from "@/lib/follows/service";
+import { loadFeedCalls } from "@/lib/dashboard/data";
+import { buildFollowingHighlights } from "@/lib/pro/following-brief";
 import { buildProTodayBrief } from "@/lib/pro/today-brief";
 import { fetchCommunityScreener } from "@/lib/screener/community";
 import { computeMemberProAnalytics } from "@/lib/users/member-analytics";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 
 export async function OverviewProCommandSectionLoader({
+  userId,
   username,
   openCallCards,
   ownCalls,
@@ -19,6 +23,7 @@ export async function OverviewProCommandSectionLoader({
   deskWeeklyNote,
   watchlistItems,
 }: {
+  userId: string;
   username: string;
   openCallCards: CallCardData[];
   ownCalls: UserCallRow[];
@@ -30,13 +35,20 @@ export async function OverviewProCommandSectionLoader({
     .filter((w) => w.asset_class === "equity")
     .map((w) => w.symbol);
 
-  const [screener, battleboardRows, watchlistEarnings] = await Promise.all([
-    fetchCommunityScreener(),
-    fetchEarningsBattleboard(),
-    fetchEarningsForSymbols(equitySymbols, 14),
-  ]);
+  const [screener, battleboardRows, watchlistEarnings, latestCalls, followingIds] =
+    await Promise.all([
+      fetchCommunityScreener(),
+      fetchEarningsBattleboard(),
+      fetchEarningsForSymbols(equitySymbols, 14),
+      loadFeedCalls("latest"),
+      fetchFollowingIds(userId),
+    ]);
 
   const battleboard = summarizeBattleboard(battleboardRows);
+  const followingHighlights = buildFollowingHighlights(
+    latestCalls,
+    new Set(followingIds)
+  );
   const brief = buildProTodayBrief({
     deskNote: deskWeeklyNote,
     watchlistEarnings,
@@ -45,6 +57,8 @@ export async function OverviewProCommandSectionLoader({
     openCalls: openCallCards,
     journalReady: journalReadyItems,
     memberProfileHref: `/member/${username}`,
+    followingHighlights,
+    watchlistItems,
   });
   const bookAnalytics = computeMemberProAnalytics(ownCalls);
 

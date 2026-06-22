@@ -327,6 +327,7 @@ async function OverviewProCommandSection({ session }: { session: SessionPayload 
   return (
     <OverviewPanelGate panelId="pro_command">
       <OverviewProCommandSectionLoader
+        userId={session.userId}
         username={session.username}
         openCallCards={primary.openCallCards}
         ownCalls={primary.ownCalls}
