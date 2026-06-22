@@ -96,6 +96,7 @@ export function AdminDiscoveryPanel() {
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [migrationMissing, setMigrationMissing] = useState(false);
+  const [shadowTableReady, setShadowTableReady] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<DiscoveryToastState>(null);
   const [filter, setFilter] = useState<DiscoveryPanelFilter>(() =>
@@ -160,6 +161,7 @@ export function AdminDiscoveryPanel() {
       setPendingCount(json.pendingCount ?? 0);
       setActionableCount(json.actionableCount ?? 0);
       setMigrationMissing(Boolean(json.migrationMissing));
+      setShadowTableReady(json.shadowTableReady !== false);
       setAiConfigured(json.aiConfigured !== false);
       void refreshNavCounts();
     } catch {
@@ -624,6 +626,16 @@ export function AdminDiscoveryPanel() {
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           Discovery tables are missing — apply the desk_signal_candidates migrations in Supabase
           (see <code className="text-xs">supabase/scripts/portfuel-discovery-one-shot.sql</code>).
+        </div>
+      ) : null}
+
+      {!shadowTableReady ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Paper track table missing — run migration{" "}
+          <code className="text-xs">20260715100000_discovery_shadow_calls.sql</code> in the Supabase
+          SQL editor (also appended to{" "}
+          <code className="text-xs">supabase/scripts/portfuel-discovery-one-shot.sql</code>). Shadow
+          calls refresh on the quote cron every 15 minutes once applied.
         </div>
       ) : null}
 

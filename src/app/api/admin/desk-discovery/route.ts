@@ -10,7 +10,7 @@ import {
   listDiscoveryCandidates,
   runDiscoveryScan,
 } from "@/lib/desk-discovery/scanner";
-import { getShadowPerformanceStats } from "@/lib/desk-discovery/shadow-calls";
+import { getShadowPerformanceStats, getDiscoveryShadowForCandidate, isDiscoveryShadowTableReady } from "@/lib/desk-discovery/shadow-calls";
 import type { DiscoveryCandidateStatus } from "@/lib/desk-discovery/types";
 
 const STATUS_PARAMS = [
@@ -44,15 +44,22 @@ export async function GET(request: Request) {
       return NextResponse.json({ shadowStats });
     }
 
+    const shadowForCandidate = url.searchParams.get("shadowFor");
+    if (shadowForCandidate) {
+      const shadow = await getDiscoveryShadowForCandidate(shadowForCandidate);
+      return NextResponse.json({ shadow });
+    }
+
     const status = STATUS_PARAMS.includes(statusParam as (typeof STATUS_PARAMS)[number])
       ? (statusParam as DiscoveryCandidateStatus | "active" | "inbox" | "ready")
       : "inbox";
 
-    const [list, lastScan, pendingCount, actionableCount] = await Promise.all([
+    const [list, lastScan, pendingCount, actionableCount, shadowTableReady] = await Promise.all([
       listDiscoveryCandidates({ status }),
       getLastDiscoveryScanSummary(),
       countPendingDiscoveryCandidates(),
       countActionableDiscoveryCandidates(),
+      isDiscoveryShadowTableReady(),
     ]);
     return NextResponse.json({
       candidates: list.candidates,
@@ -60,6 +67,8 @@ export async function GET(request: Request) {
       pendingCount,
       actionableCount,
       migrationMissing: list.migrationMissing ?? false,
+      shadowTableReady,
+      shadowMigration: "20260715100000_discovery_shadow_calls.sql",
       aiConfigured: isAiCoachConfigured(),
     });
   } catch (e) {

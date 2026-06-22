@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { TickerPageContent } from "@/components/ticker/TickerPageContent";
-import { TickerPageSkeleton } from "@/components/ticker/TickerPageSkeleton";
 import { SITE_NAME } from "@/lib/seo/site";
 import { getSession } from "@/lib/auth/session";
 
@@ -30,11 +28,7 @@ export default async function TickerPage({
   const symbol = raw.toUpperCase();
   const session = await getSession();
 
-  const content = (
-    <Suspense fallback={<TickerPageSkeleton />}>
-      <TickerPageContent symbol={symbol} session={session} />
-    </Suspense>
-  );
+  const content = <TickerPageContent symbol={symbol} session={session} />;
 
   if (session) {
     return content;

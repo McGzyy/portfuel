@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, cache } from "react";
 import { ProQuoteRefreshMount } from "@/components/market/ProQuoteRefreshMount";
 import { PublishSuccessBanner } from "@/components/calls/PublishSuccessBanner";
 import { TickerChartSection } from "@/components/charts/TickerChartSection";
@@ -10,6 +10,8 @@ import { TickerActionBar } from "@/components/ticker/TickerActionBar";
 import { TickerPageNav } from "@/components/ticker/TickerPageNav";
 import { TickerCallsSection } from "@/components/ticker/TickerCallsSection";
 import { TickerIntelSection } from "@/components/ticker/TickerIntelSection";
+import { TickerIntelSkeleton } from "@/components/ticker/TickerIntelSkeleton";
+import { TickerPageSkeleton } from "@/components/ticker/TickerPageSkeleton";
 import { ProIntelDiscoverStrip } from "@/components/pro/ProIntelDiscoverStrip";
 import type { SessionPayload } from "@/lib/auth/session-types";
 import { hasSupabaseConfig } from "@/lib/db/supabase";
@@ -27,13 +29,9 @@ import { fetchUserOpenCallOnSymbol } from "@/lib/calls/user-symbol-call";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import { fetchDiscoveryOriginCallIds, callIsFromDiscovery } from "@/lib/desk-discovery/call-origin";
 
-export async function TickerPageContent({
-  symbol,
-  session,
-}: {
-  symbol: string;
-  session: SessionPayload | null;
-}) {
+const loadTickerCallsWithDiscovery = cache(async function loadTickerCallsWithDiscovery(
+  symbol: string
+) {
   let intel = null;
   if (isDemoMode() || hasSupabaseConfig()) {
     try {
@@ -42,18 +40,81 @@ export async function TickerPageContent({
       console.error("[ticker page]", e);
     }
   }
-
   const rawCalls = intel?.calls ?? [];
   const discoveryCallIds = await fetchDiscoveryOriginCallIds(rawCalls.map((c) => c.id));
   const calls = rawCalls.map((c) => ({
     ...c,
     from_discovery: callIsFromDiscovery(c.id, discoveryCallIds),
   }));
-  const communityStats = summarizeTickerCommunity(calls);
+  return { intel, calls };
+});
+
+function proFlags(session: SessionPayload | null) {
   const proContext = sessionToProContext(session);
   const proLocked = session ? isProIntelligenceLocked(proContext) : true;
-  const proGateCta = getProGateCta(proContext);
-  const isPro = session ? !proLocked : false;
+  return {
+    proLocked,
+    proGateCta: getProGateCta(proContext),
+    isPro: session ? !proLocked : false,
+  };
+}
+
+async function TickerIntelBelowFold({
+  symbol,
+  session,
+}: {
+  symbol: string;
+  session: SessionPayload | null;
+}) {
+  const { proLocked, proGateCta } = proFlags(session);
+  let intel = null;
+  if (isDemoMode() || hasSupabaseConfig()) {
+    try {
+      intel = await loadTickerIntel(symbol);
+    } catch (e) {
+      console.error("[ticker intel section]", e);
+    }
+  }
+
+  const emptyIntel = {
+    symbol,
+    assetClass: "equity" as const,
+    companyName: symbol,
+    quote: null,
+    hypeScore: 0,
+    candles: [],
+    markers: [],
+    calls: [],
+    news: [],
+    earnings: [],
+    filings: [],
+    profile: null,
+  };
+
+  const intelData = intel ?? emptyIntel;
+  const intelTeaser = buildIntelTeaserSummary(intelData);
+
+  return (
+    <TickerIntelSection
+      intel={intelData}
+      locked={proLocked}
+      proGateCta={proGateCta}
+      teaser={intelTeaser}
+    />
+  );
+}
+
+async function TickerPageCore({
+  symbol,
+  session,
+}: {
+  symbol: string;
+  session: SessionPayload | null;
+}) {
+  const { proLocked, isPro } = proFlags(session);
+  const { intel, calls } = await loadTickerCallsWithDiscovery(symbol);
+  const communityStats = summarizeTickerCommunity(calls);
+
   const onWatchlist =
     session?.subscriptionStatus === "active"
       ? await isSymbolOnWatchlist(session.userId, symbol)
@@ -76,7 +137,6 @@ export async function TickerPageContent({
 
   const intelData = intel ?? emptyIntel;
   const isEquityIntel = intelData.assetClass === "equity";
-  const intelTeaser = buildIntelTeaserSummary(intelData);
   const chartPriceLines = buildTickerPriceLines({
     calls,
     viewerUserId: session?.userId,
@@ -102,7 +162,7 @@ export async function TickerPageContent({
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-5 sm:space-y-8">
+    <>
       {session ? (
         <Suspense fallback={null}>
           <PublishSuccessBanner symbol={symbol} username={session.username} />
@@ -178,13 +238,25 @@ export async function TickerPageContent({
         proLocked={proLocked}
         isAdmin={session?.role === "admin"}
       />
+    </>
+  );
+}
 
-      <TickerIntelSection
-        intel={intelData}
-        locked={proLocked}
-        proGateCta={proGateCta}
-        teaser={intelTeaser}
-      />
+export function TickerPageContent({
+  symbol,
+  session,
+}: {
+  symbol: string;
+  session: SessionPayload | null;
+}) {
+  return (
+    <div className="mx-auto max-w-5xl space-y-5 sm:space-y-8">
+      <Suspense fallback={<TickerPageSkeleton />}>
+        <TickerPageCore symbol={symbol} session={session} />
+      </Suspense>
+      <Suspense fallback={<TickerIntelSkeleton />}>
+        <TickerIntelBelowFold symbol={symbol} session={session} />
+      </Suspense>
     </div>
   );
 }

@@ -180,7 +180,7 @@ function evaluateClose(
   if (shadow.targetPrice != null && isTargetHit(shadow.direction, lastPrice, shadow.targetPrice)) {
     return { status: "target_hit", reason: "Target level reached" };
   }
-  if (shadow.maxHoldUntil && shadow.maxHoldUntil <= now.toISOString()) {
+  if (shadow.maxHoldUntil && new Date(shadow.maxHoldUntil).getTime() <= now.getTime()) {
     return { status: "expired", reason: `Max hold (${DEFAULT_HOLD_DAYS}d) elapsed` };
   }
   return null;
@@ -315,6 +315,49 @@ function avgReturn(rows: { returnPct: number | null }[]): number | null {
   const scored = rows.filter((r) => r.returnPct != null);
   if (scored.length === 0) return null;
   return scored.reduce((s, r) => s + (r.returnPct ?? 0), 0) / scored.length;
+}
+
+export async function getDiscoveryShadowForCandidate(
+  candidateId: string
+): Promise<DiscoveryShadowCallRow | null> {
+  if (isDemoMode()) return null;
+
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("desk_discovery_shadow_calls")
+    .select("*")
+    .eq("candidate_id", candidateId)
+    .order("triggered_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    if (isMissingDiscoveryTable(error.message)) return null;
+    console.error("[shadow-calls/for-candidate]", error.message);
+    return null;
+  }
+  return data ? mapShadow(data as DbShadow) : null;
+}
+
+export async function listOpenDiscoveryShadowCalls(
+  limit = 12
+): Promise<DiscoveryShadowCallRow[]> {
+  if (isDemoMode()) return [];
+
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("desk_discovery_shadow_calls")
+    .select("*")
+    .eq("status", "open")
+    .order("triggered_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    if (isMissingDiscoveryTable(error.message)) return [];
+    console.error("[shadow-calls/list-open]", error.message);
+    return [];
+  }
+  return (data ?? []).map((row) => mapShadow(row as DbShadow));
 }
 
 export async function isDiscoveryShadowTableReady(): Promise<boolean> {

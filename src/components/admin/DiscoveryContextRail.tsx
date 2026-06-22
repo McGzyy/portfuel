@@ -11,6 +11,7 @@ import {
 } from "@/components/admin/DiscoveryWorkflowStepper";
 import { DiscoveryScoreTooltip } from "@/components/admin/DiscoveryScoreTooltip";
 import { DiscoveryShadowStatsPanel } from "@/components/admin/DiscoveryShadowStatsPanel";
+import { DiscoveryCandidateShadowPanel } from "@/components/admin/DiscoveryCandidateShadowPanel";
 import { buildScoreBreakdown } from "@/lib/desk-discovery/score-breakdown";
 import { earningsLabel } from "@/lib/desk-discovery/candidate-sort";
 import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
@@ -203,6 +204,12 @@ export function DiscoveryContextRail({
             {earnings ? (
               <p className="mt-2 text-xs font-medium text-amber-800">{earnings}</p>
             ) : null}
+            <div className="mt-3 border-t border-[var(--pf-border)] pt-3">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--pf-gray-400)]">
+                Paper track
+              </p>
+              <DiscoveryCandidateShadowPanel candidateId={focusedRow.id} />
+            </div>
             <p className="mt-2 line-clamp-2 text-xs text-[var(--pf-gray-600)]">
               {focusedRow.headline ?? focusedRow.reasons[0]?.detail ?? "—"}
             </p>

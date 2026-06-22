@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createServiceClient } from "@/lib/db/supabase";
 import { localDayStartUnix } from "@/lib/time/timestamp";
 import { enrichCallWithLivePrice } from "@/lib/calls/live-metrics";
@@ -90,7 +91,7 @@ export type LoadTickerIntelOptions = {
   assetClass?: AssetClass;
 };
 
-export async function loadTickerIntel(
+export const loadTickerIntel = cache(async function loadTickerIntel(
   symbol: string,
   opts?: LoadTickerIntelOptions
 ): Promise<TickerIntel> {
@@ -269,4 +270,4 @@ export async function loadTickerIntel(
     cryptoMeta,
     btcBenchmark: assetClass === "crypto" ? btcBenchmark : undefined,
   };
-}
+});
