@@ -5,6 +5,10 @@ import { SOCIAL_CHART_FOOTER_H } from "@/lib/charts/social-chart-logo";
 import { showTargetGuide } from "@/lib/charts/social-chart-format";
 import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
 import type { CandlePoint } from "@/lib/charts/types";
+import {
+  callBarIndexFromCalledAt,
+  shouldTruncateSocialChartAtCall,
+} from "@/lib/charts/social-chart-candles";
 
 const PLOT_W = 1200;
 /** Header ~208px + footer 92px → plot fills the middle band. */
@@ -23,9 +27,34 @@ function linePrice(
 
 function callMarker(payload: SocialChartPayload) {
   return (
-    payload.markers.find((m) => m.kind === "fueled" || m.callId === payload.featuredCallId) ??
+    payload.markers.find((m) => m.callId === payload.featuredCallId) ??
     payload.markers.find((m) => m.kind === "fueled")
   );
+}
+
+function windowFromCall(
+  candles: CandlePoint[],
+  payload: SocialChartPayload
+): { candles: CandlePoint[]; callIdx: number } {
+  if (candles.length < 3) {
+    return { candles, callIdx: Math.max(0, candles.length - 1) };
+  }
+
+  const idx = callBarIndexFromCalledAt(candles, payload.calledAt);
+  const PRE = 6;
+  const start = Math.max(0, idx - PRE);
+  let windowed = candles.slice(start);
+  let callIdx = idx - start;
+
+  if (shouldTruncateSocialChartAtCall(payload, callIdx, windowed.length)) {
+    windowed = windowed.slice(0, callIdx + 1);
+  }
+
+  return { candles: windowed, callIdx };
+}
+
+function fmtPrice(n: number): string {
+  return n >= 10 ? n.toFixed(2) : n.toFixed(4);
 }
 
 function candleIdx(candles: CandlePoint[], time: number): number {
@@ -39,22 +68,6 @@ function candleIdx(candles: CandlePoint[], time: number): number {
     }
   }
   return best;
-}
-
-function windowFromCall(
-  candles: CandlePoint[],
-  marker: ReturnType<typeof callMarker>
-): { candles: CandlePoint[]; callIdx: number } {
-  if (!marker || candles.length < 3) return { candles, callIdx: 0 };
-  const idx = candleIdx(candles, marker.time);
-  // Show a little history before entry for context.
-  const PRE = 6;
-  const start = Math.max(0, idx - PRE);
-  return { candles: candles.slice(start), callIdx: idx - start };
-}
-
-function fmtPrice(n: number): string {
-  return n >= 10 ? n.toFixed(2) : n.toFixed(4);
 }
 
 export function renderSocialChartPlotSvg(payload: SocialChartPayload): string {
@@ -71,7 +84,7 @@ export function renderSocialChartPlotSvg(payload: SocialChartPayload): string {
   if (raw.length < 2) return emptyPlot();
 
   const marker = callMarker(payload);
-  const { candles, callIdx } = windowFromCall(raw, marker);
+  const { candles, callIdx } = windowFromCall(raw, payload);
   if (candles.length < 2) return emptyPlot();
 
   const entry = linePrice(payload.priceLines, "entry") ?? marker?.price ?? null;

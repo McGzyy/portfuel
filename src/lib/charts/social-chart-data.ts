@@ -124,29 +124,42 @@ export async function loadSocialChartPayload(
 
   const intel = await loadTickerIntel(call.symbol);
   const calledTs = Math.floor(new Date(call.called_at).getTime() / 1000);
+  const callDay = Math.floor(calledTs / 86400) * 86400;
+  const entryPrice = Number(call.entry_price ?? call.price_at_call ?? intel.quote?.price ?? 0);
   let candles = prepareSocialChartCandles(intel.candles, calledTs);
   if (candles.length < 15) {
-    const entry = Number(call.entry_price ?? call.price_at_call ?? intel.quote?.price ?? 100);
     const ret = call.return_pct ?? 0;
+    const freshPublish = Math.abs(ret) < 0.2;
+    const bars = 52;
     candles = buildSyntheticSocialCandles({
-      bars: 52,
-      entryPrice: entry,
-      currentPrice: entry * (1 + ret / 100),
-      callBarIndex: 18,
+      bars,
+      entryPrice: entryPrice,
+      currentPrice: entryPrice * (1 + ret / 100),
+      callBarIndex: freshPublish ? bars - 1 : 18,
     });
   }
 
-  const markers: ChartMarker[] = intel.markers.map((m) => ({
-    ...m,
-    label:
-      m.callId === call.id
-        ? memberWin
-          ? "Call on record"
-          : "Fueled desk"
-        : m.kind === "fueled"
-          ? "Fueled desk"
-          : m.label,
-  }));
+  const featuredMarker: ChartMarker = {
+    time: callDay,
+    price: entryPrice,
+    label: memberWin ? "Call on record" : "Fueled desk",
+    color: "#E31B23",
+    kind: "fueled",
+    callId: call.id,
+  };
+
+  const markers: ChartMarker[] = [
+    featuredMarker,
+    ...intel.markers
+      .filter((m) => m.callId !== call.id)
+      .map((m) => ({
+        ...m,
+        label:
+          m.kind === "fueled"
+            ? "Fueled desk"
+            : m.label,
+      })),
+  ];
 
   const priceLines = buildFeaturedCallPriceLines(call, memberWin ? "Member" : "Desk");
 

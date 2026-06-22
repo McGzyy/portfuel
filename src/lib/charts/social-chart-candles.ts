@@ -1,6 +1,39 @@
+import type { CallMilestoneKey } from "@/lib/notifications/milestones";
 import type { CandlePoint } from "@/lib/charts/types";
 
 const MAX_BARS = 42;
+
+/** Align with daily candle bucketing in prepareSocialChartCandles. */
+export function socialChartCandleDay(unixSec: number): number {
+  return Math.floor(unixSec / 86400) * 86400;
+}
+
+export function callBarIndexFromCalledAt(candles: CandlePoint[], calledAt: string): number {
+  if (candles.length === 0) return 0;
+  const calledDay = socialChartCandleDay(Math.floor(new Date(calledAt).getTime() / 1000));
+  let best = 0;
+  let bestDist = Infinity;
+  for (let i = 0; i < candles.length; i++) {
+    const dist = Math.abs(candles[i]!.time - calledDay);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = i;
+    }
+  }
+  return best;
+}
+
+/** Fresh publish — show history up to entry only (no post-call path yet). */
+export function shouldTruncateSocialChartAtCall(
+  payload: { returnPct: number | null; milestone: CallMilestoneKey | null },
+  callIdx: number,
+  candleCount: number
+): boolean {
+  if (payload.milestone) return false;
+  const ret = payload.returnPct;
+  if (ret != null && Math.abs(ret) >= 0.2) return false;
+  return callIdx < candleCount - 1;
+}
 
 function seededRand(seed: number): () => number {
   let s = seed >>> 0;
