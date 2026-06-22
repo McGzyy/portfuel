@@ -16,7 +16,10 @@ import {
   type FeedFilter,
 } from "@/lib/calls/filter-feed";
 import type { FeedTab } from "@/lib/dashboard/nav";
+import { FeedContextRail } from "@/components/dashboard/FeedContextRail";
 import { FeedVisitTracker } from "@/components/dashboard/FeedVisitTracker";
+import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
+import { getHotTickersFromCalls } from "@/lib/calls/hot-tickers";
 import { MemberQuotaStrip } from "@/components/member/MemberQuotaStrip";
 import { fetchWeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { fetchFollowingIds } from "@/lib/follows/service";
@@ -111,6 +114,19 @@ export default async function DashboardFeedPage({
     mapped = mapped.filter((c) => isCallNewSinceSeen(c.called_at, feedSeenAt));
   }
   const feedSummary = summarizeFeed(mapped);
+  const hotTickers = getHotTickersFromCalls(
+    mapped.map((c) => ({ symbol: c.symbol, return_pct: c.return_pct })),
+    5
+  );
+  let topSymbol: string | null = null;
+  let topReturnPct: number | null = null;
+  for (const c of mapped) {
+    if (c.return_pct == null) continue;
+    if (topReturnPct == null || c.return_pct > topReturnPct) {
+      topReturnPct = c.return_pct;
+      topSymbol = c.symbol;
+    }
+  }
   const weeklyQuota = await fetchWeeklyQuotaStatus(
     session.userId,
     session.membershipTier ?? null
@@ -127,7 +143,19 @@ export default async function DashboardFeedPage({
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <WorkspaceContextShell
+      pulseLabel="Feed pulse"
+      rail={
+        <FeedContextRail
+          summary={feedSummary}
+          newCount={newCount}
+          hotTickers={hotTickers}
+          topSymbol={topSymbol}
+          topReturnPct={topReturnPct}
+        />
+      }
+      mainClassName="space-y-4 pb-14 sm:space-y-6 lg:pb-0"
+    >
       <FeedCommandHeader
         resultCount={mapped.length}
         mode={mode}
@@ -204,6 +232,6 @@ export default async function DashboardFeedPage({
           )}
         </section>
       </div>
-    </div>
+    </WorkspaceContextShell>
   );
 }

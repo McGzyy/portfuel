@@ -5,6 +5,8 @@ import { JournalIdeasPanel } from "@/components/journal/JournalIdeasPanel";
 import { JournalReadyToPublishBanner } from "@/components/journal/JournalReadyToPublishBanner";
 import { ResearchPipeline } from "@/components/journal/ResearchPipeline";
 import { WatchlistJournalReviewPanel } from "@/components/watchlist/WatchlistJournalReviewPanel";
+import { JournalContextRail } from "@/components/journal/JournalContextRail";
+import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { isDemoMode } from "@/lib/demo/config";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
@@ -53,13 +55,27 @@ export default async function DashboardJournalPage({
   ).length;
   const nextUp = pickJournalNextUp(items);
   const readyItems = items.filter((i) => i.journal_progress?.ready_to_publish);
+  const readyCount = readyItems.length;
   const pipelineCurrent = readyItems.length > 0 ? ("publish" as const) : ("research" as const);
   const publishHref =
     readyItems.length > 0 ? buildPublishUrlFromHubEntry(readyItems[0]!) : undefined;
   const bookPosture = summarizeBookPosture(items);
 
   return (
-    <div className="space-y-6">
+    <WorkspaceContextShell
+      pulseLabel="Journal pulse"
+      rail={
+        <JournalContextRail
+          ideaCount={items.length}
+          withThesis={withThesis}
+          activeCount={active}
+          readyCount={readyCount}
+          nextUp={nextUp}
+          items={items}
+        />
+      }
+      mainClassName="space-y-6 pb-14 lg:pb-0"
+    >
       <JournalCommandHeader
         ideaCount={items.length}
         withThesis={withThesis}
@@ -91,6 +107,6 @@ export default async function DashboardJournalPage({
         initialItems={items}
         initialFilter={initialFilter}
       />
-    </div>
+    </WorkspaceContextShell>
   );
 }

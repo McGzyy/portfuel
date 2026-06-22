@@ -15,7 +15,9 @@ export function WorkspaceContent({ children }: { children: React.ReactNode }) {
   const isContextRail =
     pathname === "/dashboard" ||
     pathname === "/dashboard/book" ||
-    pathname === "/dashboard/watchlist";
+    pathname === "/dashboard/watchlist" ||
+    pathname === "/dashboard/journal" ||
+    pathname === "/dashboard/feed";
 
   return (
     <PullToRefresh>

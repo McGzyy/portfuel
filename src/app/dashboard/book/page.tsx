@@ -62,6 +62,7 @@ export default async function DashboardBookPage() {
 
   return (
     <WorkspaceContextShell
+      pulseLabel="Book snapshot"
       rail={
         <BookContextRail
           summary={book.summary}

@@ -16,6 +16,7 @@ export function OverviewLayoutBody({
   return (
     <WorkspaceContextShell
       rail={rail}
+      pulseLabel="Your pulse"
       mainClassName={cn(densityClass, "pb-14 lg:pb-0")}
     >
       {children}

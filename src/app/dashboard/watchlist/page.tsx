@@ -66,6 +66,7 @@ export default async function DashboardWatchlistPage() {
   return (
     <WatchlistItemsProvider initialItems={items}>
       <WorkspaceContextShell
+        pulseLabel="Watchlist pulse"
         rail={
           <WatchlistContextRail
             items={items}
