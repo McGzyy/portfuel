@@ -476,7 +476,6 @@ body {
   .pf-overview-context-module,
   .pf-context-rail-module {
     display: flex;
-    min-height: calc(100dvh - 8.5rem - var(--pf-safe-top, 0px));
     flex-direction: column;
     overflow: hidden;
     border-radius: var(--pf-radius-lg);
@@ -489,6 +488,15 @@ body {
       0 24px 56px -16px rgb(15 23 42 / 0.1);
   }
 
+  /* Overview rail can span the column; workspace context rails hug their content. */
+  .pf-overview-context-module {
+    min-height: calc(100dvh - 8.5rem - var(--pf-safe-top, 0px));
+  }
+
+  .pf-context-rail-module {
+    max-height: calc(100dvh - 8.5rem - var(--pf-safe-top, 0px));
+  }
+
   .pf-overview-context-module-head,
   .pf-context-rail-module-head {
     border-bottom: 1px solid var(--pf-border);
@@ -496,9 +504,13 @@ body {
     padding: 0.875rem 1rem;
   }
 
-  .pf-overview-context-module-body,
-  .pf-context-rail-module-body {
+  .pf-overview-context-module-body {
     flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .pf-context-rail-module-body {
     overflow-y: auto;
     overscroll-behavior: contain;
   }

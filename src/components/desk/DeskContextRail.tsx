@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { BarChart3, Flame, Rows3 } from "lucide-react";
+import { BarChart3, Flame, Radar, Rows3 } from "lucide-react";
 import {
   ContextRailBlock,
   ContextRailModule,
 } from "@/components/workspace/ContextRailModule";
 import { OverviewRailMiniStat } from "@/components/dashboard/OverviewContextRail.client";
 import type { FueledTrackRecord } from "@/lib/fueled/track-record";
-import { formatPct } from "@/lib/utils";
+import type { DeskPortfolioView } from "@/lib/desk/portfolio";
+import { cn, formatPct } from "@/lib/utils";
 
 export function DeskContextRail({
   openPositions,
@@ -14,6 +15,8 @@ export function DeskContextRail({
   trackRecord,
   pinnedSymbol,
   hasWeeklyNote,
+  openEntries = [],
+  discoveryActionableCount,
   isAdmin = false,
 }: {
   openPositions: number;
@@ -21,8 +24,12 @@ export function DeskContextRail({
   trackRecord: FueledTrackRecord;
   pinnedSymbol?: string | null;
   hasWeeklyNote: boolean;
+  openEntries?: DeskPortfolioView[];
+  discoveryActionableCount?: number;
   isAdmin?: boolean;
 }) {
+  const openBook = openEntries.filter((e) => e.status === "open").slice(0, 5);
+
   return (
     <ContextRailModule eyebrow="House" title="Desk intel" ariaLabel="Fueled desk context">
       <ContextRailBlock title="Book">
@@ -40,6 +47,33 @@ export function DeskContextRail({
           />
         </div>
       </ContextRailBlock>
+
+      {openBook.length > 0 ? (
+        <ContextRailBlock title="Open book">
+          <ul className="space-y-1.5">
+            {openBook.map((entry) => (
+              <li key={entry.id}>
+                <Link
+                  href={`/ticker/${entry.symbol}`}
+                  className="flex items-center justify-between rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-2.5 py-2 hover:bg-white"
+                >
+                  <span className="font-mono text-xs font-bold text-[var(--pf-black)]">
+                    {entry.symbol}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-xs font-bold tabular-nums",
+                      (entry.return_pct ?? 0) >= 0 ? "text-emerald-600" : "text-rose-600"
+                    )}
+                  >
+                    {entry.return_pct != null ? formatPct(entry.return_pct) : "—"}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </ContextRailBlock>
+      ) : null}
 
       {trackRecord.bestSymbol && trackRecord.bestReturnPct != null ? (
         <ContextRailBlock title="Best 30d">
@@ -91,29 +125,47 @@ export function DeskContextRail({
       </ContextRailBlock>
 
       <ContextRailBlock title="Go">
-        <div className="grid grid-cols-2 gap-1.5">
-          <Link
-            href="/dashboard/feed?filter=fueled"
-            className="flex items-center gap-1.5 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-2.5 py-2 text-[11px] font-semibold text-[var(--pf-gray-700)] hover:bg-white"
-          >
-            <Rows3 className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
-            Fueled feed
-          </Link>
-          <Link
-            href="/dashboard/research"
-            className="flex items-center gap-1.5 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-2.5 py-2 text-[11px] font-semibold text-[var(--pf-gray-700)] hover:bg-white"
-          >
-            <BarChart3 className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
-            Research
-          </Link>
-          {isAdmin ? (
+        <div className="flex flex-col gap-1.5">
+          <div className="grid grid-cols-2 gap-1.5">
             <Link
-              href="/admin?tab=desk"
-              className="col-span-2 flex items-center gap-1.5 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-2.5 py-2 text-[11px] font-semibold text-[var(--pf-gray-700)] hover:bg-white"
+              href="/dashboard/feed?filter=fueled"
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-2.5 py-2 text-[11px] font-semibold text-[var(--pf-gray-700)] hover:bg-white"
             >
-              <Flame className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
-              Admin desk
+              <Rows3 className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+              Fueled feed
             </Link>
+            <Link
+              href="/dashboard/research"
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-2.5 py-2 text-[11px] font-semibold text-[var(--pf-gray-700)] hover:bg-white"
+            >
+              <BarChart3 className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+              Research
+            </Link>
+          </div>
+          {isAdmin ? (
+            <>
+              <Link
+                href="/admin?tab=desk"
+                className="flex items-center gap-1.5 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-2.5 py-2 text-[11px] font-semibold text-[var(--pf-gray-700)] hover:bg-white"
+              >
+                <Flame className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+                Admin desk
+              </Link>
+              <Link
+                href="/admin?tab=discovery"
+                className="flex items-center justify-between gap-1.5 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-2.5 py-2 text-[11px] font-semibold text-[var(--pf-gray-700)] hover:bg-white"
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <Radar className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+                  Discovery radar
+                </span>
+                {discoveryActionableCount != null && discoveryActionableCount > 0 ? (
+                  <span className="rounded-full bg-[var(--pf-red-muted)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--pf-red)]">
+                    {discoveryActionableCount}
+                  </span>
+                ) : null}
+              </Link>
+            </>
           ) : null}
         </div>
       </ContextRailBlock>

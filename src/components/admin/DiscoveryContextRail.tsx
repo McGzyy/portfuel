@@ -10,6 +10,7 @@ import {
   type StepId,
 } from "@/components/admin/DiscoveryWorkflowStepper";
 import { DiscoveryScoreTooltip } from "@/components/admin/DiscoveryScoreTooltip";
+import { DiscoveryShadowStatsPanel } from "@/components/admin/DiscoveryShadowStatsPanel";
 import { buildScoreBreakdown } from "@/lib/desk-discovery/score-breakdown";
 import { earningsLabel } from "@/lib/desk-discovery/candidate-sort";
 import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
@@ -165,6 +166,10 @@ export function DiscoveryContextRail({
               counts={{ inbox: pendingCount, ready: readyCount }}
             />
           </div>
+        </RailSection>
+
+        <RailSection title="Paper track record">
+          <DiscoveryShadowStatsPanel />
         </RailSection>
 
         {focusedRow && queueMode ? (

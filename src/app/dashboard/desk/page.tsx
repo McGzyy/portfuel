@@ -23,6 +23,7 @@ import {
 } from "@/lib/desk/portfolio-display";
 import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
 import { fetchDiscoveryOriginCallIds } from "@/lib/desk-discovery/call-origin";
+import { countActionableDiscoveryCandidates } from "@/lib/desk-discovery/scanner";
 import { fetchFueledTrackRecord } from "@/lib/fueled/track-record";
 import { FueledTrackRecordPanel } from "@/components/dashboard/FueledTrackRecordPanel";
 import { fetchLatestSnapshotUpdatedAt } from "@/lib/market/quote-freshness";
@@ -48,6 +49,8 @@ export default async function DashboardDeskPage() {
       fetchFueledTrackRecord(),
       fetchFueledDeskCalls(),
     ]);
+  const discoveryActionableCount =
+    session.role === "admin" ? await countActionableDiscoveryCandidates() : 0;
   const hypeScores = await fetchHypeScoresBySymbols([
     ...latest.map((c) => c.symbol),
     ...performing.map((c) => c.symbol),
@@ -98,6 +101,8 @@ export default async function DashboardDeskPage() {
           trackRecord={fueledTrackRecord}
           pinnedSymbol={deskBrief.pinnedCall?.symbol ?? null}
           hasWeeklyNote={Boolean(deskBrief.weeklyNote)}
+          openEntries={displayPortfolio}
+          discoveryActionableCount={discoveryActionableCount}
           isAdmin={session.role === "admin"}
         />
       }
