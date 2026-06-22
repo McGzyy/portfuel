@@ -116,11 +116,9 @@ export async function loadTickerIntel(
   const from = to - 365 * 86400;
 
   if (!isDemoMode()) {
-    try {
-      await refreshQuotesForSymbols([sym]);
-    } catch (e) {
+    void refreshQuotesForSymbols([sym]).catch((e) => {
       console.error("[ticker-intel refresh quotes]", sym, e);
-    }
+    });
   }
 
   let calls = await fetchCallsBySymbol(sym);

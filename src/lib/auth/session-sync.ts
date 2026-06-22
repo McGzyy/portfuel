@@ -150,6 +150,19 @@ export async function refreshSessionFromDatabase(
   options?: RefreshSessionOptions
 ): Promise<{ session: SessionPayload | null; token?: string }> {
   try {
+    const issuedAt = options?.jwtIssuedAt;
+    const jwtFresh =
+      !options?.force &&
+      typeof issuedAt === "number" &&
+      Math.floor(Date.now() / 1000) - issuedAt < SESSION_DB_REFRESH_INTERVAL_SEC;
+
+    if (jwtFresh) {
+      if (session.sessionId) {
+        void touchAuthSession(session.sessionId);
+      }
+      return { session };
+    }
+
     const authUserId = session.authUserId ?? session.userId;
     const valid = await isAuthSessionValid({
       userId: authUserId,
@@ -158,18 +171,6 @@ export async function refreshSessionFromDatabase(
     });
     if (!valid) {
       return { session: null };
-    }
-
-    const issuedAt = options?.jwtIssuedAt;
-    if (
-      !options?.force &&
-      typeof issuedAt === "number" &&
-      Math.floor(Date.now() / 1000) - issuedAt < SESSION_DB_REFRESH_INTERVAL_SEC
-    ) {
-      if (session.sessionId) {
-        void touchAuthSession(session.sessionId);
-      }
-      return { session };
     }
 
     await expireProGrantIfNeeded(session.userId);

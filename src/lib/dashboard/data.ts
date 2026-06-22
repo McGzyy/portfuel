@@ -82,7 +82,7 @@ export async function loadMemberStats(userId: string) {
   }
 }
 
-export async function loadFeedCalls(
+export const loadFeedCalls = cache(async function loadFeedCalls(
   mode: "latest" | "performing" = "latest",
   options?: { refreshQuotes?: boolean }
 ) {
@@ -105,7 +105,7 @@ export async function loadFeedCalls(
     console.error("[dashboard/data]", e);
     return [];
   }
-}
+});
 
 export async function loadYourRecentCalls(
   userId: string,

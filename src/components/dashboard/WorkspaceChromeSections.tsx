@@ -2,8 +2,7 @@ import { Suspense } from "react";
 import { MemberNav } from "@/components/dashboard/MemberNav";
 import { WorkspaceSidebar } from "@/components/dashboard/WorkspaceSidebar";
 import type { SessionPayload } from "@/lib/auth/session-types";
-import { loadWorkspaceHeaderAccount } from "@/lib/workspace/header-account";
-import { loadWorkspaceActivitySnapshot } from "@/lib/workspace/activity-snapshot";
+import { loadWorkspaceChromeData } from "@/lib/workspace/chrome-data";
 
 const EMPTY_ACTIVITY = {
   feedNewCount: 0,
@@ -47,11 +46,8 @@ export function MemberNavFallback({
   );
 }
 
-async function WorkspaceSidebarLoader({ session }: { session: SessionPayload }) {
-  const [headerAccount, activityInitial] = await Promise.all([
-    loadWorkspaceHeaderAccount(session),
-    loadWorkspaceActivitySnapshot(session.userId),
-  ]);
+async function WorkspaceChromeAside({ session }: { session: SessionPayload }) {
+  const { headerAccount, activityInitial } = await loadWorkspaceChromeData(session);
 
   return (
     <WorkspaceSidebar
@@ -64,11 +60,8 @@ async function WorkspaceSidebarLoader({ session }: { session: SessionPayload }) 
   );
 }
 
-async function MemberNavLoader({ session }: { session: SessionPayload }) {
-  const [headerAccount, activityInitial] = await Promise.all([
-    loadWorkspaceHeaderAccount(session),
-    loadWorkspaceActivitySnapshot(session.userId),
-  ]);
+async function WorkspaceChromeNav({ session }: { session: SessionPayload }) {
+  const { headerAccount, activityInitial } = await loadWorkspaceChromeData(session);
 
   return (
     <MemberNav
@@ -87,7 +80,7 @@ async function MemberNavLoader({ session }: { session: SessionPayload }) {
 export function WorkspaceSidebarSection({ session }: { session: SessionPayload }) {
   return (
     <Suspense fallback={<WorkspaceSidebarFallback username={session.username} />}>
-      <WorkspaceSidebarLoader session={session} />
+      <WorkspaceChromeAside session={session} />
     </Suspense>
   );
 }
@@ -103,7 +96,7 @@ export function MemberNavSection({ session }: { session: SessionPayload }) {
         />
       }
     >
-      <MemberNavLoader session={session} />
+      <WorkspaceChromeNav session={session} />
     </Suspense>
   );
 }

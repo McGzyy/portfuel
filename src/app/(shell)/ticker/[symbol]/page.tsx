@@ -1,35 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { ProQuoteRefreshMount } from "@/components/market/ProQuoteRefreshMount";
-import { PublishSuccessBanner } from "@/components/calls/PublishSuccessBanner";
 import { SiteHeader } from "@/components/brand/SiteHeader";
-import { TickerChartSection } from "@/components/charts/TickerChartSection";
-import { TickerCompanyStats } from "@/components/ticker/TickerCompanyStats";
-import { buildIntelTeaserSummary } from "@/lib/market/intel-teaser";
-import { TickerPageHeader } from "@/components/ticker/TickerPageHeader";
-import { TickerCommunityBar } from "@/components/ticker/TickerCommunityBar";
-import { TickerActionBar } from "@/components/ticker/TickerActionBar";
-import { TickerPageNav } from "@/components/ticker/TickerPageNav";
-import { TickerCallsSection } from "@/components/ticker/TickerCallsSection";
-import { TickerIntelSection } from "@/components/ticker/TickerIntelSection";
-import { ProIntelDiscoverStrip } from "@/components/pro/ProIntelDiscoverStrip";
+import { TickerPageContent } from "@/components/ticker/TickerPageContent";
+import { TickerPageSkeleton } from "@/components/ticker/TickerPageSkeleton";
 import { SITE_NAME } from "@/lib/seo/site";
 import { getSession } from "@/lib/auth/session";
-import { toHeaderUser } from "@/lib/auth/session-user";
-import { hasSupabaseConfig } from "@/lib/db/supabase";
-import { isDemoMode } from "@/lib/demo/config";
-import { summarizeTickerCommunity } from "@/lib/calls/ticker-community-stats";
-import { isSymbolOnWatchlist } from "@/lib/watchlist/service";
-import { loadTickerIntel } from "@/lib/market/ticker-intel";
-import { buildTickerPriceLines } from "@/lib/charts/price-lines";
-import {
-  getProGateCta,
-  isProIntelligenceLocked,
-  sessionToProContext,
-} from "@/lib/features/pro-intelligence";
-import { fetchUserOpenCallOnSymbol } from "@/lib/calls/user-symbol-call";
-import { fetchWatchlist } from "@/lib/watchlist/service";
-import { fetchDiscoveryOriginCallIds, callIsFromDiscovery } from "@/lib/desk-discovery/call-origin";
 
 export const dynamic = "force-dynamic";
 
@@ -55,170 +30,21 @@ export default async function TickerPage({
   const symbol = raw.toUpperCase();
   const session = await getSession();
 
-  let intel = null;
-  if (isDemoMode() || hasSupabaseConfig()) {
-    try {
-      intel = await loadTickerIntel(symbol);
-    } catch (e) {
-      console.error("[ticker page]", e);
-    }
-  }
-
-  const rawCalls = intel?.calls ?? [];
-  const discoveryCallIds = await fetchDiscoveryOriginCallIds(rawCalls.map((c) => c.id));
-  const calls = rawCalls.map((c) => ({
-    ...c,
-    from_discovery: callIsFromDiscovery(c.id, discoveryCallIds),
-  }));
-  const communityStats = summarizeTickerCommunity(calls);
-  const proContext = sessionToProContext(session);
-  const proLocked = session ? isProIntelligenceLocked(proContext) : true;
-  const proGateCta = getProGateCta(proContext);
-  const isPro = session ? !proLocked : false;
-  const onWatchlist =
-    session?.subscriptionStatus === "active"
-      ? await isSymbolOnWatchlist(session.userId, symbol)
-      : false;
-
-  const emptyIntel = {
-    symbol,
-    assetClass: "equity" as const,
-    companyName: symbol,
-    quote: null,
-    hypeScore: 0,
-    candles: [],
-    markers: [],
-    calls: [],
-    news: [],
-    earnings: [],
-    filings: [],
-    profile: null,
-  };
-
-  const intelData = intel ?? emptyIntel;
-  const isEquityIntel = intelData.assetClass === "equity";
-  const intelGateLocked = proLocked;
-  const intelTeaser = buildIntelTeaserSummary(intelData);
-  const chartPriceLines = buildTickerPriceLines({
-    calls,
-    viewerUserId: session?.userId,
-  });
-
-  let tickerWatchlistSymbols: string[] = [];
-  let ownOpenCallOnSymbol = false;
-  if (session?.subscriptionStatus === "active") {
-    try {
-      const openCall = await fetchUserOpenCallOnSymbol(session.userId, symbol);
-      ownOpenCallOnSymbol = Boolean(openCall);
-    } catch {
-      /* optional */
-    }
-    if (proLocked) {
-      try {
-        const wl = await fetchWatchlist(session.userId);
-        tickerWatchlistSymbols = wl.map((w) => w.symbol);
-      } catch {
-        /* optional */
-      }
-    }
-  }
-
-  const body = (
-    <div className="mx-auto max-w-5xl space-y-5 sm:space-y-8">
-      {session ? (
-        <Suspense fallback={null}>
-          <PublishSuccessBanner symbol={symbol} username={session.username} />
-        </Suspense>
-      ) : null}
-      {session && isPro ? <ProQuoteRefreshMount enabled symbols={[symbol]} /> : null}
-      <section className="pf-ticker-shell space-y-4 sm:space-y-5">
-        <TickerPageHeader
-          symbol={symbol}
-          intel={intel}
-          session={Boolean(session)}
-          onWatchlist={onWatchlist}
-          callCount={calls.length}
-          isPro={isPro}
-        />
-
-        {session ? (
-          <div className="space-y-3 border-t border-[var(--pf-border)] pt-4">
-            <TickerPageNav hasCalls={calls.length > 0} isEquity={isEquityIntel} />
-            <TickerActionBar
-              symbol={symbol}
-              assetClass={intelData.assetClass}
-              proLocked={proLocked}
-              hasOwnOpenCall={ownOpenCallOnSymbol}
-            />
-          </div>
-        ) : null}
-      </section>
-
-      {communityStats.callCount > 0 ? (
-        <TickerCommunityBar stats={communityStats} />
-      ) : null}
-
-      {session && proLocked ? (
-        <ProIntelDiscoverStrip
-          symbol={symbol}
-          assetClass={intelData.assetClass}
-          watchlistSymbols={tickerWatchlistSymbols}
-        />
-      ) : null}
-
-      <section id="chart" className="scroll-mt-24">
-        <TickerChartSection
-          symbol={symbol}
-          initialCandles={intel?.candles ?? []}
-          assetClass={intelData.assetClass}
-          markers={intel?.markers ?? []}
-          priceLines={chartPriceLines}
-          proUnlocked={isPro}
-          chartCalls={calls}
-          interactive={Boolean(session)}
-          viewerUserId={session?.userId}
-          isPro={isPro}
-          showUpgrade={session ? proLocked : false}
-          canGenerateSummary={isPro}
-          isAdmin={session?.role === "admin"}
-        />
-      </section>
-
-      {isEquityIntel ? (
-        <div className="pf-workspace-panel p-4 sm:p-6">
-          <TickerCompanyStats intel={intelData} />
-        </div>
-      ) : null}
-
-      <TickerCallsSection
-        symbol={symbol}
-        assetClass={intelData.assetClass}
-        calls={calls}
-        session={Boolean(session)}
-        viewerUserId={session?.userId}
-        isPro={isPro}
-        proLocked={proLocked}
-        isAdmin={session?.role === "admin"}
-      />
-
-      <TickerIntelSection
-        intel={intelData}
-        locked={intelGateLocked}
-        proGateCta={proGateCta}
-        teaser={intelTeaser}
-      />
-    </div>
+  const content = (
+    <Suspense fallback={<TickerPageSkeleton />}>
+      <TickerPageContent symbol={symbol} session={session} />
+    </Suspense>
   );
 
   if (session) {
-    return body;
+    return content;
   }
 
   return (
     <>
-      <SiteHeader user={session ? toHeaderUser(session) : undefined} />
+      <SiteHeader />
       <div className="pf-app-bg">
-        <main className="mx-auto max-w-5xl px-4 py-8">{body}</main>
+        <main className="mx-auto max-w-5xl px-4 py-8">{content}</main>
       </div>
     </>
   );

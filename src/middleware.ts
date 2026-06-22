@@ -83,6 +83,36 @@ export async function middleware(request: NextRequest) {
     return { session, freshToken };
   }
 
+  /** Client-side navigations: trust the signed JWT and skip Supabase session sync. */
+  async function resolveSessionLight(): Promise<{
+    session: SessionPayload | null;
+  }> {
+    if (!token) return { session: null };
+    const payload = await verifySession(token);
+    if (!payload) return { session: null };
+    const base = jwtPayloadToSession(payload);
+    if (!base) return { session: null };
+    return { session: base };
+  }
+
+  function isSoftNavigationRequest(request: NextRequest): boolean {
+    const accept = request.headers.get("accept");
+    if (accept?.includes("text/x-component")) return true;
+    if (request.headers.get("RSC") === "1") return true;
+    if (request.headers.get("Next-Router-Prefetch") === "1") return true;
+    return false;
+  }
+
+  async function resolveSessionForRequest(request: NextRequest): Promise<{
+    session: SessionPayload | null;
+    freshToken?: string;
+  }> {
+    if (isSoftNavigationRequest(request)) {
+      return resolveSessionLight();
+    }
+    return resolveSession();
+  }
+
   function withFreshCookie(res: NextResponse, freshToken?: string, session?: SessionPayload | null) {
     if (freshToken) {
       res.cookies.set(COOKIE_NAME, freshToken, sessionCookieOptions());
@@ -124,7 +154,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isProtected || isLifecycle) {
-    const { session, freshToken } = await resolveSession();
+    const { session, freshToken } = await resolveSessionForRequest(request);
     if (!session) {
       const loginRedirect = NextResponse.redirect(new URL("/login", request.url));
       if (token) {
@@ -254,7 +284,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname === "/" && token) {
-    const { session, freshToken } = await resolveSession();
+    const { session, freshToken } = await resolveSessionForRequest(request);
     if (session) {
       if (session.banned) {
         return withFreshCookie(
@@ -276,7 +306,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname === "/login" && token) {
-    const { session, freshToken } = await resolveSession();
+    const { session, freshToken } = await resolveSessionForRequest(request);
     if (session && !session.banned) {
       const sub = session.subscriptionStatus;
       const role = session.role;
@@ -312,7 +342,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (token && shouldApplyMemberAppearance(pathname, true)) {
-    const { session, freshToken } = await resolveSession();
+    const { session, freshToken } = await resolveSessionForRequest(request);
     if (session) {
       return nextWithSession(request, session, freshToken);
     }
