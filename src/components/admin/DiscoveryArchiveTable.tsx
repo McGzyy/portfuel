@@ -16,6 +16,8 @@ const SIGNAL_LABELS: Record<DiscoverySignalType, string> = {
   volume_anomaly: "Volume",
   price_move: "Price",
   crypto_momentum: "Crypto",
+  community_heat: "Community",
+  recent_filing: "Filing",
 };
 
 function fmtDate(iso: string) {

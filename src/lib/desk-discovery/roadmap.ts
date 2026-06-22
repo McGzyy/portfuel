@@ -9,7 +9,7 @@ export const DISCOVERY_PROVIDER_ROADMAP = {
   lite: {
     label: "Free / lite (active)",
     providers: ["finnhub-lite", "twelvedata-lite"],
-    signals: ["earnings_soon", "news_catalyst", "volume_anomaly", "price_move", "crypto_momentum"],
+    signals: ["earnings_soon", "news_catalyst", "volume_anomaly", "price_move", "crypto_momentum", "community_heat", "recent_filing"],
     estMonthlyUsd: 0,
   },
   phase2: {

@@ -6,7 +6,9 @@ export type DiscoverySignalType =
   | "news_catalyst"
   | "volume_anomaly"
   | "price_move"
-  | "crypto_momentum";
+  | "crypto_momentum"
+  | "community_heat"
+  | "recent_filing";
 
 /** Paid-tier signal types — wired via provider plugins when subscribed. */
 export type PaidDiscoverySignalType =
@@ -26,6 +28,8 @@ export type DiscoveryCandidateStatus =
 export type DiscoveryReason = {
   type: DiscoverySignalType | PaidDiscoverySignalType;
   detail: string;
+  /** Intensity-adjusted points for this line (when stored from scan). */
+  points?: number;
 };
 
 export type RawDiscoveryHit = {

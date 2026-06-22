@@ -1,6 +1,7 @@
 import { getCryptoCandlesForSymbol } from "@/lib/market/crypto-candles";
 import { isDemoMode } from "@/lib/demo/config";
 import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
+import { cryptoMomentumWeight } from "@/lib/desk-discovery/signal-intensity";
 import { discoveryCryptoUniverse } from "@/lib/desk-discovery/universe";
 import type { RawDiscoveryHit } from "@/lib/desk-discovery/types";
 
@@ -17,6 +18,7 @@ export async function scanCryptoMomentum(): Promise<RawDiscoveryHit[]> {
         assetClass: "crypto",
         type: "crypto_momentum",
         detail: "Demo: SOL +8.2% vs BTC over 7d",
+        weight: 26,
       },
     ];
   }
@@ -36,8 +38,7 @@ export async function scanCryptoMomentum(): Promise<RawDiscoveryHit[]> {
 
   for (const symbol of symbols) {
     if (symbol === "BTC") continue;
-    const pair = symbol;
-    const candle = await getCryptoCandlesForSymbol(pair, from, now, "D");
+    const candle = await getCryptoCandlesForSymbol(symbol, from, now, "D");
     if (!candle?.c?.length || candle.c.length < 3) continue;
 
     const symReturn = pctChange(candle.c[0]!, candle.c[candle.c.length - 1]!);
@@ -55,8 +56,9 @@ export async function scanCryptoMomentum(): Promise<RawDiscoveryHit[]> {
       assetClass: "crypto",
       type: "crypto_momentum",
       detail: `${symbol} ${(symReturn * 100).toFixed(1)}% 7d vs BTC ${(btcReturn * 100).toFixed(1)}% (rel ${(rel * 100).toFixed(1)}%)`,
+      weight: cryptoMomentumWeight(rel, symReturn),
     });
   }
 
-  return hits.sort((a, b) => b.detail.localeCompare(a.detail)).slice(0, 8);
+  return hits.sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0)).slice(0, 8);
 }

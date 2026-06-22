@@ -13,10 +13,13 @@ import {
 import { notifyAdminsDiscoveryCandidates } from "@/lib/desk-discovery/notify-admins";
 import { scanPaidProviders } from "@/lib/desk-discovery/providers";
 import { mergeDiscoveryHits } from "@/lib/desk-discovery/scoring";
+import { scanCommunityHeat } from "@/lib/desk-discovery/signals/community-heat";
+import { scanCompanyNews } from "@/lib/desk-discovery/signals/company-news";
 import { scanCryptoMomentum } from "@/lib/desk-discovery/signals/crypto-momentum";
 import { scanEarningsSoon } from "@/lib/desk-discovery/signals/earnings";
 import { scanNewsCatalysts } from "@/lib/desk-discovery/signals/news-catalyst";
 import { scanPriceAnomalies } from "@/lib/desk-discovery/signals/price-anomaly";
+import { scanRecentFilings } from "@/lib/desk-discovery/signals/recent-filing";
 import type {
   DiscoveryCandidateRow,
   DiscoveryCandidateStatus,
@@ -25,7 +28,7 @@ import type {
   RawDiscoveryHit,
   ScoredDiscoveryCandidate,
 } from "@/lib/desk-discovery/types";
-import { discoveryEquityBatch } from "@/lib/desk-discovery/universe";
+import { discoveryEquityBatch, discoveryCryptoUniverse } from "@/lib/desk-discovery/universe";
 
 type DbCandidate = {
   id: string;
@@ -422,15 +425,19 @@ export async function runDiscoveryScan(): Promise<
     DISCOVERY_CONFIG.equityBatchSize
   );
 
-  const [earnings, news, price, crypto, paid] = await Promise.all([
-    scanEarningsSoon(),
-    scanNewsCatalysts(),
-    scanPriceAnomalies(equityBatch),
-    scanCryptoMomentum(),
-    scanPaidProviders(),
-  ]);
+  const [earnings, news, price, crypto, companyNews, filings, community, paid] =
+    await Promise.all([
+      scanEarningsSoon(),
+      scanNewsCatalysts(),
+      scanPriceAnomalies(equityBatch),
+      scanCryptoMomentum(),
+      scanCompanyNews(equityBatch),
+      scanRecentFilings(equityBatch),
+      scanCommunityHeat([...equityBatch, ...discoveryCryptoUniverse()]),
+      scanPaidProviders(),
+    ]);
 
-  const allHits = [...earnings, ...news, ...price, ...crypto, ...paid];
+  const allHits = [...earnings, ...news, ...price, ...crypto, ...companyNews, ...filings, ...community, ...paid];
   const filteredHits = filterHits(allHits, exclusions);
   const skippedExcluded = allHits.length - filteredHits.length;
   const scored = mergeDiscoveryHits(filteredHits);

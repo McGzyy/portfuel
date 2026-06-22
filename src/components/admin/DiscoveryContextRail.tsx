@@ -127,7 +127,7 @@ export function DiscoveryContextRail({
     };
   }, [focusedRow?.id, focusedRow?.symbol, focusedRow?.assetClass]);
 
-  const scoreLines = focusedRow ? buildScoreBreakdown(focusedRow.signalTypes) : [];
+  const scoreLines = focusedRow ? buildScoreBreakdown(focusedRow.signalTypes, focusedRow.reasons) : [];
   const earnings = focusedRow ? earningsLabel(focusedRow.reasons) : null;
   const isHighScore =
     focusedRow != null && focusedRow.score >= DISCOVERY_CONFIG.highScoreNotifyThreshold;

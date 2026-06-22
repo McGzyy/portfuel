@@ -1,5 +1,9 @@
 import { getEquityCandles } from "@/lib/market/equity-candles";
 import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
+import {
+  priceMoveWeight,
+  volumeAnomalyWeight,
+} from "@/lib/desk-discovery/signal-intensity";
 import type { RawDiscoveryHit } from "@/lib/desk-discovery/types";
 
 function pctChange(from: number, to: number): number {
@@ -51,11 +55,13 @@ async function scanOnePriceAnomaly(symbol: string): Promise<RawDiscoveryHit | nu
     const avgVol =
       recentVol.slice(0, -1).reduce((a, b) => a + b, 0) / (recentVol.length - 1);
     if (avgVol > 0 && todayVol / avgVol >= DISCOVERY_CONFIG.volumeRatioMin) {
+      const ratio = todayVol / avgVol;
       return {
         symbol: symbol.toUpperCase(),
         assetClass: "equity",
         type: "volume_anomaly",
-        detail: `Volume ${(todayVol / avgVol).toFixed(1)}× 20d avg with ${(dailyChange * 100).toFixed(1)}% move`,
+        detail: `Volume ${ratio.toFixed(1)}× 20d avg with ${(dailyChange * 100).toFixed(1)}% move`,
+        weight: volumeAnomalyWeight(ratio, dailyChange),
       };
     }
   }
@@ -65,5 +71,6 @@ async function scanOnePriceAnomaly(symbol: string): Promise<RawDiscoveryHit | nu
     assetClass: "equity",
     type: "price_move",
     detail: `${(dailyChange * 100).toFixed(1)}% daily move`,
+    weight: priceMoveWeight(dailyChange),
   };
 }

@@ -9,6 +9,8 @@ const SIGNAL_LABELS: Record<string, string> = {
   volume_anomaly: "Volume",
   price_move: "Price",
   crypto_momentum: "Crypto",
+  community_heat: "Community",
+  recent_filing: "Filing",
   "multi-signal bonus": "Multi-signal",
 };
 

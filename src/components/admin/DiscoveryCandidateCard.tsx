@@ -32,6 +32,8 @@ const SIGNAL_LABELS: Record<DiscoverySignalType, string> = {
   volume_anomaly: "Volume",
   price_move: "Price",
   crypto_momentum: "Crypto",
+  community_heat: "Community",
+  recent_filing: "Filing",
 };
 
 function emptyDraft(row: DiscoveryCandidateRow): DiscoveryDraftPayload {
@@ -208,7 +210,7 @@ export function DiscoveryCandidateCard({
     }
   }, [publishRequested, isReady, onPublishHandled]);
   const isHighScore = row.score >= DISCOVERY_CONFIG.highScoreNotifyThreshold;
-  const scoreLines = buildScoreBreakdown(row.signalTypes);
+  const scoreLines = buildScoreBreakdown(row.signalTypes, row.reasons);
   const uniqueReasons = row.reasons.filter(
     (r, i, arr) => arr.findIndex((x) => x.detail === r.detail) === i
   );
