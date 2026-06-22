@@ -24,6 +24,10 @@ export function DeskPortfolioChart({
     [points, range]
   );
   const drawdown = useMemo(() => computeMaxDrawdown(points), [points]);
+  const positionMarkers = useMemo(
+    () => points.filter((p) => p.isCallMarker && p.symbol),
+    [points]
+  );
 
   if (points.length === 0) {
     return (
@@ -53,7 +57,20 @@ export function DeskPortfolioChart({
     <ChartFrame
       className={className}
       title="Model portfolio curve"
-      subtitle="Equal-weight daily mark · click a marker for the ticker"
+      subtitle="Ticker logos mark when each position joined the basket · click to open symbol"
+      legend={
+        positionMarkers.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-4 px-4 py-2 text-xs text-[var(--pf-gray-500)]">
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                className="h-3 w-3 rounded-full ring-[2px] ring-[var(--pf-red)]"
+                aria-hidden
+              />
+              Fueled position added ({positionMarkers.length})
+            </span>
+          </div>
+        ) : undefined
+      }
     >
       <div className="space-y-3 p-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -78,7 +95,15 @@ export function DeskPortfolioChart({
           </div>
         </div>
         {filtered.length > 0 ? (
-          <ReturnLineChart points={filtered} height={240} interactive showMarkers filled />
+          <ReturnLineChart
+            points={filtered}
+            height={260}
+            interactive
+            showAvatars
+            pinEmblem="symbol"
+            pinSymbolKind="fueled"
+            filled
+          />
         ) : (
           <div className="flex h-[200px] items-center justify-center text-sm text-[var(--pf-gray-500)]">
             No data in this range.

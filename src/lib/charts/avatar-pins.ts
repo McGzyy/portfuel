@@ -1,5 +1,5 @@
-import type { ChartAvatarPin } from "@/components/charts/ChartAvatarOverlay";
 import type { ChartAvatarEmblemKind } from "@/components/charts/ChartAvatarEmblem";
+import type { ChartAvatarPin } from "@/components/charts/ChartAvatarOverlay";
 import type { ChartMarker, ChartMemberAvatar, ReturnChartPoint } from "@/lib/charts/types";
 import { collapseDayCallMarkers } from "@/lib/charts/marker-clusters";
 
@@ -38,11 +38,11 @@ export function tickerMarkersToAvatarPins(markers: ChartMarker[]): ChartAvatarPi
 export function returnPointsToAvatarPins(
   points: ReturnChartPoint[],
   member?: ChartMemberAvatar | null,
-  options?: { emblem?: "member" | "symbol" }
+  options?: { emblem?: "member" | "symbol"; symbolKind?: ChartAvatarEmblemKind }
 ): ChartAvatarPin[] {
   const emblem = options?.emblem ?? "symbol";
   return points
-    .filter((p) => p.isCallMarker && p.outcome != null)
+    .filter((p) => p.isCallMarker && p.symbol && (emblem === "symbol" || p.outcome != null))
     .map((p) => ({
       time: p.time,
       price: p.value,
@@ -52,7 +52,10 @@ export function returnPointsToAvatarPins(
       symbol: p.symbol,
       assetClass: p.assetClass,
       emblem,
-      kind: outcomeToEmblem(p.outcome),
+      kind:
+        emblem === "symbol" && options?.symbolKind
+          ? options.symbolKind
+          : outcomeToEmblem(p.outcome),
       callId: p.callId,
       placement: "on" as const,
     }));

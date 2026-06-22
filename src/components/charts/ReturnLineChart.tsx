@@ -25,6 +25,7 @@ import {
 } from "@/lib/charts/theme";
 import { chartLocalizationOptions } from "@/lib/time/timestamp";
 import { ChartAvatarOverlay, type ChartAvatarPin } from "@/components/charts/ChartAvatarOverlay";
+import type { ChartAvatarEmblemKind } from "@/components/charts/ChartAvatarEmblem";
 import { returnPointsToAvatarPins } from "@/lib/charts/avatar-pins";
 import { cn } from "@/lib/utils";
 
@@ -70,6 +71,7 @@ export function ReturnLineChart({
   showAvatars = false,
   memberAvatar,
   pinEmblem = "symbol",
+  pinSymbolKind,
   filled = false,
 }: {
   points: ReturnChartPoint[];
@@ -82,6 +84,7 @@ export function ReturnLineChart({
   showAvatars?: boolean;
   memberAvatar?: ChartMemberAvatar | null;
   pinEmblem?: "member" | "symbol";
+  pinSymbolKind?: ChartAvatarEmblemKind;
   /** Baseline fill above/below zero — hero performance charts. */
   filled?: boolean;
 }) {
@@ -102,9 +105,12 @@ export function ReturnLineChart({
   const avatarPins = useMemo(
     () =>
       showAvatars
-        ? returnPointsToAvatarPins(points, memberAvatar, { emblem: pinEmblem })
+        ? returnPointsToAvatarPins(points, memberAvatar, {
+            emblem: pinEmblem,
+            symbolKind: pinSymbolKind,
+          })
         : [],
-    [showAvatars, points, memberAvatar, pinEmblem]
+    [showAvatars, points, memberAvatar, pinEmblem, pinSymbolKind]
   );
   const useAvatarOverlay = showAvatars && avatarPins.length > 0;
 

@@ -134,7 +134,9 @@ function buildEqualWeightDailyPoints(
       value: avg,
       ...(added
         ? {
+            callId: added.id,
             symbol: added.symbol,
+            assetClass: added.assetClass,
             label: `${added.symbol} added`,
             outcome: avg >= 0 ? ("win" as const) : ("loss" as const),
             isCallMarker: true,
@@ -160,7 +162,9 @@ export function buildDeskPortfolioCurve(entries: DeskCurveInput[]): ReturnChartP
     const points: ReturnChartPoint[] = open.map((e) => ({
       time: utcDayStartUnix(e.opened_at),
       value: e.return_pct ?? 0,
+      callId: e.id,
       symbol: e.symbol.toUpperCase(),
+      assetClass: (e.asset_class ?? "equity") as "equity" | "crypto",
       label: `${e.symbol} added`,
       outcome: (e.return_pct ?? 0) >= 0 ? "win" : "loss",
       isCallMarker: true,
