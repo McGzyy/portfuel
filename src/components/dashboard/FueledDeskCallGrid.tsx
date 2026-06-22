@@ -9,11 +9,15 @@ export function FueledDeskCallGrid({
   viewerUserId,
   isAdmin = false,
   readOnly = false,
+  quoteUpdatedAtBySymbol,
+  isPro = false,
 }: {
   calls: CallCardData[];
   viewerUserId?: string;
   isAdmin?: boolean;
   readOnly?: boolean;
+  quoteUpdatedAtBySymbol?: Record<string, string>;
+  isPro?: boolean;
 }) {
   const display = calls.slice(0, 3);
   const featured = display.length === 1;
@@ -41,6 +45,9 @@ export function FueledDeskCallGrid({
               showSparkline
               viewerUserId={viewerUserId}
               isAdmin={isAdmin}
+              isPro={isPro}
+              quoteUpdatedAt={quoteUpdatedAtBySymbol?.[call.symbol.toUpperCase()] ?? null}
+              showQuoteFreshness={!readOnly}
             />
           </div>
         ))}

@@ -317,6 +317,23 @@ function avgReturn(rows: { returnPct: number | null }[]): number | null {
   return scored.reduce((s, r) => s + (r.returnPct ?? 0), 0) / scored.length;
 }
 
+export async function countOpenDiscoveryShadowCalls(): Promise<number> {
+  if (isDemoMode()) return 0;
+
+  const db = createServiceClient();
+  const { count, error } = await db
+    .from("desk_discovery_shadow_calls")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "open");
+
+  if (error) {
+    if (isMissingDiscoveryTable(error.message)) return 0;
+    console.error("[shadow-calls/open-count]", error.message);
+    return 0;
+  }
+  return count ?? 0;
+}
+
 export async function getShadowPerformanceStats(): Promise<ShadowPerformanceStats | null> {
   if (isDemoMode()) return null;
 

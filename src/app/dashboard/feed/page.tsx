@@ -32,7 +32,7 @@ import {
 import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import { loadFeedCalls, mapCallForCard, mapFeedCallsForCard, requireDashboardSession } from "@/lib/dashboard/data";
-import { fetchLatestSnapshotUpdatedAt } from "@/lib/market/quote-freshness";
+import { fetchLatestSnapshotUpdatedAt, fetchSnapshotUpdatedAtBySymbol } from "@/lib/market/quote-freshness";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import {
   getProGateCta,
@@ -148,7 +148,10 @@ export default async function DashboardFeedPage({
     ...mapped.map((c) => c.symbol),
     ...fueledMapped.map((c) => c.symbol),
   ];
-  const quotesUpdatedAt = await fetchLatestSnapshotUpdatedAt(quoteSymbols);
+  const [quotesUpdatedAt, quoteUpdatedAtBySymbol] = await Promise.all([
+    fetchLatestSnapshotUpdatedAt(quoteSymbols),
+    fetchSnapshotUpdatedAtBySymbol(quoteSymbols),
+  ]);
 
   return (
     <WorkspaceContextShell
@@ -198,6 +201,8 @@ export default async function DashboardFeedPage({
             calls={fueledMapped}
             viewerUserId={session.userId}
             isAdmin={session.role === "admin"}
+            quoteUpdatedAtBySymbol={quoteUpdatedAtBySymbol}
+            isPro={!proLocked}
           />
         ) : null}
 
@@ -242,6 +247,7 @@ export default async function DashboardFeedPage({
               proLocked={proLocked}
               viewerUserId={session.userId}
               isAdmin={session.role === "admin"}
+              quoteUpdatedAtBySymbol={quoteUpdatedAtBySymbol}
             />
           )}
         </section>

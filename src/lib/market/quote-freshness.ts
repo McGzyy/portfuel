@@ -22,6 +22,50 @@ export async function fetchLatestSnapshotUpdatedAt(
   return (data as { updated_at?: string } | null)?.updated_at ?? null;
 }
 
+/** Per-symbol latest snapshot timestamps for feed/book cards. */
+export async function fetchSnapshotUpdatedAtBySymbol(
+  symbols: string[]
+): Promise<Record<string, string>> {
+  const unique = [...new Set(symbols.map((s) => s.toUpperCase()).filter(Boolean))];
+  if (unique.length === 0) return {};
+
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("ticker_snapshots")
+    .select("symbol, updated_at")
+    .in("symbol", unique);
+
+  if (error) {
+    console.error("[quote-freshness/by-symbol]", error.message);
+    return {};
+  }
+
+  const map: Record<string, string> = {};
+  for (const row of data ?? []) {
+    const sym = String((row as { symbol?: string }).symbol ?? "").toUpperCase();
+    const updatedAt = (row as { updated_at?: string }).updated_at;
+    if (!sym || !updatedAt) continue;
+    const prev = map[sym];
+    if (!prev || parseAppTimestamp(updatedAt).getTime() > parseAppTimestamp(prev).getTime()) {
+      map[sym] = updatedAt;
+    }
+  }
+  return map;
+}
+
+/** Compact card line — price mark age with optional stale hint. */
+export function formatCallQuoteFreshnessLine(opts: {
+  updatedAt?: string | null;
+  isPro?: boolean;
+}): string | null {
+  if (!opts.updatedAt) return null;
+  const ageMs = Date.now() - parseAppTimestamp(opts.updatedAt).getTime();
+  if (ageMs < 0 || ageMs > 7 * 86_400_000) return null;
+  const stale = isQuoteSnapshotStale(opts.updatedAt, opts.isPro);
+  const asOf = `Price ${timeAgo(opts.updatedAt)}`;
+  return stale ? `${asOf} · may be stale` : asOf;
+}
+
 export function pickLatestTimestamp(timestamps: (string | null | undefined)[]): string | null {
   let latest: string | null = null;
   for (const ts of timestamps) {

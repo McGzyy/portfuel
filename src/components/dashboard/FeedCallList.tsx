@@ -10,14 +10,17 @@ export function FeedCallList({
   proLocked,
   viewerUserId,
   isAdmin = false,
+  quoteUpdatedAtBySymbol,
 }: {
   calls: CallCardData[];
   feedSeenAt: number;
   proLocked: boolean;
   viewerUserId?: string;
   isAdmin?: boolean;
+  quoteUpdatedAtBySymbol?: Record<string, string>;
 }) {
   const symbols = calls.map((c) => c.symbol);
+  const isPro = !proLocked;
 
   return (
     <SparklineProvider symbols={symbols} lazy>
@@ -33,6 +36,9 @@ export function FeedCallList({
             showSparkline
             viewerUserId={viewerUserId}
             isAdmin={isAdmin}
+            isPro={isPro}
+            quoteUpdatedAt={quoteUpdatedAtBySymbol?.[call.symbol.toUpperCase()] ?? null}
+            showQuoteFreshness
           />
         ))}
       </div>

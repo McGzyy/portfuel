@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AdminCommunityHint } from "@/components/dashboard/AdminCommunityHint";
 import { WorkspaceOnboardingChecklist } from "@/components/dashboard/WorkspaceOnboardingChecklist";
@@ -18,11 +19,12 @@ import { fetchWorkspacePulse } from "@/lib/workspace/pulse";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { getHotTickersFromCalls } from "@/lib/calls/hot-tickers";
 import { fetchWeeklyQuotaStatus } from "@/lib/members/weekly-quota";
-import { OverviewReturnHero } from "@/components/dashboard/OverviewReturnHero";
+import { OverviewReturnHeroSection } from "@/components/dashboard/OverviewReturnHeroSection";
+import { OverviewReturnHeroSkeleton } from "@/components/dashboard/OverviewReturnHeroSkeleton";
+import { OverviewCommunityPulse } from "@/components/dashboard/OverviewCommunityPulse";
+import { AdminDiscoveryOverviewStrip } from "@/components/dashboard/AdminDiscoveryOverviewStrip";
 import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
-import { buildPerformanceSeries } from "@/lib/charts/cumulative-return-mtm";
-import { toChartMemberAvatar } from "@/lib/charts/member-avatar";
 import { FueledDeskPreview } from "@/components/dashboard/FueledDeskPreview";
 import { FueledTrackRecordPanel } from "@/components/dashboard/FueledTrackRecordPanel";
 import { fetchFueledTrackRecord } from "@/lib/fueled/track-record";
@@ -44,6 +46,7 @@ import { computeMemberProAnalytics } from "@/lib/users/member-analytics";
 import { buildFeedHref } from "@/lib/dashboard/nav";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import {
+  getProGateCta,
   isProIntelligenceLocked,
   sessionToProContext,
 } from "@/lib/features/pro-intelligence";
@@ -90,7 +93,6 @@ import { OverviewPublishFab } from "@/components/dashboard/OverviewPublishFab";
 import { OverviewLayoutBody } from "@/components/dashboard/OverviewLayoutBody";
 import { OverviewPanelGate } from "@/components/dashboard/OverviewPanelGate";
 import { WorkspaceWalkthroughTips } from "@/components/dashboard/WorkspaceWalkthroughTips";
-import { computeMemberWinLossCounts } from "@/lib/users/member-win-loss";
 import { loadWorkspaceActivitySnapshot } from "@/lib/workspace/activity-snapshot";
 
 export const metadata: Metadata = {
@@ -144,6 +146,7 @@ export default async function DashboardOverviewPage({
   const session = await requireDashboardSession();
   const proContext = sessionToProContext(session);
   const proLocked = isProIntelligenceLocked(proContext);
+  const proGateCta = getProGateCta(proContext);
 
   const [
     memberStats,
@@ -188,8 +191,6 @@ export default async function DashboardOverviewPage({
     8
   );
 
-  const performanceSeries = await buildPerformanceSeries(ownCalls);
-  const chartMemberAvatar = toChartMemberAvatar(ownProfile.member);
   const followingPreviews = filterCallsByFollowing(latestRaw, followingIds)
     .slice(0, 4)
     .map((c) => toPreview(mapCallForCard(c, hypeScores)));
@@ -262,7 +263,6 @@ export default async function DashboardOverviewPage({
   const pendingEntryCount = openCallCards.filter(
     (c) => c.call_state === "pending_entry"
   ).length;
-  const { wins: bookWins, losses: bookLosses } = computeMemberWinLossCounts(ownCalls);
 
   const displayLabel = session.displayName ?? session.username;
   const [{ feedNewCount, dmUnread, notifUnread }, quotesUpdatedAt] = await Promise.all([
@@ -355,16 +355,16 @@ export default async function DashboardOverviewPage({
       ) : null}
 
       <OverviewPanelGate panelId="hero">
-      <OverviewReturnHero
-        points={performanceSeries}
-        profileHref={`/member/${session.username}`}
-        winRate={memberStats?.win_rate}
-        rankScore={memberStats?.rank_score != null ? Number(memberStats.rank_score) : null}
-        publishedCallCount={Math.max(ownCalls.length, memberStats?.calls_count ?? 0)}
-        winsCount={bookWins}
-        lossesCount={bookLosses}
-        memberAvatar={chartMemberAvatar}
-      />
+        <Suspense fallback={<OverviewReturnHeroSkeleton />}>
+          <OverviewReturnHeroSection
+            ownCalls={ownCalls}
+            profileHref={`/member/${session.username}`}
+            winRate={memberStats?.win_rate}
+            rankScore={memberStats?.rank_score != null ? Number(memberStats.rank_score) : null}
+            publishedCallCount={Math.max(ownCalls.length, memberStats?.calls_count ?? 0)}
+            member={ownProfile.member}
+          />
+        </Suspense>
       </OverviewPanelGate>
 
       <OverviewPanelGate panelId="stats">
@@ -380,8 +380,17 @@ export default async function DashboardOverviewPage({
       </OverviewPanelGate>
 
       <OverviewPanelGate panelId="activity">
-      <OverviewActivityPanels hotTickers={hotTickers} />
+      <div className="space-y-4">
+        <OverviewActivityPanels hotTickers={hotTickers} />
+        <OverviewCommunityPulse
+          summary={communityPulse}
+          proLocked={proLocked}
+          proGateCta={proGateCta}
+        />
+      </div>
       </OverviewPanelGate>
+
+      {session.role === "admin" ? <AdminDiscoveryOverviewStrip /> : null}
 
       <OverviewPanelGate panelId="open_calls">
       {openCallCards.length > 0 ? (
@@ -515,7 +524,7 @@ export default async function DashboardOverviewPage({
                         {w.has_unread_call_alert ? (
                           <span
                             className="h-1.5 w-1.5 rounded-full bg-[var(--pf-red)]"
-                            title="New community call"
+                            aria-label="New community call"
                           />
                         ) : null}
                       </span>
@@ -535,12 +544,12 @@ export default async function DashboardOverviewPage({
           </OverviewPanelGate>
 
           <OverviewPanelGate panelId="fueled_portfolio">
-          {openDeskPortfolio.length > 0 ? (
-            <WorkspacePanel
-              title="Fueled portfolio"
-              subtitle="Open house positions"
-              href="/dashboard/desk"
-            >
+          <WorkspacePanel
+            title="Fueled portfolio"
+            subtitle="Open house positions"
+            href="/dashboard/desk"
+          >
+            {openDeskPortfolio.length > 0 ? (
               <div className="divide-y divide-[var(--pf-border)]">
                 {openDeskPortfolio
                   .slice(0, 4)
@@ -572,8 +581,21 @@ export default async function DashboardOverviewPage({
                     </Link>
                   ))}
               </div>
-            </WorkspacePanel>
-          ) : null}
+            ) : (
+              <div className="px-3 py-8 text-center">
+                <p className="text-sm text-[var(--pf-gray-500)]">No open desk positions right now.</p>
+                <p className="mt-1 text-xs text-[var(--pf-gray-400)]">
+                  House theses and model portfolio live on the Fueled desk.
+                </p>
+                <Link
+                  href="/dashboard/desk"
+                  className="mt-4 inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
+                >
+                  Open Fueled desk →
+                </Link>
+              </div>
+            )}
+          </WorkspacePanel>
           </OverviewPanelGate>
         </div>
       </div>

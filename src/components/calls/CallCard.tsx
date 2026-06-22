@@ -89,6 +89,9 @@ type CallCardProps = {
   linkToTicker?: boolean;
   /** Flat layout inside workspace panels (no nested card chrome). */
   embedded?: boolean;
+  /** Latest ticker snapshot for this symbol — feed quote freshness. */
+  quoteUpdatedAt?: string | null;
+  showQuoteFreshness?: boolean;
 };
 
 export function CallCard({
@@ -106,6 +109,8 @@ export function CallCard({
   isAdmin = false,
   linkToTicker = true,
   embedded = false,
+  quoteUpdatedAt,
+  showQuoteFreshness = false,
 }: CallCardProps) {
   const isOwnCall = Boolean(
     viewerUserId && call.user_id != null && call.user_id === viewerUserId
@@ -336,6 +341,10 @@ export function CallCard({
         <CallMarkedLabel
           updatedAt={call.updated_at}
           calledAt={call.called_at}
+          quoteUpdatedAt={quoteUpdatedAt}
+          isPro={isPro}
+          showQuoteFreshness={showQuoteFreshness && interactive}
+          isClosed={Boolean(call.closed_at)}
           className="mt-2 text-[10px]"
         />
 

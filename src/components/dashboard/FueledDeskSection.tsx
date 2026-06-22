@@ -9,12 +9,16 @@ export function FueledDeskSection({
   isAdmin = false,
   deskHref = "/dashboard/desk",
   readOnly = false,
+  quoteUpdatedAtBySymbol,
+  isPro = false,
 }: {
   calls: CallCardData[];
   viewerUserId?: string;
   isAdmin?: boolean;
   deskHref?: string;
   readOnly?: boolean;
+  quoteUpdatedAtBySymbol?: Record<string, string>;
+  isPro?: boolean;
 }) {
   if (calls.length === 0) return null;
 
@@ -59,6 +63,8 @@ export function FueledDeskSection({
         viewerUserId={viewerUserId}
         isAdmin={isAdmin}
         readOnly={readOnly}
+        quoteUpdatedAtBySymbol={quoteUpdatedAtBySymbol}
+        isPro={isPro}
       />
     </section>
   );
