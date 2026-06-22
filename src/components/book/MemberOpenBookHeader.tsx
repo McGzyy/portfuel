@@ -1,21 +1,23 @@
 import Link from "next/link";
 import { MemberOpenBookLiveStats } from "@/components/book/MemberOpenBookLiveStats";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
+import { MarketQuoteContextLine } from "@/components/market/MarketQuoteContextLine";
 import type { MemberOpenBookSummary } from "@/lib/calls/member-book";
-import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
 
 export function MemberOpenBookHeader({
   summary,
   username,
   isPro = false,
+  quotesUpdatedAt,
 }: {
   summary: MemberOpenBookSummary;
   username: string;
   isPro?: boolean;
+  quotesUpdatedAt?: string | null;
 }) {
   const subtitle =
     summary.openCount > 0
-      ? `${summary.openCount} live thesis${summary.openCount === 1 ? "" : "es"} across ${summary.uniqueSymbols} symbol${summary.uniqueSymbols === 1 ? "" : "s"} — ${quotesRefreshLabel({ isPro }).replace(/^./, (c) => c.toLowerCase())}.`
+      ? `${summary.openCount} live thesis${summary.openCount === 1 ? "" : "es"} across ${summary.uniqueSymbols} symbol${summary.uniqueSymbols === 1 ? "" : "s"} — marks refresh on the schedule below.`
       : "Your published calls with open entry, target, and stop appear here as a portfolio view — not broker sync.";
 
   return (
@@ -23,7 +25,18 @@ export function MemberOpenBookHeader({
       <WorkspacePageHeader
         eyebrow="Workspace · Positions"
         title="Your positions"
-        description={subtitle}
+        description={
+          <>
+            {subtitle}
+            {summary.openCount > 0 ? (
+              <MarketQuoteContextLine
+                className="mt-2"
+                isPro={isPro}
+                updatedAt={quotesUpdatedAt}
+              />
+            ) : null}
+          </>
+        }
         footerLink={
           <Link
             href={`/member/${username}`}

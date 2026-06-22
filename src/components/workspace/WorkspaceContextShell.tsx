@@ -45,7 +45,7 @@ export function WorkspaceContextShell({
       <button
         type="button"
         onClick={() => setSheetOpen(true)}
-        className="pf-context-rail-fab lg:hidden"
+        className="pf-context-rail-fab hidden max-lg:inline-flex"
         aria-label={`Open ${pulseLabel}`}
       >
         <Activity className="h-4 w-4 shrink-0" strokeWidth={2.25} />

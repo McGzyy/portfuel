@@ -9,6 +9,7 @@ import { buildPerformanceSeries } from "@/lib/charts/cumulative-return-mtm";
 import { buildBookAnalyticsSnapshot, emptyBookAnalyticsSnapshot, exposureFromBookSummary } from "@/lib/charts/book-analytics";
 import { toChartMemberAvatar } from "@/lib/charts/member-avatar";
 import { requireDashboardSession } from "@/lib/dashboard/data";
+import { fetchLatestSnapshotUpdatedAt } from "@/lib/market/quote-freshness";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { computeMemberProAnalytics } from "@/lib/users/member-analytics";
@@ -60,6 +61,10 @@ export default async function DashboardBookPage() {
     };
   }
   const chartMemberAvatar = toChartMemberAvatar(ownProfile.member);
+  const quotesUpdatedAt =
+    book.summary.openCount > 0
+      ? await fetchLatestSnapshotUpdatedAt(book.openCalls.map((c) => c.symbol))
+      : null;
 
   return (
     <WorkspaceContextShell
@@ -77,6 +82,7 @@ export default async function DashboardBookPage() {
         summary={book.summary}
         username={session.username}
         isPro={!proLocked}
+        quotesUpdatedAt={quotesUpdatedAt}
       />
       <WorkspaceLivePulse userId={session.userId} isPro={!proLocked} />
       <ShareTrackRecordCard

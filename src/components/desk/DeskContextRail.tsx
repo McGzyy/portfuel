@@ -4,6 +4,7 @@ import {
   ContextRailBlock,
   ContextRailModule,
 } from "@/components/workspace/ContextRailModule";
+import { MarketQuoteContextLine } from "@/components/market/MarketQuoteContextLine";
 import { OverviewRailMiniStat } from "@/components/dashboard/OverviewContextRail.client";
 import type { FueledTrackRecord } from "@/lib/fueled/track-record";
 import { displayFueledTrackRecord } from "@/lib/fueled/track-record-display";
@@ -19,6 +20,8 @@ export function DeskContextRail({
   openEntries = [],
   discoveryActionableCount,
   isAdmin = false,
+  quotesUpdatedAt,
+  isPro = false,
 }: {
   openPositions: number;
   totalDeskCalls: number;
@@ -28,6 +31,8 @@ export function DeskContextRail({
   openEntries?: DeskPortfolioView[];
   discoveryActionableCount?: number;
   isAdmin?: boolean;
+  quotesUpdatedAt?: string | null;
+  isPro?: boolean;
 }) {
   const openBook = openEntries.filter((e) => e.status === "open").slice(0, 5);
   const display = displayFueledTrackRecord(trackRecord);
@@ -49,6 +54,12 @@ export function DeskContextRail({
           />
         </div>
       </ContextRailBlock>
+
+      {openPositions > 0 ? (
+        <ContextRailBlock title="Prices">
+          <MarketQuoteContextLine isPro={isPro} updatedAt={quotesUpdatedAt} />
+        </ContextRailBlock>
+      ) : null}
 
       {openBook.length > 0 ? (
         <ContextRailBlock title="Open book">

@@ -4,6 +4,7 @@ import {
   ContextRailBlock,
   ContextRailModule,
 } from "@/components/workspace/ContextRailModule";
+import { MarketQuoteContextLine } from "@/components/market/MarketQuoteContextLine";
 import { OverviewRailMiniStat } from "@/components/dashboard/OverviewContextRail.client";
 import type { FeedSummary } from "@/lib/calls/feed-summary";
 import { formatPct } from "@/lib/utils";
@@ -14,12 +15,16 @@ export function FeedContextRail({
   hotTickers,
   topSymbol,
   topReturnPct,
+  quotesUpdatedAt,
+  isPro = false,
 }: {
   summary: FeedSummary;
   newCount: number;
   hotTickers: Array<{ symbol: string; callCount: number; avgReturnPct: number | null }>;
   topSymbol?: string | null;
   topReturnPct?: number | null;
+  quotesUpdatedAt?: string | null;
+  isPro?: boolean;
 }) {
   return (
     <ContextRailModule eyebrow="Community" title="Feed pulse" ariaLabel="Feed context">
@@ -44,6 +49,12 @@ export function FeedContextRail({
           />
         </div>
       </ContextRailBlock>
+
+      {summary.count > 0 ? (
+        <ContextRailBlock title="Prices">
+          <MarketQuoteContextLine isPro={isPro} updatedAt={quotesUpdatedAt} />
+        </ContextRailBlock>
+      ) : null}
 
       {topSymbol && topReturnPct != null ? (
         <ContextRailBlock title="Leader">

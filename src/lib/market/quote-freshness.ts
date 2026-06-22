@@ -1,7 +1,7 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { parseAppTimestamp } from "@/lib/time/timestamp";
+import { liveQuoteStaleAfterMs, quotesRefreshMinutesForTier } from "@/lib/market/quote-cadence";
 import { timeAgo } from "@/lib/utils";
-import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
 
 /** Latest ticker_snapshots.updated_at across a symbol set (cron or Pro refresh). */
 export async function fetchLatestSnapshotUpdatedAt(
@@ -33,16 +33,33 @@ export function pickLatestTimestamp(timestamps: (string | null | undefined)[]): 
   return latest;
 }
 
-/** Human label: cadence + last snapshot time when known. */
+export function isQuoteSnapshotStale(
+  updatedAt: string | null | undefined,
+  isPro = false
+): boolean {
+  if (!updatedAt) return false;
+  const ageMs = Date.now() - parseAppTimestamp(updatedAt).getTime();
+  if (ageMs < 0) return false;
+  return ageMs > liveQuoteStaleAfterMs(isPro);
+}
+
+/** Human label: prices timestamp + cadence when known. */
 export function formatQuoteFreshnessLabel(opts: {
   updatedAt?: string | null;
   isPro?: boolean;
 }): string {
-  const cadence = quotesRefreshLabel({ isPro: opts.isPro });
+  const minutes = quotesRefreshMinutesForTier(Boolean(opts.isPro));
+  const cadence = opts.isPro
+    ? `Pro quotes refresh every ${minutes} min while you're here`
+    : `Quotes refresh every ${minutes} min`;
+
   if (!opts.updatedAt) return cadence;
 
   const ageMs = Date.now() - parseAppTimestamp(opts.updatedAt).getTime();
   if (ageMs < 0 || ageMs > 7 * 86_400_000) return cadence;
 
-  return `${cadence} · Updated ${timeAgo(opts.updatedAt)}`;
+  const stale = isQuoteSnapshotStale(opts.updatedAt, opts.isPro);
+  const asOf = `Prices as of ${timeAgo(opts.updatedAt)}`;
+  if (stale) return `${asOf} · may be stale · ${cadence}`;
+  return `${asOf} · ${cadence}`;
 }

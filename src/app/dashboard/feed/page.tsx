@@ -32,6 +32,7 @@ import {
 import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
 import { summarizeFeed } from "@/lib/calls/feed-summary";
 import { loadFeedCalls, mapCallForCard, mapFeedCallsForCard, requireDashboardSession } from "@/lib/dashboard/data";
+import { fetchLatestSnapshotUpdatedAt } from "@/lib/market/quote-freshness";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import {
   getProGateCta,
@@ -143,6 +144,12 @@ export default async function DashboardFeedPage({
     /* optional */
   }
 
+  const quoteSymbols = [
+    ...mapped.map((c) => c.symbol),
+    ...fueledMapped.map((c) => c.symbol),
+  ];
+  const quotesUpdatedAt = await fetchLatestSnapshotUpdatedAt(quoteSymbols);
+
   return (
     <WorkspaceContextShell
       pulseLabel="Feed pulse"
@@ -153,6 +160,8 @@ export default async function DashboardFeedPage({
           hotTickers={hotTickers}
           topSymbol={topSymbol}
           topReturnPct={topReturnPct}
+          quotesUpdatedAt={quotesUpdatedAt}
+          isPro={!proLocked}
         />
       }
       mainClassName="space-y-4 pb-14 sm:space-y-6 lg:pb-0"
@@ -162,6 +171,8 @@ export default async function DashboardFeedPage({
         mode={mode}
         newCount={newCount}
         showNewOnly={showNewOnly}
+        quotesUpdatedAt={quotesUpdatedAt}
+        isPro={!proLocked}
       />
 
       <WorkspaceLivePulse userId={session.userId} isPro={!proLocked} />

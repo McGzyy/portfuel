@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Settings2 } from "lucide-react";
+import { Settings2, Bell } from "lucide-react";
 import { NotificationsCommandHeader } from "@/components/notifications/NotificationsCommandHeader";
 import { AlertsContextRail } from "@/components/notifications/AlertsContextRail";
 import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
+import { WorkspaceEmptyState } from "@/components/calls/CallsEmptyState";
 import { NotificationsFilterBar } from "@/components/notifications/NotificationsFilterBar";
 import { NotificationInboxItem } from "@/components/notifications/NotificationInboxItem";
 import { Button } from "@/components/ui/button";
@@ -209,26 +210,23 @@ export function NotificationsList({ proUnlocked: _proUnlocked = false }: { proUn
           Loading alerts…
         </div>
       ) : items.length === 0 ? (
-        <div className="pf-workspace-panel px-6 py-14 text-center">
-          <p className="text-sm font-semibold text-[var(--pf-black)]">No alerts yet</p>
-          <p className="mx-auto mt-2 max-w-md text-sm text-[var(--pf-gray-500)]">
-            Add symbols to your{" "}
-            <Link href="/dashboard/watchlist" className="font-semibold text-[var(--pf-red)] hover:underline">
-              watchlist
-            </Link>{" "}
-            and publish calls — engagement shows up here.
-          </p>
-        </div>
+        <WorkspaceEmptyState
+          icon={Bell}
+          title="No alerts yet"
+          description="Add symbols to your watchlist and publish calls — engagement and price alerts show up here."
+          showPublishCta={false}
+          secondaryHref="/dashboard/watchlist"
+          secondaryLabel="Open watchlist"
+        />
       ) : visibleItems.length === 0 ? (
-        <div className="pf-workspace-panel px-6 py-14 text-center">
-          <p className="text-sm font-semibold text-[var(--pf-black)]">No alerts in this filter</p>
-          <p className="mx-auto mt-2 max-w-md text-sm text-[var(--pf-gray-500)]">
-            Try another category or mark items read to clear your inbox.
-          </p>
-          <Button size="sm" variant="secondary" className="mt-4" onClick={() => setFilter("all")}>
-            Show all alerts
-          </Button>
-        </div>
+        <WorkspaceEmptyState
+          icon={Bell}
+          title="No alerts in this filter"
+          description="Try another category or mark items read to clear your inbox."
+          showPublishCta={false}
+          onAction={() => setFilter("all")}
+          actionLabel="Show all alerts"
+        />
       ) : (
         <div className="space-y-4">
           {grouped.map((section) => (

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
+import { MarketQuoteContextLine } from "@/components/market/MarketQuoteContextLine";
 import type { FeedTab } from "@/lib/dashboard/nav";
 
 function modeLabel(mode: FeedTab): string {
@@ -18,11 +19,15 @@ export function FeedCommandHeader({
   mode,
   newCount,
   showNewOnly,
+  quotesUpdatedAt,
+  isPro = false,
 }: {
   resultCount: number;
   mode: FeedTab;
   newCount: number;
   showNewOnly: boolean;
+  quotesUpdatedAt?: string | null;
+  isPro?: boolean;
 }) {
   return (
     <WorkspacePageHeader
@@ -38,6 +43,11 @@ export function FeedCommandHeader({
               · {newCount} new{showNewOnly ? " (filtered)" : ""}
             </span>
           ) : null}
+          <MarketQuoteContextLine
+            className="mt-2"
+            isPro={isPro}
+            updatedAt={quotesUpdatedAt}
+          />
         </>
       }
       footerLink={

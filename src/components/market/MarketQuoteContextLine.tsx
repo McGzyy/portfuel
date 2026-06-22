@@ -1,7 +1,10 @@
 "use client";
 
 import { MarketSessionBadge } from "@/components/market/MarketSessionBadge";
-import { formatQuoteFreshnessLabel } from "@/lib/market/quote-freshness";
+import {
+  formatQuoteFreshnessLabel,
+  isQuoteSnapshotStale,
+} from "@/lib/market/quote-freshness";
 import type { AssetClass } from "@/lib/market/validate-symbol";
 import { cn } from "@/lib/utils";
 
@@ -16,8 +19,16 @@ export function MarketQuoteContextLine({
   updatedAt?: string | null;
   assetClass?: AssetClass | null;
 }) {
+  const stale = isQuoteSnapshotStale(updatedAt, isPro);
+
   return (
-    <p className={cn("text-xs text-[var(--pf-gray-500)]", className)}>
+    <p
+      className={cn(
+        "text-xs",
+        stale ? "text-amber-700" : "text-[var(--pf-gray-500)]",
+        className
+      )}
+    >
       {formatQuoteFreshnessLabel({ isPro, updatedAt })}
       {assetClass !== "crypto" ? (
         <>

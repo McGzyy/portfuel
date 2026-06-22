@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Flame } from "lucide-react";
 import { CallCard } from "@/components/calls/CallCard";
+import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
 import { FueledDeskBrief } from "@/components/dashboard/FueledDeskBrief";
 import { DeskPortfolioPanel } from "@/components/desk/DeskPortfolioPanel";
 import { DeskPortfolioChart } from "@/components/charts/DeskPortfolioChart";
@@ -12,7 +13,6 @@ import { FueledDeskCommandHeader } from "@/components/dashboard/FueledDeskComman
 import { WorkspaceLivePulse } from "@/components/dashboard/WorkspaceLivePulse";
 import { ChecklistVisitMarker } from "@/components/dashboard/ChecklistVisitMarker";
 import { CHECKLIST_DESK_VISITED_KEY } from "@/lib/onboarding/workspace-checklist";
-import { Button } from "@/components/ui/button";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
 import { fetchFueledDeskCalls } from "@/lib/calls/service";
 import { fetchDeskBrief } from "@/lib/desk/brief";
@@ -104,6 +104,8 @@ export default async function DashboardDeskPage() {
           openEntries={displayPortfolio}
           discoveryActionableCount={discoveryActionableCount}
           isAdmin={session.role === "admin"}
+          quotesUpdatedAt={quotesUpdatedAt}
+          isPro={!proLocked}
         />
       }
       mainClassName="space-y-6 pb-14 lg:pb-0"
@@ -124,8 +126,6 @@ export default async function DashboardDeskPage() {
         feedHref="/dashboard/feed?filter=fueled"
       />
 
-      <FueledDeskBrief brief={deskBrief} />
-
       <div className="grid gap-6 lg:grid-cols-2">
         <DeskPortfolioChart points={portfolioCurve} openCount={openPositions} />
         <div>
@@ -136,23 +136,28 @@ export default async function DashboardDeskPage() {
 
       <FueledTrackRecordPanel record={fueledTrackRecord} />
 
+      <FueledDeskBrief brief={deskBrief} />
+
       <section>
         <h2 className="mb-4 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
           {openPositions > 0 ? "More from the desk" : "Latest"}
         </h2>
         {latestDeskCalls.length === 0 && fueledLatest.length === 0 ? (
-          <div className="pf-workspace-panel px-6 py-12 text-center text-sm text-[var(--pf-gray-500)]">
-            <p>No desk calls yet.</p>
-            {session.role === "admin" ? (
-              <Link href="/admin?tab=desk" className="mt-4 inline-block">
-                <Button size="sm">Publish first Fueled call</Button>
-              </Link>
-            ) : null}
-          </div>
+          <CallsEmptyState
+            icon={Flame}
+            title="No desk calls yet"
+            description="House theses from the Fueled desk appear here when published — open positions and track record live above."
+            showPublishCta={false}
+            secondaryHref={session.role === "admin" ? "/admin?tab=desk" : "/dashboard/feed?filter=fueled"}
+            secondaryLabel={session.role === "admin" ? "Publish first Fueled call" : "Browse Fueled feed"}
+          />
         ) : latestDeskCalls.length === 0 ? (
-          <div className="pf-workspace-panel px-6 py-8 text-center text-sm text-[var(--pf-gray-500)]">
-            Open positions are tracked above. Closed and archived desk calls will appear here.
-          </div>
+          <CallsEmptyState
+            icon={Flame}
+            title="All open positions tracked above"
+            description="Closed and archived desk calls will appear here as the book evolves."
+            showPublishCta={false}
+          />
         ) : (
           <div className="space-y-4">
             {latestDeskCalls.map((call) => (
