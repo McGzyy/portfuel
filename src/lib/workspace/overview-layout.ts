@@ -125,9 +125,12 @@ export function isMobileOverviewViewport(): boolean {
   return window.matchMedia("(max-width: 1023px)").matches;
 }
 
-export function defaultOverviewLayoutPrefs(options?: { mobile?: boolean }): OverviewLayoutPrefs {
+export function defaultOverviewLayoutPrefs(options?: {
+  mobile?: boolean;
+  isPro?: boolean;
+}): OverviewLayoutPrefs {
   return {
-    focus: "trader",
+    focus: options?.isPro ? "researcher" : "trader",
     panelOverrides: {},
     density: options?.mobile ? "compact" : "comfortable",
     version: OVERVIEW_LAYOUT_VERSION,
@@ -163,13 +166,18 @@ export function isOverviewPanelVisible(
   return !FOCUS_PRESET_HIDDEN[prefs.focus].includes(panelId);
 }
 
-export function readOverviewLayoutPrefs(userId: string): OverviewLayoutPrefs {
-  if (typeof window === "undefined") return defaultOverviewLayoutPrefs();
+export function readOverviewLayoutPrefs(
+  userId: string,
+  options?: { isPro?: boolean }
+): OverviewLayoutPrefs {
+  if (typeof window === "undefined") {
+    return defaultOverviewLayoutPrefs({ isPro: options?.isPro });
+  }
   try {
     const raw = window.localStorage.getItem(overviewLayoutStorageKey(userId));
     const mobile = isMobileOverviewViewport();
     if (!raw) {
-      const defaults = defaultOverviewLayoutPrefs({ mobile });
+      const defaults = defaultOverviewLayoutPrefs({ mobile, isPro: options?.isPro });
       writeOverviewLayoutPrefs(userId, defaults);
       return defaults;
     }
@@ -178,7 +186,7 @@ export function readOverviewLayoutPrefs(userId: string): OverviewLayoutPrefs {
       (parsed.version ?? 1) < OVERVIEW_LAYOUT_VERSION &&
       shouldMigrateToTraderPreset(parsed)
     ) {
-      const migrated = defaultOverviewLayoutPrefs({ mobile });
+      const migrated = defaultOverviewLayoutPrefs({ mobile, isPro: options?.isPro });
       writeOverviewLayoutPrefs(userId, migrated);
       return migrated;
     }

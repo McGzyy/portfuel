@@ -28,8 +28,6 @@ import { JournalReadyToPublishBanner } from "@/components/journal/JournalReadyTo
 import { JournalContinueCard } from "@/components/journal/JournalContinueCard";
 import { BookPostureStrip } from "@/components/watchlist/BookPostureStrip";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
-import { OverviewProCommandSectionLoader } from "@/components/dashboard/OverviewProCommandSectionLoader";
-import { OverviewProCommandSkeleton } from "@/components/dashboard/OverviewProCommandSkeleton";
 import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
 import { COPY } from "@/lib/copy";
 import { formatPct, formatPrice } from "@/lib/utils";
@@ -140,21 +138,6 @@ export async function OverviewDeferredPanels({
 
       <OverviewPanelGate panelId="book_posture">
         {watchlistCount > 0 ? <BookPostureStrip items={watchlistItems} /> : null}
-      </OverviewPanelGate>
-
-      <OverviewPanelGate panelId="pro_command">
-        {isPro && session.subscriptionStatus === "active" ? (
-          <Suspense fallback={<OverviewProCommandSkeleton />}>
-            <OverviewProCommandSectionLoader
-              username={session.username}
-              openCallCards={openCallCards}
-              ownCalls={ownCalls}
-              journalReadyItems={journalReadyItems}
-              deskWeeklyNote={deskBrief.weeklyNote}
-              watchlistItems={watchlistItems}
-            />
-          </Suspense>
-        ) : null}
       </OverviewPanelGate>
 
       <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">

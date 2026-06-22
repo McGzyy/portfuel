@@ -38,17 +38,21 @@ const OverviewLayoutContext = createContext<OverviewLayoutContextValue | null>(n
 
 export function OverviewLayoutProvider({
   userId,
+  isPro = false,
   children,
 }: {
   userId: string;
+  isPro?: boolean;
   children: ReactNode;
 }) {
-  const [prefs, setPrefs] = useState<OverviewLayoutPrefs>(defaultOverviewLayoutPrefs);
+  const [prefs, setPrefs] = useState<OverviewLayoutPrefs>(() =>
+    defaultOverviewLayoutPrefs({ isPro })
+  );
   const [customizeOpen, setCustomizeOpen] = useState(false);
 
   useEffect(() => {
-    setPrefs(readOverviewLayoutPrefs(userId));
-  }, [userId]);
+    setPrefs(readOverviewLayoutPrefs(userId, { isPro }));
+  }, [userId, isPro]);
 
   const persist = useCallback(
     (next: OverviewLayoutPrefs) => {
@@ -84,8 +88,10 @@ export function OverviewLayoutProvider({
   );
 
   const resetLayout = useCallback(() => {
-    persist(defaultOverviewLayoutPrefs({ mobile: isMobileOverviewViewport() }));
-  }, [persist]);
+    persist(
+      defaultOverviewLayoutPrefs({ mobile: isMobileOverviewViewport(), isPro })
+    );
+  }, [persist, isPro]);
 
   const isVisible = useCallback(
     (panelId: OverviewPanelId) => isOverviewPanelVisible(panelId, prefs),

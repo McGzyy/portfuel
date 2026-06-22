@@ -35,6 +35,9 @@ import {
   OverviewDeferredPanels,
   OverviewDeferredSkeleton,
 } from "@/components/dashboard/OverviewDeferredPanels";
+import { OverviewProCommandSectionLoader } from "@/components/dashboard/OverviewProCommandSectionLoader";
+import { OverviewProCommandSkeleton } from "@/components/dashboard/OverviewProCommandSkeleton";
+import { fetchDeskBrief } from "@/lib/desk/brief";
 import {
   fetchLatestSnapshotUpdatedAt,
   fetchSnapshotUpdatedAtBySymbol,
@@ -311,6 +314,30 @@ async function OverviewPrimarySection({ session }: { session: SessionPayload }) 
   );
 }
 
+async function OverviewProCommandSection({ session }: { session: SessionPayload }) {
+  const { isPro } = proFlags(session);
+  if (!isPro || session.subscriptionStatus !== "active") return null;
+
+  const primary = await loadOverviewPrimaryData(session);
+  const deskBrief = await fetchDeskBrief();
+  const journalReadyItems = primary.watchlistItems.filter(
+    (i) => i.journal_progress?.ready_to_publish
+  );
+
+  return (
+    <OverviewPanelGate panelId="pro_command">
+      <OverviewProCommandSectionLoader
+        username={session.username}
+        openCallCards={primary.openCallCards}
+        ownCalls={primary.ownCalls}
+        journalReadyItems={journalReadyItems}
+        deskWeeklyNote={deskBrief.weeklyNote}
+        watchlistItems={primary.watchlistItems}
+      />
+    </OverviewPanelGate>
+  );
+}
+
 async function OverviewFeedSection({ session }: { session: SessionPayload }) {
   const { proLocked, proGateCta, isPro } = proFlags(session);
   const primary = await loadOverviewPrimaryData(session);
@@ -414,6 +441,9 @@ export function OverviewPageLoader({ session }: { session: SessionPayload }) {
     >
       <Suspense fallback={<OverviewPrimarySkeleton session={session} />}>
         <OverviewPrimarySection session={session} />
+      </Suspense>
+      <Suspense fallback={<OverviewProCommandSkeleton />}>
+        <OverviewProCommandSection session={session} />
       </Suspense>
       <Suspense fallback={<OverviewFeedSkeleton />}>
         <OverviewFeedSection session={session} />
