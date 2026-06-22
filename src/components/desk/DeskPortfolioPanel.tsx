@@ -39,7 +39,7 @@ export function DeskPortfolioPanel({
     >
       {open.length === 0 ? (
         <div className="px-3 py-6 text-center text-sm text-[var(--pf-gray-500)]">
-          No active desk positions yet.
+          No open Fueled positions. Closed theses appear in the feed below.
         </div>
       ) : (
         <div className="divide-y divide-[var(--pf-border)]">

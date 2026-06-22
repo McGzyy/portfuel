@@ -11,9 +11,11 @@ import { formatPct } from "@/lib/utils";
 
 export function DeskPortfolioChart({
   points,
+  openCount = 0,
   className,
 }: {
   points: ReturnChartPoint[];
+  openCount?: number;
   className?: string;
 }) {
   const [range, setRange] = useState<ChartRangeKey>("all");
@@ -30,8 +32,15 @@ export function DeskPortfolioChart({
         title="Model portfolio curve"
         subtitle="Equal-weight return across open desk positions"
       >
-        <div className="flex h-[200px] items-center justify-center px-6 text-center text-sm text-[var(--pf-gray-500)]">
-          Open desk positions will plot here as the model portfolio grows.
+        <div className="flex h-[200px] flex-col items-center justify-center gap-1 px-6 text-center text-sm text-[var(--pf-gray-500)]">
+          {openCount > 0 ? (
+            <>
+              <p>Live marks are syncing for {openCount} open position{openCount === 1 ? "" : "s"}.</p>
+              <p className="text-xs text-[var(--pf-gray-400)]">Return history plots once entry prices are set.</p>
+            </>
+          ) : (
+            <p>No open desk positions right now. New Fueled calls will appear in the model portfolio.</p>
+          )}
         </div>
       </ChartFrame>
     );

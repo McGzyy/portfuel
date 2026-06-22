@@ -50,7 +50,9 @@ import { FollowingFeedPanel } from "@/components/dashboard/FollowingFeedPanel";
 import { fetchFollowingIds, fetchFollowingMembers } from "@/lib/follows/service";
 import { filterCallsByFollowing } from "@/lib/calls/filter-feed";
 import { fetchDeskBrief } from "@/lib/desk/brief";
+import { fetchFueledDeskCalls } from "@/lib/calls/service";
 import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
+import { mergeDeskPortfolioDisplay } from "@/lib/desk/portfolio-display";
 import { fetchWatchlist } from "@/lib/watchlist/service";
 import { fetchEmailPrefs } from "@/lib/email/preferences";
 import { AlertsEmailSetupStrip } from "@/components/dashboard/AlertsEmailSetupStrip";
@@ -204,6 +206,7 @@ export default async function DashboardOverviewPage({
     emailPrefs,
     deskBrief,
     portfolio,
+    fueledDeskRaw,
     fueledTrackRecord,
     journalIdeas,
     workspacePulse,
@@ -213,6 +216,7 @@ export default async function DashboardOverviewPage({
     fetchEmailPrefs(session.userId).catch(() => null),
     fetchDeskBrief(),
     fetchDeskPortfolio(),
+    fetchFueledDeskCalls(),
     fetchFueledTrackRecord(),
     fetchJournalHighlights(session.userId).catch(
       () => [] as Awaited<ReturnType<typeof fetchJournalHighlights>>
@@ -220,6 +224,10 @@ export default async function DashboardOverviewPage({
     fetchWorkspacePulse(session.userId, isPro).catch(() => null),
     fetchReferralStats(session.userId, session.username).catch(() => null),
   ]);
+
+  const fueledDeskCards = fueledDeskRaw.map((c) => mapCallForCard(c, hypeScores, discoveryCallIds));
+  const displayPortfolio = mergeDeskPortfolioDisplay(portfolio, fueledDeskCards);
+  const openDeskPortfolio = displayPortfolio.filter((e) => e.status === "open");
 
   const watchlistCount = watchlistItems.length;
   const journalThesisCount = watchlistItems.filter((i) => i.has_thesis).length;
@@ -501,15 +509,14 @@ export default async function DashboardOverviewPage({
           </OverviewPanelGate>
 
           <OverviewPanelGate panelId="fueled_portfolio">
-          {portfolio.length > 0 ? (
+          {openDeskPortfolio.length > 0 ? (
             <WorkspacePanel
               title="Fueled portfolio"
               subtitle="Open house positions"
               href="/dashboard/desk"
             >
               <div className="divide-y divide-[var(--pf-border)]">
-                {portfolio
-                  .filter((e) => e.status === "open")
+                {openDeskPortfolio
                   .slice(0, 4)
                   .map((e) => (
                     <Link

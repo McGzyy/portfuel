@@ -13,8 +13,13 @@ import { ChecklistVisitMarker } from "@/components/dashboard/ChecklistVisitMarke
 import { CHECKLIST_DESK_VISITED_KEY } from "@/lib/onboarding/workspace-checklist";
 import { Button } from "@/components/ui/button";
 import { fetchHypeScoresBySymbols } from "@/lib/calls/hype";
+import { fetchFueledDeskCalls } from "@/lib/calls/service";
 import { fetchDeskBrief } from "@/lib/desk/brief";
 import { fetchDeskPortfolio } from "@/lib/desk/portfolio";
+import {
+  countOpenDeskPortfolio,
+  mergeDeskPortfolioDisplay,
+} from "@/lib/desk/portfolio-display";
 import { loadFeedCalls, mapCallForCard, requireDashboardSession } from "@/lib/dashboard/data";
 import { fetchDiscoveryOriginCallIds } from "@/lib/desk-discovery/call-origin";
 import { fetchFueledTrackRecord } from "@/lib/fueled/track-record";
@@ -33,21 +38,24 @@ export default async function DashboardDeskPage() {
   const session = await requireDashboardSession();
   const proLocked = isProIntelligenceLocked(sessionToProContext(session));
 
-  const [deskBrief, portfolio, latest, performing, fueledTrackRecord] = await Promise.all([
-    fetchDeskBrief(),
-    fetchDeskPortfolio(),
-    loadFeedCalls("latest"),
-    loadFeedCalls("performing"),
-    fetchFueledTrackRecord(),
-  ]);
-  const portfolioCurve = buildDeskPortfolioCurve(portfolio);
+  const [deskBrief, portfolio, latest, performing, fueledTrackRecord, fueledDeskCalls] =
+    await Promise.all([
+      fetchDeskBrief(),
+      fetchDeskPortfolio(),
+      loadFeedCalls("latest"),
+      loadFeedCalls("performing"),
+      fetchFueledTrackRecord(),
+      fetchFueledDeskCalls(),
+    ]);
   const hypeScores = await fetchHypeScoresBySymbols([
     ...latest.map((c) => c.symbol),
     ...performing.map((c) => c.symbol),
+    ...fueledDeskCalls.map((c) => c.symbol),
   ]);
   const discoveryCallIds = await fetchDiscoveryOriginCallIds([
     ...latest.map((c) => c.id),
     ...performing.map((c) => c.id),
+    ...fueledDeskCalls.map((c) => c.id),
   ]);
   const fueledLatest = latest
     .filter((c) => c.is_fueled)
@@ -55,15 +63,29 @@ export default async function DashboardDeskPage() {
   const fueledPerforming = performing
     .filter((c) => c.is_fueled)
     .map((c) => mapCallForCard(c, hypeScores, discoveryCallIds));
+  const fueledBookCards = fueledDeskCalls.map((c) =>
+    mapCallForCard(c, hypeScores, discoveryCallIds)
+  );
 
-  const openPositions = portfolio.filter((e) => e.status === "open").length;
+  const displayPortfolio = mergeDeskPortfolioDisplay(portfolio, fueledBookCards);
+  const portfolioCurve = buildDeskPortfolioCurve(displayPortfolio);
+  const openPositions = countOpenDeskPortfolio(displayPortfolio);
+  const openPortfolioCallIds = new Set(
+    displayPortfolio
+      .filter((e) => e.status === "open" && e.id.startsWith("fueled-call-"))
+      .map((e) => e.id.slice("fueled-call-".length))
+  );
+  const latestDeskCalls = fueledLatest.filter(
+    (call) => call.id !== deskBrief.pinnedCall?.id && !openPortfolioCallIds.has(call.id)
+  );
+
   const quoteSymbols = [
-    ...portfolio.filter((e) => e.status === "open").map((e) => e.symbol),
+    ...displayPortfolio.filter((e) => e.status === "open").map((e) => e.symbol),
     ...fueledLatest.map((c) => c.symbol ?? "").filter(Boolean),
   ];
   const quotesUpdatedAt = await fetchLatestSnapshotUpdatedAt(quoteSymbols);
 
-  const totalDeskCalls = fueledLatest.length + fueledPerforming.length;
+  const totalDeskCalls = fueledDeskCalls.length;
 
   return (
     <WorkspaceContextShell
@@ -92,35 +114,21 @@ export default async function DashboardDeskPage() {
 
       <FueledDeskBrief brief={deskBrief} />
 
-      <FueledTrackRecordPanel record={fueledTrackRecord} />
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <DeskPortfolioChart points={portfolioCurve} />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <DeskPortfolioChart points={portfolioCurve} openCount={openPositions} />
         <div>
-          <DeskPortfolioPanel entries={portfolio} />
-          <DeskPortfolioWatchlistButton
-            openCount={portfolio.filter((e) => e.status === "open").length}
-          />
+          <DeskPortfolioPanel entries={displayPortfolio} />
+          <DeskPortfolioWatchlistButton openCount={openPositions} />
         </div>
       </div>
 
-      {!deskBrief.weeklyNote && !deskBrief.pinnedCall ? (
-        <section className="pf-workspace-panel mt-6 px-5 py-6">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-            PortFuel research
-          </p>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--pf-gray-600)]">
-            Desk theses carry the Fueled badge and are separate from the member feed. Admins publish
-            the weekly note and pinned call in Admin → Desk.
-          </p>
-        </section>
-      ) : null}
+      <FueledTrackRecordPanel record={fueledTrackRecord} />
 
-      <section className="mt-8">
+      <section>
         <h2 className="mb-4 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-          Latest
+          {openPositions > 0 ? "More from the desk" : "Latest"}
         </h2>
-        {fueledLatest.length === 0 ? (
+        {latestDeskCalls.length === 0 && fueledLatest.length === 0 ? (
           <div className="pf-workspace-panel px-6 py-12 text-center text-sm text-[var(--pf-gray-500)]">
             <p>No desk calls yet.</p>
             {session.role === "admin" ? (
@@ -129,11 +137,13 @@ export default async function DashboardDeskPage() {
               </Link>
             ) : null}
           </div>
+        ) : latestDeskCalls.length === 0 ? (
+          <div className="pf-workspace-panel px-6 py-8 text-center text-sm text-[var(--pf-gray-500)]">
+            Open positions are tracked above. Closed and archived desk calls will appear here.
+          </div>
         ) : (
           <div className="space-y-4">
-            {fueledLatest
-              .filter((call) => call.id !== deskBrief.pinnedCall?.id)
-              .map((call) => (
+            {latestDeskCalls.map((call) => (
                 <CallCard
                   key={call.id}
                   call={call}

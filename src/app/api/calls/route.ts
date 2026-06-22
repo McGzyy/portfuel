@@ -19,6 +19,8 @@ import { notifyDiscordNewCall } from "@/lib/discord/events";
 import {
   attachCachedResearchSnapshotToCall,
   attachSocialResearchSnapshotToCall,
+  generateAndAttachFueledResearchOnPublish,
+  isFueledPublisherRole,
 } from "@/lib/calls/research-snapshot";
 import { markWatchlistActiveOnPublish } from "@/lib/watchlist/position-intent";
 import { tryAutopostFueledOnPublish } from "@/lib/social/x-fueled-autopost";
@@ -74,7 +76,7 @@ export async function POST(request: Request) {
 
     const { data: userRow } = await db
       .from("users")
-      .select("submission_quota_week, calls_count")
+      .select("submission_quota_week, calls_count, role")
       .eq("id", session.userId)
       .single();
 
@@ -171,7 +173,9 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString(),
     } as never);
 
-    const isFueled = isDeskPublishIdentity(session);
+    const isFueled = isFueledPublisherRole(
+      (userRow as { role?: string } | null)?.role
+    );
     const sourceTweetUrl =
       session.role === "admin" && body.sourceTweetUrl?.trim()
         ? body.sourceTweetUrl.trim()
@@ -258,21 +262,31 @@ export async function POST(request: Request) {
 
     const createdCall = call;
 
-    if (isFueled && sourceTweetUrl) {
-      void attachSocialResearchSnapshotToCall({
-        callId: createdCall.id,
-        symbol: resolvedSymbol,
-        mode: body.socialAnalysisMode ?? "default",
-        tweetUrl: sourceTweetUrl,
-      });
-    } else if (isFueled && socialRawText) {
-      void attachCachedResearchSnapshotToCall({
-        callId: createdCall.id,
-        symbol: resolvedSymbol,
-        mode: body.socialAnalysisMode ?? "default",
-        source: "ticker_ai",
-        rawText: socialRawText,
-      });
+    if (isFueled) {
+      if (sourceTweetUrl) {
+        void attachSocialResearchSnapshotToCall({
+          callId: createdCall.id,
+          symbol: resolvedSymbol,
+          mode: body.socialAnalysisMode ?? "default",
+          tweetUrl: sourceTweetUrl,
+        });
+      } else if (socialRawText) {
+        void attachCachedResearchSnapshotToCall({
+          callId: createdCall.id,
+          symbol: resolvedSymbol,
+          mode: body.socialAnalysisMode ?? "default",
+          source: "ticker_ai",
+          rawText: socialRawText,
+        });
+      } else {
+        void generateAndAttachFueledResearchOnPublish({
+          callId: createdCall.id,
+          symbol: resolvedSymbol,
+          assetClass: body.assetClass,
+          thesis: body.thesis.trim(),
+          mode: body.socialAnalysisMode ?? "default",
+        });
+      }
     }
 
     await db

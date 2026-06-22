@@ -78,6 +78,25 @@ export async function fetchCallsFeed(
   return (data ?? []) as CallWithUser[];
 }
 
+/** All Fueled desk calls (house book), newest first — used for model portfolio display. */
+export async function fetchFueledDeskCalls(): Promise<CallWithUser[]> {
+  if (isDemoMode()) {
+    return getDemoCallsFeed("latest").filter((c) => c.is_fueled);
+  }
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from("calls")
+    .select(
+      "*, users!inner(id, pin, username, display_name, trusted_at, rank_score, subscription_status, avatar_url)"
+    )
+    .eq("is_fueled", true)
+    .eq("users.subscription_status", "active")
+    .order("called_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as CallWithUser[];
+}
+
 export async function fetchCallsBySymbol(symbol: string): Promise<CallWithUser[]> {
   if (isDemoMode()) return getDemoCallsBySymbol(symbol);
   const db = createServiceClient();
