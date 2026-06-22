@@ -4,7 +4,7 @@ import { CallCard } from "@/components/calls/CallCard";
 import { FueledDeskBrief } from "@/components/dashboard/FueledDeskBrief";
 import { DeskPortfolioPanel } from "@/components/desk/DeskPortfolioPanel";
 import { DeskPortfolioChart } from "@/components/charts/DeskPortfolioChart";
-import { buildDeskPortfolioCurve } from "@/lib/charts/desk-portfolio-curve";
+import { buildDeskPortfolioCurveAsync } from "@/lib/charts/desk-portfolio-curve";
 import { DeskPortfolioWatchlistButton } from "@/components/desk/DeskPortfolioWatchlistButton";
 import { DeskContextRail } from "@/components/desk/DeskContextRail";
 import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
@@ -69,7 +69,7 @@ export default async function DashboardDeskPage() {
   );
 
   const displayPortfolio = mergeDeskPortfolioDisplay(portfolio, fueledBookCards);
-  const portfolioCurve = buildDeskPortfolioCurve(displayPortfolio);
+  const portfolioCurve = await buildDeskPortfolioCurveAsync(displayPortfolio);
   const openPositions = countOpenDeskPortfolio(displayPortfolio);
   const openPortfolioCallIds = new Set(
     displayPortfolio

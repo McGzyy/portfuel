@@ -53,7 +53,7 @@ export function DeskPortfolioChart({
     <ChartFrame
       className={className}
       title="Model portfolio curve"
-      subtitle="Equal-weight live return · click a point for the ticker"
+      subtitle="Equal-weight daily mark · click a marker for the ticker"
     >
       <div className="space-y-3 p-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -78,7 +78,7 @@ export function DeskPortfolioChart({
           </div>
         </div>
         {filtered.length > 0 ? (
-          <ReturnLineChart points={filtered} height={240} interactive showMarkers />
+          <ReturnLineChart points={filtered} height={240} interactive showMarkers filled />
         ) : (
           <div className="flex h-[200px] items-center justify-center text-sm text-[var(--pf-gray-500)]">
             No data in this range.
