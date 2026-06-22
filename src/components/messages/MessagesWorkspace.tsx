@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Send } from "lucide-react";
+import { Send, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { WorkspaceEmptyState } from "@/components/calls/CallsEmptyState";
 import { MessagesCommandHeader } from "@/components/messages/MessagesCommandHeader";
 import { MessagesContextRail } from "@/components/messages/MessagesContextRail";
 import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
@@ -193,6 +194,16 @@ export function MessagesWorkspace({ proUnlocked = false }: { proUnlocked?: boole
         <p className="text-sm text-rose-600">{error}</p>
       ) : null}
 
+      {!loading && threads.length === 0 ? (
+        <WorkspaceEmptyState
+          icon={MessageSquare}
+          title="No conversations yet"
+          description="Direct messages are member-to-member. Open someone's profile and tap Message to start a thread."
+          showPublishCta={false}
+          secondaryHref="/dashboard/rankings"
+          secondaryLabel="Browse members"
+        />
+      ) : (
       <div className="pf-workspace-panel grid min-h-[420px] overflow-hidden lg:grid-cols-[280px_1fr]">
         <aside className="border-b border-[var(--pf-border)] lg:border-b-0 lg:border-r">
           <p className="border-b border-[var(--pf-border)] px-4 py-3 text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
@@ -200,10 +211,6 @@ export function MessagesWorkspace({ proUnlocked = false }: { proUnlocked?: boole
           </p>
           {loading && threads.length === 0 ? (
             <p className="p-4 text-sm text-[var(--pf-gray-500)]">Loading…</p>
-          ) : threads.length === 0 ? (
-            <p className="p-4 text-sm text-[var(--pf-gray-500)]">
-              No messages yet. Open a member profile and tap Message to start.
-            </p>
           ) : (
             <ul className="max-h-[360px] overflow-y-auto lg:max-h-[520px]">
               {threads.map((t) => {
@@ -312,12 +319,23 @@ export function MessagesWorkspace({ proUnlocked = false }: { proUnlocked?: boole
               {error ? <p className="px-3 pb-2 text-xs text-rose-600">{error}</p> : null}
             </>
           ) : (
-            <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-[var(--pf-gray-500)]">
-              {loading ? "Loading…" : "Select a conversation or message a member from their profile."}
+            <div className="flex flex-1 flex-col items-center justify-center px-6 py-14 text-center">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--pf-border)] bg-[var(--pf-gray-50)] text-[var(--pf-gray-500)]">
+                <MessageSquare className="h-5 w-5" strokeWidth={2.25} />
+              </span>
+              <p className="mt-4 text-sm font-semibold text-[var(--pf-gray-800)]">
+                {loading ? "Loading conversation…" : "Select a conversation"}
+              </p>
+              <p className="mt-2 max-w-xs text-sm leading-relaxed text-[var(--pf-gray-500)]">
+                {loading
+                  ? "Fetching messages for this thread."
+                  : "Pick a thread on the left, or message a member from their profile."}
+              </p>
             </div>
           )}
         </section>
       </div>
+      )}
     </div>
     </WorkspaceContextShell>
   );
