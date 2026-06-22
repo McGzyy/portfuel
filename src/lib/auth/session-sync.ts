@@ -137,7 +137,7 @@ export function jwtPayloadToSession(payload: Record<string, unknown>): SessionPa
   };
 }
 
-const SESSION_DB_REFRESH_INTERVAL_SEC = 90;
+const SESSION_DB_REFRESH_INTERVAL_SEC = 300;
 
 export type RefreshSessionOptions = {
   /** Skip Supabase billing/lifecycle sync when the JWT was issued recently. */

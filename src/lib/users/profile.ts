@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createServiceClient } from "@/lib/db/supabase";
 import type { UserRow } from "@/lib/db/types";
 import { isDemoMode } from "@/lib/demo/config";
@@ -10,7 +11,9 @@ import {
   type UserCallRow,
 } from "@/lib/calls/call-fields";
 
-export async function fetchUserProfile(userId: string): Promise<UserRow | null> {
+export const fetchUserProfile = cache(async function fetchUserProfile(
+  userId: string
+): Promise<UserRow | null> {
   const db = createServiceClient();
   const { data, error } = await db.from("users").select("*").eq("id", userId).maybeSingle();
   if (error) {
@@ -18,7 +21,7 @@ export async function fetchUserProfile(userId: string): Promise<UserRow | null> 
     return null;
   }
   return data as UserRow | null;
-}
+});
 
 export async function fetchUserRecentCalls(userId: string, limit = 10): Promise<UserCallRow[]> {
   if (isDemoMode()) return getDemoProfileCalls(userId).slice(0, limit) as UserCallRow[];

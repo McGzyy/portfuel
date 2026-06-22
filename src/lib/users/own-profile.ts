@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { SessionPayload } from "@/lib/auth/session";
 import type { UserRow } from "@/lib/db/types";
 import { isDemoMode } from "@/lib/demo/config";
@@ -45,7 +46,7 @@ export type OwnProfileResult = {
   proGrantedUntil: string | null;
 };
 
-export async function fetchOwnProfile(
+export const fetchOwnProfile = cache(async function fetchOwnProfile(
   session: SessionPayload,
   options?: { refreshQuotes?: boolean }
 ): Promise<
@@ -151,4 +152,4 @@ export async function fetchOwnProfile(
     billingInterval: extended.billing_interval ?? "monthly",
     proGrantedUntil: extended.pro_granted_until ?? null,
   };
-}
+});

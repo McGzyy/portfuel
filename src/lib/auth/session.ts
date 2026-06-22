@@ -1,7 +1,12 @@
 import { jwtVerify } from "jose";
 import { cache } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createServiceClient } from "@/lib/db/supabase";
+import {
+  decodeSessionFromRequestHeader,
+  SESSION_PAYLOAD_HEADER,
+  SESSION_TRUST_HEADER,
+} from "@/lib/auth/request-session";
 import {
   refreshSessionFromDatabase,
   sessionCookieOptions,
@@ -81,6 +86,15 @@ async function resolveUsernameFromDb(
 }
 
 export const getSession = cache(async function getSession(): Promise<SessionPayload | null> {
+  const h = await headers();
+  if (h.get(SESSION_TRUST_HEADER) === "1") {
+    const blob = h.get(SESSION_PAYLOAD_HEADER);
+    if (blob) {
+      const trusted = decodeSessionFromRequestHeader(blob);
+      if (trusted) return trusted;
+    }
+  }
+
   const jar = await cookies();
   const cookieToken = jar.get(COOKIE_NAME)?.value;
   if (!cookieToken) return null;

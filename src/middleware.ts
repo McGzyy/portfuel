@@ -7,6 +7,11 @@ import {
   sessionCookieOptions,
 } from "@/lib/auth/session-sync";
 import { memberHomePath } from "@/lib/auth/member-home";
+import {
+  encodeSessionForRequestHeader,
+  SESSION_PAYLOAD_HEADER,
+  SESSION_TRUST_HEADER,
+} from "@/lib/auth/request-session";
 import type { SessionPayload } from "@/lib/auth/session-types";
 import { shouldApplyMemberAppearance } from "@/lib/appearance/routes";
 import {
@@ -133,6 +138,10 @@ export async function middleware(request: NextRequest) {
     session: SessionPayload | null
   ): Headers {
     const requestHeaders = new Headers(request.headers);
+    if (session) {
+      requestHeaders.set(SESSION_TRUST_HEADER, "1");
+      requestHeaders.set(SESSION_PAYLOAD_HEADER, encodeSessionForRequestHeader(session));
+    }
     if (session && shouldApplyMemberAppearance(pathname, true)) {
       requestHeaders.set("x-pf-appearance", "1");
       requestHeaders.set("x-pf-theme-mode", session.themeMode);
@@ -341,7 +350,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (token && shouldApplyMemberAppearance(pathname, true)) {
+  if (token) {
     const { session, freshToken } = await resolveSessionForRequest(request);
     if (session) {
       return nextWithSession(request, session, freshToken);
