@@ -14,7 +14,7 @@ export function WorkspacePageHeader({
   footerLink,
   className,
 }: {
-  eyebrow?: string;
+  eyebrow?: React.ReactNode;
   /** Hide eyebrow on desktop — useful when sidebar already signals location. */
   eyebrowMobileOnly?: boolean;
   title: React.ReactNode;

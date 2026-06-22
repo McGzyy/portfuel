@@ -9,6 +9,7 @@ import { DeskPortfolioWatchlistButton } from "@/components/desk/DeskPortfolioWat
 import { DeskContextRail } from "@/components/desk/DeskContextRail";
 import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
 import { FueledDeskCommandHeader } from "@/components/dashboard/FueledDeskCommandHeader";
+import { WorkspaceLivePulse } from "@/components/dashboard/WorkspaceLivePulse";
 import { ChecklistVisitMarker } from "@/components/dashboard/ChecklistVisitMarker";
 import { CHECKLIST_DESK_VISITED_KEY } from "@/lib/onboarding/workspace-checklist";
 import { Button } from "@/components/ui/button";
@@ -110,6 +111,12 @@ export default async function DashboardDeskPage() {
         totalDeskCalls={totalDeskCalls}
         quotesUpdatedAt={quotesUpdatedAt}
         isPro={!proLocked}
+      />
+
+      <WorkspaceLivePulse
+        userId={session.userId}
+        isPro={!proLocked}
+        feedHref="/dashboard/feed?filter=fueled"
       />
 
       <FueledDeskBrief brief={deskBrief} />

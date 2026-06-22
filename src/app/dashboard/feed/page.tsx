@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { FeedCallList } from "@/components/dashboard/FeedCallList";
 import { FueledDeskSection } from "@/components/dashboard/FueledDeskSection";
 import { FeedCommandHeader } from "@/components/dashboard/FeedCommandHeader";
+import { WorkspaceLivePulse } from "@/components/dashboard/WorkspaceLivePulse";
 import { FeedToolbar } from "@/components/dashboard/FeedToolbar";
 import { FeedSummaryBar } from "@/components/dashboard/FeedSummaryBar";
 import { ProFeedLeadersPanel } from "@/components/pro/ProFeedLeadersPanel";
@@ -162,6 +163,8 @@ export default async function DashboardFeedPage({
         newCount={newCount}
         showNewOnly={showNewOnly}
       />
+
+      <WorkspaceLivePulse userId={session.userId} isPro={!proLocked} />
 
       <MemberQuotaStrip quota={weeklyQuota} showUpgrade={proLocked} />
 

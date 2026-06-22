@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { MemberOpenBookHeader } from "@/components/book/MemberOpenBookHeader";
+import { WorkspaceLivePulse } from "@/components/dashboard/WorkspaceLivePulse";
 import { MemberOpenBookPanel } from "@/components/book/MemberOpenBookPanel";
 import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard";
 import { MemberBookAnalyticsSection } from "@/components/book/MemberBookAnalyticsSection";
@@ -77,6 +78,7 @@ export default async function DashboardBookPage() {
         username={session.username}
         isPro={!proLocked}
       />
+      <WorkspaceLivePulse userId={session.userId} isPro={!proLocked} />
       <ShareTrackRecordCard
         username={session.username}
         callCount={trackRecord.callCount}
