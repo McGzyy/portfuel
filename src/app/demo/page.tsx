@@ -5,6 +5,7 @@ import { DemoJoinFooter } from "@/components/demo/DemoJoinFooter";
 import { DemoLockedSection } from "@/components/demo/DemoLockedSection";
 import { DemoShortcutBar } from "@/components/demo/DemoShortcutBar";
 import { OpenCallsPanel } from "@/components/dashboard/OpenCallsPanel";
+import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
 import { OverviewReturnHero } from "@/components/dashboard/OverviewReturnHero";
 import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard";
 import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
@@ -87,7 +88,15 @@ export default async function DemoOverviewPage() {
           isPro={isPro}
           proLocked={proLocked}
         />
-      ) : null}
+      ) : (
+        <CallsEmptyState
+          title="No open calls"
+          description="Your book is clear. Publish a new thesis or review closed positions on your profile."
+          showPublishCta={false}
+          secondaryHref="/join"
+          secondaryLabel="Join PortFuel"
+        />
+      )}
 
       {memberStats.calls_count > 0 ? (
         <ShareTrackRecordCard

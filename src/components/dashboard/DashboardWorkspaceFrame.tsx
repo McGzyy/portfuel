@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { AppShell } from "@/components/layout/AppShell";
 import { MemberNav } from "@/components/dashboard/MemberNav";
 import { ModerationBanner } from "@/components/member/ModerationBanner";
@@ -17,13 +16,10 @@ import {
 import { shouldAutoShowWorkspaceGuide } from "@/lib/onboarding/workspace-guide";
 import { toHeaderUser } from "@/lib/auth/session-user";
 import type { SessionPayload } from "@/lib/auth/session-types";
-import { countUnreadDmThreads } from "@/lib/messages/service";
-import { fetchUnreadCount } from "@/lib/notifications/service";
 import { fetchWorkspaceHeaderAccount } from "@/lib/workspace/header-account";
 import { LiveBookProvider } from "@/components/market/LiveBookProvider";
 import { WorkspaceActivityProvider } from "@/components/workspace/WorkspaceActivityProvider";
-import { countFeedCallsSince } from "@/lib/feed/new-count";
-import { FEED_SEEN_COOKIE, parseFeedSeenAt } from "@/lib/feed/last-seen";
+import { loadWorkspaceActivitySnapshot } from "@/lib/workspace/activity-snapshot";
 import {
   canAccessProIntelligence,
   sessionToProContext,
@@ -37,29 +33,17 @@ export async function DashboardWorkspaceFrame({
   session: SessionPayload;
   children: React.ReactNode;
 }) {
-  const [unreadPair, announcements, changelog, showWorkspaceGuide, headerAccount] =
+  const [announcements, changelog, showWorkspaceGuide, headerAccount, activityInitial] =
     await Promise.all([
-      Promise.all([
-        countUnreadDmThreads(session.userId),
-        fetchUnreadCount(session.userId),
-      ]).catch(() => [0, 0] as const),
       fetchActiveAnnouncementsForUser(session.userId, session).catch(() => []),
       fetchChangelogForUser(session.userId, session).catch(() => []),
       shouldAutoShowWorkspaceGuide(session.userId, session.role).catch(() => false),
       fetchWorkspaceHeaderAccount(session),
+      loadWorkspaceActivitySnapshot(session.userId),
     ]);
-  const [dmUnread, notifUnread] = unreadPair;
+  const { dmUnread, notifUnread, feedNewCount } = activityInitial;
   const whatsNewUnread = countUnreadWhatsNew(changelog);
   const isPro = canAccessProIntelligence(sessionToProContext(session));
-  const cookieStore = await cookies();
-  const feedSeenAt = parseFeedSeenAt(cookieStore.get(FEED_SEEN_COOKIE)?.value);
-  const feedNewCount = await countFeedCallsSince(feedSeenAt).catch(() => 0);
-  const activityInitial = {
-    notifUnread,
-    dmUnread,
-    feedNewCount,
-    at: new Date().toISOString(),
-  };
 
   return (
     <WorkspaceSearchShell>
@@ -78,6 +62,7 @@ export async function DashboardWorkspaceFrame({
               username={session.username}
               dmUnread={dmUnread}
               notifUnread={notifUnread}
+              feedNewCount={feedNewCount}
               whatsNewUnread={whatsNewUnread}
             />
           </div>
@@ -85,6 +70,7 @@ export async function DashboardWorkspaceFrame({
             <MemberNav
               dmUnread={dmUnread}
               notifUnread={notifUnread}
+              feedNewCount={feedNewCount}
               whatsNewUnread={whatsNewUnread}
               username={session.username}
               displayName={session.displayName ?? session.username}

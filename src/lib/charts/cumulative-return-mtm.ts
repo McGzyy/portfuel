@@ -208,16 +208,23 @@ export async function buildCumulativeReturnMarkToMarketSeries(
   const lastCall = active[active.length - 1]!;
   const now = toUnixSeconds(new Date());
   const lastPoint = points[points.length - 1]!;
-  const openDays = new Set(active.map((c) => c.calledAt));
   if (lastPoint.time !== now) {
+    const alreadyMarkedLastCall =
+      lastPoint.isCallMarker &&
+      lastPoint.callId === lastCall.id &&
+      lastPoint.time === lastCall.calledAt;
     points.push({
       time: now,
       value: lastPoint.value,
-      callId: lastCall.id,
-      symbol: lastCall.symbol,
-      assetClass: lastCall.assetClass,
-      outcome: outcomeForCall(lastCall, lastCall.lockedReturn ?? lastPoint.value),
-      isCallMarker: openDays.has(today),
+      ...(alreadyMarkedLastCall
+        ? {}
+        : {
+            callId: lastCall.id,
+            symbol: lastCall.symbol,
+            assetClass: lastCall.assetClass,
+            outcome: outcomeForCall(lastCall, lastCall.lockedReturn ?? lastPoint.value),
+            isCallMarker: true,
+          }),
     });
   }
 

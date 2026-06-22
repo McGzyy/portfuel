@@ -26,6 +26,7 @@ import {
 import { WorkspaceSidebarFooter } from "@/components/dashboard/WorkspaceSidebarFooter";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
+import { FeedNewBadge } from "@/components/feed/FeedNewBadge";
 import { cn } from "@/lib/utils";
 import { SITE_NAME } from "@/lib/seo/site";
 
@@ -50,10 +51,12 @@ export function WorkspaceSidebar({
   username,
   dmUnread = 0,
   notifUnread = 0,
+  feedNewCount = 0,
 }: {
   username: string;
   dmUnread?: number;
   notifUnread?: number;
+  feedNewCount?: number;
   whatsNewUnread?: number;
 }) {
   const pathname = usePathname();
@@ -105,6 +108,9 @@ export function WorkspaceSidebar({
                       <span className="truncate">{item.label}</span>
                       {item.href === "/dashboard/messages" ? (
                         <DmUnreadBadge initial={dmUnread} />
+                      ) : null}
+                      {item.href === "/dashboard/feed" ? (
+                        <FeedNewBadge initial={feedNewCount} />
                       ) : null}
                       {item.href === "/dashboard/notifications" ? (
                         <NotificationUnreadBadge initial={notifUnread} />

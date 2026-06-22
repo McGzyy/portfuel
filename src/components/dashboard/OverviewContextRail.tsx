@@ -8,8 +8,9 @@ import {
   ContextRailBlock,
   ContextRailModule,
 } from "@/components/workspace/ContextRailModule";
+import { MarketQuoteContextLine } from "@/components/market/MarketQuoteContextLine";
 import type { FeedSummary } from "@/lib/calls/feed-summary";
-import { formatPct } from "@/lib/utils";
+import { formatPct, formatWinRatePct } from "@/lib/utils";
 
 export function OverviewContextRail({
   openCallsCount,
@@ -24,6 +25,7 @@ export function OverviewContextRail({
   dmUnread,
   notifUnread,
   feedNewCount,
+  quotesUpdatedAt,
 }: {
   openCallsCount: number;
   pendingEntryCount: number;
@@ -37,6 +39,7 @@ export function OverviewContextRail({
   dmUnread: number;
   notifUnread: number;
   feedNewCount: number;
+  quotesUpdatedAt?: string | null;
 }) {
   const shortcuts = [
     { href: "/dashboard/desk", label: "Fueled desk", icon: Flame, show: true },
@@ -52,7 +55,7 @@ export function OverviewContextRail({
               <OverviewRailMiniStat label="Open" value={String(openCallsCount)} />
               <OverviewRailMiniStat
                 label="Win %"
-                value={winRate != null ? `${Math.round(winRate)}%` : "—"}
+                value={formatWinRatePct(winRate)}
                 accent={winRate != null && winRate >= 50 ? "positive" : undefined}
               />
               <OverviewRailMiniStat
@@ -77,7 +80,7 @@ export function OverviewContextRail({
 
           <ContextRailBlock title="Market">
             <div className="mb-3 grid grid-cols-2 gap-2">
-              <OverviewRailMiniStat label="Top calls" value={String(communityPulse.count)} />
+              <OverviewRailMiniStat label="30d movers" value={String(communityPulse.count)} />
               <OverviewRailMiniStat
                 label="Avg ret"
                 value={
@@ -111,9 +114,15 @@ export function OverviewContextRail({
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-[var(--pf-gray-500)]">No hot tickers yet today.</p>
+              <p className="text-xs text-[var(--pf-gray-500)]">No movers in the performing feed yet.</p>
             )}
           </ContextRailBlock>
+
+          {quotesUpdatedAt && (communityPulse.count > 0 || openCallsCount > 0) ? (
+            <ContextRailBlock title="Prices">
+              <MarketQuoteContextLine isPro={isPro} updatedAt={quotesUpdatedAt} />
+            </ContextRailBlock>
+          ) : null}
 
           {watchlistPreview.length > 0 ? (
             <ContextRailBlock title="Watchlist">

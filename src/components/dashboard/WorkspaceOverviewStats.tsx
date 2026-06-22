@@ -1,5 +1,6 @@
 import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import { WorkspaceStatCard } from "@/components/dashboard/WorkspaceStatCard";
+import { formatWinRatePct } from "@/lib/utils";
 
 const MAX_WATCHLIST = 24;
 
@@ -40,7 +41,7 @@ export function WorkspaceOverviewStats({
     <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
       <WorkspaceStatCard
         label="Win rate"
-        value={winRate != null ? `${winRate}%` : "—"}
+        value={formatWinRatePct(winRate)}
         hint="Your track record"
         href={`/member/${username}`}
       />

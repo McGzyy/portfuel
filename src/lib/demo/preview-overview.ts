@@ -283,18 +283,21 @@ export async function loadDemoOverviewData(tier: DemoPreviewTier): Promise<DemoO
 
   const [
     { calls: latestRaw, source },
+    { calls: performingRaw },
     { record: fueledTrackRecord },
     { brief: deskBrief },
     { portfolio },
   ] = await Promise.all([
     loadPreviewFeedCalls("latest"),
+    loadPreviewFeedCalls("performing"),
     loadPreviewFueledTrackRecord(),
     loadPreviewDeskBrief(),
     loadPreviewDeskPortfolio(),
   ]);
 
   const latestCalls = await mapPreviewCallsForCards(latestRaw);
-  const communityPulse = summarizeFeed(latestCalls);
+  const performingCalls = await mapPreviewCallsForCards(performingRaw);
+  const communityPulse = summarizeFeed(performingCalls);
   const hotTickers = getHotTickersFromCalls(
     latestCalls.map((c) => ({ symbol: c.symbol, return_pct: c.return_pct })),
     8

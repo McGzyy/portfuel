@@ -33,6 +33,7 @@ import {
 import { WorkspaceSidebarFooter } from "@/components/dashboard/WorkspaceSidebarFooter";
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
+import { FeedNewBadge } from "@/components/feed/FeedNewBadge";
 import { MemberAvatar } from "@/components/member/MemberAvatar";
 import { cn } from "@/lib/utils";
 
@@ -63,6 +64,7 @@ function isMoreActive(pathname: string): boolean {
 export function MemberNav({
   dmUnread = 0,
   notifUnread = 0,
+  feedNewCount = 0,
   whatsNewUnread = 0,
   username,
   displayName,
@@ -70,6 +72,7 @@ export function MemberNav({
 }: {
   dmUnread?: number;
   notifUnread?: number;
+  feedNewCount?: number;
   whatsNewUnread?: number;
   username: string;
   displayName: string;
@@ -177,6 +180,9 @@ export function MemberNav({
                         {item.href === "/dashboard/messages" ? (
                           <DmUnreadBadge initial={dmUnread} />
                         ) : null}
+                        {item.href === "/dashboard/feed" ? (
+                          <FeedNewBadge initial={feedNewCount} />
+                        ) : null}
                         {item.href === "/dashboard/notifications" ? (
                           <NotificationUnreadBadge initial={notifUnread} />
                         ) : null}
@@ -215,7 +221,14 @@ export function MemberNav({
                 active && "pf-workspace-bottom-nav-item-active"
               )}
             >
-              <Icon className="h-5 w-5 shrink-0" strokeWidth={active ? 2.5 : 2} />
+              <span className="relative">
+                <Icon className="h-5 w-5 shrink-0" strokeWidth={active ? 2.5 : 2} />
+                {item.href === "/dashboard/feed" ? (
+                  <span className="absolute -right-1.5 -top-1">
+                    <FeedNewBadge initial={feedNewCount} className="min-w-[0.875rem] px-1 text-[9px]" />
+                  </span>
+                ) : null}
+              </span>
               <span>{item.label}</span>
             </Link>
           );

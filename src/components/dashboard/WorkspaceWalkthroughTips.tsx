@@ -23,7 +23,7 @@ const TIPS = [
   {
     title: "Rankings — trusted members",
     body: "See how rank score and the Trusted badge are earned on the leaderboard.",
-    href: "/rankings",
+    href: "/dashboard/rankings",
     cta: "Rankings",
   },
 ] as const;

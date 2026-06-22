@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AdminCommunityHint } from "@/components/dashboard/AdminCommunityHint";
 import { WorkspaceOnboardingChecklist } from "@/components/dashboard/WorkspaceOnboardingChecklist";
@@ -11,6 +10,8 @@ import { WorkspaceOverviewStats } from "@/components/dashboard/WorkspaceOverview
 import { WorkspaceLiveBar } from "@/components/dashboard/WorkspaceLiveBar";
 import { WorkspaceCommandHeader } from "@/components/dashboard/WorkspaceCommandHeader";
 import { OpenCallsPanel } from "@/components/dashboard/OpenCallsPanel";
+import { CallsEmptyState } from "@/components/calls/CallsEmptyState";
+import { FeedNewBannerLive } from "@/components/dashboard/FeedNewBannerLive";
 import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import { isOpenMemberCall } from "@/lib/calls/open-calls";
 import { fetchWorkspacePulse } from "@/lib/workspace/pulse";
@@ -75,6 +76,7 @@ import {
   buildProTodayBrief,
 } from "@/lib/pro/today-brief";
 import { formatPct, formatPrice } from "@/lib/utils";
+import { fetchLatestSnapshotUpdatedAt } from "@/lib/market/quote-freshness";
 import { fetchReferralStats } from "@/lib/referrals/service";
 import {
   shouldShowReferralOverviewPrompt,
@@ -84,13 +86,12 @@ import { ReferralOverviewStrip } from "@/components/referrals/ReferralInviteStri
 import { OverviewContextRail } from "@/components/dashboard/OverviewContextRail";
 import { OverviewLayoutProvider } from "@/components/dashboard/OverviewLayoutProvider";
 import { OverviewLayoutBar } from "@/components/dashboard/OverviewLayoutBar";
-import { countFeedCallsSince } from "@/lib/feed/new-count";
-import { FEED_SEEN_COOKIE, parseFeedSeenAt } from "@/lib/feed/last-seen";
-import { countUnreadDmThreads } from "@/lib/messages/service";
-import { fetchUnreadCount } from "@/lib/notifications/service";
 import { OverviewPublishFab } from "@/components/dashboard/OverviewPublishFab";
 import { OverviewLayoutBody } from "@/components/dashboard/OverviewLayoutBody";
 import { OverviewPanelGate } from "@/components/dashboard/OverviewPanelGate";
+import { WorkspaceWalkthroughTips } from "@/components/dashboard/WorkspaceWalkthroughTips";
+import { computeMemberWinLossCounts } from "@/lib/users/member-win-loss";
+import { loadWorkspaceActivitySnapshot } from "@/lib/workspace/activity-snapshot";
 
 export const metadata: Metadata = {
   title: "Overview",
@@ -178,6 +179,10 @@ export default async function DashboardOverviewPage({
   );
   const latestCalls = latestRaw.map((c) => mapCallForCard(c, hypeScores, discoveryCallIds));
   const communityPulse = summarizeFeed(performingCalls);
+  const performingHotTickers = getHotTickersFromCalls(
+    performingCalls.map((c) => ({ symbol: c.symbol, return_pct: c.return_pct })),
+    8
+  );
   const hotTickers = getHotTickersFromCalls(
     latestCalls.map((c) => ({ symbol: c.symbol, return_pct: c.return_pct })),
     8
@@ -257,14 +262,15 @@ export default async function DashboardOverviewPage({
   const pendingEntryCount = openCallCards.filter(
     (c) => c.call_state === "pending_entry"
   ).length;
+  const { wins: bookWins, losses: bookLosses } = computeMemberWinLossCounts(ownCalls);
 
   const displayLabel = session.displayName ?? session.username;
-  const cookieStore = await cookies();
-  const feedSeenAt = parseFeedSeenAt(cookieStore.get(FEED_SEEN_COOKIE)?.value);
-  const [feedNewCount, dmUnread, notifUnread] = await Promise.all([
-    countFeedCallsSince(feedSeenAt).catch(() => 0),
-    countUnreadDmThreads(session.userId).catch(() => 0),
-    fetchUnreadCount(session.userId).catch(() => 0),
+  const [{ feedNewCount, dmUnread, notifUnread }, quotesUpdatedAt] = await Promise.all([
+    loadWorkspaceActivitySnapshot(session.userId),
+    fetchLatestSnapshotUpdatedAt([
+      ...openCallCards.map((c) => c.symbol),
+      ...watchlistItems.map((w) => w.symbol),
+    ]).catch(() => null),
   ]);
 
   const journalReadyItems = watchlistItems.filter((i) => i.journal_progress?.ready_to_publish);
@@ -316,13 +322,14 @@ export default async function DashboardOverviewPage({
             winRate={memberStats?.win_rate}
             rankScore={memberStats?.rank_score != null ? Number(memberStats.rank_score) : null}
             communityPulse={communityPulse}
-            hotTickers={hotTickers}
+            hotTickers={performingHotTickers}
             watchlistPreview={watchlistPreview}
             isAdmin={session.role === "admin"}
             isPro={isPro}
             dmUnread={dmUnread}
             notifUnread={notifUnread}
             feedNewCount={feedNewCount}
+            quotesUpdatedAt={quotesUpdatedAt}
           />
         }
       >
@@ -337,6 +344,16 @@ export default async function DashboardOverviewPage({
 
       <OverviewLayoutBar />
 
+      {feedNewCount > 0 ? (
+        <FeedNewBannerLive
+          initialCount={feedNewCount}
+          mode="latest"
+          feedFilter="all"
+          searchQuery=""
+          showNewOnly={false}
+        />
+      ) : null}
+
       <OverviewPanelGate panelId="hero">
       <OverviewReturnHero
         points={performanceSeries}
@@ -344,6 +361,8 @@ export default async function DashboardOverviewPage({
         winRate={memberStats?.win_rate}
         rankScore={memberStats?.rank_score != null ? Number(memberStats.rank_score) : null}
         publishedCallCount={Math.max(ownCalls.length, memberStats?.calls_count ?? 0)}
+        winsCount={bookWins}
+        lossesCount={bookLosses}
         memberAvatar={chartMemberAvatar}
       />
       </OverviewPanelGate>
@@ -374,7 +393,14 @@ export default async function DashboardOverviewPage({
           isPro={isPro}
           proLocked={proLocked}
         />
-      ) : null}
+      ) : (
+        <CallsEmptyState
+          title="No open calls"
+          description="Your book is clear. Publish a new thesis or review closed positions on your profile."
+          secondaryHref="/dashboard/book"
+          secondaryLabel="View positions"
+        />
+      )}
       </OverviewPanelGate>
 
       <OverviewPanelGate panelId="track_record">
@@ -572,6 +598,11 @@ export default async function DashboardOverviewPage({
       <OverviewPanelGate panelId="onboarding">
       {session.role !== "admin" ? (
         <>
+          <WorkspaceWalkthroughTips
+            enabled={
+              !(ownCalls.length > 0 && watchlistCount > 0 && followingMembers.length > 0)
+            }
+          />
           <WorkspaceOnboardingChecklist
             publishedCall={ownCalls.length > 0}
             watchlistCount={watchlistCount}

@@ -14,6 +14,12 @@ export function formatPct(value: number | null | undefined): string {
   return `${sign}${value.toFixed(decimals)}%`;
 }
 
+/** Win rate from profile stats — one decimal across overview surfaces. */
+export function formatWinRatePct(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return "—";
+  return `${value.toFixed(1)}%`;
+}
+
 export function formatPrice(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return "—";
   return value >= 1 ? value.toFixed(2) : value.toFixed(4);

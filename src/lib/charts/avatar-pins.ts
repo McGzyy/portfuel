@@ -41,7 +41,7 @@ export function returnPointsToAvatarPins(
   options?: { emblem?: "member" | "symbol"; symbolKind?: ChartAvatarEmblemKind }
 ): ChartAvatarPin[] {
   const emblem = options?.emblem ?? "symbol";
-  return points
+  const pins = points
     .filter((p) => p.isCallMarker && p.symbol && (emblem === "symbol" || p.outcome != null))
     .map((p) => ({
       time: p.time,
@@ -59,4 +59,13 @@ export function returnPointsToAvatarPins(
       callId: p.callId,
       placement: "on" as const,
     }));
+
+  // One emblem per call — prefer the latest timestamp (live tip vs day open).
+  const byCallId = new Map<string, ChartAvatarPin>();
+  for (const pin of pins) {
+    const key = pin.callId ?? `${pin.symbol}-${pin.time}`;
+    const prev = byCallId.get(key);
+    if (!prev || pin.time >= prev.time) byCallId.set(key, pin);
+  }
+  return [...byCallId.values()];
 }

@@ -8,7 +8,7 @@ import type { ChartRangeKey, ReturnChartPoint, ChartMemberAvatar } from "@/lib/c
 import { filterLineByRange } from "@/lib/charts/range";
 import { computeMaxDrawdown } from "@/lib/charts/cumulative-return";
 import { COPY } from "@/lib/copy";
-import { cn, formatPct } from "@/lib/utils";
+import { cn, formatPct, formatWinRatePct } from "@/lib/utils";
 
 function HeroStat({
   label,
@@ -46,6 +46,8 @@ export function OverviewReturnHero({
   winRate,
   rankScore,
   publishedCallCount = 0,
+  winsCount,
+  lossesCount,
   memberAvatar,
 }: {
   points: ReturnChartPoint[];
@@ -54,6 +56,9 @@ export function OverviewReturnHero({
   rankScore?: number | null;
   /** Total published calls — used when chart points are empty but calls exist. */
   publishedCallCount?: number;
+  /** Book wins/losses — aligned with profile win rate, not chart markers. */
+  winsCount?: number;
+  lossesCount?: number;
   memberAvatar?: ChartMemberAvatar | null;
 }) {
   const [range, setRange] = useState<ChartRangeKey>("all");
@@ -68,8 +73,10 @@ export function OverviewReturnHero({
     last == null ? "neutral" : last >= 0 ? ("up" as const) : ("down" as const);
   const callMarkers = points.filter((p) => p.isCallMarker);
   const callCount = publishedCallCount > 0 ? publishedCallCount : callMarkers.length;
-  const wins = callMarkers.filter((p) => p.outcome === "win").length;
-  const losses = callMarkers.filter((p) => p.outcome === "loss").length;
+  const wins =
+    winsCount ?? callMarkers.filter((p) => p.outcome === "win").length;
+  const losses =
+    lossesCount ?? callMarkers.filter((p) => p.outcome === "loss").length;
 
   if (points.length === 0) {
     const hasCalls = publishedCallCount > 0;
@@ -153,7 +160,7 @@ export function OverviewReturnHero({
             <HeroStat label="Calls" value={String(callCount)} />
             <HeroStat label="Wins" value={String(wins)} accent="up" />
             <HeroStat label="Losses" value={String(losses)} accent={losses > 0 ? "down" : "neutral"} />
-            <HeroStat label="Win rate" value={winRate != null ? `${winRate}%` : "—"} />
+            <HeroStat label="Win rate" value={formatWinRatePct(winRate)} />
             <HeroStat label="Rank" value={rankScore != null ? rankScore.toFixed(1) : "—"} />
           </div>
         </div>
