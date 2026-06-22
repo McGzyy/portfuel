@@ -10,6 +10,7 @@ import {
   listDiscoveryCandidates,
   runDiscoveryScan,
 } from "@/lib/desk-discovery/scanner";
+import { getShadowPerformanceStats } from "@/lib/desk-discovery/shadow-calls";
 import type { DiscoveryCandidateStatus } from "@/lib/desk-discovery/types";
 
 const STATUS_PARAMS = [
@@ -37,6 +38,12 @@ export async function GET(request: Request) {
     }
 
     const statusParam = url.searchParams.get("status");
+    const shadowStatsOnly = url.searchParams.get("shadowStats") === "1";
+    if (shadowStatsOnly) {
+      const shadowStats = await getShadowPerformanceStats();
+      return NextResponse.json({ shadowStats });
+    }
+
     const status = STATUS_PARAMS.includes(statusParam as (typeof STATUS_PARAMS)[number])
       ? (statusParam as DiscoveryCandidateStatus | "active" | "inbox" | "ready")
       : "inbox";

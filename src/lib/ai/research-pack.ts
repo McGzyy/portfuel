@@ -6,6 +6,7 @@ import {
   type EarningsItem,
   type FilingItem,
 } from "@/lib/market/finnhub";
+import type { FueledIntelLayers } from "@/lib/ai/fueled-intel-types";
 import type { TickerAnalyzeHeadline } from "@/lib/ai/ticker-analyze";
 
 const MAX_HEADLINES = 5;
@@ -40,6 +41,8 @@ export type ResearchPack = {
   earnings: ResearchPackEarningsRow[];
   filings: ResearchPackFilingRow[];
   webSources?: ResearchPackWebSource[];
+  /** Multi-step AI intel (headlines, fundamentals, tape) before synthesis. */
+  intelLayers?: FueledIntelLayers;
   /** Serialized block injected into the AI prompt */
   promptBlock: string;
   /** Bumped when analysis prompts change — invalidates cached rows. */

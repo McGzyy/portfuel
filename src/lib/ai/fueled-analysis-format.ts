@@ -1,7 +1,7 @@
 import type { TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
 
 /** Bump when prompts/post-processing change so stale cache is ignored. */
-export const FUELED_ANALYSIS_PROMPT_VERSION = 2;
+export const FUELED_ANALYSIS_PROMPT_VERSION = 3;
 
 function roundLevel(price: number): number {
   if (price >= 100) return Math.round(price * 100) / 100;

@@ -5,6 +5,8 @@ import { DISCOVERY_CONFIG } from "@/lib/desk-discovery/config";
 import { isMissingDiscoveryTable } from "@/lib/desk-discovery/db-errors";
 import type { DiscoveryDraftPayload } from "@/lib/desk-discovery/draft-types";
 import { generateDiscoveryDraft } from "@/lib/desk-discovery/draft";
+import { loadDiscoveryMarketContext } from "@/lib/desk-discovery/draft-context";
+import { openDiscoveryShadowCall, supersedeShadowForCandidate } from "@/lib/desk-discovery/shadow-calls";
 import {
   isSymbolExcluded,
   loadDiscoveryExclusions,
@@ -190,6 +192,11 @@ export async function updateDiscoveryCandidate(
       return { error: "update_failed" };
     }
     if (!data) return { error: "not_found" };
+    if (patch.status === "rejected" || patch.status === "snoozed") {
+      void supersedeShadowForCandidate(id).catch((e) =>
+        console.error("[desk-discovery] shadow-supersede", id, e)
+      );
+    }
     return { candidate: mapRow(data as DbCandidate) };
   } catch (e) {
     console.error("[desk-discovery] update", e);
@@ -211,13 +218,27 @@ export async function generateAndSaveDiscoveryDraft(
   if ("error" in result) return { error: result.error };
 
   const now = new Date().toISOString();
-  return updateDiscoveryCandidate(candidate.id, {
+  const updated = await updateDiscoveryCandidate(candidate.id, {
     draft: { ...result.draft, source: result.source },
     draftGeneratedAt: now,
     ...(opts?.autoApprove && candidate.status === "pending"
       ? { status: "approved" as const }
       : {}),
   });
+
+  if (updated.candidate && !("error" in updated)) {
+    const market = await loadDiscoveryMarketContext(candidate.symbol, candidate.assetClass);
+    const lastPrice = market.lastPrice;
+    if (lastPrice != null && lastPrice > 0) {
+      void openDiscoveryShadowCall({
+        candidate: updated.candidate,
+        draft: result.draft,
+        lastPrice,
+      }).catch((e) => console.error("[desk-discovery] shadow-open", candidate.symbol, e));
+    }
+  }
+
+  return updated;
 }
 
 async function autoDraftHighScoreCandidates(candidates: ScoredDiscoveryCandidate[]): Promise<void> {

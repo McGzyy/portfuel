@@ -1,14 +1,13 @@
-import { createOpenAI } from "@ai-sdk/openai";
-import { generateObject } from "ai";
 import { isDemoMode } from "@/lib/demo/config";
-import { getAiDeepModelId, getAiModelId, isAiCoachConfigured } from "@/lib/ai/config";
+import { isAiCoachConfigured } from "@/lib/ai/config";
+import { runFueledAnalysisPipeline } from "@/lib/ai/fueled-analysis-pipeline";
 import { buildTickerResearchPack } from "@/lib/ai/research-pack";
+import { buildShadowLearningBrief } from "@/lib/desk-discovery/shadow-calls";
 import {
-  enrichFueledAnalysis,
   formatFueledThesisForPublish,
   suggestDeskLevels,
 } from "@/lib/ai/fueled-analysis-format";
-import { tickerAnalyzeSchema, type TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
+import type { TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
 import {
   discoveryDraftSchema,
   formatDiscoveryDraftForPublish,
@@ -25,25 +24,6 @@ import type { DiscoveryReason } from "@/lib/desk-discovery/types";
 import { validateSymbol } from "@/lib/market/validate-symbol";
 
 export type DiscoveryDraftSource = "ai" | "template";
-
-const fueledVoice = `Voice: PortFuel Fueled desk — one accountable caller, institutional tone, trader-literate.
-- Write like a professional desk note members can act on (setup, catalyst, levels, risk).
-- Be specific: cite provided headlines, earnings, filings, or discovery signals when available.
-- No buy/sell/hold commands. No guaranteed returns. No invented news or fake catalysts.
-- Prefer long unless signals clearly lean short (e.g. parabolic fade, negative catalyst).`;
-
-const levelRules = `Levels (required):
-- Anchor to Last price in the research pack when proposing levels.
-- entry: at or near last price, or a logical pullback/support for longs
-- target: ~8–15% in the trade direction for a swing desk call
-- stop: ~4–8% against the trade (aim for at least ~1.5:1 reward vs risk)
-- Round to sensible tick precision.
-- timeframeNote: always set — e.g. "Through earnings + 5 sessions", "Swing · 2–4 weeks".`;
-
-const thesisRules = `draftThesis (member-facing "Your call"):
-- 4–6 sentences in flowing prose (not bullet labels like "Setup:").
-- Cover: why now, catalyst/tape context from sources, level plan in words, what invalidates the view.
-- Do NOT repeat the signal list verbatim — synthesize into a desk-quality thesis.`;
 
 function mapAnalysisToDraft(
   analysis: TickerAnalyzeResult,
@@ -159,60 +139,38 @@ export async function generateDiscoveryDraft(input: {
     includeWeb: true,
   });
 
-  const discoveryBlock = `${researchPack.promptBlock}
-
-Discovery-only context (no social post — synthesize from signals + research above):
+  const discoveryBlock = `Discovery-only context (no social post — synthesize from signals + research above):
 ${signalBlock}
 ${earningsContext ? `\nEarnings context: ${earningsContext}` : ""}
 Preferred direction: ${input.direction ?? "infer from signals and tape"}
 Industry: ${market.industry ?? "—"}`;
 
-  const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const modelId = getAiDeepModelId();
-
-  const system = `You draft a Fueled desk call from discovery radar signals + market research (no tweet).
-${fueledVoice}
-
-${levelRules}
-
-${thesisRules}
-
-Output JSON only:
-- summary: 2–3 sentences — the core catalyst / why now (feeds admin catalyst field).
-- risks: 1–2 sentences — concrete invalidation.
-- draftThesis: member-facing call per rules above — must NOT be a copy-paste of the signal list.
-- direction, entryPrice, targetPrice, stopPrice, timeframeNote: per level rules.
-- Use only provided sources; do not invent specific news.`;
+  const learningBrief = await buildShadowLearningBrief();
+  const extraContext = learningBrief
+    ? `${discoveryBlock}\n\n${learningBrief}`
+    : discoveryBlock;
 
   try {
-    const { object } = await generateObject({
-      model: openai(modelId),
-      schema: tickerAnalyzeSchema,
-      system,
-      prompt: `${discoveryBlock}\n\nProduce the Fueled desk analysis JSON.`,
-      maxOutputTokens: 900,
+    const pipeline = await runFueledAnalysisPipeline({
+      researchPack,
+      lastPrice: market.lastPrice ?? validated.lastPrice,
+      mode: "deep",
+      extraContext,
     });
 
-    const enriched = sanitizeAnalysisLevels(
-      enrichFueledAnalysis(object, market.lastPrice ?? validated.lastPrice),
-      market.lastPrice ?? validated.lastPrice
-    );
+    const enriched = sanitizeAnalysisLevels(pipeline.analysis, market.lastPrice ?? validated.lastPrice);
     const draft = mapAnalysisToDraft(enriched, market.lastPrice ?? validated.lastPrice);
     return { draft, text: formatDiscoveryDraftForPublish(draft), source: "ai" };
   } catch (e) {
     console.error("[desk-discovery/draft AI]", input.symbol, e);
     try {
-      const { object } = await generateObject({
-        model: openai(getAiModelId()),
-        schema: tickerAnalyzeSchema,
-        system,
-        prompt: `${discoveryBlock}\n\nProduce the Fueled desk analysis JSON.`,
-        maxOutputTokens: 700,
+      const pipeline = await runFueledAnalysisPipeline({
+        researchPack,
+        lastPrice: market.lastPrice ?? validated.lastPrice,
+        mode: "default",
+        extraContext,
       });
-      const enriched = sanitizeAnalysisLevels(
-        enrichFueledAnalysis(object, market.lastPrice ?? validated.lastPrice),
-        market.lastPrice ?? validated.lastPrice
-      );
+      const enriched = sanitizeAnalysisLevels(pipeline.analysis, market.lastPrice ?? validated.lastPrice);
       const draft = mapAnalysisToDraft(enriched, market.lastPrice ?? validated.lastPrice);
       return { draft, text: formatDiscoveryDraftForPublish(draft), source: "ai" };
     } catch (fallbackErr) {

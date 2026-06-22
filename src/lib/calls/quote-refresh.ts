@@ -9,6 +9,7 @@ import { computeCallLiveMetrics } from "@/lib/calls/live-metrics";
 import { processCallMilestones } from "@/lib/notifications/milestones";
 import { processCallStopCrosses } from "@/lib/notifications/stop-cross";
 import { processMemberWinGates } from "@/lib/social/member-win-gate";
+import { refreshDiscoveryShadowCalls } from "@/lib/desk-discovery/shadow-calls";
 import { refreshMemberRankings } from "@/lib/users/rankings";
 import { metricsForCallRow, processPendingEntryCalls } from "@/lib/calls/pending-entry";
 
@@ -238,6 +239,8 @@ export async function refreshAllQuotesAndScores(): Promise<{
   memberWinGates: number;
   pendingActivated?: number;
   pendingExpired?: number;
+  shadowUpdated?: number;
+  shadowClosed?: number;
   quotes: QuoteFetchResult[];
 }> {
   const db = createServiceClient();
@@ -352,12 +355,16 @@ export async function refreshAllQuotesAndScores(): Promise<{
   const { gated: memberWinGates } = await processMemberWinGates(milestoneRows);
   await processCallStopCrosses(stopCrossRows);
 
+  const shadowResult = await refreshDiscoveryShadowCalls(priceMap);
+
   return {
     updated,
     pendingActivated: pendingResult.activated,
     pendingExpired: pendingResult.expired,
     milestonesNotified,
     memberWinGates,
+    shadowUpdated: shadowResult.updated,
+    shadowClosed: shadowResult.closed,
     quotes,
   };
 }
