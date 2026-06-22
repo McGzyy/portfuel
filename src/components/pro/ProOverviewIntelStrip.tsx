@@ -180,7 +180,7 @@ export function ResearchPulseCards({
             <>
               {screenerLine}
               {topProgress?.return_pct != null ? (
-                <span className="pf-return-up ml-1 font-semibold">
+                <span className="pf-return-up pf-return-up--on-dark ml-1 font-semibold">
                   · {formatPct(topProgress.return_pct)}
                 </span>
               ) : null}
@@ -193,7 +193,7 @@ export function ResearchPulseCards({
           <PulseLink
             href={`/ticker/${topReturn.symbol}`}
             icon={TrendingUp}
-            iconClass="pf-return-up"
+            iconClass="pf-return-up pf-return-up--on-dark"
             title="Best 30d return"
             detail={`${topReturn.symbol} ${formatPct(topReturn.return_pct)} · @${topReturn.username}`}
             interactive={interactive}
@@ -253,16 +253,16 @@ function PulseLink({
 }) {
   const className = cn(
     "pf-pulse-card",
-    embedded && "border-white/10 bg-white/5 hover:bg-white/10"
+    embedded && "pf-pulse-card--embedded"
   );
 
   const inner = (
     <>
-      <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${iconClass}`} strokeWidth={2.25} />
+      <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", iconClass)} strokeWidth={2.25} />
       <span className="min-w-0">
         <span
           className={cn(
-            "block text-sm font-bold",
+            "pf-pulse-card-title block text-sm font-bold",
             embedded ? "text-white" : "text-[var(--pf-black)]"
           )}
         >
@@ -270,8 +270,8 @@ function PulseLink({
         </span>
         <span
           className={cn(
-            "mt-0.5 block text-xs leading-relaxed",
-            embedded ? "text-slate-200" : "text-[var(--pf-gray-600)]"
+            "pf-pulse-card-detail mt-0.5 block text-xs leading-relaxed",
+            embedded ? "text-slate-300" : "text-[var(--pf-gray-600)]"
           )}
         >
           {detail}
