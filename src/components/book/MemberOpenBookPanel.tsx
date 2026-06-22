@@ -30,6 +30,8 @@ function CallList({
   proLocked,
   interactive = false,
   showSparkline = false,
+  quoteUpdatedAtBySymbol,
+  showQuoteFreshness = false,
 }: {
   calls: CallCardData[];
   viewerUserId: string;
@@ -41,6 +43,8 @@ function CallList({
   proLocked: boolean;
   interactive?: boolean;
   showSparkline?: boolean;
+  quoteUpdatedAtBySymbol?: Record<string, string>;
+  showQuoteFreshness?: boolean;
 }) {
   const content = (
     <div className="divide-y divide-[var(--pf-border)]">
@@ -58,6 +62,8 @@ function CallList({
             isPro={isPro}
             showUpgrade={proLocked}
             canGenerateSummary={!proLocked}
+            quoteUpdatedAt={quoteUpdatedAtBySymbol?.[call.symbol.toUpperCase()] ?? null}
+            showQuoteFreshness={showQuoteFreshness && interactive}
           />
         </div>
       ))}
@@ -86,6 +92,7 @@ export function MemberOpenBookPanel({
   isAdmin,
   isPro,
   proLocked,
+  quoteUpdatedAtBySymbol,
 }: {
   openCalls: MemberBookCallRow[];
   needsClose: MemberBookCallRow[];
@@ -97,6 +104,7 @@ export function MemberOpenBookPanel({
   isAdmin: boolean;
   isPro: boolean;
   proLocked: boolean;
+  quoteUpdatedAtBySymbol?: Record<string, string>;
 }) {
   const mapCards = (rows: MemberBookCallRow[]) =>
     rows.map((c) => toCard(c, viewerUserId, username, displayName, avatarUrl));
@@ -145,6 +153,8 @@ export function MemberOpenBookPanel({
             isPro={isPro}
             proLocked={proLocked}
             interactive
+            quoteUpdatedAtBySymbol={quoteUpdatedAtBySymbol}
+            showQuoteFreshness
           />
         </section>
       ) : null}
@@ -170,6 +180,8 @@ export function MemberOpenBookPanel({
             proLocked={proLocked}
             interactive
             showSparkline
+            quoteUpdatedAtBySymbol={quoteUpdatedAtBySymbol}
+            showQuoteFreshness
           />
         </section>
       ) : null}

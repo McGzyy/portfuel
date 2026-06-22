@@ -79,7 +79,7 @@ import {
   buildProTodayBrief,
 } from "@/lib/pro/today-brief";
 import { formatPct, formatPrice } from "@/lib/utils";
-import { fetchLatestSnapshotUpdatedAt } from "@/lib/market/quote-freshness";
+import { fetchLatestSnapshotUpdatedAt, fetchSnapshotUpdatedAtBySymbol } from "@/lib/market/quote-freshness";
 import { fetchReferralStats } from "@/lib/referrals/service";
 import {
   shouldShowReferralOverviewPrompt,
@@ -265,13 +265,15 @@ export default async function DashboardOverviewPage({
   ).length;
 
   const displayLabel = session.displayName ?? session.username;
-  const [{ feedNewCount, dmUnread, notifUnread }, quotesUpdatedAt] = await Promise.all([
-    loadWorkspaceActivitySnapshot(session.userId),
-    fetchLatestSnapshotUpdatedAt([
-      ...openCallCards.map((c) => c.symbol),
-      ...watchlistItems.map((w) => w.symbol),
-    ]).catch(() => null),
-  ]);
+  const [{ feedNewCount, dmUnread, notifUnread }, quotesUpdatedAt, quoteUpdatedAtBySymbol] =
+    await Promise.all([
+      loadWorkspaceActivitySnapshot(session.userId),
+      fetchLatestSnapshotUpdatedAt([
+        ...openCallCards.map((c) => c.symbol),
+        ...watchlistItems.map((w) => w.symbol),
+      ]).catch(() => null),
+      fetchSnapshotUpdatedAtBySymbol(openCallCards.map((c) => c.symbol)).catch(() => ({})),
+    ]);
 
   const journalReadyItems = watchlistItems.filter((i) => i.journal_progress?.ready_to_publish);
   const journalNextUp = pickJournalNextUp(watchlistItems);
@@ -401,6 +403,7 @@ export default async function DashboardOverviewPage({
           username={session.username}
           isPro={isPro}
           proLocked={proLocked}
+          quoteUpdatedAtBySymbol={quoteUpdatedAtBySymbol}
         />
       ) : (
         <CallsEmptyState

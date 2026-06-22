@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { MemberOpenBookHeader } from "@/components/book/MemberOpenBookHeader";
 import { WorkspaceLivePulse } from "@/components/dashboard/WorkspaceLivePulse";
 import { MemberOpenBookPanel } from "@/components/book/MemberOpenBookPanel";
 import { ShareTrackRecordCard } from "@/components/profile/ShareTrackRecordCard";
-import { MemberBookAnalyticsSection } from "@/components/book/MemberBookAnalyticsSection";
+import { MemberBookAnalyticsSectionLoader } from "@/components/book/MemberBookAnalyticsSectionLoader";
+import { MemberBookAnalyticsSkeleton } from "@/components/book/MemberBookAnalyticsSkeleton";
 import { fetchMemberOpenBook } from "@/lib/calls/member-book";
-import { buildPerformanceSeries } from "@/lib/charts/cumulative-return-mtm";
-import { buildBookAnalyticsSnapshot, emptyBookAnalyticsSnapshot, exposureFromBookSummary } from "@/lib/charts/book-analytics";
-import { toChartMemberAvatar } from "@/lib/charts/member-avatar";
 import { requireDashboardSession } from "@/lib/dashboard/data";
-import { fetchLatestSnapshotUpdatedAt } from "@/lib/market/quote-freshness";
+import { fetchLatestSnapshotUpdatedAt, fetchSnapshotUpdatedAtBySymbol } from "@/lib/market/quote-freshness";
 import { fetchOwnProfile } from "@/lib/users/own-profile";
 import { summarizeMemberTrackRecord } from "@/lib/users/member-track-record";
 import { computeMemberProAnalytics } from "@/lib/users/member-analytics";
@@ -37,34 +36,16 @@ export default async function DashboardBookPage() {
   const proAnalytics = computeMemberProAnalytics(ownProfile.calls);
   const proGateCta = getProGateCta(sessionToProContext(session));
   const memberCalls = ownProfile.calls.filter((c) => !c.is_fueled);
-  let performanceSeries: Awaited<ReturnType<typeof buildPerformanceSeries>> = [];
-  try {
-    performanceSeries =
-      memberCalls.length > 0 ? await buildPerformanceSeries(memberCalls) : [];
-  } catch (e) {
-    console.error("[book/performance]", e);
-  }
-
-  let bookAnalytics = emptyBookAnalyticsSnapshot(performanceSeries);
-  try {
-    bookAnalytics = await buildBookAnalyticsSnapshot({
-      performancePoints: performanceSeries,
-      exposureSummary: book.summary.openCount > 0 ? book.summary : null,
-      benchmarkCalls: book.openCalls.length > 0 ? book.openCalls : memberCalls,
-      includeBenchmark: true,
-    });
-  } catch (e) {
-    console.error("[book/analytics]", e);
-    bookAnalytics = {
-      ...emptyBookAnalyticsSnapshot(performanceSeries),
-      exposure: exposureFromBookSummary(book.summary.openCount > 0 ? book.summary : null),
-    };
-  }
-  const chartMemberAvatar = toChartMemberAvatar(ownProfile.member);
-  const quotesUpdatedAt =
-    book.summary.openCount > 0
-      ? await fetchLatestSnapshotUpdatedAt(book.openCalls.map((c) => c.symbol))
-      : null;
+  const liveSymbols = [
+    ...book.openCalls.map((c) => c.symbol),
+    ...book.needsClose.map((c) => c.symbol),
+  ];
+  const [quotesUpdatedAt, quoteUpdatedAtBySymbol] = await Promise.all([
+    liveSymbols.length > 0 ? fetchLatestSnapshotUpdatedAt(liveSymbols) : Promise.resolve(null),
+    liveSymbols.length > 0
+      ? fetchSnapshotUpdatedAtBySymbol(liveSymbols)
+      : Promise.resolve({} as Record<string, string>),
+  ]);
 
   return (
     <WorkspaceContextShell
@@ -102,15 +83,17 @@ export default async function DashboardBookPage() {
         proGateCta={proGateCta}
       />
 
-      <MemberBookAnalyticsSection
-        analytics={bookAnalytics}
-        performancePoints={performanceSeries}
-        memberAvatar={chartMemberAvatar}
-        profileHref={`/member/${session.username}`}
-        username={session.username}
-        proLocked={proLocked}
-        proGateCta={proGateCta}
-      />
+      <Suspense fallback={<MemberBookAnalyticsSkeleton />}>
+        <MemberBookAnalyticsSectionLoader
+          memberCalls={memberCalls}
+          book={book}
+          member={ownProfile.member}
+          username={session.username}
+          profileHref={`/member/${session.username}`}
+          proLocked={proLocked}
+          proGateCta={proGateCta}
+        />
+      </Suspense>
 
       <MemberOpenBookPanel
         openCalls={book.openCalls}
@@ -123,6 +106,7 @@ export default async function DashboardBookPage() {
         isAdmin={session.role === "admin"}
         isPro={!proLocked}
         proLocked={proLocked}
+        quoteUpdatedAtBySymbol={quoteUpdatedAtBySymbol}
       />
     </WorkspaceContextShell>
   );

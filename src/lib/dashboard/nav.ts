@@ -39,6 +39,12 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
     icon: "book-open",
   },
   {
+    href: "/dashboard/whats-new",
+    label: "What's new",
+    description: "Product updates and changelog",
+    icon: "sparkles",
+  },
+  {
     href: "/dashboard/feed",
     label: "Member feed",
     description: "Community call board",
@@ -92,7 +98,7 @@ export const WORKSPACE_NAV_GROUPS: { title: string; items: DashboardNavItem[] }[
   {
     title: "Home",
     items: DASHBOARD_NAV.filter((i) =>
-      ["/dashboard", "/dashboard/book"].includes(i.href)
+      ["/dashboard", "/dashboard/book", "/dashboard/whats-new"].includes(i.href)
     ),
   },
   {

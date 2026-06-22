@@ -10,6 +10,8 @@ import { useMergedCalls } from "@/components/market/LiveBookProvider";
 
 export function OpenCallsPanel({
   calls,
+  quoteUpdatedAtBySymbol,
+  isPro = false,
 }: {
   calls: CallCardData[];
   viewerUserId?: string | null;
@@ -17,6 +19,7 @@ export function OpenCallsPanel({
   username: string;
   isPro: boolean;
   proLocked: boolean;
+  quoteUpdatedAtBySymbol?: Record<string, string>;
 }) {
   const liveCalls = useMergedCalls(calls);
   if (calls.length === 0) return null;
@@ -51,7 +54,12 @@ export function OpenCallsPanel({
       <SparklineProvider symbols={symbols}>
         <div className="pf-panel-inset grid gap-2 lg:grid-cols-2">
           {liveCalls.slice(0, previewCount).map((call) => (
-            <OpenCallOverviewRow key={call.id} call={call} />
+            <OpenCallOverviewRow
+              key={call.id}
+              call={call}
+              quoteUpdatedAt={quoteUpdatedAtBySymbol?.[call.symbol.toUpperCase()] ?? null}
+              isPro={isPro}
+            />
           ))}
         </div>
       </SparklineProvider>

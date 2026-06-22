@@ -29,14 +29,22 @@ function OpenCallSparkline({ call }: { call: CallCardData }) {
   );
 }
 
-export function OpenCallOverviewRow({ call }: { call: CallCardData }) {
+export function OpenCallOverviewRow({
+  call,
+  quoteUpdatedAt,
+  isPro,
+}: {
+  call: CallCardData;
+  quoteUpdatedAt?: string | null;
+  isPro?: boolean;
+}) {
   const isPending = call.call_state === "pending_entry";
   const isClosed = Boolean(call.closed_at);
   const ReturnDisplay = !isClosed && !isPending ? LiveCallReturnDisplay : CallReturnDisplay;
   const progress =
     call.target_progress != null ? Math.min(100, Math.max(0, call.target_progress)) : null;
   const showProgress = progress != null && !isPending && !isClosed;
-  const meta = buildOpenCallOverviewMeta(call);
+  const meta = buildOpenCallOverviewMeta(call, { quoteUpdatedAt, isPro });
 
   return (
     <Link
