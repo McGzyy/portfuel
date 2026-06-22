@@ -17,7 +17,8 @@ export function WorkspaceContent({ children }: { children: React.ReactNode }) {
     pathname === "/dashboard/book" ||
     pathname === "/dashboard/watchlist" ||
     pathname === "/dashboard/journal" ||
-    pathname === "/dashboard/feed";
+    pathname === "/dashboard/feed" ||
+    pathname === "/dashboard/desk";
 
   return (
     <PullToRefresh>

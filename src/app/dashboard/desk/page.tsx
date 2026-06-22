@@ -6,6 +6,8 @@ import { DeskPortfolioPanel } from "@/components/desk/DeskPortfolioPanel";
 import { DeskPortfolioChart } from "@/components/charts/DeskPortfolioChart";
 import { buildDeskPortfolioCurve } from "@/lib/charts/desk-portfolio-curve";
 import { DeskPortfolioWatchlistButton } from "@/components/desk/DeskPortfolioWatchlistButton";
+import { DeskContextRail } from "@/components/desk/DeskContextRail";
+import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
 import { FueledDeskCommandHeader } from "@/components/dashboard/FueledDeskCommandHeader";
 import { ChecklistVisitMarker } from "@/components/dashboard/ChecklistVisitMarker";
 import { CHECKLIST_DESK_VISITED_KEY } from "@/lib/onboarding/workspace-checklist";
@@ -61,14 +63,29 @@ export default async function DashboardDeskPage() {
   ];
   const quotesUpdatedAt = await fetchLatestSnapshotUpdatedAt(quoteSymbols);
 
+  const totalDeskCalls = fueledLatest.length + fueledPerforming.length;
+
   return (
-    <div className="space-y-6">
+    <WorkspaceContextShell
+      pulseLabel="Desk intel"
+      rail={
+        <DeskContextRail
+          openPositions={openPositions}
+          totalDeskCalls={totalDeskCalls}
+          trackRecord={fueledTrackRecord}
+          pinnedSymbol={deskBrief.pinnedCall?.symbol ?? null}
+          hasWeeklyNote={Boolean(deskBrief.weeklyNote)}
+          isAdmin={session.role === "admin"}
+        />
+      }
+      mainClassName="space-y-6 pb-14 lg:pb-0"
+    >
       <ChecklistVisitMarker storageKey={CHECKLIST_DESK_VISITED_KEY} />
 
       <FueledDeskCommandHeader
         weeklyNote={deskBrief.weeklyNote}
         openPositions={openPositions}
-        totalDeskCalls={fueledLatest.length + fueledPerforming.length}
+        totalDeskCalls={totalDeskCalls}
         quotesUpdatedAt={quotesUpdatedAt}
         isPro={!proLocked}
       />
@@ -147,6 +164,6 @@ export default async function DashboardDeskPage() {
           </div>
         </section>
       ) : null}
-    </div>
+    </WorkspaceContextShell>
   );
 }

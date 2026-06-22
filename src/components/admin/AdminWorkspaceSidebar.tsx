@@ -13,7 +13,6 @@ import {
   Radar,
   Rocket,
   Share2,
-  Shield,
   Target,
   Ticket,
   UserMinus,
@@ -29,7 +28,7 @@ import {
 } from "@/lib/admin/nav";
 import { AdminNavBadge } from "@/components/admin/AdminNavBadge";
 import { useAdminNavCounts } from "@/components/admin/AdminNavCountsProvider";
-import { WorkspaceSignOutButton } from "@/components/auth/WorkspaceSignOutButton";
+import { SITE_NAME } from "@/lib/seo/site";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<AdminNavIcon, typeof BarChart3> = {
@@ -60,18 +59,15 @@ export function AdminWorkspaceSidebar() {
 
   return (
     <aside className="pf-workspace-sidebar grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)_auto]">
-      <div className="pf-sidebar-profile shrink-0 border-b border-[var(--pf-border)]">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--pf-black)] text-white">
-            <Shield className="h-4 w-4" strokeWidth={2.25} />
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-[0.9375rem] font-bold leading-tight text-[var(--foreground)]">
-              Administration
-            </p>
-            <p className="mt-0.5 truncate text-xs text-[var(--pf-gray-500)]">Platform ops</p>
-          </div>
-        </div>
+      <div className="pf-sidebar-brand shrink-0 border-b border-[var(--pf-border)]">
+        <Link href="/admin" className="block">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
+            Administration
+          </p>
+          <p className="mt-0.5 text-[0.9375rem] font-bold leading-tight text-[var(--foreground)]">
+            {SITE_NAME}
+          </p>
+        </Link>
       </div>
 
       <nav
@@ -121,19 +117,14 @@ export function AdminWorkspaceSidebar() {
       </nav>
 
       <div className="pf-sidebar-footer shrink-0">
-        <div className="pf-sidebar-footer-links">
-          <Link href="/dashboard" className="pf-sidebar-footer-link">
-            <LayoutDashboard className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
-            Workspace
-          </Link>
-          <Link href="/dashboard" className="pf-sidebar-footer-link lg:hidden">
-            <ChevronLeft className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
-            Back to app
-          </Link>
-        </div>
-        <div className="mt-2 border-t border-[var(--pf-border)] pt-2">
-          <WorkspaceSignOutButton />
-        </div>
+        <Link href="/dashboard" className="pf-sidebar-footer-cta hidden lg:flex">
+          <LayoutDashboard className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+          Back to workspace
+        </Link>
+        <Link href="/dashboard" className="pf-sidebar-footer-link lg:hidden">
+          <ChevronLeft className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+          Back to workspace
+        </Link>
       </div>
     </aside>
   );

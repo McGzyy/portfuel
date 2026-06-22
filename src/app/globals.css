@@ -39,6 +39,7 @@
   --pf-shadow-lg: 0 12px 40px rgba(15, 20, 25, 0.08), 0 4px 12px rgba(15, 20, 25, 0.04);
   --pf-radius: 0.75rem;
   --pf-radius-lg: 1rem;
+  --pf-context-rail-width: 19rem;
 }
 
 @theme inline {
@@ -439,9 +440,24 @@ body {
   .pf-workspace-overview-shell,
   .pf-workspace-context-shell {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 19rem;
+    grid-template-columns: minmax(0, 1fr) var(--pf-context-rail-width);
     gap: 1.5rem;
     align-items: start;
+  }
+
+  .pf-workspace-content--context-rail .pf-workspace-context-main {
+    border-radius: var(--pf-radius-lg);
+    border: 1px solid color-mix(in srgb, var(--pf-border) 90%, transparent);
+    background: var(--pf-surface);
+    padding: 1.5rem 1.75rem 2rem;
+    box-shadow: var(--pf-shadow-sm);
+  }
+
+  .pf-workspace-content--context-rail .pf-workspace-context-main.pf-workspace-context-main--flat {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
   }
 
   .pf-workspace-overview-main,
@@ -548,13 +564,13 @@ body {
 @media (min-width: 1024px) {
   .pf-discovery-workboard {
     display: grid;
-    grid-template-columns: minmax(13.75rem, 15rem) minmax(0, 1fr) 17.5rem;
+    grid-template-columns: minmax(13.75rem, 15rem) minmax(0, 1fr) var(--pf-context-rail-width);
     gap: 1rem;
     align-items: start;
   }
 
   .pf-discovery-workboard--archive {
-    grid-template-columns: minmax(0, 1fr) 17.5rem;
+    grid-template-columns: minmax(0, 1fr) var(--pf-context-rail-width);
   }
 
   .pf-discovery-workboard-toolbar {
@@ -2019,6 +2035,10 @@ body {
 [data-theme="dark"] .pf-context-rail-sheet,
 [data-theme="dark"] #workspace-mobile-nav,
 [data-theme="dark"] .pf-live-bar {
+  background-color: var(--pf-surface);
+}
+
+[data-theme="dark"] .pf-workspace-content--context-rail .pf-workspace-context-main {
   background-color: var(--pf-surface);
 }
 
