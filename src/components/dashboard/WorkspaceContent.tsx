@@ -23,7 +23,8 @@ export function WorkspaceContent({ children }: { children: React.ReactNode }) {
     pathname === "/dashboard/notifications" ||
     pathname === "/dashboard/research" ||
     pathname === "/dashboard/help" ||
-    pathname === "/dashboard/messages";
+    pathname === "/dashboard/messages" ||
+    pathname === "/dashboard/settings";
 
   return (
     <PullToRefresh>

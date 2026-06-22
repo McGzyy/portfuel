@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import { WorkspaceLivePulse } from "@/components/dashboard/WorkspaceLivePulse";
+import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
+import { SettingsContextRail } from "@/components/settings/SettingsContextRail";
 import { ModerationBanner } from "@/components/member/ModerationBanner";
 import { ProMembershipStrip } from "@/components/dashboard/ProMembershipStrip";
 import { ProPerksQuickLinks } from "@/components/pro/ProPerksQuickLinks";
@@ -20,7 +23,6 @@ import { SettingsAppearanceSection } from "@/components/settings/SettingsAppeara
 import { BillingReturnFeedbackPrompt } from "@/components/settings/BillingReturnFeedbackPrompt";
 import {
   parseSettingsSection,
-  SettingsNav,
   SettingsNavMobile,
 } from "@/components/settings/SettingsNav";
 import { SettingsBillingSync } from "@/app/settings/BillingSync";
@@ -69,7 +71,20 @@ export default async function DashboardSettingsPage({
   return (
     <>
       <SettingsBillingSync />
-      <div className="pf-settings-page mx-auto max-w-5xl space-y-4 sm:space-y-6">
+      <WorkspaceContextShell
+        pulseLabel="Settings pulse"
+        rail={
+          <SettingsContextRail
+            active={section}
+            membershipTier={profile.membershipTier}
+            emailVerified={session.emailVerified}
+            username={profile.member.username}
+          />
+        }
+        mainClassName="space-y-4 sm:space-y-6 pb-14 lg:pb-0"
+      >
+        <WorkspaceLivePulse userId={session.userId} isPro={!proLocked} />
+        <div className="pf-settings-page space-y-4 sm:space-y-6">
         <header className="px-0.5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
             Account
@@ -104,12 +119,7 @@ export default async function DashboardSettingsPage({
 
         <SettingsNavMobile active={section} />
 
-        <div className="grid gap-4 sm:gap-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start">
-          <div className="hidden lg:block">
-            <SettingsNav active={section} />
-          </div>
-
-          <div className="min-w-0 space-y-4 sm:space-y-6">
+        <div className="min-w-0 space-y-4 sm:space-y-6">
             {proLocked && section === "billing" ? (
               <ProMembershipStrip locked watchlistSymbols={watchlistSymbols} />
             ) : null}
@@ -185,9 +195,9 @@ export default async function DashboardSettingsPage({
             ) : null}
 
             {section === "appearance" ? <SettingsAppearanceSection /> : null}
-          </div>
         </div>
-      </div>
+        </div>
+      </WorkspaceContextShell>
     </>
   );
 }
