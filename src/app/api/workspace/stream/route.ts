@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { requireActiveMember } from "@/lib/auth/session";
 import { FEED_SEEN_COOKIE, parseFeedSeenAt } from "@/lib/feed/last-seen";
+import { RESEARCH_SEEN_COOKIE, parseResearchSeenAt } from "@/lib/research/last-seen";
 import {
   fetchWorkspaceActivitySnapshot,
   WORKSPACE_STREAM_POLL_MS,
@@ -25,6 +26,9 @@ export async function GET(request: Request) {
 
   const cookieStore = await cookies();
   const feedSeenAt = parseFeedSeenAt(cookieStore.get(FEED_SEEN_COOKIE)?.value);
+  const researchSeenAt = parseResearchSeenAt(
+    cookieStore.get(RESEARCH_SEEN_COOKIE)?.value
+  );
 
   let closed = false;
   let lastPayload = "";
@@ -35,7 +39,11 @@ export async function GET(request: Request) {
       const pushSnapshot = async (kind: "activity" | "heartbeat") => {
         if (closed) return;
         try {
-          const snapshot = await fetchWorkspaceActivitySnapshot(session.userId, feedSeenAt);
+          const snapshot = await fetchWorkspaceActivitySnapshot(
+            session.userId,
+            feedSeenAt,
+            researchSeenAt
+          );
           const json = JSON.stringify(snapshot);
           if (kind === "activity" && json !== lastPayload) {
             lastPayload = json;

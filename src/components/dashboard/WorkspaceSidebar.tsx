@@ -27,6 +27,7 @@ import { WorkspaceSidebarFooter } from "@/components/dashboard/WorkspaceSidebarF
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
 import { FeedNewBadge } from "@/components/feed/FeedNewBadge";
+import { ResearchNewBadge } from "@/components/research/ResearchNewBadge";
 import { WhatsNewBadge } from "@/components/announcements/WhatsNewBadge";
 import { cn } from "@/lib/utils";
 import { SITE_NAME } from "@/lib/seo/site";
@@ -53,12 +54,14 @@ export function WorkspaceSidebar({
   dmUnread = 0,
   notifUnread = 0,
   feedNewCount = 0,
+  researchNewCount = 0,
   whatsNewUnread = 0,
 }: {
   username: string;
   dmUnread?: number;
   notifUnread?: number;
   feedNewCount?: number;
+  researchNewCount?: number;
   whatsNewUnread?: number;
 }) {
   const pathname = usePathname();
@@ -113,6 +116,9 @@ export function WorkspaceSidebar({
                       ) : null}
                       {item.href === "/dashboard/feed" ? (
                         <FeedNewBadge initial={feedNewCount} />
+                      ) : null}
+                      {item.href === "/dashboard/research" ? (
+                        <ResearchNewBadge initial={researchNewCount} />
                       ) : null}
                       {item.href === "/dashboard/whats-new" ? (
                         <WhatsNewBadge count={whatsNewUnread} />

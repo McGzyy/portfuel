@@ -30,6 +30,8 @@ export type Database = {
           email_instant_enabled: boolean;
           email_digest_enabled: boolean;
           email_digest_last_sent_at: string | null;
+          email_pro_brief_enabled: boolean;
+          email_pro_brief_last_sent_at: string | null;
           onboarding_completed_at: string | null;
           referral_code: string | null;
           referred_by_user_id: string | null;

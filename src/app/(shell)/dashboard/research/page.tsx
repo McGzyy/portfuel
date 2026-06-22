@@ -22,6 +22,7 @@ import {
 } from "@/lib/features/pro-intelligence";
 import { fetchCommunityScreener } from "@/lib/screener/community";
 import { fetchWatchlist } from "@/lib/watchlist/service";
+import { loadWorkspaceActivitySnapshot } from "@/lib/workspace/activity-snapshot";
 
 export const metadata: Metadata = {
   title: "Research hub",
@@ -53,6 +54,7 @@ export default async function DashboardResearchPage({
   const proContext = sessionToProContext(session);
   const proLocked = isProIntelligenceLocked(proContext);
   const proGateCta = getProGateCta(proContext);
+  const activity = await loadWorkspaceActivitySnapshot(session.userId);
 
   let watchlistSymbols: string[] = [];
   try {
@@ -68,6 +70,7 @@ export default async function DashboardResearchPage({
       watchlistCount={watchlistSymbols.length}
       userId={session.userId}
       isPro={!proLocked}
+      researchNewCount={proLocked ? 0 : activity.researchNewCount}
     >
       {content}
     </ResearchWorkspaceShell>

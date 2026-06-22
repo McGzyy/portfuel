@@ -34,6 +34,7 @@ import { WorkspaceSidebarFooter } from "@/components/dashboard/WorkspaceSidebarF
 import { DmUnreadBadge } from "@/components/messages/DmUnreadBadge";
 import { NotificationUnreadBadge } from "@/components/notifications/NotificationUnreadBadge";
 import { FeedNewBadge } from "@/components/feed/FeedNewBadge";
+import { ResearchNewBadge } from "@/components/research/ResearchNewBadge";
 import { WhatsNewBadge } from "@/components/announcements/WhatsNewBadge";
 import { MemberAvatar } from "@/components/member/MemberAvatar";
 import { cn } from "@/lib/utils";
@@ -66,6 +67,7 @@ export function MemberNav({
   dmUnread = 0,
   notifUnread = 0,
   feedNewCount = 0,
+  researchNewCount = 0,
   whatsNewUnread = 0,
   username,
   displayName,
@@ -74,6 +76,7 @@ export function MemberNav({
   dmUnread?: number;
   notifUnread?: number;
   feedNewCount?: number;
+  researchNewCount?: number;
   whatsNewUnread?: number;
   username: string;
   displayName: string;
@@ -183,6 +186,9 @@ export function MemberNav({
                         ) : null}
                         {item.href === "/dashboard/feed" ? (
                           <FeedNewBadge initial={feedNewCount} />
+                        ) : null}
+                        {item.href === "/dashboard/research" ? (
+                          <ResearchNewBadge initial={researchNewCount} />
                         ) : null}
                         {item.href === "/dashboard/whats-new" ? (
                           <WhatsNewBadge count={whatsNewUnread} />

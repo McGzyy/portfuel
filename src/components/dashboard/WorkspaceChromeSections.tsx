@@ -3,9 +3,14 @@ import { MemberNav } from "@/components/dashboard/MemberNav";
 import { WorkspaceSidebar } from "@/components/dashboard/WorkspaceSidebar";
 import type { SessionPayload } from "@/lib/auth/session-types";
 import { loadWorkspaceChromeData } from "@/lib/workspace/chrome-data";
+import {
+  isProIntelligenceLocked,
+  sessionToProContext,
+} from "@/lib/features/pro-intelligence";
 
 const EMPTY_ACTIVITY = {
   feedNewCount: 0,
+  researchNewCount: 0,
   dmUnread: 0,
   notifUnread: 0,
   at: "",
@@ -48,6 +53,7 @@ export function MemberNavFallback({
 
 async function WorkspaceChromeAside({ session }: { session: SessionPayload }) {
   const { headerAccount, activityInitial } = await loadWorkspaceChromeData(session);
+  const isPro = !isProIntelligenceLocked(sessionToProContext(session));
 
   return (
     <WorkspaceSidebar
@@ -55,6 +61,7 @@ async function WorkspaceChromeAside({ session }: { session: SessionPayload }) {
       dmUnread={activityInitial.dmUnread}
       notifUnread={activityInitial.notifUnread}
       feedNewCount={activityInitial.feedNewCount}
+      researchNewCount={isPro ? activityInitial.researchNewCount : 0}
       whatsNewUnread={headerAccount.whatsNewUnread}
     />
   );
@@ -62,6 +69,7 @@ async function WorkspaceChromeAside({ session }: { session: SessionPayload }) {
 
 async function WorkspaceChromeNav({ session }: { session: SessionPayload }) {
   const { headerAccount, activityInitial } = await loadWorkspaceChromeData(session);
+  const isPro = !isProIntelligenceLocked(sessionToProContext(session));
 
   return (
     <MemberNav
@@ -72,6 +80,7 @@ async function WorkspaceChromeNav({ session }: { session: SessionPayload }) {
       dmUnread={activityInitial.dmUnread}
       notifUnread={activityInitial.notifUnread}
       feedNewCount={activityInitial.feedNewCount}
+      researchNewCount={isPro ? activityInitial.researchNewCount : 0}
       whatsNewUnread={headerAccount.whatsNewUnread}
     />
   );

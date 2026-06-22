@@ -70,6 +70,35 @@ export function weeklyDigestEmail(opts: {
   return { subject: "Your PortFuel week — desk, journal & performance", html, text };
 }
 
+export function proMorningBriefEmail(opts: {
+  displayName: string;
+  briefTitle: string;
+  sections: { heading: string; lines: string[] }[];
+}): { subject: string; html: string; text: string } {
+  const bodyHtml = opts.sections
+    .map(
+      (s) =>
+        `<h2 style="margin:20px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#0369a1">${escapeHtml(s.heading)}</h2><ul style="margin:0;padding-left:20px;color:#334155;line-height:1.55">${s.lines.map((l) => `<li>${escapeHtml(l)}</li>`).join("")}</ul>`
+    )
+    .join("");
+
+  const lead = opts.sections[0]?.lines[0];
+  const subjectLead = lead ? ` — ${lead.slice(0, 72)}${lead.length > 72 ? "…" : ""}` : "";
+
+  const { html, text } = layout({
+    title: `${opts.briefTitle}, ${opts.displayName}`,
+    bodyHtml,
+    ctaHref: `${getAppUrl()}/dashboard`,
+    ctaLabel: "Open Pro command center",
+  });
+
+  return {
+    subject: `Pro morning brief${subjectLead}`,
+    html,
+    text,
+  };
+}
+
 export function adminChurnFeedbackEmail(opts: {
   username: string;
   displayName: string | null;

@@ -2,6 +2,7 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { countFeedCallsSince } from "@/lib/feed/new-count";
 import { FEED_SEEN_COOKIE, parseFeedSeenAt } from "@/lib/feed/last-seen";
+import { RESEARCH_SEEN_COOKIE, parseResearchSeenAt } from "@/lib/research/last-seen";
 import { countUnreadDmThreads } from "@/lib/messages/service";
 import { fetchUnreadCount } from "@/lib/notifications/service";
 import {
@@ -13,15 +14,18 @@ export { WORKSPACE_STREAM_POLL_MS, type WorkspaceActivitySnapshot };
 
 export async function fetchWorkspaceActivitySnapshot(
   userId: string,
-  feedSeenAtMs: number
+  feedSeenAtMs: number,
+  researchSeenAtMs: number
 ): Promise<WorkspaceActivitySnapshot> {
-  const [feedNewCount, dmUnread, notifUnread] = await Promise.all([
+  const [feedNewCount, researchNewCount, dmUnread, notifUnread] = await Promise.all([
     countFeedCallsSince(feedSeenAtMs).catch(() => 0),
+    countFeedCallsSince(researchSeenAtMs).catch(() => 0),
     countUnreadDmThreads(userId).catch(() => 0),
     fetchUnreadCount(userId).catch(() => 0),
   ]);
   return {
     feedNewCount,
+    researchNewCount,
     dmUnread,
     notifUnread,
     at: new Date().toISOString(),
@@ -33,6 +37,9 @@ export const loadWorkspaceActivitySnapshot = cache(
   async (userId: string): Promise<WorkspaceActivitySnapshot> => {
     const cookieStore = await cookies();
     const feedSeenAtMs = parseFeedSeenAt(cookieStore.get(FEED_SEEN_COOKIE)?.value);
-    return fetchWorkspaceActivitySnapshot(userId, feedSeenAtMs);
+    const researchSeenAtMs = parseResearchSeenAt(
+      cookieStore.get(RESEARCH_SEEN_COOKIE)?.value
+    );
+    return fetchWorkspaceActivitySnapshot(userId, feedSeenAtMs, researchSeenAtMs);
   }
 );

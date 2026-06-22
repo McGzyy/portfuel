@@ -4,6 +4,7 @@ export type WorkspaceActivitySnapshot = {
   notifUnread: number;
   dmUnread: number;
   feedNewCount: number;
+  researchNewCount: number;
   at: string;
 };
 
@@ -22,6 +23,11 @@ export function dispatchWorkspaceActivity(snapshot: WorkspaceActivitySnapshot) {
   window.dispatchEvent(
     new CustomEvent("portfuel:feed-activity-changed", {
       detail: { feedNewCount: snapshot.feedNewCount },
+    })
+  );
+  window.dispatchEvent(
+    new CustomEvent("portfuel:research-activity-changed", {
+      detail: { researchNewCount: snapshot.researchNewCount },
     })
   );
 }

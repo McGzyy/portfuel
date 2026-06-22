@@ -37,7 +37,6 @@ import {
 } from "@/components/dashboard/OverviewDeferredPanels";
 import { OverviewProCommandSectionLoader } from "@/components/dashboard/OverviewProCommandSectionLoader";
 import { OverviewProCommandSkeleton } from "@/components/dashboard/OverviewProCommandSkeleton";
-import { fetchDeskBrief } from "@/lib/desk/brief";
 import {
   fetchLatestSnapshotUpdatedAt,
   fetchSnapshotUpdatedAtBySymbol,
@@ -319,21 +318,13 @@ async function OverviewProCommandSection({ session }: { session: SessionPayload 
   if (!isPro || session.subscriptionStatus !== "active") return null;
 
   const primary = await loadOverviewPrimaryData(session);
-  const deskBrief = await fetchDeskBrief();
-  const journalReadyItems = primary.watchlistItems.filter(
-    (i) => i.journal_progress?.ready_to_publish
-  );
 
   return (
     <OverviewPanelGate panelId="pro_command">
       <OverviewProCommandSectionLoader
         userId={session.userId}
         username={session.username}
-        openCallCards={primary.openCallCards}
         ownCalls={primary.ownCalls}
-        journalReadyItems={journalReadyItems}
-        deskWeeklyNote={deskBrief.weeklyNote}
-        watchlistItems={primary.watchlistItems}
       />
     </OverviewPanelGate>
   );

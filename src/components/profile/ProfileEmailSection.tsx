@@ -11,9 +11,11 @@ type Prefs = {
   notifyEmail: string | null;
   emailInstantEnabled: boolean;
   emailDigestEnabled: boolean;
+  emailProBriefEnabled: boolean;
   marketingMemberOptIn: boolean;
   marketingProOptIn: boolean;
   emailConfigured: boolean;
+  isPro?: boolean;
 };
 
 type VerifyStatus = {
@@ -27,6 +29,8 @@ export function ProfileEmailSection() {
   const [email, setEmail] = useState("");
   const [instant, setInstant] = useState(true);
   const [digest, setDigest] = useState(true);
+  const [proBrief, setProBrief] = useState(true);
+  const [isPro, setIsPro] = useState(false);
   const [marketingMember, setMarketingMember] = useState(false);
   const [marketingPro, setMarketingPro] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -44,6 +48,8 @@ export function ProfileEmailSection() {
       setEmail(data.notifyEmail ?? "");
       setInstant(data.emailInstantEnabled);
       setDigest(data.emailDigestEnabled);
+      setProBrief(data.emailProBriefEnabled);
+      setIsPro(Boolean(data.isPro));
       setMarketingMember(data.marketingMemberOptIn);
       setMarketingPro(data.marketingProOptIn);
     }
@@ -67,6 +73,7 @@ export function ProfileEmailSection() {
         notifyEmail: email.trim(),
         emailInstantEnabled: instant,
         emailDigestEnabled: digest,
+        emailProBriefEnabled: proBrief,
         marketingMemberOptIn: marketingMember,
         marketingProOptIn: marketingPro,
       }),
@@ -148,6 +155,15 @@ export function ProfileEmailSection() {
           onCheckedChange={setDigest}
           disabled={!prefs.emailConfigured}
         />
+        {isPro ? (
+          <SettingsToggleRow
+            label="Pro morning brief"
+            description="Weekday email with your command center — following activity, watchlist movers, earnings, and open positions."
+            checked={proBrief}
+            onCheckedChange={setProBrief}
+            disabled={!prefs.emailConfigured}
+          />
+        ) : null}
       </div>
 
       <div className="mt-6 border-t border-[var(--pf-border)] pt-2">

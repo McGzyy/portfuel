@@ -4,11 +4,16 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { requireSession } from "@/lib/auth/session";
 import { fetchEmailPrefs } from "@/lib/email/preferences";
 import { isEmailConfigured } from "@/lib/email/config";
+import {
+  isProIntelligenceLocked,
+  sessionToProContext,
+} from "@/lib/features/pro-intelligence";
 
 const patchSchema = z.object({
   notifyEmail: z.union([z.string().email().max(254), z.literal("")]).optional(),
   emailInstantEnabled: z.boolean().optional(),
   emailDigestEnabled: z.boolean().optional(),
+  emailProBriefEnabled: z.boolean().optional(),
   marketingMemberOptIn: z.boolean().optional(),
   marketingProOptIn: z.boolean().optional(),
 });
@@ -20,8 +25,10 @@ export async function GET() {
     if (!prefs) {
       return NextResponse.json({ error: "not_found" }, { status: 404 });
     }
+    const isPro = !isProIntelligenceLocked(sessionToProContext(session));
     return NextResponse.json({
       ...prefs,
+      isPro,
       emailConfigured: isEmailConfigured(),
     });
   } catch (e) {
@@ -48,6 +55,9 @@ export async function PATCH(request: Request) {
     if (body.emailDigestEnabled !== undefined) {
       update.email_digest_enabled = body.emailDigestEnabled;
     }
+    if (body.emailProBriefEnabled !== undefined) {
+      update.email_pro_brief_enabled = body.emailProBriefEnabled;
+    }
     if (body.marketingMemberOptIn !== undefined) {
       update.marketing_member_opt_in = body.marketingMemberOptIn;
     }
@@ -69,8 +79,10 @@ export async function PATCH(request: Request) {
     }
 
     const prefs = await fetchEmailPrefs(session.userId);
+    const isPro = !isProIntelligenceLocked(sessionToProContext(session));
     return NextResponse.json({
       ...prefs,
+      isPro,
       emailConfigured: isEmailConfigured(),
     });
   } catch (e) {
