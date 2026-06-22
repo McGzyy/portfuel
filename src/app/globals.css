@@ -2013,10 +2013,10 @@ body {
 
 /* Dark theme — common hardcoded light utilities */
 [data-theme="dark"] .pf-overview-command,
+[data-theme="dark"] .pf-workspace-page-header,
+[data-theme="dark"] .pf-overview-return-hero,
 [data-theme="dark"] .pf-context-rail-fab,
-[data-theme="dark"] .pf-context-rail-sheet {
-  background-color: var(--pf-surface);
-}
+[data-theme="dark"] .pf-context-rail-sheet,
 [data-theme="dark"] #workspace-mobile-nav,
 [data-theme="dark"] .pf-live-bar {
   background-color: var(--pf-surface);
