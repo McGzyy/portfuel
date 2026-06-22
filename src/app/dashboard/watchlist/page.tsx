@@ -11,6 +11,8 @@ import { MarketHeadlinesWidget } from "@/components/pro/MarketHeadlinesWidget";
 import { WatchlistAiDigestPanel } from "@/components/pro/WatchlistAiDigestPanel";
 import { ResearchPipeline } from "@/components/journal/ResearchPipeline";
 import { WatchlistLoadError } from "@/components/watchlist/WatchlistLoadError";
+import { WatchlistContextRail } from "@/components/watchlist/WatchlistContextRail";
+import { WorkspaceContextShell } from "@/components/workspace/WorkspaceContextShell";
 import { requireDashboardSession } from "@/lib/dashboard/data";
 import { isDemoMode } from "@/lib/demo/config";
 import { pickJournalNextUp } from "@/lib/journal/next-up";
@@ -63,7 +65,19 @@ export default async function DashboardWatchlistPage() {
 
   return (
     <WatchlistItemsProvider initialItems={items}>
-      <div className="space-y-6">
+      <WorkspaceContextShell
+        rail={
+          <WatchlistContextRail
+            items={items}
+            symbolCount={items.length}
+            unreadAlerts={unreadAlerts}
+            callsLast7d={callsLast7d}
+            nextUp={nextUp}
+            bookPosture={bookPosture}
+          />
+        }
+        mainClassName="space-y-6 pb-14 lg:pb-0"
+      >
         {loadFailed ? <WatchlistLoadError /> : null}
         <WatchlistCommandHeader
           symbolCount={items.length}
@@ -122,7 +136,7 @@ export default async function DashboardWatchlistPage() {
             <MarketHeadlinesWidget watchlistSymbols={items.map((i) => i.symbol)} />
           </div>
         </div>
-      </div>
+      </WorkspaceContextShell>
     </WatchlistItemsProvider>
   );
 }

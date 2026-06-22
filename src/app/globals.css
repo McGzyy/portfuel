@@ -367,6 +367,30 @@ body {
   padding: 1.5rem 1.125rem 2.5rem;
 }
 
+/* Unified workspace page title — card on mobile, flat on desktop */
+.pf-workspace-page-header {
+  border-radius: var(--pf-radius-lg);
+  border: 1px solid var(--pf-border);
+  background: var(--pf-surface);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--pf-shadow-sm);
+}
+
+@media (min-width: 640px) {
+  .pf-workspace-page-header {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .pf-workspace-page-header {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+  }
+}
+
 @media (max-width: 1023px) {
   .pf-workspace-content {
     padding: 1rem 1rem 2rem;
@@ -1944,6 +1968,7 @@ body {
 
 /* Dark theme — common hardcoded light utilities */
 [data-theme="dark"] .pf-overview-command,
+[data-theme="dark"] .pf-workspace-page-header,
 [data-theme="dark"] .pf-overview-return-hero,
 [data-theme="dark"] #workspace-mobile-nav,
 [data-theme="dark"] .pf-live-bar {

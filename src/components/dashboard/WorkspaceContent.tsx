@@ -13,7 +13,9 @@ export function WorkspaceContent({ children }: { children: React.ReactNode }) {
     pathname === "/calls/new" || pathname.startsWith("/ticker/");
   const isOverview = pathname === "/dashboard";
   const isContextRail =
-    pathname === "/dashboard" || pathname === "/dashboard/book";
+    pathname === "/dashboard" ||
+    pathname === "/dashboard/book" ||
+    pathname === "/dashboard/watchlist";
 
   return (
     <PullToRefresh>

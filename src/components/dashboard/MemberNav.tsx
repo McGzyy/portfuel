@@ -190,7 +190,6 @@ export function MemberNav({
         </nav>
 
         <WorkspaceSidebarFooter
-          whatsNewUnread={whatsNewUnread}
           onNavigate={() => setDrawerOpen(false)}
           className="pb-[var(--pf-drawer-footer-pad)]"
         />

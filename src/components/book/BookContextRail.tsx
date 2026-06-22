@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Megaphone, Share2 } from "lucide-react";
+import { Share2 } from "lucide-react";
 import {
   ContextRailBlock,
   ContextRailModule,
@@ -7,7 +7,6 @@ import {
 import { OverviewRailMiniStat } from "@/components/dashboard/OverviewContextRail.client";
 import type { MemberOpenBookSummary } from "@/lib/calls/member-book";
 import type { MemberProAnalytics } from "@/lib/users/member-analytics";
-import { COPY } from "@/lib/copy";
 import { formatPct } from "@/lib/utils";
 
 export function BookContextRail({
@@ -88,22 +87,13 @@ export function BookContextRail({
       ) : null}
 
       <ContextRailBlock title="Actions">
-        <div className="space-y-1.5">
-          <Link
-            href={`/member/${username}`}
-            className="flex items-center gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2 text-[11px] font-semibold text-[var(--pf-gray-700)] hover:bg-white"
-          >
-            <Share2 className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
-            Share track record
-          </Link>
-          <Link
-            href={COPY.newCallHref}
-            className="flex items-center gap-2 rounded-lg border border-[var(--pf-red)]/20 bg-[var(--pf-red)]/5 px-3 py-2 text-[11px] font-semibold text-[var(--pf-red)] hover:bg-[var(--pf-red)]/10"
-          >
-            <Megaphone className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
-            {COPY.publishCallCta}
-          </Link>
-        </div>
+        <Link
+          href={`/member/${username}`}
+          className="flex items-center gap-2 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-gray-50)] px-3 py-2 text-[11px] font-semibold text-[var(--pf-gray-700)] hover:bg-white"
+        >
+          <Share2 className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+          Share track record
+        </Link>
       </ContextRailBlock>
     </ContextRailModule>
   );

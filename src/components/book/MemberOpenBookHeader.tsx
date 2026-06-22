@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { WorkspaceNewCallAction } from "@/components/dashboard/WorkspacePageHeader";
 import { MemberOpenBookLiveStats } from "@/components/book/MemberOpenBookLiveStats";
+import { WorkspacePageHeader } from "@/components/dashboard/WorkspacePageHeader";
 import type { MemberOpenBookSummary } from "@/lib/calls/member-book";
 import { quotesRefreshLabel } from "@/lib/market/quote-cadence";
 
@@ -20,26 +20,19 @@ export function MemberOpenBookHeader({
 
   return (
     <header className="space-y-4">
-      <div className="pf-overview-command rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] px-5 py-5 shadow-[var(--pf-shadow-sm)] sm:px-6 sm:py-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-2xl">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--pf-gray-400)]">
-              Workspace · Positions
-            </p>
-            <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-black)] sm:text-[1.75rem]">
-              Your positions
-            </h1>
-            <p className="mt-2 text-sm leading-relaxed text-[var(--pf-gray-500)]">{subtitle}</p>
-            <Link
-              href={`/member/${username}`}
-              className="mt-3 inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
-            >
-              Public track record →
-            </Link>
-          </div>
-          <WorkspaceNewCallAction />
-        </div>
-      </div>
+      <WorkspacePageHeader
+        eyebrow="Workspace · Positions"
+        title="Your positions"
+        description={subtitle}
+        footerLink={
+          <Link
+            href={`/member/${username}`}
+            className="inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
+          >
+            Public track record →
+          </Link>
+        }
+      />
 
       {summary.openCount > 0 ? (
         <MemberOpenBookLiveStats initialSummary={summary} />

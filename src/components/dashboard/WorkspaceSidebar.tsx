@@ -50,7 +50,6 @@ export function WorkspaceSidebar({
   username,
   dmUnread = 0,
   notifUnread = 0,
-  whatsNewUnread = 0,
 }: {
   username: string;
   dmUnread?: number;
@@ -119,7 +118,7 @@ export function WorkspaceSidebar({
         ))}
       </nav>
 
-      <WorkspaceSidebarFooter whatsNewUnread={whatsNewUnread} />
+      <WorkspaceSidebarFooter />
     </aside>
   );
 }
