@@ -12,6 +12,8 @@ export type ProTodayBriefRow = {
   id: string;
   title: string;
   detail: string;
+  /** Smaller secondary line — extra context without crowding the headline fact. */
+  meta?: string;
   href: string;
   accent?: "desk" | "earnings" | "screener" | "book" | "journal" | "crypto";
 };
@@ -57,6 +59,7 @@ export function buildProTodayBrief(input: {
       id: "desk",
       title: "Fueled desk note",
       detail: note,
+      meta: "House research · weekly positioning on the desk",
       href: "/dashboard/desk",
       accent: "desk",
     });
@@ -71,7 +74,14 @@ export function buildProTodayBrief(input: {
       detail:
         earnings.length === 1
           ? `${next.symbol} reports ${fmtShortDate(next.date)}${hourLabel(next.hour) ? ` · ${hourLabel(next.hour)}` : ""}`
-          : `${earnings.length} symbols this fortnight · next ${next.symbol} ${fmtShortDate(next.date)}`,
+          : `${next.symbol} is next · ${fmtShortDate(next.date)}`,
+      meta:
+        earnings.length === 1
+          ? "Only symbol on your list in this window"
+          : `${earnings.length} symbols on your watchlist · ${earnings
+              .slice(1, 3)
+              .map((e) => e.symbol)
+              .join(", ")}${earnings.length > 3 ? " + more" : ""} also reporting`,
       href: buildResearchHubHref("earnings"),
       accent: "earnings",
     });
@@ -81,8 +91,12 @@ export function buildProTodayBrief(input: {
       title: "Earnings calendar",
       detail:
         input.battleboard.nextSymbol && input.battleboard.nextDate
-          ? `${input.battleboard.reportingCount} names reporting · community focus on ${input.battleboard.nextSymbol}`
+          ? `${input.battleboard.reportingCount} names reporting · focus ${input.battleboard.nextSymbol}`
           : `${input.battleboard.reportingCount} symbols reporting this week`,
+      meta:
+        input.battleboard.nextSymbol && input.battleboard.nextDate
+          ? `Next ${input.battleboard.nextSymbol} ${fmtShortDate(input.battleboard.nextDate)} · ${input.battleboard.withCommunity} with community calls`
+          : `${input.battleboard.withCommunity} names already have member theses`,
       href: buildResearchHubHref("earnings"),
       accent: "earnings",
     });
@@ -90,17 +104,20 @@ export function buildProTodayBrief(input: {
 
   const screenerRows = input.screener.targetProgress.slice(0, 3);
   if (screenerRows.length > 0) {
+    const lead = screenerRows[0]!;
     rows.push({
       id: "screener",
       title: "Screener pulse",
-      detail: screenerRows
-        .map(
-          (r) =>
-            `${r.symbol} ${Math.round(r.target_progress)}% to target${
-              r.return_pct != null ? ` (${formatPct(r.return_pct)})` : ""
-            }`
-        )
-        .join(" · "),
+      detail: `${lead.symbol} ${Math.round(lead.target_progress)}% to target${
+        lead.return_pct != null ? ` (${formatPct(lead.return_pct)})` : ""
+      }`,
+      meta:
+        screenerRows.length > 1
+          ? `Also pacing: ${screenerRows
+              .slice(1)
+              .map((r) => `${r.symbol} ${Math.round(r.target_progress)}%`)
+              .join(" · ")}`
+          : `${lead.direction.toUpperCase()} thesis · @${lead.username}`,
       href: buildResearchHubHref("screener"),
       accent: "screener",
     });
@@ -110,6 +127,9 @@ export function buildProTodayBrief(input: {
       id: "screener",
       title: "Screener pulse",
       detail: `${top.symbol} · ${top.callCount} community call${top.callCount === 1 ? "" : "s"} this week`,
+      meta: `${top.latestDirection.toUpperCase()} bias · best mark ${
+        top.bestReturnPct != null ? formatPct(top.bestReturnPct) : "—"
+      }`,
       href: buildResearchHubHref("screener"),
       accent: "screener",
     });
@@ -117,12 +137,18 @@ export function buildProTodayBrief(input: {
 
   const cryptoReturns = input.screener.topReturns.filter((r) => r.asset_class === "crypto").slice(0, 3);
   if (cryptoReturns.length > 0) {
+    const lead = cryptoReturns[0]!;
     rows.push({
       id: "crypto-movers",
       title: "Crypto movers",
-      detail: cryptoReturns
-        .map((r) => `${r.symbol} ${formatPct(r.return_pct)} · @${r.username}`)
-        .join(" · "),
+      detail: `${lead.symbol} ${formatPct(lead.return_pct)} · @${lead.username}`,
+      meta:
+        cryptoReturns.length > 1
+          ? `Also: ${cryptoReturns
+              .slice(1)
+              .map((r) => `${r.symbol} ${formatPct(r.return_pct)}`)
+              .join(" · ")}`
+          : `${lead.direction.toUpperCase()} · 30-day ranked return`,
       href: buildResearchHubHref("screener"),
       accent: "crypto",
     });
@@ -140,7 +166,10 @@ export function buildProTodayBrief(input: {
       title: "Your positions",
       detail: `${input.openCalls.length} live call${input.openCalls.length === 1 ? "" : "s"} · best ${top.symbol}${
         top.return_pct != null ? ` ${formatPct(top.return_pct)}` : ""
-      }${Number.isFinite(avg) ? ` · avg ${formatPct(avg)}` : ""}`,
+      }`,
+      meta: `${Number.isFinite(avg) ? `Book avg ${formatPct(avg)}` : "Live marks on your open book"} · ${
+        input.openCalls.length === 1 ? "1 symbol" : `${new Set(input.openCalls.map((c) => c.symbol)).size} symbols`
+      }`,
       href: "/dashboard/book",
       accent: "book",
     });
@@ -151,6 +180,7 @@ export function buildProTodayBrief(input: {
       id: `ready-${item.symbol}`,
       title: "Ready to publish",
       detail: `${item.symbol} · research checklist complete`,
+      meta: "Thesis drafted on watchlist — one tap to publish on record",
       href: buildPublishUrlFromHubEntry(item),
       accent: "journal",
     });

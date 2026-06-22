@@ -109,6 +109,11 @@ export function ProTodayBriefCard({
                 <span className="mt-1 block text-xs leading-relaxed pf-pro-brief-detail">
                   {row.detail}
                 </span>
+                {row.meta ? (
+                  <span className="mt-1 block text-[11px] leading-snug pf-pro-brief-meta">
+                    {row.meta}
+                  </span>
+                ) : null}
               </span>
             </>
           );

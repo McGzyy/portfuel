@@ -20,6 +20,68 @@ function fmtShortDate(iso: string): string {
   });
 }
 
+function earningsPulseLines(battleboard: EarningsBattleboardSummary): {
+  detail: string;
+  meta?: string;
+} {
+  if (battleboard.withCommunity > 0 && battleboard.nextSymbol && battleboard.nextDate) {
+    return {
+      detail: `${battleboard.reportingCount} symbols in the 14-day window`,
+      meta: `Next ${battleboard.nextSymbol} ${fmtShortDate(battleboard.nextDate)} · ${battleboard.withCommunity} with community calls`,
+    };
+  }
+  if (battleboard.reportingCount > 0) {
+    return {
+      detail: `${battleboard.reportingCount} symbols reporting`,
+      meta:
+        battleboard.nextSymbol && battleboard.nextDate
+          ? `Next up ${battleboard.nextSymbol} ${fmtShortDate(battleboard.nextDate)}`
+          : "Open earnings for dates and community skew",
+    };
+  }
+  return { detail: "Earnings calendar", meta: "No reports in the current window" };
+}
+
+function screenerPulseLines(
+  screener: CommunityScreenerData
+): { detail: React.ReactNode; meta?: string } {
+  const topProgress = screener.targetProgress[0];
+  const topCalled = screener.mostCalled[0];
+
+  if (topProgress) {
+    return {
+      detail: (
+        <>
+          {topProgress.symbol} {Math.round(topProgress.target_progress)}% to target
+          {topProgress.return_pct != null ? (
+            <span className="pf-return-up pf-return-up--on-dark ml-1 font-semibold">
+              · {formatPct(topProgress.return_pct)}
+            </span>
+          ) : null}
+        </>
+      ),
+      meta:
+        screener.targetProgress.length > 1
+          ? `Also: ${screener.targetProgress
+              .slice(1, 3)
+              .map((r) => `${r.symbol} ${Math.round(r.target_progress)}%`)
+              .join(" · ")}`
+          : `${topProgress.direction.toUpperCase()} · @${topProgress.username}`,
+    };
+  }
+
+  if (topCalled) {
+    return {
+      detail: `${topCalled.symbol} · ${topCalled.callCount} call${topCalled.callCount === 1 ? "" : "s"} this week`,
+      meta: `${topCalled.latestDirection.toUpperCase()} bias · best ${
+        topCalled.bestReturnPct != null ? formatPct(topCalled.bestReturnPct) : "—"
+      }`,
+    };
+  }
+
+  return { detail: "Community screener", meta: "No target progress in this window" };
+}
+
 /** Pro overview: quick links to earnings, screener, and movers without leaving home. */
 export function ProOverviewIntelStrip({
   battleboard,
@@ -138,27 +200,11 @@ export function ResearchPulseCards({
   /** Omit outer panel chrome when nested in ProCommandCenter. */
   embedded?: boolean;
 }) {
-  const topCalled = screener.mostCalled[0];
-  const topProgress = screener.targetProgress[0];
   const topReturn = screener.topReturns[0];
   const topCrypto = screener.topReturns.find((r) => r.asset_class === "crypto");
 
-  const screenerLine = topProgress
-    ? `${topProgress.symbol} ${Math.round(topProgress.target_progress)}% to target`
-    : topCalled
-      ? `${topCalled.symbol} · ${topCalled.callCount} call${topCalled.callCount === 1 ? "" : "s"} this week`
-      : "Community screener";
-
-  const earningsLine =
-    battleboard.withCommunity > 0 && battleboard.nextSymbol && battleboard.nextDate
-      ? `${battleboard.withCommunity} reporting name${battleboard.withCommunity === 1 ? "" : "s"} with calls · next ${battleboard.nextSymbol} ${fmtShortDate(battleboard.nextDate)}`
-      : battleboard.reportingCount > 0
-        ? `${battleboard.reportingCount} symbols reporting — open Earnings for positioning`
-        : "Earnings calendar";
-
-  const cryptoLine = topCrypto
-    ? `${topCrypto.symbol} ${formatPct(topCrypto.return_pct)} · @${topCrypto.username}`
-    : "No crypto movers in the top 30d window";
+  const earnings = earningsPulseLines(battleboard);
+  const screenerCopy = screenerPulseLines(screener);
 
   const grid = (
     <div className={embedded ? "grid gap-3 sm:grid-cols-2 xl:grid-cols-4" : "mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"}>
@@ -167,7 +213,8 @@ export function ResearchPulseCards({
           icon={Calendar}
           iconClass={embedded ? "text-sky-300" : "text-[var(--pf-red)]"}
           title="Earnings"
-          detail={earningsLine}
+          detail={earnings.detail}
+          meta={earnings.meta}
           interactive={interactive}
           embedded={embedded}
         />
@@ -176,16 +223,8 @@ export function ResearchPulseCards({
           icon={ScanSearch}
           iconClass={embedded ? "text-sky-300" : "text-[var(--pf-red)]"}
           title="Screener"
-          detail={
-            <>
-              {screenerLine}
-              {topProgress?.return_pct != null ? (
-                <span className="pf-return-up pf-return-up--on-dark ml-1 font-semibold">
-                  · {formatPct(topProgress.return_pct)}
-                </span>
-              ) : null}
-            </>
-          }
+          detail={screenerCopy.detail}
+          meta={screenerCopy.meta}
           interactive={interactive}
           embedded={embedded}
         />
@@ -195,7 +234,8 @@ export function ResearchPulseCards({
             icon={TrendingUp}
             iconClass="pf-return-up pf-return-up--on-dark"
             title="Best 30d return"
-            detail={`${topReturn.symbol} ${formatPct(topReturn.return_pct)} · @${topReturn.username}`}
+            detail={`${topReturn.symbol} ${formatPct(topReturn.return_pct)}`}
+            meta={`${topReturn.direction.toUpperCase()} · @${topReturn.username} · 30d ranked`}
             interactive={interactive}
             embedded={embedded}
           />
@@ -205,7 +245,8 @@ export function ResearchPulseCards({
             icon={TrendingUp}
             iconClass={embedded ? "text-slate-400" : "text-[var(--pf-gray-400)]"}
             title="Best 30d return"
-            detail="No ranked returns yet this month"
+            detail="No ranked returns yet"
+            meta="Community returns populate as calls close"
             interactive={interactive}
             embedded={embedded}
           />
@@ -215,7 +256,16 @@ export function ResearchPulseCards({
           icon={Coins}
           iconClass={embedded ? "text-indigo-300" : "text-indigo-600"}
           title="Crypto movers"
-          detail={cryptoLine}
+          detail={
+            topCrypto
+              ? `${topCrypto.symbol} ${formatPct(topCrypto.return_pct)}`
+              : "No crypto movers in the top 30d window"
+          }
+          meta={
+            topCrypto
+              ? `${topCrypto.direction.toUpperCase()} · @${topCrypto.username} · majors vs BTC`
+              : "Ranked crypto returns in the screener"
+          }
           interactive={interactive}
           embedded={embedded}
         />
@@ -240,6 +290,7 @@ function PulseLink({
   iconClass,
   title,
   detail,
+  meta,
   interactive = true,
   embedded = false,
 }: {
@@ -248,6 +299,7 @@ function PulseLink({
   iconClass: string;
   title: string;
   detail: ReactNode;
+  meta?: string;
   interactive?: boolean;
   embedded?: boolean;
 }) {
@@ -276,6 +328,16 @@ function PulseLink({
         >
           {detail}
         </span>
+        {meta ? (
+          <span
+            className={cn(
+              "pf-pulse-card-meta mt-1 block text-[11px] leading-snug",
+              embedded ? "text-slate-500" : "text-[var(--pf-gray-500)]"
+            )}
+          >
+            {meta}
+          </span>
+        ) : null}
       </span>
     </>
   );
