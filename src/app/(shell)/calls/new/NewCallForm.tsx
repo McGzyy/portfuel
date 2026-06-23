@@ -23,11 +23,37 @@ import type { HeaderUser } from "@/lib/auth/session-user";
 import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import type { TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
 import { formatFueledThesisForPublish } from "@/lib/ai/fueled-analysis-format";
+import { AI_RAW_TEXT_MAX, AI_SOURCE_NOTES_MAX } from "@/lib/ai/source-material";
 import { formatDiscoveryDraftForPublish, parseLevelNote } from "@/lib/desk-discovery/draft-types";
 import type { DiscoveryDraftPayload } from "@/lib/desk-discovery/draft-types";
 import { journalSymbolPath } from "@/lib/journal/paths";
 import { COPY } from "@/lib/copy";
 import { formatPrice } from "@/lib/utils";
+
+function formatAiDraftError(code: string): string {
+  switch (code) {
+    case "pro_required":
+      return "Pro required to use AI assist.";
+    case "ai_limit_reached":
+      return "AI assist limit reached for today.";
+    case "ai_deep_limit_reached":
+      return "Deepen+ limit reached for today (3 per day).";
+    case "deep_limit_reached":
+      return "Deepen+ is temporarily unavailable — try again later or use Default.";
+    case "invalid_input":
+      return `Notes are too long or invalid. Shorten to under ${AI_SOURCE_NOTES_MAX.toLocaleString()} characters.`;
+    case "invalid_symbol":
+      return "Enter a valid ticker before generating.";
+    case "deep_analysis_failed":
+      return "Deepen+ timed out or failed — try Default, or retry with shorter notes.";
+    case "analysis_failed":
+      return "AI draft failed — try again with shorter notes.";
+    case "server_error":
+      return "Server error — try again in a moment.";
+    default:
+      return code;
+  }
+}
 
 function readPublishQuery(sp: URLSearchParams) {
   const directionParam = sp.get("direction");
@@ -105,6 +131,7 @@ export function NewCallForm({
   );
   const [aiNotes, setAiNotes] = useState(queryDraft.contextNotes);
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
   const [aiCost, setAiCost] = useState<number | null>(null);
   const [aiCacheHit, setAiCacheHit] = useState<boolean | null>(null);
   const [aiRemaining, setAiRemaining] = useState<{ default: number; deep: number } | null>(
@@ -183,23 +210,37 @@ export function NewCallForm({
 
   async function generateAiDraft() {
     if (!isAdmin && !isPro) return;
-    if (!symbol || symbol.trim().length < 1) return;
+    const sym = symbol.toUpperCase().trim();
+    if (!sym) {
+      setAiError("Enter a ticker symbol first.");
+      return;
+    }
+    const notes = aiNotes.trim();
+    if (notes.length > AI_SOURCE_NOTES_MAX) {
+      setAiError(
+        `Notes are too long (${notes.length.toLocaleString()} chars). Shorten to ${AI_SOURCE_NOTES_MAX.toLocaleString()} or less.`
+      );
+      return;
+    }
     setError("");
+    setAiError("");
     setAiLoading(true);
     setAiCost(null);
     setAiCacheHit(null);
     try {
       await refreshAiAssistUsage();
-      const rawText = `Ticker: ${symbol.toUpperCase().trim()}\nNotes: ${aiNotes.trim() || "None"}`;
+      const notesLine = notes || "None";
+      const prefix = `Ticker: ${sym}\nNotes: `;
+      const maxNotesInRaw = Math.max(0, AI_RAW_TEXT_MAX - prefix.length);
+      const rawText = `${prefix}${notesLine.slice(0, maxNotesInRaw)}`;
       const endpoint = isAdmin ? "/api/admin/social/analyze-ticker" : "/api/social/analyze-ticker";
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           rawText,
-          symbol: symbol.toUpperCase().trim(),
-          inPostSnippet: aiNotes.trim().slice(0, 500) || undefined,
-          adminNote: aiNotes.trim().slice(0, 500) || undefined,
+          symbol: sym,
+          sourceNotes: notes || undefined,
           assetClass,
           mode: aiMode,
         }),
@@ -207,15 +248,12 @@ export function NewCallForm({
       const data = await res.json();
       if (!res.ok) {
         const code = typeof data.error === "string" ? data.error : "AI draft failed.";
-        if (code === "pro_required") {
-          setError("Pro required to use AI assist.");
-        } else if (code === "ai_limit_reached") {
-          setError("AI assist limit reached for today.");
-        } else if (code === "ai_deep_limit_reached") {
-          setError("Deepen+ limit reached for today.");
-        } else {
-          setError(code);
-        }
+        setAiError(formatAiDraftError(code));
+        return;
+      }
+
+      if (!data.analysis?.draftThesis) {
+        setAiError("AI returned an empty draft — try again or use Default mode.");
         return;
       }
 
@@ -236,8 +274,9 @@ export function NewCallForm({
       );
       setAiCacheHit(typeof data.cache?.hit === "boolean" ? data.cache.hit : null);
       await refreshAiAssistUsage();
+      document.getElementById("thesis")?.scrollIntoView({ behavior: "smooth", block: "center" });
     } catch {
-      setError("AI draft failed.");
+      setAiError("AI draft failed — check your connection and try again.");
     } finally {
       setAiLoading(false);
     }
@@ -505,7 +544,8 @@ export function NewCallForm({
                   <div>
                     <p className="pf-eyebrow">AI assist</p>
                     <p className="mt-1 text-sm text-[var(--pf-gray-600)]">
-                      Generate a Fueled-style draft from just a ticker + notes.
+                      Generate a Fueled-style draft from a ticker + notes. Paste an email or
+                      research snippet — we synthesize an original desk thesis, not a copy.
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -523,19 +563,27 @@ export function NewCallForm({
                     <Button
                       type="button"
                       onClick={generateAiDraft}
-                      disabled={aiLoading || !symbol || publishBlocked}
+                      disabled={aiLoading || !symbol.trim()}
                     >
                       {aiLoading ? "Generating…" : "Generate draft"}
                     </Button>
                   </div>
                 </div>
+                {aiError ? (
+                  <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+                    {aiError}
+                  </p>
+                ) : null}
                 <div>
-                  <Label htmlFor="ai-notes">Notes (optional)</Label>
+                  <Label htmlFor="ai-notes">Source notes (optional)</Label>
                   <Textarea
                     id="ai-notes"
                     value={aiNotes}
-                    onChange={(e) => setAiNotes(e.target.value)}
-                    placeholder="What’s the setup? Any catalysts, levels mentioned elsewhere, angle you want the desk voice to hit…"
+                    onChange={(e) => {
+                      setAiNotes(e.target.value);
+                      if (aiError) setAiError("");
+                    }}
+                    placeholder="Paste an email, newsletter excerpt, or your angle — catalysts, levels, bear/bull case…"
                     minLength={0}
                   />
                   <div className="mt-2 flex flex-wrap gap-2 text-xs text-[var(--pf-gray-500)]">
@@ -559,9 +607,15 @@ export function NewCallForm({
                     ) : null}
                   </div>
                   <p className="mt-2 text-xs text-[var(--pf-gray-500)]">
-                    How to use: enter a symbol, add notes (social post context helps), click Generate draft,
-                    then review levels and thesis before publishing. Draft levels anchor to last price when
-                    not stated in your notes.
+                    How to use: enter a symbol, paste source material above, pick Default or Deepen+,
+                    then Generate draft. Review the thesis and levels below before publishing.
+                    {aiNotes.length > 0 ? (
+                      <>
+                        {" "}
+                        · {aiNotes.length.toLocaleString()} / {AI_SOURCE_NOTES_MAX.toLocaleString()}{" "}
+                        chars
+                      </>
+                    ) : null}
                   </p>
                 </div>
               </section>

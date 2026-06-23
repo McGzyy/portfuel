@@ -7,12 +7,16 @@ import { analyzeTickerFromPost } from "@/lib/ai/ticker-analyze";
 import type { AnalysisMode } from "@/lib/ai/social-analysis-cache";
 import { deriveTweetKey } from "@/lib/ai/social-analysis-cache";
 import { AI_ASSIST_LIMITS } from "@/lib/ai/ai-assist-limits";
+import { AI_RAW_TEXT_MAX, AI_SOURCE_NOTES_MAX } from "@/lib/ai/source-material";
+
+export const maxDuration = 60;
 
 const schema = z.object({
-  rawText: z.string().min(12).max(8000),
+  rawText: z.string().min(12).max(AI_RAW_TEXT_MAX),
   symbol: z.string().min(1).max(12),
-  inPostSnippet: z.string().max(500).optional(),
-  adminNote: z.string().max(500).optional(),
+  sourceNotes: z.string().max(AI_SOURCE_NOTES_MAX).optional(),
+  inPostSnippet: z.string().max(AI_SOURCE_NOTES_MAX).optional(),
+  adminNote: z.string().max(AI_SOURCE_NOTES_MAX).optional(),
   assetClass: z.enum(["equity", "crypto"]).optional(),
   mode: z.enum(["default", "deep"]).optional(),
 });
@@ -53,6 +57,7 @@ export async function POST(request: Request) {
       rawText: body.rawText,
       tweetUrl: null,
       symbol: body.symbol,
+      sourceNotes: body.sourceNotes,
       inPostSnippet: body.inPostSnippet,
       adminNote: body.adminNote,
       assetClass: body.assetClass,

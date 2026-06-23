@@ -11,6 +11,7 @@ import {
   type AnalysisMode,
 } from "@/lib/ai/social-analysis-cache";
 import { FUELED_ANALYSIS_PROMPT_VERSION } from "@/lib/ai/fueled-analysis-format";
+import { resolveSourceMaterial } from "@/lib/ai/source-material";
 import { validateSymbol } from "@/lib/market/validate-symbol";
 
 export { tickerAnalyzeSchema, type TickerAnalyzeResult } from "@/lib/ai/fueled-analysis-schema";
@@ -26,6 +27,7 @@ export type TickerAnalyzeHeadline = {
 export async function analyzeTickerFromPost(input: {
   rawText: string;
   symbol: string;
+  sourceNotes?: string;
   inPostSnippet?: string;
   adminNote?: string;
   assetClass?: "equity" | "crypto";
@@ -83,8 +85,11 @@ export async function analyzeTickerFromPost(input: {
     }
   }
 
+  const sourceMaterial = resolveSourceMaterial(input);
+  const snippet =
+    sourceMaterial.length > 0 ? sourceMaterial : `Desk context on ${validated.symbol}.`;
+
   if (isDemoMode() || !isAiCoachConfigured()) {
-    const snippet = input.inPostSnippet?.trim() || `Social context on ${validated.symbol}.`;
     const researchPack = await buildTickerResearchPack({
       symbol: validated.symbol,
       assetClass: validated.assetClass,
@@ -92,7 +97,7 @@ export async function analyzeTickerFromPost(input: {
       lastPrice: validated.lastPrice ?? undefined,
       inPostSnippet: snippet,
       rawText: input.rawText,
-      adminNote: input.adminNote,
+      adminNote: sourceMaterial || undefined,
     });
     return {
       analysis: {
@@ -121,7 +126,6 @@ export async function analyzeTickerFromPost(input: {
     if (deepCount >= 25) return { error: "deep_limit_reached" };
   }
 
-  const snippet = input.inPostSnippet?.trim() || `Social context on ${validated.symbol}.`;
   const researchPack = await buildTickerResearchPack({
     symbol: validated.symbol,
     assetClass: validated.assetClass,

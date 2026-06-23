@@ -126,12 +126,13 @@ Focus on dates, estimates, and material filings — not price targets.`,
     generateObject({
       model: openai(miniId),
       schema: tapeIntelSchema,
-      system: `Analyze tape context and the admin post/signal for trade setup. ${fueledRules}`,
+      system: `Analyze tape context and the admin post/signal for trade setup. ${fueledRules}
+If source material is a third-party email, newsletter, or research note, extract catalysts and levels only — the final thesis must be original PortFuel desk voice, not copied text.`,
       prompt: `${pack.promptBlock}
 
 ${input.extraContext ? `Extra context:\n${input.extraContext}` : ""}
 
-Infer direction bias and swing timeframe from post + price context.`,
+Infer direction bias and swing timeframe from source material + price context.`,
     }),
   ]);
 

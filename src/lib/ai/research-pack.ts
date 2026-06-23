@@ -12,7 +12,9 @@ import type { TickerAnalyzeHeadline } from "@/lib/ai/ticker-analyze";
 const MAX_HEADLINES = 5;
 const MAX_EARNINGS = 6;
 const MAX_FILINGS = 5;
-const MAX_POST_CHARS = 2800;
+import { AI_SOURCE_NOTES_MAX } from "@/lib/ai/source-material";
+
+const MAX_POST_CHARS = AI_SOURCE_NOTES_MAX;
 const MAX_WEB_SOURCES = 3;
 const MAX_WEB_CHARS = 1200;
 
@@ -130,10 +132,10 @@ function buildPromptBlock(input: {
 Asset class: ${input.assetClass}
 Last price: ${input.lastPrice != null ? `$${input.lastPrice}` : "unknown"}
 
-Post excerpt for this ticker:
-${truncate(input.inPostSnippet, 500)}
+Source material for this ticker (email, notes, or post — synthesize original desk view; do not copy verbatim):
+${truncate(input.inPostSnippet, MAX_POST_CHARS)}
 
-Full post (truncated):
+Full context (truncated):
 ${truncate(input.rawText.trim(), MAX_POST_CHARS)}
 
 Recent headlines (7d, max ${MAX_HEADLINES}):
