@@ -32,6 +32,8 @@ export type Database = {
           email_digest_last_sent_at: string | null;
           email_pro_brief_enabled: boolean;
           email_pro_brief_last_sent_at: string | null;
+          auto_close_on_stop: boolean;
+          auto_close_on_target: boolean;
           onboarding_completed_at: string | null;
           referral_code: string | null;
           referred_by_user_id: string | null;
@@ -65,6 +67,7 @@ export type Database = {
           peak_return_pct: number | null;
           closed_at: string | null;
           exit_price: number | null;
+          close_reason: string | null;
           target_progress: number | null;
           score_points: number;
           vote_score: number;

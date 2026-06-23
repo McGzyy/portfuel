@@ -20,6 +20,7 @@ export function mapCallForCard(
   const prices = normalizeCallCardPrices(c);
   const row = c as typeof c & {
     closed_at?: string | null;
+    close_reason?: string | null;
     peak_return_pct?: number | null;
     call_state?: string | null;
     trigger_entry_price?: number | null;
@@ -50,6 +51,7 @@ export function mapCallForCard(
     hype_score: hypeScores?.[c.symbol.toUpperCase()] ?? null,
     updated_at: c.updated_at ?? null,
     closed_at: row.closed_at ?? null,
+    close_reason: row.close_reason ?? null,
     peak_return_pct: row.peak_return_pct ?? null,
     call_state: row.call_state ?? null,
     trigger_entry_price: row.trigger_entry_price ?? null,

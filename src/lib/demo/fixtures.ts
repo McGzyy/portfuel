@@ -116,6 +116,7 @@ type RawCall = {
   peak_return_pct?: number;
   closed_at?: string;
   exit_price?: number;
+  close_reason?: string | null;
   entry_mode?: "live" | "conditional";
   call_state?: "pending_entry" | "active" | "cancelled" | "expired";
   trigger_entry_price?: number | null;
@@ -693,6 +694,7 @@ function toCallWithUser(raw: RawCall): CallWithUser {
     peak_return_pct: raw.peak_return_pct ?? raw.return_pct,
     closed_at: raw.closed_at ?? null,
     exit_price: raw.exit_price ?? null,
+    close_reason: raw.close_reason ?? null,
     target_progress: raw.target_progress,
     score_points: raw.return_pct != null ? raw.return_pct * 2 + raw.vote_score : raw.vote_score,
     vote_score: raw.vote_score,

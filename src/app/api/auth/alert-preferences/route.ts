@@ -21,6 +21,10 @@ import { canAccessProIntelligence, sessionToProContext } from "@/lib/features/pr
 import { fetchEmailPrefs } from "@/lib/email/preferences";
 import { isEmailConfigured } from "@/lib/email/config";
 import { isPushConfigured } from "@/lib/push/config";
+import {
+  DEFAULT_CALL_EXIT_PREFS,
+  fetchCallExitPrefs,
+} from "@/lib/calls/call-exit-prefs";
 
 const watchlistPrefsSchema = z.object({
   price_move: z.boolean().optional(),
@@ -42,9 +46,15 @@ const engagementPrefsSchema = z.object({
   new_followers: z.boolean().optional(),
 });
 
+const callExitPrefsSchema = z.object({
+  autoCloseOnStop: z.boolean().optional(),
+  autoCloseOnTarget: z.boolean().optional(),
+});
+
 const patchSchema = z.object({
   watchlist: watchlistPrefsSchema.optional(),
   engagement: engagementPrefsSchema.optional(),
+  callExit: callExitPrefsSchema.optional(),
   smsPhoneE164: z.union([z.string().max(20), z.literal("")]).optional(),
   smsAlertsEnabled: z.boolean().optional(),
 });
@@ -58,6 +68,7 @@ export async function GET() {
     }
 
     const engagement = await fetchEngagementAlertPrefs(session.userId);
+    const callExit = await fetchCallExitPrefs(session.userId);
     const emailPrefs = await fetchEmailPrefs(session.userId);
     const proContext = sessionToProContext(session);
     const isPro = canAccessProIntelligence(proContext);
@@ -70,6 +81,7 @@ export async function GET() {
     return NextResponse.json({
       watchlist: prefs.watchlist,
       engagement,
+      callExit,
       smsPhoneE164: prefs.smsPhoneE164,
       smsAlertsEnabled: prefs.smsAlertsEnabled,
       pushAlertsEnabled: prefs.pushAlertsEnabled,
@@ -83,6 +95,7 @@ export async function GET() {
       aiUsage,
       defaults: DEFAULT_WATCHLIST_ALERT_PREFS,
       engagementDefaults: DEFAULT_ENGAGEMENT_ALERT_PREFS,
+      callExitDefaults: DEFAULT_CALL_EXIT_PREFS,
     });
   } catch (e) {
     if (e instanceof Error && e.message === "unauthorized") {
@@ -121,6 +134,15 @@ export async function PATCH(request: Request) {
         ...existingEngagement,
         ...body.engagement,
       });
+    }
+
+    if (body.callExit) {
+      if (body.callExit.autoCloseOnStop !== undefined) {
+        update.auto_close_on_stop = body.callExit.autoCloseOnStop;
+      }
+      if (body.callExit.autoCloseOnTarget !== undefined) {
+        update.auto_close_on_target = body.callExit.autoCloseOnTarget;
+      }
     }
 
     if (body.smsPhoneE164 !== undefined) {
@@ -162,6 +184,7 @@ export async function PATCH(request: Request) {
 
     const prefs = await fetchUserAlertPrefs(session.userId);
     const engagement = await fetchEngagementAlertPrefs(session.userId);
+    const callExit = await fetchCallExitPrefs(session.userId);
     const emailPrefs = await fetchEmailPrefs(session.userId);
     const aiUsage = await fetchJournalAlertAiUsage({
       userId: session.userId,
@@ -172,6 +195,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({
       watchlist: prefs?.watchlist ?? DEFAULT_WATCHLIST_ALERT_PREFS,
       engagement,
+      callExit,
       smsPhoneE164: prefs?.smsPhoneE164 ?? null,
       smsAlertsEnabled: prefs?.smsAlertsEnabled ?? false,
       pushAlertsEnabled: prefs?.pushAlertsEnabled ?? false,
@@ -185,6 +209,7 @@ export async function PATCH(request: Request) {
       aiUsage,
       defaults: DEFAULT_WATCHLIST_ALERT_PREFS,
       engagementDefaults: DEFAULT_ENGAGEMENT_ALERT_PREFS,
+      callExitDefaults: DEFAULT_CALL_EXIT_PREFS,
     });
   } catch (e) {
     if (e instanceof z.ZodError) {

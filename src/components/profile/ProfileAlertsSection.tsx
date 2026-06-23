@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { WatchlistAlertPrefs } from "@/lib/alerts/preferences";
 import type { EngagementAlertPrefs } from "@/lib/alerts/engagement-preferences";
+import type { CallExitPrefs } from "@/lib/calls/call-exit-prefs";
 import { PushAlertsControl } from "@/components/pwa/PushAlertsControl";
 import {
   SettingsPanelActions,
@@ -14,6 +15,7 @@ import {
 type AlertPrefsResponse = {
   watchlist: WatchlistAlertPrefs;
   engagement: EngagementAlertPrefs;
+  callExit: CallExitPrefs;
   smsPhoneE164: string | null;
   smsAlertsEnabled: boolean;
   pushAlertsEnabled: boolean;
@@ -31,6 +33,7 @@ export function ProfileAlertsSection() {
   const [data, setData] = useState<AlertPrefsResponse | null>(null);
   const [watchlist, setWatchlist] = useState<WatchlistAlertPrefs | null>(null);
   const [engagement, setEngagement] = useState<EngagementAlertPrefs | null>(null);
+  const [callExit, setCallExit] = useState<CallExitPrefs | null>(null);
   const [smsPhone, setSmsPhone] = useState("");
   const [smsEnabled, setSmsEnabled] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -44,6 +47,7 @@ export function ProfileAlertsSection() {
     setData(json);
     setWatchlist(json.watchlist);
     setEngagement(json.engagement);
+    setCallExit(json.callExit);
     setSmsPhone(json.smsPhoneE164 ?? "");
     setSmsEnabled(json.smsAlertsEnabled);
   }, []);
@@ -53,7 +57,7 @@ export function ProfileAlertsSection() {
   }, [load]);
 
   async function save() {
-    if (!watchlist || !engagement) return;
+    if (!watchlist || !engagement || !callExit) return;
     setSaving(true);
     setMessage(null);
     setError(null);
@@ -64,6 +68,7 @@ export function ProfileAlertsSection() {
       body: JSON.stringify({
         watchlist,
         engagement,
+        callExit,
         smsPhoneE164: smsPhone.trim(),
         smsAlertsEnabled: smsEnabled,
       }),
@@ -92,12 +97,13 @@ export function ProfileAlertsSection() {
     setData(json);
     setWatchlist(json.watchlist);
     setEngagement(json.engagement);
+    setCallExit(json.callExit);
     setSmsPhone(json.smsPhoneE164 ?? "");
     setSmsEnabled(json.smsAlertsEnabled);
     setMessage("Alert preferences saved.");
   }
 
-  if (!data || !watchlist || !engagement) return null;
+  if (!data || !watchlist || !engagement || !callExit) return null;
 
   return (
     <section className="pf-workspace-panel p-4 sm:p-6">
@@ -200,6 +206,32 @@ export function ProfileAlertsSection() {
             checked={engagement.desk_portfolio_updates}
             onCheckedChange={(checked) =>
               setEngagement({ ...engagement, desk_portfolio_updates: checked })
+            }
+          />
+        </div>
+      </div>
+
+      <div className="mt-6 border-t border-[var(--pf-border)] pt-5">
+        <p className="text-sm font-semibold text-[var(--pf-black)]">Call exits</p>
+        <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
+          Lock your track record when price crosses the stop or target you published. Checked on
+          every quote refresh (~15 min).
+        </p>
+        <div className="mt-3">
+          <SettingsToggleRow
+            label="Auto-close at stop"
+            description="Close and lock return at your stop price when price crosses through it."
+            checked={callExit.autoCloseOnStop}
+            onCheckedChange={(checked) =>
+              setCallExit({ ...callExit, autoCloseOnStop: checked })
+            }
+          />
+          <SettingsToggleRow
+            label="Auto-close at target"
+            description="Close and lock return at your target when price reaches it — avoids giving back gains."
+            checked={callExit.autoCloseOnTarget}
+            onCheckedChange={(checked) =>
+              setCallExit({ ...callExit, autoCloseOnTarget: checked })
             }
           />
         </div>

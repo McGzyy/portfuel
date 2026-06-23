@@ -39,6 +39,7 @@ type CallCardExtras = {
   timeframe_tag?: string | null;
   peak_return_pct?: number | null;
   closed_at?: string | null;
+  close_reason?: string | null;
   call_state?: string | null;
   trigger_entry_price?: number | null;
   expires_at?: string | null;
@@ -327,6 +328,7 @@ export function CallCard({
             returnPct={call.return_pct}
             peakReturnPct={call.peak_return_pct}
             closedAt={call.closed_at}
+            closeReason={call.close_reason}
             callState={call.call_state}
             triggerEntryPrice={call.trigger_entry_price}
             size={compact ? "default" : "hero"}

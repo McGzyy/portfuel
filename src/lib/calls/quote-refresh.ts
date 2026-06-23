@@ -7,7 +7,7 @@ import { computeHypeScore } from "@/lib/scoring/returns";
 import { buildLiveCallMetricsUpdate, persistCallMetricsUpdate } from "@/lib/calls/call-metrics";
 import { computeCallLiveMetrics } from "@/lib/calls/live-metrics";
 import { processCallMilestones } from "@/lib/notifications/milestones";
-import { processCallStopCrosses } from "@/lib/notifications/stop-cross";
+import { processCallLevelAutoCloses, type LevelAutoCloseRow } from "@/lib/calls/level-auto-close";
 import { processMemberWinGates } from "@/lib/social/member-win-gate";
 import { refreshDiscoveryShadowCalls } from "@/lib/desk-discovery/shadow-calls";
 import { refreshMemberRankings } from "@/lib/users/rankings";
@@ -152,7 +152,7 @@ export async function refreshQuotesForSymbols(
     return_pct: number | null;
     target_progress: number | null;
   }[] = [];
-  const stopCrossRows: Parameters<typeof processCallStopCrosses>[0] = [];
+  const levelRows: LevelAutoCloseRow[] = [];
 
   for (const call of allCalls) {
     if (call.closed_at) continue;
@@ -160,18 +160,29 @@ export async function refreshQuotesForSymbols(
     const last = priceMap.get(call.symbol.toUpperCase());
     if (last == null) continue;
 
-    stopCrossRows.push({
+    levelRows.push({
       id: call.id,
       user_id: call.user_id,
       symbol: call.symbol,
       direction: call.direction,
       stop_price: call.stop_price,
+      target_price: call.target_price,
       closed_at: call.closed_at,
       last_price: call.last_price,
       entry_price: call.entry_price,
       price_at_call: call.price_at_call,
       new_last_price: last,
+      is_fueled: Boolean(call.is_fueled),
     });
+  }
+
+  const { closedIds } = await processCallLevelAutoCloses(levelRows);
+
+  for (const call of allCalls) {
+    if (call.closed_at || closedIds.has(call.id)) continue;
+    if (call.call_state === "pending_entry") continue;
+    const last = priceMap.get(call.symbol.toUpperCase());
+    if (last == null) continue;
 
     const metrics = metricsForCallRow(call, last);
 
@@ -198,9 +209,6 @@ export async function refreshQuotesForSymbols(
   if (milestoneRows.length > 0) {
     await processCallMilestones(milestoneRows);
     await processMemberWinGates(milestoneRows);
-  }
-  if (stopCrossRows.length > 0) {
-    await processCallStopCrosses(stopCrossRows);
   }
 
   return { updated, quotes };
@@ -237,6 +245,7 @@ export async function refreshAllQuotesAndScores(): Promise<{
   updated: number;
   milestonesNotified: number;
   memberWinGates: number;
+  levelAutoClosed?: number;
   pendingActivated?: number;
   pendingExpired?: number;
   shadowUpdated?: number;
@@ -285,7 +294,7 @@ export async function refreshAllQuotesAndScores(): Promise<{
     return_pct: number | null;
     target_progress: number | null;
   }[] = [];
-  const stopCrossRows: Parameters<typeof processCallStopCrosses>[0] = [];
+  const levelRows: LevelAutoCloseRow[] = [];
 
   for (const call of rows) {
     if (call.closed_at) continue;
@@ -293,18 +302,29 @@ export async function refreshAllQuotesAndScores(): Promise<{
     const last = priceMap.get(call.symbol.toUpperCase());
     if (last == null) continue;
 
-    stopCrossRows.push({
+    levelRows.push({
       id: call.id,
       user_id: call.user_id,
       symbol: call.symbol,
       direction: call.direction,
       stop_price: call.stop_price,
+      target_price: call.target_price,
       closed_at: call.closed_at,
       last_price: call.last_price,
       entry_price: call.entry_price,
       price_at_call: call.price_at_call,
       new_last_price: last,
+      is_fueled: Boolean(call.is_fueled),
     });
+  }
+
+  const { closed: levelAutoClosed, closedIds } = await processCallLevelAutoCloses(levelRows);
+
+  for (const call of rows) {
+    if (call.closed_at || closedIds.has(call.id)) continue;
+    if (call.call_state === "pending_entry") continue;
+    const last = priceMap.get(call.symbol.toUpperCase());
+    if (last == null) continue;
 
     const metrics = metricsForCallRow(call, last);
 
@@ -353,7 +373,6 @@ export async function refreshAllQuotesAndScores(): Promise<{
 
   const { notified: milestonesNotified } = await processCallMilestones(milestoneRows);
   const { gated: memberWinGates } = await processMemberWinGates(milestoneRows);
-  await processCallStopCrosses(stopCrossRows);
 
   const shadowResult = await refreshDiscoveryShadowCalls(priceMap);
 
@@ -363,6 +382,7 @@ export async function refreshAllQuotesAndScores(): Promise<{
     pendingExpired: pendingResult.expired,
     milestonesNotified,
     memberWinGates,
+    levelAutoClosed,
     shadowUpdated: shadowResult.updated,
     shadowClosed: shadowResult.closed,
     quotes,

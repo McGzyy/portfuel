@@ -1,10 +1,12 @@
 import { cn, formatPct } from "@/lib/utils";
 import { showPeakedLabel } from "@/lib/scoring/call-credit";
+import { closeReasonLabel } from "@/lib/calls/close-reason";
 
 export function CallReturnDisplay({
   returnPct,
   peakReturnPct,
   closedAt,
+  closeReason,
   callState,
   triggerEntryPrice,
   className,
@@ -13,6 +15,7 @@ export function CallReturnDisplay({
   returnPct: number | null;
   peakReturnPct?: number | null;
   closedAt?: string | null;
+  closeReason?: string | null;
   callState?: string | null;
   triggerEntryPrice?: number | null;
   className?: string;
@@ -56,7 +59,7 @@ export function CallReturnDisplay({
       ) : null}
       {closedAt ? (
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-          Closed
+          {closeReasonLabel(closeReason) ?? "Closed"}
         </p>
       ) : null}
     </div>

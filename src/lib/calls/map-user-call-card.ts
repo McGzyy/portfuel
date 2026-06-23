@@ -42,6 +42,7 @@ export function mapUserCallRowToCard(
     avatar_url: opts.avatarUrl ?? null,
     updated_at: c.updated_at ?? null,
     closed_at: c.closed_at ?? null,
+    close_reason: c.close_reason ?? null,
     peak_return_pct: c.peak_return_pct ?? null,
     call_state: c.call_state ?? null,
     trigger_entry_price: c.trigger_entry_price ?? null,

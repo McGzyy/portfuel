@@ -85,8 +85,8 @@ export const HELP_SECTIONS: HelpSection[] = [
         title: "Open vs closed calls",
         body: [
           "Open calls stay on your live book while you work toward target (or for up to 120 days). Close at market when your thesis plays out — that locks return, exit price, and rank score.",
-          "When price hits your target, you get a Target reached notice (like Stop hit). Return stays live until you close — most professional journals use explicit close, not auto-exit.",
-          "If you set a stop, PortFuel alerts you when price crosses it. You choose when to close — calls are never auto-closed.",
+          "When price crosses your stop or target, PortFuel auto-closes by default and locks return at that level (every 15 minutes on the quote cron). Turn this off in Settings → Notifications if you prefer to close manually.",
+          "Manual close still uses the live market price at the moment you close.",
         ],
       },
       {

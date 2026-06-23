@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/db/supabase";
 import { fetchLastPriceForSymbol } from "@/lib/calls/quote-refresh";
+import type { CallCloseReason } from "@/lib/calls/close-reason";
 import {
   computeReturnPct,
   computeScorePoints,
@@ -31,38 +32,25 @@ type CallRow = {
   closed_at: string | null;
 };
 
-/** Lock a member call at the current market price — return frozen for stats. */
-export async function closeCall(params: {
-  callId: string;
-  actorUserId: string;
-  isAdmin: boolean;
-}): Promise<CloseCallResult> {
+async function loadCallRow(callId: string): Promise<CallRow | null> {
   const db = createServiceClient();
-  const { data: row, error: loadError } = await db
+  const { data: row, error } = await db
     .from("calls")
     .select(
       "id, user_id, symbol, asset_class, direction, called_at, entry_price, target_price, price_at_call, last_price, return_pct, peak_return_pct, target_progress, vote_score, is_fueled, closed_at"
     )
-    .eq("id", params.callId)
+    .eq("id", callId)
     .maybeSingle();
 
-  if (loadError) throw loadError;
-  if (!row) return { ok: false, error: "not_found" };
+  if (error) throw error;
+  return row ? (row as CallRow) : null;
+}
 
-  const call = row as CallRow;
-  if (call.user_id !== params.actorUserId && !params.isAdmin) {
-    return { ok: false, error: "forbidden" };
-  }
-  if (call.is_fueled) return { ok: false, error: "fueled_desk" };
-  if (call.closed_at) return { ok: false, error: "already_closed" };
-
-  const quote = await fetchLastPriceForSymbol(call.symbol, {
-    assetClass: call.asset_class ?? undefined,
-  });
-  const exitPrice =
-    quote.lastPrice ?? (call.last_price != null ? Number(call.last_price) : null);
-  if (exitPrice == null) return { ok: false, error: "no_price" };
-
+async function finalizeCallClose(
+  call: CallRow,
+  exitPrice: number,
+  closeReason: CallCloseReason
+): Promise<CloseCallResult> {
   const basis = call.entry_price ?? call.price_at_call;
   const returnPct =
     basis != null
@@ -95,6 +83,7 @@ export async function closeCall(params: {
   });
 
   const closedAt = new Date().toISOString();
+  const db = createServiceClient();
   const { error: updateError } = await db
     .from("calls")
     .update({
@@ -105,6 +94,7 @@ export async function closeCall(params: {
       peak_return_pct: peakReturnPct,
       target_progress: targetProgress,
       score_points: scorePoints,
+      close_reason: closeReason,
     } as never)
     .eq("id", call.id);
 
@@ -117,4 +107,46 @@ export async function closeCall(params: {
   }
 
   return { ok: true, returnPct, exitPrice };
+}
+
+/** Lock a member call at stop or target — used by quote cron. */
+export async function autoCloseCallAtLevel(
+  callId: string,
+  exitPrice: number,
+  closeReason: "stop_hit" | "target_hit"
+): Promise<CloseCallResult> {
+  const call = await loadCallRow(callId);
+  if (!call) return { ok: false, error: "not_found" };
+  if (call.is_fueled) return { ok: false, error: "fueled_desk" };
+  if (call.closed_at) return { ok: false, error: "already_closed" };
+  if (!Number.isFinite(exitPrice) || exitPrice <= 0) {
+    return { ok: false, error: "no_price" };
+  }
+
+  return finalizeCallClose(call, exitPrice, closeReason);
+}
+
+/** Lock a member call at the current market price — return frozen for stats. */
+export async function closeCall(params: {
+  callId: string;
+  actorUserId: string;
+  isAdmin: boolean;
+}): Promise<CloseCallResult> {
+  const call = await loadCallRow(params.callId);
+  if (!call) return { ok: false, error: "not_found" };
+
+  if (call.user_id !== params.actorUserId && !params.isAdmin) {
+    return { ok: false, error: "forbidden" };
+  }
+  if (call.is_fueled) return { ok: false, error: "fueled_desk" };
+  if (call.closed_at) return { ok: false, error: "already_closed" };
+
+  const quote = await fetchLastPriceForSymbol(call.symbol, {
+    assetClass: call.asset_class ?? undefined,
+  });
+  const exitPrice =
+    quote.lastPrice ?? (call.last_price != null ? Number(call.last_price) : null);
+  if (exitPrice == null) return { ok: false, error: "no_price" };
+
+  return finalizeCallClose(call, exitPrice, "manual");
 }
