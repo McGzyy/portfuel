@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/db/supabase";
 import type { TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
 import type { ResearchPack } from "@/lib/ai/research-pack";
 import type { AnalysisCostMetrics } from "@/lib/ai/cost-estimate";
+import { AI_RAW_TEXT_MAX } from "@/lib/ai/source-material";
 
 export type AnalysisMode = "default" | "deep";
 
@@ -14,7 +15,7 @@ export function deriveTweetKey(tweetUrl: string | null, tweetText: string): stri
     if (idMatch?.[1]) return `tweet:${idMatch[1]}`;
     return `url:${tweetUrl.trim().slice(0, 120)}`;
   }
-  const hash = createHash("sha256").update(tweetText.trim().slice(0, 4000)).digest("hex");
+  const hash = createHash("sha256").update(tweetText.trim().slice(0, AI_RAW_TEXT_MAX)).digest("hex");
   return `text:${hash.slice(0, 32)}`;
 }
 

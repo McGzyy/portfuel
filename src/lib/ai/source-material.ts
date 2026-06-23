@@ -1,8 +1,8 @@
 /** Max chars of pasted notes / email for AI assist (not copied verbatim in output). */
-export const AI_SOURCE_NOTES_MAX = 6000;
+export const AI_SOURCE_NOTES_MAX = 20_000;
 
 /** Max chars for the full rawText payload sent to analyze-ticker. */
-export const AI_RAW_TEXT_MAX = 12000;
+export const AI_RAW_TEXT_MAX = AI_SOURCE_NOTES_MAX + 128;
 
 export function extractSourceNotesFromRawText(rawText: string): string {
   const match = rawText.match(/\bNotes:\s*([\s\S]*)$/i);

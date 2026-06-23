@@ -8,12 +8,11 @@ import {
 } from "@/lib/market/finnhub";
 import type { FueledIntelLayers } from "@/lib/ai/fueled-intel-types";
 import type { TickerAnalyzeHeadline } from "@/lib/ai/ticker-analyze";
+import { AI_SOURCE_NOTES_MAX } from "@/lib/ai/source-material";
 
 const MAX_HEADLINES = 5;
 const MAX_EARNINGS = 6;
 const MAX_FILINGS = 5;
-import { AI_SOURCE_NOTES_MAX } from "@/lib/ai/source-material";
-
 const MAX_POST_CHARS = AI_SOURCE_NOTES_MAX;
 const MAX_WEB_SOURCES = 3;
 const MAX_WEB_CHARS = 1200;

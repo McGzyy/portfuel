@@ -34,6 +34,7 @@ import { linkDiscoveryCandidateToCall } from "@/lib/desk-discovery/publish-link"
 import { getDiscoveryCandidateById } from "@/lib/desk-discovery/scanner";
 import { loadDiscoveryMarketContext } from "@/lib/desk-discovery/draft-context";
 import { validateDiscoveryPublishLevels } from "@/lib/desk-discovery/level-sanity";
+import { AI_RAW_TEXT_MAX } from "@/lib/ai/source-material";
 
 const createSchema = z.object({
   symbol: z.string().min(1).max(12),
@@ -47,7 +48,7 @@ const createSchema = z.object({
   timeframeTag: z.string().max(32).optional(),
   sourceTweetUrl: z.string().url().max(500).optional(),
   socialAnalysisMode: z.enum(["default", "deep"]).optional(),
-  socialAnalysisRawText: z.string().min(12).max(8000).optional(),
+  socialAnalysisRawText: z.string().min(12).max(AI_RAW_TEXT_MAX).optional(),
   discoveryCandidateId: z.string().uuid().optional(),
 });
 
