@@ -3,6 +3,7 @@ import { TabNav } from "@/components/layout/TabNav";
 import { DashboardFeedFilters } from "@/components/dashboard/DashboardFeedFilters";
 import { DashboardFeedSearch } from "@/components/dashboard/DashboardFeedSearch";
 import { FeedNewBannerLive } from "@/components/dashboard/FeedNewBannerLive";
+import { FeedNewMobileStrip } from "@/components/dashboard/FeedNewMobileStrip";
 import { buildFeedHref, type FeedTab } from "@/lib/dashboard/nav";
 import type { FeedFilter } from "@/lib/calls/filter-feed";
 import { FeedRefreshButton } from "@/components/dashboard/FeedRefreshButton";
@@ -35,13 +36,38 @@ export function FeedToolbar({
 
   return (
     <>
-      <div className="pf-feed-toolbar pf-feed-toolbar-premium pf-feed-toolbar-sticky pf-feed-toolbar-sticky-core">
-        <div className="flex items-center justify-between gap-2 sm:hidden">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--pf-gray-400)]">
-            Feed
-          </p>
-          <FeedRefreshButton className="!w-auto shrink-0" />
+      <div className="pf-feed-toolbar pf-feed-toolbar-premium pf-feed-toolbar-sticky-core max-sm:static max-sm:shadow-sm sm:pf-feed-toolbar-sticky">
+        <div className="flex items-center gap-2 sm:hidden">
+          <TabNav
+            className="pf-feed-tab-nav min-w-0 flex-1"
+            tabs={[
+              {
+                href: buildFeedHref(tabBase),
+                label: "Latest",
+                active: mode === "latest",
+              },
+              {
+                href: buildFeedHref({ ...tabBase, tab: "performing" }),
+                label: "Performing",
+                active: mode === "performing",
+              },
+              {
+                href: buildFeedHref({ ...tabBase, tab: "progress" }),
+                label: "Near target",
+                active: mode === "progress",
+              },
+            ]}
+          />
+          <FeedRefreshButton iconOnly />
         </div>
+
+        <FeedNewMobileStrip
+          initialCount={newCount}
+          mode={mode}
+          feedFilter={feedFilter}
+          searchQuery={searchQuery}
+          showNewOnly={showNewOnly}
+        />
 
         <FeedNewBannerLive
           initialCount={newCount}
@@ -52,7 +78,7 @@ export function FeedToolbar({
         />
 
         <TabNav
-          className="pf-feed-tab-nav w-full max-w-full"
+          className="pf-feed-tab-nav hidden w-full max-w-full sm:inline-flex"
           tabs={[
             {
               href: buildFeedHref(tabBase),
@@ -72,8 +98,8 @@ export function FeedToolbar({
           ]}
         />
 
-        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between lg:gap-3">
-          <Suspense fallback={<div className="h-10 w-full rounded-lg bg-[var(--pf-gray-100)] lg:max-w-md" />}>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <Suspense fallback={<div className="h-10 w-full rounded-lg bg-[var(--pf-gray-100)] sm:max-w-md" />}>
             <DashboardFeedSearch />
           </Suspense>
           <DashboardFeedFilters

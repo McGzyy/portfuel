@@ -1335,7 +1335,11 @@ body {
 
 @media (max-width: 639px) {
   .pf-feed-toolbar {
-    padding: 0.875rem 1.125rem;
+    padding: 0.625rem 0.875rem;
+  }
+
+  .pf-feed-toolbar-sticky-core {
+    gap: 0.5rem;
   }
 }
 
