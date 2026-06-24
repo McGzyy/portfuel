@@ -1,4 +1,5 @@
 import type { TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
+import { normalizeTimeframeTag } from "@/lib/calls/timeframe-tag";
 
 /** Bump when prompts/post-processing change so stale cache is ignored. */
 export const FUELED_ANALYSIS_PROMPT_VERSION = 4;
@@ -57,6 +58,8 @@ export function enrichFueledAnalysis(
 
   if (!timeframeNote) {
     timeframeNote = "Swing · 2–4 weeks";
+  } else {
+    timeframeNote = normalizeTimeframeTag(timeframeNote) || "Swing · 2–4 weeks";
   }
 
   return {

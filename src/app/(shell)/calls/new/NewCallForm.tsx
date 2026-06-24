@@ -24,6 +24,7 @@ import type { WeeklyQuotaStatus } from "@/lib/members/weekly-quota";
 import type { TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
 import { formatFueledThesisForPublish } from "@/lib/ai/fueled-analysis-format";
 import { AI_RAW_TEXT_MAX, AI_SOURCE_NOTES_MAX } from "@/lib/ai/source-material";
+import { CALL_TIMEFRAME_TAG_MAX, normalizeTimeframeTag } from "@/lib/calls/timeframe-tag";
 import { formatDiscoveryDraftForPublish, parseLevelNote } from "@/lib/desk-discovery/draft-types";
 import type { DiscoveryDraftPayload } from "@/lib/desk-discovery/draft-types";
 import { journalSymbolPath } from "@/lib/journal/paths";
@@ -266,7 +267,9 @@ export function NewCallForm({
       }
       if (analysis.targetPrice != null) setTargetPrice(String(analysis.targetPrice));
       if (analysis.stopPrice != null) setStopPrice(String(analysis.stopPrice));
-      if (analysis.timeframeNote) setTimeframeTag(analysis.timeframeNote);
+      if (analysis.timeframeNote) {
+        setTimeframeTag(normalizeTimeframeTag(analysis.timeframeNote));
+      }
 
       setAiDraftRawText(rawText);
       setAiCost(
@@ -320,7 +323,7 @@ export function NewCallForm({
     setThesis(payload.thesis);
     if (payload.targetPrice != null) setTargetPrice(String(payload.targetPrice));
     if (payload.stopPrice != null) setStopPrice(String(payload.stopPrice));
-    if (payload.timeframeTag) setTimeframeTag(payload.timeframeTag);
+    if (payload.timeframeTag) setTimeframeTag(normalizeTimeframeTag(payload.timeframeTag));
     if (payload.sourceTweetUrl) setSourceTweetUrl(payload.sourceTweetUrl);
     if (payload.socialMode) setAiMode(payload.socialMode);
   }
@@ -328,6 +331,12 @@ export function NewCallForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    const thesisTrimmed = thesis.trim();
+    if (thesisTrimmed.length > 5000) {
+      setError("Thesis is too long (max 5,000 characters). Shorten it before publishing.");
+      return;
+    }
+    const timeframeToSend = normalizeTimeframeTag(timeframeTag);
     setLoading(true);
     try {
       const modeToSend: "default" | "deep" | undefined =
@@ -344,16 +353,14 @@ export function NewCallForm({
         body: JSON.stringify({
           symbol: symbol.toUpperCase(),
           assetClass,
-          direction,
-          thesis,
-          entryMode,
+          thesis: thesisTrimmed,
           triggerEntryPrice:
             entryMode === "conditional" && triggerEntryPrice
               ? parseFloat(triggerEntryPrice)
               : undefined,
           targetPrice: targetPrice ? parseFloat(targetPrice) : undefined,
           stopPrice: stopPrice ? parseFloat(stopPrice) : undefined,
-          timeframeTag: timeframeTag || undefined,
+          timeframeTag: timeframeToSend || undefined,
           sourceTweetUrl: isAdmin && sourceTweetUrl ? sourceTweetUrl : undefined,
           socialAnalysisMode: modeToSend,
           socialAnalysisRawText:
@@ -382,6 +389,10 @@ export function NewCallForm({
           setError("Queue this symbol in Discovery (Ready to publish) before publishing.");
         } else if (data.error === "discovery_link_failed") {
           setError("Call saved but discovery link failed — check Admin → Discovery.");
+        } else if (data.error === "invalid_input") {
+          setError(
+            "Could not publish — check thesis length (max 5,000 chars) and timeframe tag (max 32 chars)."
+          );
         } else {
           setError(typeof data.error === "string" ? data.error : "Could not submit call.");
         }
@@ -796,7 +807,11 @@ export function NewCallForm({
                   value={timeframeTag}
                   onChange={(e) => setTimeframeTag(e.target.value)}
                   placeholder="e.g. Swing · 2–4 weeks"
+                  maxLength={CALL_TIMEFRAME_TAG_MAX}
                 />
+                <p className="mt-1.5 text-xs text-[var(--pf-gray-400)]">
+                  Short label for cards — max {CALL_TIMEFRAME_TAG_MAX} characters
+                </p>
               </div>
             </section>
 

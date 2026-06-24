@@ -2,7 +2,7 @@ import { Resvg } from "@resvg/resvg-js";
 import type { SocialChartPayload } from "@/lib/charts/social-chart-data";
 import { FONT_SANS, socialChartFontFiles } from "@/lib/charts/social-chart-fonts";
 import { SOCIAL_CHART_FOOTER_H } from "@/lib/charts/social-chart-logo";
-import { showTargetGuide } from "@/lib/charts/social-chart-format";
+import { showTargetGuide, showStopGuide, isFreshPublishChart } from "@/lib/charts/social-chart-format";
 import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
 import type { CandlePoint } from "@/lib/charts/types";
 import {
@@ -18,7 +18,7 @@ const PAD_Y = 10;
 
 function linePrice(
   lines: SocialChartPayload["priceLines"],
-  kind: "entry" | "target"
+  kind: "entry" | "target" | "stop"
 ): number | null {
   const desk = lines.find((l) => new RegExp(`desk.*${kind}`, "i").test(l.label));
   const line = desk ?? lines.find((l) => new RegExp(kind, "i").test(l.label));
@@ -89,10 +89,14 @@ export function renderSocialChartPlotSvg(payload: SocialChartPayload): string {
 
   const entry = linePrice(payload.priceLines, "entry") ?? marker?.price ?? null;
   const target = linePrice(payload.priceLines, "target");
+  const stop = linePrice(payload.priceLines, "stop");
+  const freshPublish = isFreshPublishChart(payload);
   const closes = candles.map((c) => c.close);
 
   const pts = [...closes];
+  if (entry != null) pts.push(entry);
   if (target != null) pts.push(target);
+  if (stop != null) pts.push(stop);
   const lo = Math.min(...pts);
   const hi = Math.max(...pts);
   const span = hi - lo || hi * 0.05 || 1;
@@ -135,13 +139,18 @@ export function renderSocialChartPlotSvg(payload: SocialChartPayload): string {
       <text x="${chartX + 4}" y="${entryY - 6}" fill="${T.textDim}" font-size="9" font-weight="600" font-family="${FONT_SANS}" letter-spacing="0.5">ENTRY $${fmtPrice(entry)}</text>`;
   }
   if (
-    showTargetGuide(payload.milestone) &&
+    showTargetGuide(payload.milestone, target != null, freshPublish) &&
     target != null &&
     (entry == null || Math.abs(target - entry) / Math.max(entry, 1) > 0.02)
   ) {
     const targetY = yAt(target);
     guides += `<line x1="${chartX}" y1="${targetY}" x2="${chartX + chartW}" y2="${targetY}" stroke="${T.target}" stroke-width="1.25" stroke-dasharray="5 4" opacity="0.45"/>
       <text x="${chartX + chartW - 4}" y="${targetY - 6}" fill="${T.textDim}" font-size="9" font-weight="600" font-family="${FONT_SANS}" text-anchor="end" letter-spacing="0.5">TARGET $${fmtPrice(target)}</text>`;
+  }
+  if (showStopGuide(payload.milestone, stop != null, freshPublish) && stop != null) {
+    const stopY = yAt(stop);
+    guides += `<line x1="${chartX}" y1="${stopY}" x2="${chartX + chartW}" y2="${stopY}" stroke="${T.lineDown}" stroke-width="1.25" stroke-dasharray="4 5" opacity="0.42"/>
+      <text x="${chartX + chartW - 4}" y="${stopY + 12}" fill="${T.textDim}" font-size="9" font-weight="600" font-family="${FONT_SANS}" text-anchor="end" letter-spacing="0.5">STOP $${fmtPrice(stop)}</text>`;
   }
 
   function chip(x: number, y: number, color: string, label: string, value?: string): string {

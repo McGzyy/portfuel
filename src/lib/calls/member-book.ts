@@ -35,6 +35,8 @@ export type MemberOpenBook = {
   openCalls: MemberBookCallRow[];
   needsClose: MemberBookCallRow[];
   recentWrapped: MemberBookCallRow[];
+  /** Fueled desk calls published under this account (excluded from member book stats). */
+  deskOpenCalls: MemberBookCallRow[];
   summary: MemberOpenBookSummary;
 };
 
@@ -132,6 +134,7 @@ async function loadUserCalls(userId: string): Promise<MemberBookCallRow[]> {
 export async function fetchMemberOpenBook(userId: string): Promise<MemberOpenBook> {
   const all = await loadUserCalls(userId);
   const memberCalls = all.filter((c) => !c.is_fueled);
+  const deskOpenCalls = all.filter((c) => c.is_fueled && isOpenMemberCall(c));
 
   const openCalls = memberCalls.filter((c) => isOpenMemberCall(c));
   const needsClose = memberCalls.filter((c) =>
@@ -157,6 +160,7 @@ export async function fetchMemberOpenBook(userId: string): Promise<MemberOpenBoo
     openCalls,
     needsClose,
     recentWrapped,
+    deskOpenCalls,
     summary: summarizeOpenBook(openCalls),
   };
 }

@@ -79,7 +79,7 @@ ${fueledRules}
 Level rules:
 - Anchor entry near last price when not stated explicitly.
 - Target ~8–15% in trade direction; stop ~4–8% against (≥1.5:1).
-- timeframeNote always set.
+- timeframeNote always set — short tag only (max 32 chars), e.g. "Swing · 2–4 wk".
 
 Thesis rules:
 - draftThesis: 4–7 sentences, flowing prose — setup, catalyst, level plan in words, invalidation.

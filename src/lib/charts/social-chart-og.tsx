@@ -2,16 +2,12 @@ import { ImageResponse } from "next/og";
 import type { SocialChartPayload } from "@/lib/charts/social-chart-data";
 import { renderSocialChartPlotPng, SOCIAL_CHART_PLOT_SIZE } from "@/lib/charts/social-chart-plot";
 import { socialChartOgFonts } from "@/lib/charts/social-chart-og-fonts";
-import { directionMeta, fmtSocialAsOf } from "@/lib/charts/social-chart-format";
+import { directionMeta, fmtSocialAsOf, headerMetricForSocialChart, isFreshPublishChart, levelsSummaryLine } from "@/lib/charts/social-chart-format";
 import { SOCIAL_CHART_FOOTER_H } from "@/lib/charts/social-chart-logo";
 import { PF_CHART_SOCIAL as T } from "@/lib/charts/theme";
 
 const W = 1200;
 const H = 675;
-
-function fmtPct(n: number): string {
-  return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
-}
 
 function fmtDate(iso: string): string {
   try {
@@ -29,18 +25,16 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
   const plotPng = await renderSocialChartPlotPng(payload);
   const plotSrc = `data:image/png;base64,${plotPng.toString("base64")}`;
 
-  const ret = payload.returnPct;
-  const retStr = ret != null ? fmtPct(ret) : null;
   const mile = payload.milestoneLabel ?? "";
   const isMember = payload.spotlightKind === "member";
-  const eyebrow = isMember ? "MEMBER CALL" : "FUELED DESK";
+  const freshPublish = isFreshPublishChart(payload);
+  const eyebrow = freshPublish && !isMember ? "NEW DESK CALL" : isMember ? "MEMBER CALL" : "FUELED DESK";
   const callType = isMember ? "Community call on record" : "Fueled desk call";
-  const sinceLabel = isMember ? "SINCE PUBLICATION" : "SINCE DESK CALL";
   const date = fmtDate(payload.calledAt);
-  const up = (ret ?? 0) >= 0;
-  const trendColor = up ? T.lineUp : T.lineDown;
   const dir = directionMeta(payload.direction);
   const asOf = fmtSocialAsOf();
+  const headerMetric = headerMetricForSocialChart(payload);
+  const levelsLine = levelsSummaryLine(payload);
 
   const response = new ImageResponse(
     (
@@ -165,10 +159,25 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
                   {`Called ${date}`}
                 </div>
               ) : null}
+
+              {levelsLine ? (
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: T.textDim,
+                    marginTop: 8,
+                    letterSpacing: 0.2,
+                  }}
+                >
+                  {levelsLine}
+                </div>
+              ) : null}
             </div>
           </div>
 
-          {retStr ? (
+          {headerMetric ? (
             <div
               style={{
                 display: "flex",
@@ -182,12 +191,12 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
                   display: "flex",
                   fontSize: 56,
                   fontWeight: 700,
-                  color: trendColor,
+                  color: headerMetric.color,
                   letterSpacing: -2.5,
                   lineHeight: 1,
                 }}
               >
-                {retStr}
+                {headerMetric.value}
               </div>
               <div
                 style={{
@@ -199,7 +208,7 @@ export async function renderSocialChartOgPng(payload: SocialChartPayload): Promi
                   letterSpacing: 1.3,
                 }}
               >
-                {sinceLabel}
+                {headerMetric.label}
               </div>
             </div>
           ) : (

@@ -5,7 +5,7 @@ import { PF_CHART_SOCIAL as C } from "@/lib/charts/theme";
 import type { SocialChartPayload } from "@/lib/charts/social-chart-data";
 import { FONT_SANS } from "@/lib/charts/social-chart-fonts";
 import { renderSocialChartPlotSvg, SOCIAL_CHART_PLOT_SIZE } from "@/lib/charts/social-chart-plot";
-import { directionMeta, fmtSocialAsOf } from "@/lib/charts/social-chart-format";
+import { directionMeta, fmtSocialAsOf, headerMetricForSocialChart, isFreshPublishChart, levelsSummaryLine } from "@/lib/charts/social-chart-format";
 import { SOCIAL_CHART_FOOTER_H, SOCIAL_CHART_PAD_X } from "@/lib/charts/social-chart-logo";
 
 const W = C.width;
@@ -25,10 +25,6 @@ function txt(
   o: { fill?: string; size?: number; weight?: number; anchor?: "start" | "middle" | "end" } = {}
 ): string {
   return `<text x="${x}" y="${y}" fill="${o.fill ?? C.text}" font-size="${o.size ?? 12}" font-weight="${o.weight ?? 400}" font-family="${FONT_SANS}" text-anchor="${o.anchor ?? "start"}">${esc(s)}</text>`;
-}
-
-function fmtPct(n: number): string {
-  return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
 }
 
 function fmtDate(iso: string): string {
@@ -52,18 +48,16 @@ function embedPlot(payload: SocialChartPayload): string {
 }
 
 export function renderSocialChartSvg(payload: SocialChartPayload): string {
-  const ret = payload.returnPct;
-  const retStr = ret != null ? fmtPct(ret) : "—";
   const mile = payload.milestoneLabel ?? "";
   const isMember = payload.spotlightKind === "member";
-  const eyebrow = isMember ? "MEMBER CALL" : "FUELED DESK";
+  const freshPublish = isFreshPublishChart(payload);
+  const eyebrow = freshPublish && !isMember ? "NEW DESK CALL" : isMember ? "MEMBER CALL" : "FUELED DESK";
   const callType = isMember ? "Community call on record" : "Fueled desk call";
-  const sinceLabel = isMember ? "SINCE PUBLICATION" : "SINCE DESK CALL";
   const date = fmtDate(payload.calledAt);
-  const up = (ret ?? 0) >= 0;
-  const trendColor = up ? C.lineUp : C.lineDown;
   const dir = directionMeta(payload.direction);
   const asOf = fmtSocialAsOf();
+  const headerMetric = headerMetricForSocialChart(payload);
+  const levelsLine = levelsSummaryLine(payload);
   const rx = W - PAD;
   const footerTop = H - FOOTER;
   let y = 56;
@@ -99,8 +93,27 @@ ${txt(PAD + w + 16, y, eyebrow, { size: 10, weight: 600, fill: C.textDim })}`;
     <tspan fill="${C.textDim}"> · ${esc(callType)}</tspan>
   </text>
   ${date ? txt(PAD, y + 76, `Called ${date}`, { size: 13, weight: 500, fill: C.textDim }) : ""}
-  ${txt(rx, y + 8, retStr, { size: 52, weight: 700, fill: trendColor, anchor: "end" })}
-  ${txt(rx, y + 36, sinceLabel, { size: 10, weight: 600, fill: C.textDim, anchor: "end" })}
+  ${levelsLine ? txt(PAD, y + 94, levelsLine, { size: 11, weight: 600, fill: C.textDim }) : ""}
+  ${
+    headerMetric
+      ? txt(rx, y + 8, headerMetric.value, {
+          size: 52,
+          weight: 700,
+          fill: headerMetric.color,
+          anchor: "end",
+        })
+      : ""
+  }
+  ${
+    headerMetric
+      ? txt(rx, y + 36, headerMetric.label, {
+          size: 10,
+          weight: 600,
+          fill: C.textDim,
+          anchor: "end",
+        })
+      : ""
+  }
   ${embedPlot(payload)}
   <rect x="0" y="${footerTop}" width="${W}" height="${FOOTER}" fill="${C.surface}"/>
   <line x1="${PAD}" y1="${footerTop}" x2="${W - PAD}" y2="${footerTop}" stroke="${C.rule}"/>

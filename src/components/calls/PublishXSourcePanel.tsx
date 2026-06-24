@@ -10,6 +10,7 @@ import type { TickerAnalyzeResult } from "@/lib/ai/ticker-analyze";
 import type { ParsedPostResult, ParsedPostTicker } from "@/lib/social/parse-post";
 import { enrichFueledAnalysis } from "@/lib/ai/fueled-analysis-format";
 import { formatFueledThesisForPublish } from "@/lib/ai/fueled-analysis-format";
+import { normalizeTimeframeTag } from "@/lib/calls/timeframe-tag";
 import { formatPrice } from "@/lib/utils";
 
 export type PublishXApplyPayload = {
@@ -69,7 +70,7 @@ function TickerCard({
       thesis: formatFueledThesisForPublish(a),
       targetPrice: a.targetPrice,
       stopPrice: a.stopPrice,
-      timeframeTag: a.timeframeNote,
+      timeframeTag: a.timeframeNote ? normalizeTimeframeTag(a.timeframeNote) : undefined,
       sourceTweetUrl: tweetUrl ?? undefined,
       socialMode: mode,
     });

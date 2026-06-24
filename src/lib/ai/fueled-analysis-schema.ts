@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CALL_TIMEFRAME_TAG_MAX } from "@/lib/calls/timeframe-tag";
 
 export const tickerAnalyzeSchema = z.object({
   summary: z.string().min(40).max(1500),
@@ -8,7 +9,7 @@ export const tickerAnalyzeSchema = z.object({
   entryPrice: z.number().positive().nullable(),
   targetPrice: z.number().positive().nullable(),
   stopPrice: z.number().positive().nullable(),
-  timeframeNote: z.string().max(200).nullable(),
+  timeframeNote: z.string().max(CALL_TIMEFRAME_TAG_MAX).nullable(),
 });
 
 export type TickerAnalyzeResult = z.infer<typeof tickerAnalyzeSchema>;

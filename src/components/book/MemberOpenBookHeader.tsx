@@ -9,16 +9,20 @@ export function MemberOpenBookHeader({
   username,
   isPro = false,
   quotesUpdatedAt,
+  deskOpenCount = 0,
 }: {
   summary: MemberOpenBookSummary;
   username: string;
   isPro?: boolean;
   quotesUpdatedAt?: string | null;
+  deskOpenCount?: number;
 }) {
   const subtitle =
     summary.openCount > 0
       ? `${summary.openCount} live thesis${summary.openCount === 1 ? "" : "es"} across ${summary.uniqueSymbols} symbol${summary.uniqueSymbols === 1 ? "" : "s"} — marks refresh on the schedule below.`
-      : "Your published calls with open entry, target, and stop appear here as a portfolio view — not broker sync.";
+      : deskOpenCount > 0
+        ? `${deskOpenCount} open Fueled desk position${deskOpenCount === 1 ? "" : "s"} on your house book — personal member calls are tracked separately below.`
+        : "Your published member calls with open entry, target, and stop appear here — not broker sync. Fueled desk calls live on the Desk page.";
 
   return (
     <header className="space-y-4">
@@ -38,12 +42,22 @@ export function MemberOpenBookHeader({
           </>
         }
         footerLink={
-          <Link
-            href={`/member/${username}`}
-            className="inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
-          >
-            Public track record →
-          </Link>
+          <span className="flex flex-wrap gap-x-4 gap-y-1">
+            {deskOpenCount > 0 ? (
+              <Link
+                href="/dashboard/desk"
+                className="inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
+              >
+                Fueled desk book →
+              </Link>
+            ) : null}
+            <Link
+              href={`/member/${username}`}
+              className="inline-block text-xs font-semibold text-[var(--pf-red)] hover:underline"
+            >
+              Public track record →
+            </Link>
+          </span>
         }
       />
 

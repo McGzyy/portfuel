@@ -46,6 +46,7 @@ function liveSymbolsFromBook(book: Awaited<ReturnType<typeof fetchMemberOpenBook
   return [
     ...book.openCalls.map((c) => c.symbol),
     ...book.needsClose.map((c) => c.symbol),
+    ...book.deskOpenCalls.map((c) => c.symbol),
   ];
 }
 
@@ -74,6 +75,7 @@ async function BookChromeSection({ session }: { session: SessionPayload }) {
         username={session.username}
         isPro={isPro}
         quotesUpdatedAt={quotesUpdatedAt}
+        deskOpenCount={book.deskOpenCalls.length}
       />
       <WorkspaceLivePulse userId={session.userId} isPro={isPro} />
     </>
@@ -112,6 +114,7 @@ async function BookBodySection({ session }: { session: SessionPayload }) {
         openCalls={book.openCalls}
         needsClose={book.needsClose}
         recentWrapped={book.recentWrapped}
+        deskOpenCalls={book.deskOpenCalls}
         viewerUserId={session.userId}
         username={session.username}
         displayName={session.displayName}

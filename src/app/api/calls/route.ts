@@ -35,6 +35,7 @@ import { getDiscoveryCandidateById } from "@/lib/desk-discovery/scanner";
 import { loadDiscoveryMarketContext } from "@/lib/desk-discovery/draft-context";
 import { validateDiscoveryPublishLevels } from "@/lib/desk-discovery/level-sanity";
 import { AI_RAW_TEXT_MAX } from "@/lib/ai/source-material";
+import { normalizeTimeframeTag, CALL_TIMEFRAME_TAG_MAX } from "@/lib/calls/timeframe-tag";
 
 const createSchema = z.object({
   symbol: z.string().min(1).max(12),
@@ -45,7 +46,14 @@ const createSchema = z.object({
   triggerEntryPrice: z.number().positive().optional(),
   targetPrice: z.number().positive().optional(),
   stopPrice: z.number().positive().optional(),
-  timeframeTag: z.string().max(32).optional(),
+  timeframeTag: z
+    .string()
+    .max(CALL_TIMEFRAME_TAG_MAX)
+    .optional()
+    .transform((v) => {
+      const n = normalizeTimeframeTag(v);
+      return n || undefined;
+    }),
   sourceTweetUrl: z.string().url().max(500).optional(),
   socialAnalysisMode: z.enum(["default", "deep"]).optional(),
   socialAnalysisRawText: z.string().min(12).max(AI_RAW_TEXT_MAX).optional(),

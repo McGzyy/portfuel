@@ -85,6 +85,7 @@ export function MemberOpenBookPanel({
   openCalls,
   needsClose,
   recentWrapped,
+  deskOpenCalls,
   viewerUserId,
   username,
   displayName,
@@ -97,6 +98,7 @@ export function MemberOpenBookPanel({
   openCalls: MemberBookCallRow[];
   needsClose: MemberBookCallRow[];
   recentWrapped: MemberBookCallRow[];
+  deskOpenCalls: MemberBookCallRow[];
   viewerUserId: string;
   username: string;
   displayName: string | null;
@@ -112,26 +114,71 @@ export function MemberOpenBookPanel({
   const openCards = useMergedCalls(mapCards(openCalls));
   const needsCloseCards = useMergedCalls(mapCards(needsClose));
   const wrappedCards = mapCards(recentWrapped);
+  const deskCards = useMergedCalls(mapCards(deskOpenCalls));
 
-  const hasAny = openCards.length > 0 || needsCloseCards.length > 0 || wrappedCards.length > 0;
+  const hasMember =
+    openCards.length > 0 || needsCloseCards.length > 0 || wrappedCards.length > 0;
+  const hasAny = hasMember || deskCards.length > 0;
 
   if (!hasAny) {
     return (
       <section className="pf-workspace-panel px-5 py-10 text-center">
         <p className="font-medium text-[var(--pf-gray-700)]">No open calls on your book</p>
         <p className="mt-1 text-sm text-[var(--pf-gray-500)]">
-          Publish a thesis with entry, target, and stop — then close at market when your thesis
-          plays out.
+          Publish a personal member call, or post as the Fueled desk — desk positions appear in
+          the sections below and on the Desk page.
         </p>
-        <Link href={COPY.newCallHref} className="mt-4 inline-block">
-          <Button size="sm">{COPY.publishCallCta}</Button>
-        </Link>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <Link href={COPY.newCallHref}>
+            <Button size="sm">{COPY.publishCallCta}</Button>
+          </Link>
+          <Link href="/dashboard/desk">
+            <Button size="sm" variant="outline">
+              Fueled desk
+            </Button>
+          </Link>
+        </div>
       </section>
     );
   }
 
   return (
     <div className="space-y-6">
+      {deskCards.length > 0 ? (
+        <section className="pf-workspace-panel overflow-hidden" aria-label="Fueled desk positions">
+          <div className="pf-panel-inset-x flex flex-wrap items-end justify-between gap-3 border-b border-[var(--pf-border)] py-5">
+            <div>
+              <h2 className="text-sm font-bold tracking-tight text-[var(--pf-black)]">
+                Fueled desk positions
+              </h2>
+              <p className="mt-0.5 text-xs text-[var(--pf-gray-500)]">
+                House calls you published — tracked on the model portfolio, not your personal
+                member book
+              </p>
+            </div>
+            <Link
+              href="/dashboard/desk"
+              className="text-xs font-semibold text-[var(--pf-red)] hover:underline"
+            >
+              Full desk book →
+            </Link>
+          </div>
+          <CallList
+            calls={deskCards}
+            viewerUserId={viewerUserId}
+            username={username}
+            displayName={displayName}
+            avatarUrl={avatarUrl}
+            isAdmin={isAdmin}
+            isPro={isPro}
+            proLocked={proLocked}
+            interactive
+            showSparkline
+            quoteUpdatedAtBySymbol={quoteUpdatedAtBySymbol}
+            showQuoteFreshness
+          />
+        </section>
+      ) : null}
       {needsCloseCards.length > 0 ? (
         <section className="pf-workspace-panel overflow-hidden" aria-label="Target reached">
           <div className="pf-panel-inset-x border-b border-emerald-200/80 bg-emerald-50/60 py-5 dark:border-emerald-900/50 dark:bg-emerald-950/20">
