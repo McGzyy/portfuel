@@ -353,7 +353,9 @@ export function NewCallForm({
         body: JSON.stringify({
           symbol: symbol.toUpperCase(),
           assetClass,
+          direction,
           thesis: thesisTrimmed,
+          entryMode,
           triggerEntryPrice:
             entryMode === "conditional" && triggerEntryPrice
               ? parseFloat(triggerEntryPrice)
@@ -391,7 +393,7 @@ export function NewCallForm({
           setError("Call saved but discovery link failed — check Admin → Discovery.");
         } else if (data.error === "invalid_input") {
           setError(
-            "Could not publish — check thesis length (max 5,000 chars) and timeframe tag (max 32 chars)."
+            "Could not publish — check required fields (symbol, direction, thesis at least 10 characters)."
           );
         } else {
           setError(typeof data.error === "string" ? data.error : "Could not submit call.");

@@ -122,7 +122,13 @@ export function NotificationBell() {
       </button>
 
       {open ? (
-        <div className="pf-popover-panel absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] shadow-[var(--pf-shadow-lg)]">
+        <div
+          className={cn(
+            "pf-popover-panel z-[60] overflow-hidden rounded-[var(--pf-radius-lg)] border border-[var(--pf-border)] shadow-[var(--pf-shadow-lg)]",
+            "fixed left-3 right-3 top-[calc(3.25rem+var(--pf-safe-top,0px)+0.5rem)] max-h-[min(24rem,calc(100dvh-5rem))]",
+            "sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:max-h-none sm:w-[min(22rem,calc(100vw-2rem))]"
+          )}
+        >
           <div className="flex items-center justify-between border-b border-[var(--pf-border)] bg-[var(--pf-gray-50)]/60 px-4 py-3">
             <p className="text-sm font-bold text-[var(--pf-black)]">Notifications</p>
             {unread > 0 ? (
@@ -136,7 +142,7 @@ export function NotificationBell() {
             ) : null}
           </div>
 
-          <div ref={scrollRef} className="max-h-[min(24rem,60vh)] overflow-y-auto">
+          <div ref={scrollRef} className="max-h-[min(20rem,50dvh)] overflow-y-auto sm:max-h-[min(24rem,60vh)]">
             {loading && items.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-[var(--pf-gray-500)]">Loading…</p>
             ) : items.length === 0 ? (
